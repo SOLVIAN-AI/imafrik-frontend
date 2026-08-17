@@ -44,14 +44,17 @@
   --color-ink-100: oklch(0.93 0.004 250);
   --color-ink-50: oklch(0.97 0.003 250);
 
-  /* ─── Accent : interactif, et rien d'autre ─────────────────────────
-     Cyan-sarcelle désaturé. Assez présent pour guider l'œil, assez sobre
-     pour ne pas concurrencer une image médicale. Réservé aux actions, au
-     focus et à la sélection — jamais à une surface. */
-  --color-accent-600: oklch(0.55 0.09 205);
-  --color-accent-500: oklch(0.65 0.1 205);
-  --color-accent-400: oklch(0.74 0.1 205);
-  --color-accent-300: oklch(0.82 0.08 205);
+  /* ─── Accent : bleu ciel ───────────────────────────────────────────
+     Accordé au logo. Assez lumineux pour porter l'identité, assez froid
+     pour ne pas réchauffer un gris médical adjacent. Réservé à
+     l'interactif — action, focus, sélection — et à la marque. Jamais un
+     aplat au contact d'une image. */
+  --color-accent-700: oklch(0.46 0.15 248);
+  --color-accent-600: oklch(0.56 0.16 246);
+  --color-accent-500: oklch(0.66 0.15 243);
+  --color-accent-400: oklch(0.74 0.13 240);
+  --color-accent-300: oklch(0.83 0.09 238);
+  --color-accent-200: oklch(0.90 0.05 236);
 
   /* ─── Sémantique : un statut, une teinte, sans recouvrement ────────
      Le rouge n'est jamais décoratif. En imagerie médicale il ne signifie
@@ -100,6 +103,15 @@
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
 
+  /* ─── Matière ─────────────────────────────────────────────────────
+     Le détail qui sépare une interface sombre soignée d'un simple fond
+     noir : une arête claire d'un pixel sur le bord supérieur des
+     surfaces. Elle simule la lumière rasante d'une pièce et donne de
+     l'épaisseur à ce qui serait autrement une découpe plate. Invisible
+     consciemment, décisive dans l'impression d'ensemble. */
+  --edge-highlight: inset 0 1px 0 0 oklch(1 0 0 / 0.055);
+  --edge-highlight-strong: inset 0 1px 0 0 oklch(1 0 0 / 0.09);
+
   /* ─── Mouvement ───────────────────────────────────────────────────
      Court et sans rebond. Une animation qui se remarque fait perdre du
      temps à quelqu'un qui enchaîne quarante examens. */
@@ -135,7 +147,7 @@
 
   --accent: var(--color-accent-400);
   --accent-hover: var(--color-accent-300);
-  --accent-muted: oklch(0.74 0.1 205 / 0.14);
+  --accent-muted: oklch(0.74 0.13 240 / 0.16);
   --accent-contrast: var(--color-ink-950);
 
   --urgent: var(--color-urgent-400);
@@ -145,9 +157,17 @@
   --done: var(--color-done-400);
   --done-muted: oklch(0.74 0.11 155 / 0.15);
 
-  /* En thème sombre, l'élévation se lit par la clarté de la surface, pas
-     par une ombre : une ombre portée sur fond noir ne se voit pas. */
+  /* En thème sombre, l'élévation se lit d'abord par la clarté de la
+     surface — une ombre portée sur fond noir ne se voit pas — mais
+     l'arête claire, elle, fait toute la différence. */
   --shadow-overlay: 0 16px 48px -12px oklch(0 0 0 / 0.7);
+  --shadow-raised: 0 1px 2px 0 oklch(0 0 0 / 0.4), var(--edge-highlight);
+  --edge: var(--edge-highlight);
+
+  /* Halo d'accent, très dilué. Posé derrière la marque et sous l'en-tête,
+     il donne une source lumineuse implicite à l'interface plutôt qu'un
+     aplat uniforme. */
+  --glow-accent: oklch(0.74 0.13 240 / 0.10);
 
   color-scheme: dark;
 }
@@ -171,8 +191,8 @@
   /* Teintes plus soutenues en clair : le contraste avec un fond blanc
      demande davantage de chroma pour une lisibilité équivalente. */
   --accent: var(--color-accent-600);
-  --accent-hover: var(--color-accent-500);
-  --accent-muted: oklch(0.55 0.09 205 / 0.1);
+  --accent-hover: var(--color-accent-700);
+  --accent-muted: oklch(0.56 0.16 246 / 0.11);
   --accent-contrast: oklch(1 0 0);
 
   --urgent: var(--color-urgent-500);
@@ -183,6 +203,12 @@
   --done-muted: oklch(0.66 0.13 155 / 0.12);
 
   --shadow-overlay: 0 16px 48px -16px oklch(0.2 0.02 250 / 0.18);
+  --shadow-raised: 0 1px 2px 0 oklch(0.2 0.02 250 / 0.06);
+  /* En clair, une arête blanche ne se verrait pas : c'est l'ombre portée
+     qui porte le relief. */
+  --edge: 0 0 0 0 transparent;
+
+  --glow-accent: oklch(0.56 0.16 246 / 0.07);
 
   color-scheme: light;
 }
@@ -216,7 +242,9 @@
   --color-done: var(--done);
   --color-done-muted: var(--done-muted);
 
+  --shadow-raised: var(--shadow-raised);
   --shadow-overlay: var(--shadow-overlay);
+  --shadow-edge: var(--edge);
 }
 
 /* ══════════════════════════════════════════════════════════════════════

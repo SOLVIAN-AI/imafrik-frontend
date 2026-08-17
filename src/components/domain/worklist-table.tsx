@@ -100,7 +100,7 @@ export function WorklistTable({
     <div className="min-h-0 flex-1 overflow-auto">
       <table className="w-full border-separate border-spacing-0 text-sm">
         <thead className="sticky top-0 z-10">
-          <tr className="[&>th]:h-8 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-base [&>th]:px-3 [&>th]:text-left [&>th]:font-medium">
+          <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
             <th scope="col" className="w-[26%]">
               <span className="label-eyebrow">Patient</span>
             </th>
@@ -143,7 +143,8 @@ export function WorklistTable({
                 }}
                 className={cn(
                   "cursor-pointer outline-none",
-                  "[&>td]:h-10 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-3",
+                  "[&>td]:h-11 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4",
+                  "last:[&>td]:border-b-0",
                   "transition-colors duration-75",
                   "hover:bg-surface-hover focus-visible:bg-surface-hover",
                   study.urgent && "rail-urgent",
