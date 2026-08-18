@@ -102,6 +102,59 @@ porterait encore l'ancienne organisation.
 
 ---
 
+---
+
+## L'API IMAFRIK
+
+### Contrat typé
+
+Les types TypeScript sont **générés** depuis le contrat du service, pas
+écrits à la main :
+
+```bash
+npm run api:types    # régénère src/lib/api/schema.d.ts
+npm run api:check    # échoue si le contrat a changé sans régénération
+```
+
+`api:check` a sa place dans l'intégration continue : c'est ce qui
+transforme un changement d'API silencieux en échec de build, plutôt qu'en
+écran cassé découvert par un utilisateur.
+
+### Validation au passage de la frontière
+
+Les charges reçues sont validées par des schémas zod
+(`src/lib/api/contracts.ts`) avant d'entrer dans l'application.
+
+> ⚠️ **À corriger côté backend.** Les routes `GET /studies` et
+> `GET /studies/{id}` déclarent aujourd'hui un objet libre
+> (`additionalProperties: true`) : la génération produit donc un
+> `Record<string, unknown>`, sans garantie de forme. Déclarer les modèles
+> de réponse Pydantic côté service, puis régénérer.
+
+Même une fois ces modèles publiés, la validation garde sa valeur : un
+type TypeScript est effacé à l'exécution, et une réponse qui change de
+forme après un déploiement ne produirait qu'un `undefined` silencieux au
+milieu d'un écran. Ici, l'erreur est nette et à l'endroit du problème.
+
+### Où passent les appels
+
+**Tous côté serveur, aucun depuis le navigateur.** Le jeton qui autorise
+l'appel vit dans un cookie `httpOnly` ; appeler l'API depuis le client
+obligerait à le lui exposer, ce qui annulerait l'intérêt du cookie.
+
+Les écritures — brouillon, signature, prise en charge — sont des actions
+serveur (`src/lib/data/actions.ts`).
+
+### Traduction des formes
+
+`src/lib/data/` traduit la forme de l'API vers celle de l'interface
+(`patient_name` → `patientName`, chaînes ISO → `Date`). La conversion a
+lieu **une fois**, à cet endroit : sans cette frontière, chaque écran
+devrait connaître le nommage du service, et un renommage côté API se
+propagerait dans toute l'interface.
+
+---
+
 ## Prérequis côté Supabase
 
 Ces éléments sont posés par les migrations du dépôt backend et doivent

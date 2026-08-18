@@ -18,29 +18,27 @@ import {
   type SectionKey,
 } from "@/components/editor/report-editor";
 import { SignReportDialog } from "@/components/editor/sign-report-dialog";
-import { ViewerPane, type ViewerStudy } from "@/components/editor/viewer-pane";
+import { ViewerPane } from "@/components/editor/viewer-pane";
 import {
   StudyStatusChip,
   UrgentMarker,
 } from "@/components/domain/study-status";
-import type { StudyStatus } from "@/components/domain/study-status";
 import { useAutosave } from "@/hooks/use-autosave";
+import { saveReportDraft, signReport } from "@/lib/data/actions";
+import type { Study } from "@/lib/data/studies";
 import { useSession } from "@/components/providers/session-provider";
 import { homeFor } from "@/lib/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/** Contexte de l'examen lu, affiché en tête d'écran. */
-export interface WorkspaceStudy extends ViewerStudy {
-  id: string;
-  patientName: string;
-  patientId: string;
-  modality: string;
-  bodyPart: string | null;
-  clinic: string;
-  status: StudyStatus;
-  urgent: boolean;
-}
+/**
+ * Contexte de l'examen lu, affiché en tête d'écran.
+ *
+ * Alias du type de la couche de données : l'espace de travail n'a pas de
+ * forme à lui, et redéclarer les champs obligerait à les tenir en phase
+ * à la main.
+ */
+export type WorkspaceStudy = Study;
 
 /** Clé de persistance du partage entre les deux volets. */
 const LAYOUT_STORAGE_KEY = "imafrik.reading.layout";
@@ -190,43 +188,51 @@ function StudyBar({
  *
  * @param study      Examen lu.
  * @param viewerUrl  URL signée du viewer, `null` s'il n'est pas joignable.
+ * @param reportId   Compte-rendu à écrire. `null` tant qu'aucun n'existe
+ *                   — l'enregistrement est alors suspendu plutôt que
+ *                   d'écrire dans le vide.
  * @param initial    Contenu initial du compte-rendu, tel qu'il est en base.
  * @param canEdit    Faux en consultation : ni rédaction, ni signature.
  * @param signerName Nom porté par la signature.
- * @param saveDraft  Enregistre le brouillon. Doit rejeter en cas d'échec.
- * @param signReport Signe le compte-rendu. Doit rejeter en cas d'échec.
  */
 export function ReportWorkspace({
   study,
   viewerUrl,
+  reportId,
   initial,
   initiallySigned = false,
   canEdit = true,
   signerName,
-  saveDraft,
-  signReport,
 }: {
   study: WorkspaceStudy;
   viewerUrl: string | null;
+  reportId: string | null;
   initial: ReportSections;
   initiallySigned?: boolean;
   canEdit?: boolean;
   signerName: string;
-  saveDraft: (sections: ReportSections) => Promise<void>;
-  signReport: (sections: ReportSections) => Promise<void>;
 }) {
   const [sections, setSections] = React.useState<ReportSections>(initial);
   const [signed, setSigned] = React.useState(initiallySigned);
   const [confirming, setConfirming] = React.useState(false);
   const { groupRef, onLayoutChanged } = usePersistedLayout();
 
-  // Un compte-rendu signé, ou consulté par une clinique, ne s'écrit plus.
+  // Un compte-rendu signé, consulté par une clinique, ou pas encore créé
+  // en base, ne s'écrit pas.
   const locked = signed || !canEdit;
+
+  const save = React.useCallback(
+    async (value: ReportSections) => {
+      if (!reportId) return;
+      await saveReportDraft(reportId, value);
+    },
+    [reportId],
+  );
 
   const { state, flush } = useAutosave({
     value: sections,
-    save: saveDraft,
-    disabled: locked,
+    save,
+    disabled: locked || reportId === null,
   });
 
   const update = React.useCallback((key: SectionKey, html: string) => {
@@ -242,9 +248,9 @@ export function ReportWorkspace({
    */
   const sign = React.useCallback(async () => {
     await flush();
-    await signReport(sections);
+    if (reportId) await signReport(reportId);
     setSigned(true);
-  }, [flush, signReport, sections]);
+  }, [flush, reportId]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">

@@ -31,7 +31,9 @@ export const facilitySchema = z.object({
   name: z.string().min(2, "Indiquez le nom de l’établissement."),
   city: z.string().min(2, "Indiquez la ville."),
   address: z.string().min(5, "Indiquez l’adresse postale."),
-  contactName: z.string().min(3, "Indiquez le responsable médical à contacter."),
+  contactName: z
+    .string()
+    .min(3, "Indiquez le responsable médical à contacter."),
   contactPhone: z
     .string()
     .min(8, "Un numéro joignable est indispensable pour les urgences."),
@@ -55,7 +57,9 @@ export const teamSchema = z.object({
 
 export const profileSchema = z.object({
   fullName: z.string().min(3, "Indiquez votre nom complet."),
-  title: z.string().min(2, "Indiquez votre titre — il figurera sur vos comptes-rendus."),
+  title: z
+    .string()
+    .min(2, "Indiquez votre titre — il figurera sur vos comptes-rendus."),
   specialties: z
     .array(z.string())
     .min(1, "Choisissez au moins une modalité que vous lisez."),

@@ -77,9 +77,7 @@ export function MarketingFooter() {
 
       <div className="border-t border-border-subtle">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-5 text-2xs text-tertiary sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            IMAFRIK est un service édité par SOLVIAN AI LLC · Lomé, Togo
-          </p>
+          <p>IMAFRIK est un service édité par SOLVIAN AI LLC · Lomé, Togo</p>
           <p>Images hébergées dans l’Union européenne, chiffrées au repos.</p>
         </div>
       </div>

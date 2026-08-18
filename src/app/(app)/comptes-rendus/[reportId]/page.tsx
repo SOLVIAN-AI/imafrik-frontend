@@ -1,14 +1,11 @@
-"use client";
-
 import { Download, Printer, ShieldCheck } from "lucide-react";
 import { notFound } from "next/navigation";
-import * as React from "react";
 
 import { ReportDocument } from "@/components/editor/report-document";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { findDemoReport } from "@/lib/demo/reports";
-import { findDemoStudy } from "@/lib/demo/studies";
+import { getReport } from "@/lib/data/reports";
+import { getStudy } from "@/lib/data/studies";
 import { DateTime } from "@/components/domain/date-time";
 import { formatPatientName } from "@/lib/format";
 
@@ -25,12 +22,12 @@ import { formatPatientName } from "@/lib/format";
  * document long, la question « qui a signé, et quand » se pose avant la
  * lecture, pas après.
  */
-export default function ReportPage({
+export default async function ReportPage({
   params,
 }: PageProps<"/comptes-rendus/[reportId]">) {
-  const { reportId } = React.use(params);
-  const report = findDemoReport(reportId);
-  const study = report ? findDemoStudy(report.studyId) : undefined;
+  const { reportId } = await params;
+  const report = await getReport(reportId);
+  const study = report ? await getStudy(report.studyId) : null;
 
   if (!report || !study) notFound();
 
@@ -58,22 +55,26 @@ export default function ReportPage({
           <Panel className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
             <div>
               <p className="label-eyebrow">Signé par</p>
-              <p className="text-sm font-medium">{report.signedBy}</p>
+              <p className="text-sm font-medium">{report.signedBy ?? "—"}</p>
               <p className="text-2xs text-tertiary">{report.signerTitle}</p>
             </div>
             <div>
               <p className="label-eyebrow">Date de signature</p>
-              <DateTime date={report.signedAt} className="text-sm" />
+              {report.signedAt && (
+                <DateTime date={report.signedAt} className="text-sm" />
+              )}
             </div>
             <div className="ml-auto text-right">
               <p className="label-eyebrow flex items-center justify-end gap-1.5">
                 <ShieldCheck className="size-3 text-done" aria-hidden />
                 Code de vérification
               </p>
-              <p className="font-mono text-sm">{report.verifyToken}</p>
-              <p className="text-2xs text-tertiary">
-                imafrik.com/verifier/{report.verifyToken}
-              </p>
+              <p className="font-mono text-sm">{report.verifyToken ?? "—"}</p>
+              {report.verifyToken && (
+                <p className="text-2xs text-tertiary">
+                  imafrik.com/verifier/{report.verifyToken}
+                </p>
+              )}
             </div>
           </Panel>
 

@@ -11,11 +11,46 @@ import { cn } from "@/lib/utils";
  * suivre le thème.
  */
 const ROWS = [
-  { name: "KOFFI Ama", exam: "CT · Thorax", state: "À lire", tone: "wait", urgent: true, age: "8 min" },
-  { name: "MENSAH Kodjo", exam: "MR · Crâne", state: "En cours", tone: "progress", urgent: false, age: "47 min" },
-  { name: "SOGLO Yawa", exam: "CR · Thorax", state: "À lire", tone: "wait", urgent: false, age: "1 h" },
-  { name: "AGBEKO Selom", exam: "CT · Abdomen", state: "Rendu", tone: "done", urgent: false, age: "3 h" },
-  { name: "DOSSEH Afi", exam: "US · Pelvis", state: "Attribué", tone: "wait", urgent: false, age: "2 h" },
+  {
+    name: "KOFFI Ama",
+    exam: "CT · Thorax",
+    state: "À lire",
+    tone: "wait",
+    urgent: true,
+    age: "8 min",
+  },
+  {
+    name: "MENSAH Kodjo",
+    exam: "MR · Crâne",
+    state: "En cours",
+    tone: "progress",
+    urgent: false,
+    age: "47 min",
+  },
+  {
+    name: "SOGLO Yawa",
+    exam: "CR · Thorax",
+    state: "À lire",
+    tone: "wait",
+    urgent: false,
+    age: "1 h",
+  },
+  {
+    name: "AGBEKO Selom",
+    exam: "CT · Abdomen",
+    state: "Rendu",
+    tone: "done",
+    urgent: false,
+    age: "3 h",
+  },
+  {
+    name: "DOSSEH Afi",
+    exam: "US · Pelvis",
+    state: "Attribué",
+    tone: "wait",
+    urgent: false,
+    age: "2 h",
+  },
 ] as const;
 
 const TONES = {

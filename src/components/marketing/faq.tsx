@@ -53,10 +53,7 @@ const QUESTIONS = [
  */
 export function Faq() {
   return (
-    <Section
-      eyebrow="Questions"
-      title="Ce qu’on nous demande avant de signer"
-    >
+    <Section eyebrow="Questions" title="Ce qu’on nous demande avant de signer">
       <div className="mt-10 divide-y divide-border-subtle overflow-hidden rounded-2xl border border-border-subtle bg-surface-raised">
         {QUESTIONS.map((entry) => (
           <details key={entry.question} className="group">

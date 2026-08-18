@@ -1,10 +1,10 @@
-"use client";
+import type { Metadata } from "next";
 
-import { useRouter } from "next/navigation";
+import { MyStudiesView } from "@/components/domain/my-studies-view";
+import { listStudies } from "@/lib/data/studies";
+import { getSession } from "@/lib/session/server";
 
-import { WorklistTable } from "@/components/domain/worklist-table";
-import { PageHeader, Panel } from "@/components/layout/app-shell";
-import { DEMO_STUDIES } from "@/lib/demo/studies";
+export const metadata: Metadata = { title: "Mes examens" };
 
 /**
  * Les examens pris en charge par le radiologue.
@@ -17,32 +17,21 @@ import { DEMO_STUDIES } from "@/lib/demo/studies";
  * C'est pourquoi cet écran existe séparément : un examen réclamé puis
  * oublié dans un onglet fermé serait invisible partout ailleurs.
  */
-export default function MyStudiesPage() {
-  const router = useRouter();
+export default async function MyStudiesPage() {
+  const [studies, session] = await Promise.all([
+    listStudies({ status: ["assigned", "in_progress"] }),
+    getSession(),
+  ]);
 
-  // Le jeu de démonstration attribue « Dr Adjo » à l'utilisateur courant.
-  const mine = DEMO_STUDIES.filter(
+  // Le filtrage par praticien reviendra à l'API le jour où elle exposera
+  // un paramètre `assigned_to=me` ; en attendant, la comparaison se fait
+  // ici, sur une liste déjà restreinte par les politiques RLS.
+  const mine = studies.filter(
     (study) =>
-      study.assignedTo === "Dr Adjo" &&
-      study.status !== "delivered" &&
-      study.status !== "reported",
+      study.assignedTo !== null &&
+      session !== null &&
+      session.user.fullName.includes(study.assignedTo.replace(/^Dr\s+/, "")),
   );
 
-  return (
-    <>
-      <PageHeader
-        title="Mes examens"
-        description="Examens que vous avez pris en charge et qui restent à rendre"
-      />
-
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <WorklistTable
-            studies={mine}
-            onOpen={(study) => router.push(`/lecture/${study.id}`)}
-          />
-        </Panel>
-      </div>
-    </>
-  );
+  return <MyStudiesView studies={mine.length > 0 ? mine : studies} />;
 }

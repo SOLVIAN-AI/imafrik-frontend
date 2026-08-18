@@ -8,8 +8,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { findDemoReport } from "@/lib/demo/reports";
-import { findDemoStudy } from "@/lib/demo/studies";
+import { verifyReport } from "@/lib/data/verification";
 import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -44,19 +43,11 @@ export default async function VerifyPage({
 }: PageProps<"/verifier/[token]">) {
   const { token } = await params;
 
-  // À remplacer par l’appel API. La comparaison est faite sans tenir
-  // compte de la casse ni des tirets : le code est recopié à la main
-  // depuis un papier, souvent mal.
-  const normalized = token.replaceAll("-", "").toUpperCase();
-  const report = [findDemoReport("r-4815"), findDemoReport("r-4809")].find(
-    (candidate) =>
-      candidate?.verifyToken.replaceAll("-", "").toUpperCase() === normalized,
-  );
-  const study = report ? findDemoStudy(report.studyId) : undefined;
+  const attestation = await verifyReport(token);
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center px-6 py-20 text-center md:py-28">
-      {report && study ? (
+      {attestation ? (
         <>
           <span
             className="flex size-14 items-center justify-center rounded-2xl bg-done-muted ring-1 ring-done/25 ring-inset"
@@ -74,24 +65,24 @@ export default async function VerifyPage({
             <Row
               icon={Stethoscope}
               label="Signé par"
-              value={report.signedBy}
-              detail={report.signerTitle}
+              value={attestation.signedBy}
+              detail={attestation.signerTitle}
             />
             <Row
               icon={CalendarCheck}
               label="Date de signature"
-              value={formatDateTime(report.signedAt)}
+              value={formatDateTime(attestation.signedAt)}
             />
             <Row
               icon={FileCheck2}
               label="Examen"
-              value={`${study.modality} · ${study.bodyPart ?? "—"}`}
-              detail={study.clinic}
+              value={`${attestation.modality} · ${attestation.bodyPart ?? "—"}`}
+              detail={attestation.clinic}
             />
           </dl>
 
           <p className="mt-6 font-mono text-2xs text-tertiary">
-            Code vérifié : {report.verifyToken}
+            Code vérifié : {attestation.token}
           </p>
         </>
       ) : (

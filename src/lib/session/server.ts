@@ -65,8 +65,12 @@ export async function getSession(): Promise<Session | null> {
   ]);
 
   const memberships: Membership[] = (rows ?? [])
-    .filter((row): row is MembershipRow & { organizations: NonNullable<MembershipRow["organizations"]> } =>
-      row.organizations !== null,
+    .filter(
+      (
+        row,
+      ): row is MembershipRow & {
+        organizations: NonNullable<MembershipRow["organizations"]>;
+      } => row.organizations !== null,
     )
     .map((row) => ({
       id: row.id,

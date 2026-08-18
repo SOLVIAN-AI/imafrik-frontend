@@ -1,4 +1,10 @@
-import { ArrowRight, FileLock2, KeyRound, ScrollText, ServerCog } from "lucide-react";
+import {
+  ArrowRight,
+  FileLock2,
+  KeyRound,
+  ScrollText,
+  ServerCog,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Section } from "@/components/marketing/section";

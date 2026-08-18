@@ -1,9 +1,7 @@
-"use client";
-
 import { Download, ImageOff, PenTool, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import * as React from "react";
+import type * as React from "react";
 
 import { ReportDocument } from "@/components/editor/report-document";
 import {
@@ -13,9 +11,9 @@ import {
 import { StudyTimeline } from "@/components/domain/study-timeline";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { useSession } from "@/components/providers/session-provider";
-import { reportForStudy } from "@/lib/demo/reports";
-import { findDemoStudy } from "@/lib/demo/studies";
+import { getReportForStudy } from "@/lib/data/reports";
+import { getStudy } from "@/lib/data/studies";
+import { getSession } from "@/lib/session/server";
 import { DateTime } from "@/components/domain/date-time";
 import { formatPatientName } from "@/lib/format";
 import type { StudyStatus } from "@/components/domain/study-status";
@@ -32,17 +30,22 @@ import type { StudyStatus } from "@/components/domain/study-status";
  * À ne pas confondre avec `/lecture/[id]`, qui est le poste de travail du
  * radiologue : ici on consulte, là on rédige.
  */
-export default function StudySheetPage({
+export default async function StudySheetPage({
   params,
 }: PageProps<"/examens/[studyId]">) {
-  const { studyId } = React.use(params);
-  const { active } = useSession();
-  const study = findDemoStudy(studyId);
+  const { studyId } = await params;
+
+  // Les trois lectures sont indépendantes : les enchaîner ferait
+  // attendre l'écran pour rien.
+  const [study, report, session] = await Promise.all([
+    getStudy(studyId),
+    getReportForStudy(studyId),
+    getSession(),
+  ]);
 
   if (!study) notFound();
 
-  const report = reportForStudy(study.id);
-  const isRadiologist = active.role === "radiologist";
+  const isRadiologist = session?.active.role === "radiologist";
 
   return (
     <>
@@ -89,7 +92,7 @@ export default function StudySheetPage({
                     <span className="text-secondary">{report.signedBy}</span>
                   </span>
                   <span>{report.signerTitle}</span>
-                  <DateTime date={report.signedAt} />
+                  {report.signedAt && <DateTime date={report.signedAt} />}
                   <span className="ml-auto flex items-center gap-1.5 text-done">
                     <ShieldCheck className="size-3.5" aria-hidden />
                     <span className="font-mono">{report.verifyToken}</span>
@@ -118,7 +121,7 @@ export default function StudySheetPage({
                 dates={timelineDates(
                   study.status,
                   study.receivedAt,
-                  report?.signedAt,
+                  report?.signedAt ?? undefined,
                 )}
               />
             </div>

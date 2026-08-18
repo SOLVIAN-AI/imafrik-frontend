@@ -23,7 +23,10 @@ export function FinalCta() {
           }}
           aria-hidden
         />
-        <div className="dot-grid pointer-events-none absolute inset-0" aria-hidden />
+        <div
+          className="dot-grid pointer-events-none absolute inset-0"
+          aria-hidden
+        />
 
         <div className="relative mx-auto max-w-2xl">
           <h2 className="text-3xl font-semibold md:text-4xl">
@@ -32,8 +35,8 @@ export function FinalCta() {
           </h2>
           <p className="mt-4 text-base leading-relaxed text-secondary">
             Trente minutes suffisent : vous nous décrivez votre installation et
-            votre volume, nous vous montrons le parcours complet d’un examen,
-            de l’envoi au compte-rendu signé.
+            votre volume, nous vous montrons le parcours complet d’un examen, de
+            l’envoi au compte-rendu signé.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

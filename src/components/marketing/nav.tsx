@@ -58,7 +58,12 @@ export function MarketingNav() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
-          <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="hidden sm:inline-flex"
+          >
             <Link href="/connexion">Se connecter</Link>
           </Button>
           <Button size="sm" asChild>

@@ -7,25 +7,22 @@ import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
   UrgentMarker,
-  type StudyStatus,
 } from "@/components/domain/study-status";
+import type { Study } from "@/lib/data/studies";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-/** Ce qu'il faut d'un examen pour l'afficher dans la liste d'une clinique. */
-export interface ListedStudy {
-  id: string;
-  patientName: string;
-  patientId: string;
-  modality: string;
-  bodyPart: string | null;
-  status: StudyStatus;
-  urgent: boolean;
-  instanceCount: number;
-  receivedAt: Date;
+/**
+ * Un examen accompagné de l'état de son compte-rendu.
+ *
+ * La clinique regarde d'abord la dernière colonne : le document est-il
+ * arrivé ? L'information ne vient pas de la table des examens, d'où ce
+ * champ ajouté au type de base plutôt qu'un second appel par ligne.
+ */
+export type ListedStudy = Study & {
   /** Identifiant du compte-rendu signé, s'il existe. */
   reportId?: string;
-}
+};
 
 /**
  * Liste des examens envoyés, vue de la clinique.

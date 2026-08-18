@@ -6,23 +6,19 @@ import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
   UrgentMarker,
-  type StudyStatus,
 } from "@/components/domain/study-status";
+import type { Study } from "@/lib/data/studies";
 import { cn } from "@/lib/utils";
 
-export interface WorklistStudy {
-  id: string;
-  patientName: string;
-  patientId: string;
-  modality: string;
-  bodyPart: string | null;
-  clinic: string;
-  status: StudyStatus;
-  urgent: boolean;
-  instanceCount: number;
-  receivedAt: Date;
-  assignedTo: string | null;
-}
+/**
+ * Ce que la table affiche.
+ *
+ * Alias du type de la couche de données : la table n'a pas de forme à
+ * elle. Redéclarer les champs ici obligerait à les tenir en phase à la
+ * main, et le jour où l'API en ajoute un, la duplication se voit au
+ * mauvais moment.
+ */
+export type WorklistStudy = Study;
 
 /**
  * Formate un nom au format DICOM pour la lecture.

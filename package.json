@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "api:types": "openapi-typescript ../backend/services/api/openapi.json -o src/lib/api/schema.d.ts",
+    "api:check": "openapi-typescript ../backend/services/api/openapi.json -o /tmp/imafrik-schema.d.ts && diff -q /tmp/imafrik-schema.d.ts src/lib/api/schema.d.ts",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
