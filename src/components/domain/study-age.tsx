@@ -39,9 +39,16 @@ export function formatAge(date: Date, now: Date = new Date()): string {
  * avec les vraies dates de réception.
  *
  * La cellule est donc vide au premier rendu, puis se remplit et se met à
- * jour toute seule au rythme de l'horloge partagée. L'horodatage exact
- * reste porté par l'attribut `dateTime`, lisible par les technologies
- * d'assistance et stable des deux côtés.
+ * jour toute seule au rythme de l'horloge partagée.
+ *
+ * L'attribut `dateTime` — l'horodatage machine, lu par les technologies
+ * d'assistance — n'apparaît qu'à ce moment-là, et pas avant. Il dérive
+ * lui aussi d'une date que les deux côtés ne partagent pas forcément :
+ * le jeu de démonstration fabrique ses dates à partir de l'instant de
+ * chargement du module, évalué une fois au démarrage du serveur et une
+ * autre fois dans le navigateur. Émettre l'attribut au rendu serveur
+ * rejouerait donc exactement la divergence que ce composant existe pour
+ * éviter.
  *
  * La teinte ambre passé le seuil n'est pas décorative : une durée seule
  * demande une comparaison mentale, la couleur fait ressortir ce qui
@@ -61,9 +68,7 @@ export function StudyAge({
   className?: string;
 }) {
   const now = useNow();
-  if (!now) {
-    return <time dateTime={date.toISOString()} className={className} />;
-  }
+  if (!now) return <time className={className} />;
 
   const hours = (now - date.getTime()) / 3_600_000;
   const stale = !muted && hours > STALE_AFTER_HOURS;
