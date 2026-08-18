@@ -71,7 +71,7 @@ export function Textarea({
  *
  * @example
  * ```tsx
- * <Field id="aet" label="AET de l'établissement" hint="16 caractères maximum">
+ * <Field id="aet" label="AET de l’établissement" hint="16 caractères maximum">
  *   <Input id="aet" defaultValue="STJOSEPH_LOME" />
  * </Field>
  * ```

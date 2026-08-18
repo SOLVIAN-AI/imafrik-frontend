@@ -38,7 +38,7 @@ export default function SettingsPage() {
             title="Profil"
             description={
               isClinic
-                ? "Votre identité au sein de l'établissement. Elle figure dans le journal d'accès aux examens."
+                ? "Votre identité au sein de l’établissement. Elle figure dans le journal d’accès aux examens."
                 : "Ces informations apparaissent sur les comptes-rendus que vous signez."
             }
           >
@@ -50,7 +50,7 @@ export default function SettingsPage() {
               label="Titre"
               hint={
                 isClinic
-                  ? "Fonction dans l'établissement."
+                  ? "Fonction dans l’établissement."
                   : "Imprimé sous la signature."
               }
             >
@@ -59,7 +59,7 @@ export default function SettingsPage() {
             {!isClinic && (
               <Field
                 id="license"
-                label="Numéro d'ordre"
+                label="Numéro d’ordre"
                 hint="Obligatoire pour signer un compte-rendu."
               >
                 <Input id="license" defaultValue="TG-1284" />
@@ -88,7 +88,7 @@ export default function SettingsPage() {
             <>
               <Section
                 title="Établissement"
-                description="Identité de la clinique, telle qu'elle apparaît sur les documents."
+                description="Identité de la clinique, telle qu’elle apparaît sur les documents."
               >
                 <Field id="org" label="Raison sociale">
                   <Input id="org" defaultValue={active.organizationName} />
@@ -101,7 +101,7 @@ export default function SettingsPage() {
               <Panel className="overflow-hidden">
                 <SectionHeader
                   title="Envoi DICOM"
-                  description="Valeurs à recopier dans la configuration de votre PACS. Modifier l'AET interrompt les envois jusqu'à mise à jour côté PACS."
+                  description="Valeurs à recopier dans la configuration de votre PACS. Modifier l’AET interrompt les envois jusqu’à mise à jour côté PACS."
                 />
                 <DicomSettingsCard
                   settings={{
@@ -125,7 +125,7 @@ export default function SettingsPage() {
               hint={
                 isClinic
                   ? "Quand un compte-rendu urgent est signé."
-                  : "Dès qu'un examen urgent entre dans la file."
+                  : "Dès qu’un examen urgent entre dans la file."
               }
               defaultChecked
             />
@@ -139,7 +139,7 @@ export default function SettingsPage() {
 
           <Section
             title="Sécurité"
-            description="L'accès aux images est tracé : chaque consultation est enregistrée."
+            description="L’accès aux images est tracé : chaque consultation est enregistrée."
           >
             <Field id="password" label="Mot de passe">
               <Input id="password" type="password" defaultValue="••••••••••" />

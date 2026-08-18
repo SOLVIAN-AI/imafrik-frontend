@@ -66,7 +66,7 @@ export function SignReportDialog({
       onOpenChange(false);
     } catch {
       setError(
-        "La signature n'a pas abouti. Le compte-rendu reste un brouillon ; " +
+        "La signature n’a pas abouti. Le compte-rendu reste un brouillon ; " +
           "vos modifications sont conservées.",
       );
     } finally {

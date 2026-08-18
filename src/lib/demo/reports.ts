@@ -36,11 +36,11 @@ export const DEMO_REPORTS: DemoReport[] = [
         "<p>Douleurs abdominales diffuses depuis quarante-huit heures, fébricule à 38,2 °C.</p>",
       technique:
         "<p>Acquisition hélicoïdale abdomino-pelvienne avant et après injection de produit de contraste iodé. Reconstructions multiplanaires.</p>",
-      comparatif: "<p>Absence d'examen antérieur disponible.</p>",
+      comparatif: "<p>Absence d’examen antérieur disponible.</p>",
       resultats:
         '<p style="text-align: justify">Le foie est de taille et de densité normales, sans lésion focale. Les voies biliaires ne sont pas dilatées. La vésicule est alithiasique, à paroi fine.</p><p style="text-align: justify">Appendice augmenté de calibre, mesuré à 11 mm, à paroi épaissie et rehaussée, entouré d\'une infiltration de la graisse péri-appendiculaire. Absence de collection organisée et de pneumopéritoine.</p>',
       conclusion:
-        "<p>Aspect tomodensitométrique d'appendicite aiguë non compliquée. Avis chirurgical recommandé.</p>",
+        "<p>Aspect tomodensitométrique d’appendicite aiguë non compliquée. Avis chirurgical recommandé.</p>",
     },
   },
   {

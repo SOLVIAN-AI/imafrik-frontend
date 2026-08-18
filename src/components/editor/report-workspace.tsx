@@ -272,7 +272,7 @@ export function ReportWorkspace({
             "w-px shrink-0 bg-border-default outline-none",
             // La poignée est fine à l'œil mais large au pointeur : la
             // zone de saisie déborde du trait sans l'épaissir.
-            "relative after:absolute after:inset-y-0 after:-inset-x-1 after:content-['']",
+            "relative after:absolute after:inset-y-0 after:-inset-x-1 after:content-[’’]",
             "transition-colors data-[state=hover]:bg-accent data-[state=drag]:bg-accent",
           )}
         />

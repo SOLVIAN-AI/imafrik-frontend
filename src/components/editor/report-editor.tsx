@@ -23,13 +23,13 @@ export const REPORT_SECTIONS = [
   {
     key: "indication",
     title: "Indication clinique",
-    placeholder: "Motif de l'examen, renseignement clinique transmis…",
+    placeholder: "Motif de l’examen, renseignement clinique transmis…",
     required: true,
   },
   {
     key: "technique",
     title: "Technique",
-    placeholder: "Protocole d'acquisition, injection, reconstructions…",
+    placeholder: "Protocole d’acquisition, injection, reconstructions…",
     required: false,
   },
   {

@@ -159,8 +159,8 @@ const DEMO_DRAFTS: Record<string, Partial<ReportSections>> = {
     indication:
       "<p>Céphalées inhabituelles évoluant depuis trois semaines, résistantes aux antalgiques de palier I.</p>",
     technique:
-      "<p>Séquences axiales T1, T2, FLAIR et diffusion. Coupes sagittales T1. Pas d'injection de produit de contraste.</p>",
-    comparatif: "<p>Absence d'examen antérieur disponible.</p>",
+      "<p>Séquences axiales T1, T2, FLAIR et diffusion. Coupes sagittales T1. Pas d’injection de produit de contraste.</p>",
+    comparatif: "<p>Absence d’examen antérieur disponible.</p>",
     resultats:
       '<p style="text-align: justify">Absence d\'anomalie de signal du parenchyme cérébral. Les structures de la ligne médiane sont en place. Le système ventriculaire est de morphologie et de taille normales, sans dilatation.</p><p style="text-align: justify">Pas d\'argument pour un processus expansif intracrânien. Pas de prise de contraste anormale visible sur les séquences réalisées.</p>',
   },

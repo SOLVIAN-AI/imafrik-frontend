@@ -103,7 +103,7 @@ export default function StudySheetPage({
               <p className="px-4 py-10 text-center text-xs text-tertiary">
                 {study.status === "in_progress"
                   ? "Le compte-rendu est en cours de rédaction."
-                  : "Le compte-rendu sera disponible dès qu'un radiologue aura signé."}
+                  : "Le compte-rendu sera disponible dès qu’un radiologue aura signé."}
               </p>
             )}
           </Panel>
@@ -140,7 +140,7 @@ export default function StudySheetPage({
                 label="Radiologue"
                 value={study.assignedTo ?? "Non attribué"}
               />
-              <Field label="UID d'étude" value={study.studyInstanceUid} mono />
+              <Field label="UID d’étude" value={study.studyInstanceUid} mono />
             </dl>
           </Panel>
         </div>

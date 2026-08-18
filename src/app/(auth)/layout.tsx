@@ -17,13 +17,13 @@ const PROOF_POINTS = [
   },
   {
     icon: Stethoscope,
-    title: "Radiologues inscrits à l'Ordre",
+    title: "Radiologues inscrits à l’Ordre",
     detail: "Qualifications vérifiées, signature nominative sur chaque document.",
   },
   {
     icon: Lock,
     title: "Images chiffrées, accès tracés",
-    detail: "Chaque consultation d'examen est enregistrée et attribuable.",
+    detail: "Chaque consultation d’examen est enregistrée et attribuable.",
   },
 ];
 

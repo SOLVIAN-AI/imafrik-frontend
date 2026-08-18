@@ -22,7 +22,7 @@ const STEP_LABELS: Record<StudyStatus, { title: string; detail: string }> = {
   },
   assigned: {
     title: "Attribué à un radiologue",
-    detail: "Un médecin a pris l'examen en charge.",
+    detail: "Un médecin a pris l’examen en charge.",
   },
   in_progress: {
     title: "Lecture en cours",
@@ -34,7 +34,7 @@ const STEP_LABELS: Record<StudyStatus, { title: string; detail: string }> = {
   },
   delivered: {
     title: "Compte-rendu remis",
-    detail: "L'établissement a récupéré le document.",
+    detail: "L’établissement a récupéré le document.",
   },
 };
 

@@ -83,7 +83,7 @@ export function DicomSettingsCard({ settings }: { settings: DicomSettings }) {
   return (
     <dl className="divide-y divide-border-subtle">
       <CopyField label="AET de destination" value={settings.calledAet} />
-      <CopyField label="AET de l'établissement" value={settings.callingAet} />
+      <CopyField label="AET de l’établissement" value={settings.callingAet} />
       <CopyField label="Adresse" value={settings.host} />
       <CopyField label="Port" value={String(settings.port)} />
     </dl>

@@ -82,7 +82,7 @@ function OrganisationSwitcher() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label="Changer d'organisation"
+          aria-label="Changer d’organisation"
           className={cn(
             "group mx-2 flex h-11 items-center gap-2.5 rounded-lg px-2.5",
             "border border-border-subtle bg-surface-base/60",
