@@ -201,25 +201,49 @@ se font en SQL — tenable pour une clinique, intenable pour dix.
 
 ---
 
-## 9. Décompte
+## 9. Décompte et état
 
-| Domaine | Écrans | Dont V1 |
+| Domaine | Écrans prévus | Dont V1 | **Construits** |
+| --- | --- | --- | --- |
+| Vitrine publique | 10 | 6 | **7** |
+| Authentification | 6 | 4 | **4** |
+| Mise en service | 10 | 6 | **10** |
+| Portail clinique | 9 | 6 | **7** |
+| Portail radiologue | 9 | 6 | **7** |
+| Back-office | 8 | 2 | **2** |
+| Système | 3 | 3 | **3** |
+| **Total** | **55** | **33** | **40** |
+
+### Fait
+
+- **Vitrine** — accueil, sécurité, contact, vérification publique d'un
+  compte-rendu, mentions légales, protection des données, conditions
+  d'utilisation.
+- **Authentification** — connexion, mot de passe oublié, nouveau mot de
+  passe, invitation. Session Supabase en rendu serveur, cookies
+  `httpOnly`, intergiciel de protection, retour des liens par courriel.
+- **Mise en service** — les deux parcours complets, état dans l'URL,
+  brouillon persisté, validation par section.
+- **Portail clinique** — tableau de bord, envoi (dépôt manuel et
+  paramètres PACS), suivi des examens, fiche d'examen, comptes-rendus,
+  équipe, paramètres.
+- **Portail radiologue** — file de travail, écran de lecture, mes
+  examens, comptes-rendus, compte-rendu signé, modèles, paramètres.
+- **Back-office** — organisations, examens toutes organisations
+  confondues.
+- **Système** — 404, 403, erreur.
+
+### Reste à faire
+
+| Écran | Phase | Pourquoi il n'est pas fait |
 | --- | --- | --- |
-| Vitrine publique | 10 | 6 |
-| Authentification | 6 | 4 |
-| Mise en service | 10 | 6 |
-| Portail clinique | 9 | 6 |
-| Portail radiologue | 9 | 6 *(2 faits)* |
-| Back-office | 8 | 2 |
-| Système | 3 | 3 |
-| **Total** | **55** | **33** |
-
-Cinquante-cinq écrans à terme, **trente-trois pour la mise en
-production**, dont deux sont construits. C'est l'ordre de grandeur
-normal d'un SaaS métier : l'essentiel du volume est dans les portails et
-la mise en service, pas dans la vitrine.
-
----
+| `/cliniques`, `/radiologues`, `/tarifs` | V2 | L'accueil couvre les deux publics ; ces pages n'ont d'intérêt qu'avec du contenu commercial propre. |
+| `/rejoindre` (candidature radiologue) | V2 | Dépend du parcours de validation côté back-office. |
+| `/verification` (second facteur) | V2 | Décision n° 4 non tranchée. |
+| `/patients` (clinique) | V3 | Confort ; la recherche par patient existe déjà dans les comptes-rendus. |
+| `/facturation`, `/honoraires` | V2 | Décision n° 3 non tranchée : la rémunération passe-t-elle par l'application ? |
+| `/activite` (radiologue) | V3 | Analyse ; sans valeur avant plusieurs mois d'exploitation. |
+| `/admin/radiologues`, `/contrats`, `/facturation`, `/audit`, `/admin` | V2–V3 | Aucune route d'administration côté service ; se font en SQL pour l'instant. |
 
 ## 10. Ce qui n'est pas un écran
 
