@@ -7,6 +7,10 @@ chose sous deux noms différents.
 
 Chaque écran porte une **phase** :
 
+> **État au 18 août 2026 :** les phases V1 sont construites, sauf
+> mention contraire dans les tableaux ci-dessous. Les écrans marqués
+> **Fait** sont en place et vérifiés dans le navigateur.
+
 | Phase | Signification |
 | --- | --- |
 | **V1** | Nécessaire pour faire tourner la première clinique en production. |

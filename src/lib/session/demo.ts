@@ -4,9 +4,10 @@ import type { Membership, Session } from "@/lib/session/types";
  * Session de démonstration.
  *
  * Servie tant que Supabase n'est pas configuré. L'utilisateur appartient
- * volontairement à **deux** organisations de nature différente : c'est le
- * cas qui met à l'épreuve toute l'architecture — un même compte, deux
- * portails, deux jeux de droits — et celui qu'on veut pouvoir montrer.
+ * volontairement à **trois** organisations couvrant les trois rôles :
+ * c'est le cas qui met à l'épreuve toute l'architecture — un même
+ * compte, trois portails, trois jeux de droits — et celui qu'on veut
+ * pouvoir montrer.
  */
 export const DEMO_MEMBERSHIPS: Membership[] = [
   {
@@ -15,6 +16,14 @@ export const DEMO_MEMBERSHIPS: Membership[] = [
     organizationName: "IMAFRIK Radiologie",
     organizationKind: "radiology_group",
     role: "radiologist",
+    city: "Lomé",
+  },
+  {
+    id: "m-admin",
+    organizationId: "org-solvian",
+    organizationName: "IMAFRIK — équipe",
+    organizationKind: "radiology_group",
+    role: "platform_admin",
     city: "Lomé",
   },
   {
