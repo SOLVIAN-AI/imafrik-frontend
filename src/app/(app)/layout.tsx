@@ -12,7 +12,13 @@ import {
  * réfléchir avant de cliquer.
  */
 const NAV: NavItem[] = [
-  { href: "/worklist", label: "À lire", icon: "worklist", count: 12, urgent: true },
+  {
+    href: "/worklist",
+    label: "À lire",
+    icon: "worklist",
+    count: 12,
+    urgent: true,
+  },
   { href: "/mes-examens", label: "Mes examens", icon: "studies", count: 3 },
   { href: "/comptes-rendus", label: "Comptes-rendus", icon: "reports" },
   { href: "/parametres", label: "Paramètres", icon: "settings" },

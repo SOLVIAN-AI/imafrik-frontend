@@ -54,7 +54,7 @@
   --color-accent-500: oklch(0.66 0.15 243);
   --color-accent-400: oklch(0.74 0.13 240);
   --color-accent-300: oklch(0.83 0.09 238);
-  --color-accent-200: oklch(0.90 0.05 236);
+  --color-accent-200: oklch(0.9 0.05 236);
 
   /* ─── Sémantique : un statut, une teinte, sans recouvrement ────────
      Le rouge n'est jamais décoratif. En imagerie médicale il ne signifie
@@ -167,7 +167,7 @@
   /* Halo d'accent, très dilué. Posé derrière la marque et sous l'en-tête,
      il donne une source lumineuse implicite à l'interface plutôt qu'un
      aplat uniforme. */
-  --glow-accent: oklch(0.74 0.13 240 / 0.10);
+  --glow-accent: oklch(0.74 0.13 240 / 0.1);
 
   color-scheme: dark;
 }
@@ -325,6 +325,27 @@
      quarante examens. */
   .rail-urgent {
     box-shadow: inset 2px 0 0 0 var(--urgent);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Animations
+
+   Deux seulement, courtes. Elles servent à situer d'où vient un élément
+   qui apparaît — une modale surgie sans transition donne l'impression
+   d'un changement de page.
+   ══════════════════════════════════════════════════════════════════════ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 4px)) scale(0.985);
   }
 }
 

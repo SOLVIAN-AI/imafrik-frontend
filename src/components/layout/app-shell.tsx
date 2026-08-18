@@ -1,8 +1,16 @@
-import { Sidebar, type CurrentUser, type NavItem } from "@/components/layout/sidebar";
+import {
+  Sidebar,
+  type CurrentUser,
+  type NavItem,
+} from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { cn } from "@/lib/utils";
 
-export type { NavItem, NavIconKey, CurrentUser } from "@/components/layout/sidebar";
+export type {
+  NavItem,
+  NavIconKey,
+  CurrentUser,
+} from "@/components/layout/sidebar";
 
 /**
  * En-tête de page.
@@ -30,7 +38,9 @@ export function PageHeader({
           <p className="mt-0.5 truncate text-xs text-tertiary">{description}</p>
         )}
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex shrink-0 items-center gap-2">{actions}</div>
+      )}
     </header>
   );
 }

@@ -72,7 +72,8 @@ const dotStyles: Record<StudyStatus, string> = {
 };
 
 export interface StudyStatusChipProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
+  extends
+    React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof statusStyles> {
   status: StudyStatus;
 }

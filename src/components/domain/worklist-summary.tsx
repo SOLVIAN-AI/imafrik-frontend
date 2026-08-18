@@ -21,7 +21,10 @@ export interface Metric {
   tone?: "neutral" | "urgent" | "progress" | "accent";
 }
 
-const TONE_STYLES: Record<NonNullable<Metric["tone"]>, { icon: string; halo: string }> = {
+const TONE_STYLES: Record<
+  NonNullable<Metric["tone"]>,
+  { icon: string; halo: string }
+> = {
   neutral: { icon: "text-tertiary", halo: "bg-surface-active" },
   urgent: { icon: "text-urgent", halo: "bg-urgent-muted" },
   progress: { icon: "text-progress", halo: "bg-progress-muted" },

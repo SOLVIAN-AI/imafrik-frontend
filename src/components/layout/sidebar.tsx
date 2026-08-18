@@ -74,7 +74,9 @@ function OrganisationSwitcher({ user }: { user: CurrentUser }) {
         <span className="w-full truncate text-xs font-medium">
           {user.organisation}
         </span>
-        <span className="w-full truncate text-2xs text-tertiary">{user.role}</span>
+        <span className="w-full truncate text-2xs text-tertiary">
+          {user.role}
+        </span>
       </span>
       <ChevronsUpDown
         className="size-3.5 shrink-0 text-tertiary transition-colors group-hover:text-secondary"
@@ -186,7 +188,9 @@ export function Sidebar({
                 <Icon
                   className={cn(
                     "size-4 shrink-0 transition-colors",
-                    active ? "text-accent" : "text-tertiary group-hover:text-secondary",
+                    active
+                      ? "text-accent"
+                      : "text-tertiary group-hover:text-secondary",
                   )}
                   aria-hidden
                 />

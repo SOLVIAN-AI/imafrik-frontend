@@ -2,8 +2,8 @@
 
 import { Bell, Moon, Search, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import * as React from "react";
 
+import { useHydrated } from "@/hooks/use-hydrated";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,9 @@ function CommandTrigger() {
       )}
     >
       <Search className="size-3.5 shrink-0" aria-hidden />
-      <span className="flex-1 text-left">Rechercher un patient, un examen…</span>
+      <span className="flex-1 text-left">
+        Rechercher un patient, un examen…
+      </span>
       <kbd
         className={cn(
           "rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5",
@@ -48,8 +50,7 @@ function CommandTrigger() {
  */
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
 
   // Avant l'hydratation, le thème réel est inconnu du serveur. Icône ET
   // étiquette doivent donc rester neutres : les faire dépendre du thème
@@ -95,7 +96,12 @@ export function Topbar() {
         <CommandTrigger />
       </div>
       <div className="flex shrink-0 items-center gap-1">
-        <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Notifications"
+          className="relative"
+        >
           <Bell />
           <span
             className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-accent"

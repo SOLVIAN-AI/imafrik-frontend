@@ -65,7 +65,8 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   /**
    * Rend l'élément enfant au lieu d'un `<button>`, en lui transmettant
@@ -101,7 +102,16 @@ export interface ButtonProps
  */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(
-    { className, variant, size, asChild = false, loading = false, children, disabled, ...props },
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      loading = false,
+      children,
+      disabled,
+      ...props
+    },
     ref,
   ) {
     const Component = asChild ? Slot : "button";

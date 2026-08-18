@@ -1,8 +1,8 @@
 "use client";
 
 import { Clock } from "lucide-react";
-import * as React from "react";
 
+import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
   UrgentMarker,
@@ -40,28 +40,6 @@ function formatPatientName(dicomName: string): string {
 }
 
 /**
- * Exprime une ancienneté en durée relative courte.
- *
- * Ce qui compte dans une worklist n'est pas l'horodatage mais le délai
- * écoulé : un examen reçu il y a trois heures appelle une action, une date
- * absolue oblige à faire le calcul soi-même.
- *
- * @param date Date de réception.
- * @param now Instant de référence, injectable pour les tests.
- * @returns Une durée compacte : « 12 min », « 3 h », « 2 j ».
- */
-export function formatAge(date: Date, now: Date = new Date()): string {
-  const minutes = Math.max(0, Math.round((now.getTime() - date.getTime()) / 60_000));
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} h`;
-  return `${Math.round(hours / 24)} j`;
-}
-
-/** Seuil au-delà duquel l'attente d'un examen est signalée. */
-const STALE_AFTER_HOURS = 4;
-
-/**
  * Tableau des examens à lire.
  *
  * Trois partis pris de densité, tous dictés par l'usage :
@@ -87,11 +65,6 @@ export function WorklistTable({
   studies: WorklistStudy[];
   onOpen?: (study: WorklistStudy) => void;
 }) {
-  // Une seule référence temporelle pour tout le rendu : sinon deux lignes
-  // calculées à une seconde d'écart pourraient afficher des âges
-  // incohérents.
-  const now = React.useMemo(() => new Date(), []);
-
   if (studies.length === 0) {
     return <EmptyState />;
   }
@@ -126,74 +99,67 @@ export function WorklistTable({
         </thead>
 
         <tbody>
-          {studies.map((study) => {
-            const ageHours = (now.getTime() - study.receivedAt.getTime()) / 3_600_000;
-            const stale = ageHours > STALE_AFTER_HOURS && study.status !== "delivered";
-
-            return (
-              <tr
-                key={study.id}
-                tabIndex={0}
-                onClick={() => onOpen?.(study)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onOpen?.(study);
-                  }
-                }}
-                className={cn(
-                  "cursor-pointer outline-none",
-                  "[&>td]:h-11 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4",
-                  "last:[&>td]:border-b-0",
-                  "transition-colors duration-75",
-                  "hover:bg-surface-hover focus-visible:bg-surface-hover",
-                  study.urgent && "rail-urgent",
-                )}
-              >
-                <td>
-                  <div className="flex items-center gap-2">
-                    <span className="truncate font-medium">
-                      {formatPatientName(study.patientName)}
-                    </span>
-                    {study.urgent && <UrgentMarker />}
-                  </div>
-                  <span className="font-mono text-2xs text-tertiary">
-                    {study.patientId}
+          {studies.map((study) => (
+            <tr
+              key={study.id}
+              tabIndex={0}
+              onClick={() => onOpen?.(study)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onOpen?.(study);
+                }
+              }}
+              className={cn(
+                "cursor-pointer outline-none",
+                "[&>td]:h-11 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4",
+                "last:[&>td]:border-b-0",
+                "transition-colors duration-75",
+                "hover:bg-surface-hover focus-visible:bg-surface-hover",
+                study.urgent && "rail-urgent",
+              )}
+            >
+              <td>
+                <div className="flex items-center gap-2">
+                  <span className="truncate font-medium">
+                    {formatPatientName(study.patientName)}
                   </span>
-                </td>
+                  {study.urgent && <UrgentMarker />}
+                </div>
+                <span className="font-mono text-2xs text-tertiary">
+                  {study.patientId}
+                </span>
+              </td>
 
-                <td>
-                  <span className="font-medium">{study.modality}</span>
-                  {study.bodyPart && (
-                    <span className="text-secondary"> · {study.bodyPart}</span>
-                  )}
-                </td>
+              <td>
+                <span className="font-medium">{study.modality}</span>
+                {study.bodyPart && (
+                  <span className="text-secondary"> · {study.bodyPart}</span>
+                )}
+              </td>
 
-                <td className="truncate text-secondary">{study.clinic}</td>
+              <td className="truncate text-secondary">{study.clinic}</td>
 
-                <td>
-                  <StudyStatusChip status={study.status} />
-                </td>
+              <td>
+                <StudyStatusChip status={study.status} />
+              </td>
 
-                <td className="truncate text-secondary">
-                  {study.assignedTo ?? <span className="text-tertiary">—</span>}
-                </td>
+              <td className="truncate text-secondary">
+                {study.assignedTo ?? <span className="text-tertiary">—</span>}
+              </td>
 
-                <td className="text-right text-secondary tabular-nums">
-                  {study.instanceCount.toLocaleString("fr-FR")}
-                </td>
+              <td className="text-right text-secondary tabular-nums">
+                {study.instanceCount.toLocaleString("fr-FR")}
+              </td>
 
-                <td
-                  className={cn(
-                    "text-right tabular-nums",
-                    stale ? "text-progress" : "text-tertiary",
-                  )}
-                >
-                  {formatAge(study.receivedAt, now)}
-                </td>
-              </tr>
-            );
-          })}
+              <td className="text-right tabular-nums">
+                <StudyAge
+                  date={study.receivedAt}
+                  muted={study.status === "delivered"}
+                />
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
