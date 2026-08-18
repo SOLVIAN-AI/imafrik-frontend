@@ -29,21 +29,32 @@ export function isSupabaseConfigured(): boolean {
 }
 
 /**
- * Vérifie que la configuration est présente en production.
+ * Vérifie que la configuration est présente sur un déploiement de
+ * production.
  *
  * Un déploiement de production qui retomberait silencieusement sur le
  * jeu de démonstration afficherait de faux patients à de vrais
- * utilisateurs. Mieux vaut refuser de démarrer.
+ * utilisateurs. Mieux vaut refuser de servir.
  *
- * @throws Si les variables manquent alors que `NODE_ENV` vaut
- *         `production`.
+ * **Le contrôle porte sur `VERCEL_ENV`, pas sur `NODE_ENV`.** Toute
+ * compilation Vercel — y compris celle d'un aperçu — s'exécute avec
+ * `NODE_ENV=production` : s'y fier ferait échouer les aperçus, qui sont
+ * précisément faits pour tourner sur le jeu de démonstration. Seul
+ * `VERCEL_ENV` distingue une vraie mise en production.
+ *
+ * Hors Vercel, la variable est absente et le contrôle ne s'applique
+ * pas : un `next start` local reste utilisable.
+ *
+ * @throws Si les variables manquent sur un déploiement de production.
  */
 export function assertConfiguredInProduction(): void {
-  if (process.env.NODE_ENV === "production" && !isSupabaseConfigured()) {
+  const isProductionDeployment = process.env.VERCEL_ENV === "production";
+
+  if (isProductionDeployment && !isSupabaseConfigured()) {
     throw new Error(
       "NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY sont " +
-        "obligatoires en production : sans elles, l'application servirait " +
-        "le jeu de démonstration.",
+        "obligatoires sur un déploiement de production : sans elles, " +
+        "l'application servirait le jeu de démonstration.",
     );
   }
 }

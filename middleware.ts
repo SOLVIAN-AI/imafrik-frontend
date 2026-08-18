@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 
+import { assertConfiguredInProduction } from "@/lib/supabase/env";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /**
@@ -11,6 +12,12 @@ import { updateSession } from "@/lib/supabase/middleware";
  * protégés avant que la moindre donnée ne soit lue.
  */
 export async function middleware(request: NextRequest) {
+  // Premier point de passage de toute requête : c'est ici qu'un
+  // déploiement de production mal configuré doit s'arrêter, avant de
+  // servir le moindre écran. Sans cet appel, la garantie documentée
+  // n'existerait que sur le papier — ce qui a failli arriver.
+  assertConfiguredInProduction();
+
   return updateSession(request);
 }
 
