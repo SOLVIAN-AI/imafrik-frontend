@@ -1,8 +1,9 @@
 "use client";
 
-import { Bell, Moon, Search, Sun } from "lucide-react";
+import { Bell, FlaskConical, Moon, Search, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
+import { useSession } from "@/components/providers/session-provider";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -77,6 +78,38 @@ function ThemeToggle() {
 }
 
 /**
+ * Marqueur de jeu de démonstration.
+ *
+ * **Présent dès qu'aucun service réel n'est branché**, et volontairement
+ * impossible à confondre avec le reste du châssis. Un portail de
+ * téléradiologie qui affiche des noms de patients doit dire, sans qu'on
+ * ait à le demander, si ces noms sont inventés : quelqu'un qui découvre
+ * l'application sur un aperçu ne peut pas le deviner, et un
+ * établissement qui verrait de vraies données là où il n'y en a pas —
+ * ou l'inverse — perdrait confiance pour de bon.
+ *
+ * Il disparaît de lui-même dès que Supabase et l'API sont configurés.
+ */
+function DemoBadge() {
+  const { isDemo } = useSession();
+  if (!isDemo) return null;
+
+  return (
+    <span
+      className={cn(
+        "flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1",
+        "bg-progress-muted text-2xs font-medium text-progress",
+        "ring-1 ring-progress/25 ring-inset",
+      )}
+      title="Aucune donnée réelle : les patients et les examens affichés sont inventés."
+    >
+      <FlaskConical className="size-3" aria-hidden />
+      Démonstration
+    </span>
+  );
+}
+
+/**
  * Barre supérieure.
  *
  * Elle porte ce qui vaut pour toute l'application — recherche globale,
@@ -95,7 +128,8 @@ export function Topbar() {
       <div className="flex flex-1 justify-center">
         <CommandTrigger />
       </div>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-2">
+        <DemoBadge />
         <Button
           variant="ghost"
           size="icon"
