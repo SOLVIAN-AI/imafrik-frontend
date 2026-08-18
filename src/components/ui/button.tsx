@@ -14,7 +14,9 @@ import { cn } from "@/lib/utils";
  * un écran ne comporte qu'une seule action principale. En afficher deux
  * revient à n'en désigner aucune, et l'utilisateur hésite.
  *
- * - `primary`   L'action attendue. Une par écran.
+ * - `primary`   L'action attendue. Une par écran — c'est la variante
+ *               par défaut, précisément parce qu'un bouton sans mention
+ *               explicite est presque toujours l'action de l'écran.
  * - `secondary` Une action courante, sans être celle qu'on attend.
  * - `ghost`     Action de service : icônes de barre d'outils, menus.
  * - `danger`    Destructif et irréversible. Le rouge y est mérité — il
@@ -37,9 +39,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: [
-          "bg-accent text-accent-contrast",
+          "bg-accent text-accent-contrast font-semibold",
           "hover:bg-accent-hover",
           "active:brightness-95",
+          // Ombre teintée par l'accent : le bouton paraît posé sur la
+          // page et légèrement lumineux, là où une ombre noire sur fond
+          // sombre ne se verrait pas du tout.
+          "shadow-[0_4px_16px_-8px_var(--accent)]",
         ],
         secondary: [
           "border border-border-default bg-surface-raised text-primary",
@@ -60,7 +66,7 @@ const buttonVariants = cva(
         icon: "size-8 [&_svg]:size-4",
       },
     },
-    defaultVariants: { variant: "secondary", size: "md" },
+    defaultVariants: { variant: "primary", size: "md" },
   },
 );
 

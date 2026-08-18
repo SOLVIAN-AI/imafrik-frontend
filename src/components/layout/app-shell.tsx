@@ -39,9 +39,15 @@ function useRoleRouting() {
 /**
  * En-tête de page.
  *
- * Le titre porte enfin du poids typographique : dans la version
- * précédente il se confondait avec le corps de texte, et l'écran
- * paraissait inachevé. La hiérarchie doit se voir même sans lire.
+ * Le titre porte le poids et le resserrement : à 24 px en demi-gras, il
+ * se voit sans être lu, et c'est ce qui donne un point d'entrée à
+ * l'écran. Un titre de la taille du corps de texte donne une page qui
+ * paraît inachevée, quelle que soit la qualité du reste.
+ *
+ * Le halo derrière l'en-tête est la seule licence décorative de
+ * l'application : une source lumineuse implicite, très diluée, qui
+ * évite l'aplat uniforme d'un grand fond sombre. Il reste sous le seuil
+ * où une teinte adjacente perturberait la lecture d'une image.
  */
 export function PageHeader({
   title,
@@ -53,17 +59,25 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <header className="flex shrink-0 items-end justify-between gap-4 px-6 pt-5 pb-4">
-      <div className="min-w-0">
-        <h1 className="truncate text-xl font-semibold tracking-[-0.015em]">
-          {title}
-        </h1>
+    <header className="relative flex shrink-0 items-end justify-between gap-4 px-6 pt-6 pb-5">
+      <div
+        className="pointer-events-none absolute inset-x-0 -top-24 h-48 opacity-70"
+        style={{
+          background:
+            "radial-gradient(60% 100% at 20% 100%, var(--glow-accent), transparent 70%)",
+        }}
+        aria-hidden
+      />
+      <div className="relative min-w-0">
+        <h1 className="truncate text-2xl font-semibold">{title}</h1>
         {description && (
-          <p className="mt-0.5 truncate text-xs text-tertiary">{description}</p>
+          <p className="mt-1 truncate text-xs text-tertiary">{description}</p>
         )}
       </div>
       {actions && (
-        <div className="flex shrink-0 items-center gap-2">{actions}</div>
+        <div className="relative flex shrink-0 items-center gap-2">
+          {actions}
+        </div>
       )}
     </header>
   );

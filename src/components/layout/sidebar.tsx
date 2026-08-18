@@ -226,11 +226,15 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
       href={item.href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex h-8.5 items-center gap-2.5 rounded-md px-2.5",
+        "group relative flex h-9 items-center gap-2.5 rounded-lg px-2.5",
         "text-sm transition-all duration-100 ease-(--ease-out-quart)",
+        // L'élément actif porte la teinte de marque plutôt qu'un simple
+        // gris : c'est une surface de quelques centaines de pixels, très
+        // loin des images, et c'est ce qui fait qu'on retrouve sa place
+        // d'un coup d'œil dans une journée de travail.
         active
-          ? "bg-surface-hover font-medium text-primary shadow-edge"
-          : "text-secondary hover:bg-surface-hover/60 hover:text-primary",
+          ? "bg-accent-muted font-medium text-primary"
+          : "text-secondary hover:bg-surface-hover hover:text-primary",
       )}
     >
       {active && (

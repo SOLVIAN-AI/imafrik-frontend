@@ -49,15 +49,37 @@ export interface Metric {
   trend?: MetricTrend;
 }
 
+/**
+ * Habillage d'une mesure selon sa charge sémantique.
+ *
+ * L'anneau intérieur — un liseré d'un pixel de la teinte, très dilué —
+ * détache la pastille de la carte. Sans lui, un aplat de couleur posé
+ * sur une surface sombre paraît collé dessus plutôt que posé dedans.
+ */
 const TONE_STYLES: Record<
   NonNullable<Metric["tone"]>,
   { icon: string; halo: string }
 > = {
-  neutral: { icon: "text-tertiary", halo: "bg-surface-active" },
-  urgent: { icon: "text-urgent", halo: "bg-urgent-muted" },
-  progress: { icon: "text-progress", halo: "bg-progress-muted" },
-  accent: { icon: "text-accent", halo: "bg-accent-muted" },
-  done: { icon: "text-done", halo: "bg-done-muted" },
+  neutral: {
+    icon: "text-tertiary",
+    halo: "bg-surface-active ring-1 ring-border-default ring-inset",
+  },
+  urgent: {
+    icon: "text-urgent",
+    halo: "bg-urgent-muted ring-1 ring-urgent/20 ring-inset",
+  },
+  progress: {
+    icon: "text-progress",
+    halo: "bg-progress-muted ring-1 ring-progress/20 ring-inset",
+  },
+  accent: {
+    icon: "text-accent",
+    halo: "bg-accent-muted ring-1 ring-accent/25 ring-inset",
+  },
+  done: {
+    icon: "text-done",
+    halo: "bg-done-muted ring-1 ring-done/20 ring-inset",
+  },
 };
 
 /**
@@ -101,23 +123,24 @@ export function MetricCard({ metric }: { metric: Metric }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-xl px-3.5 py-3",
+        "flex items-center gap-3.5 rounded-xl px-4 py-3.5",
         "border border-border-subtle bg-surface-raised shadow-raised",
+        "transition-colors duration-150 hover:border-border-default",
       )}
     >
       <span
         className={cn(
-          "flex size-9 shrink-0 items-center justify-center rounded-lg",
+          "flex size-10 shrink-0 items-center justify-center rounded-lg",
           tone.halo,
         )}
         aria-hidden
       >
-        <metric.icon className={cn("size-4", tone.icon)} />
+        <metric.icon className={cn("size-4.5", tone.icon)} />
       </span>
 
       <div className="min-w-0">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-semibold tracking-[-0.02em] tabular-nums">
+          <span className="text-3xl font-semibold tracking-[-0.03em] tabular-nums">
             {metric.value}
           </span>
           {metric.hint && (

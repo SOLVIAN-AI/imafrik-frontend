@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════════
    IMAFRIK — système de design
 
-   Trois principes, qui découlent du métier et non du goût :
+   Quatre principes, qui découlent du métier et non du goût :
 
    1. Le sombre est le défaut. Un radiologue lit dans une pièce
       assombrie ; une interface claire à côté d'une image en niveaux de
@@ -9,16 +9,23 @@
       blanc du châssis. Le thème clair existe pour le personnel des
       cliniques, en bureau éclairé.
 
-   2. Rien de saturé près de l'image. Par contraste simultané, une teinte
-      vive adjacente à un gris en décale la perception. Le châssis reste
-      neutre, à peine froid — la dominante d'un moniteur calibré.
+   2. Le fond est teinté, pas gris. C'est le point qui sépare une
+      interface sombre soignée d'un simple fond noir : une base bleu nuit
+      — même très peu saturée — donne une profondeur qu'aucun gris
+      neutre n'atteint. La chroma reste sous 0,04 dans tout le châssis,
+      donc sans effet de contraste simultané sur une image adjacente.
 
-   3. La couleur porte du sens, jamais de la décoration. L'accent ne
-      marque que l'interactif. Le rouge ne dit qu'une chose : urgent.
+   3. Rien de saturé au contact de l'image. Le volet d'affichage reste
+      noir absolu, quel que soit le thème : c'est le fond de référence
+      d'une lecture diagnostique.
+
+   4. La couleur porte du sens, jamais de la décoration. L'accent ne
+      marque que l'interactif et la marque. Le rouge ne dit qu'une
+      chose : urgent.
 
    Les couleurs sont en OKLCH : à clarté égale, deux teintes y paraissent
    réellement aussi lumineuses, ce que ne garantit ni HSL ni RGB. Les
-   échelles de gris restent donc perceptuellement régulières.
+   échelles restent donc perceptuellement régulières.
    ══════════════════════════════════════════════════════════════════════ */
 
 @import "tailwindcss";
@@ -27,48 +34,68 @@
 @custom-variant light (&:where(.light, .light *));
 
 @theme {
-  /* ─── Neutres ──────────────────────────────────────────────────────
-     Teinte 250 à chroma très faible : la dominante froide d'un écran
-     diagnostique. Un gris parfaitement neutre paraîtrait terne, un gris
-     franchement bleuté paraîtrait corporate. */
-  --color-ink-950: oklch(0.16 0.008 250);
-  --color-ink-900: oklch(0.19 0.008 250);
-  --color-ink-850: oklch(0.22 0.009 250);
-  --color-ink-800: oklch(0.26 0.01 250);
-  --color-ink-700: oklch(0.32 0.011 250);
-  --color-ink-600: oklch(0.42 0.012 250);
-  --color-ink-500: oklch(0.54 0.012 250);
-  --color-ink-400: oklch(0.65 0.011 250);
-  --color-ink-300: oklch(0.76 0.009 250);
-  --color-ink-200: oklch(0.86 0.006 250);
-  --color-ink-100: oklch(0.93 0.004 250);
-  --color-ink-50: oklch(0.97 0.003 250);
+  /* ─── Encre : l'échelle du châssis ─────────────────────────────────
+     Teinte 262 — le bleu nuit de l'imagerie médicale. La chroma décroît
+     avec la clarté : un fond profond assume sa teinte, un texte clair
+     doit rester lisible et donc quasi neutre. Une échelle de gris pur,
+     à cet endroit, donnerait une interface plate et bon marché. */
+  --color-ink-980: oklch(0.145 0.026 262);
+  --color-ink-950: oklch(0.172 0.029 262);
+  --color-ink-900: oklch(0.208 0.031 262);
+  --color-ink-850: oklch(0.245 0.033 262);
+  --color-ink-800: oklch(0.285 0.034 262);
+  --color-ink-700: oklch(0.355 0.034 262);
+  --color-ink-600: oklch(0.455 0.032 262);
+  --color-ink-500: oklch(0.575 0.028 262);
+  --color-ink-400: oklch(0.685 0.022 262);
+  --color-ink-300: oklch(0.795 0.016 262);
+  --color-ink-200: oklch(0.878 0.010 262);
+  --color-ink-100: oklch(0.935 0.006 262);
+  --color-ink-50: oklch(0.972 0.004 262);
 
-  /* ─── Accent : bleu ciel ───────────────────────────────────────────
-     Accordé au logo. Assez lumineux pour porter l'identité, assez froid
-     pour ne pas réchauffer un gris médical adjacent. Réservé à
-     l'interactif — action, focus, sélection — et à la marque. Jamais un
-     aplat au contact d'une image. */
-  --color-accent-700: oklch(0.46 0.15 248);
-  --color-accent-600: oklch(0.56 0.16 246);
-  --color-accent-500: oklch(0.66 0.15 243);
-  --color-accent-400: oklch(0.74 0.13 240);
-  --color-accent-300: oklch(0.83 0.09 238);
-  --color-accent-200: oklch(0.9 0.05 236);
+  /* ─── Accent : turquoise ───────────────────────────────────────────
+     La teinte de l'imagerie médicale francophone — vive sans être
+     criarde, froide sans être clinique au mauvais sens du terme. Elle
+     tranche sur le bleu nuit sans jamais s'en approcher, ce qui rend
+     l'interactif immédiatement repérable.
+
+     Réservée à l'action, au focus, à la sélection et à la marque. Jamais
+     un aplat au contact d'une image. */
+  --color-accent-800: oklch(0.44 0.088 176);
+  --color-accent-700: oklch(0.545 0.108 175);
+  --color-accent-600: oklch(0.655 0.128 175);
+  --color-accent-500: oklch(0.762 0.141 174);
+  --color-accent-400: oklch(0.825 0.118 174);
+  --color-accent-300: oklch(0.888 0.082 174);
+  --color-accent-200: oklch(0.94 0.042 174);
+
+  /* ─── Bleu de marque ───────────────────────────────────────────────
+     Le second pôle de l'identité. Il n'apparaît **pas** dans le
+     châssis : uniquement dans les dégradés de la marque et des écrans
+     publics, où il donne au turquoise un point d'appui profond. Deux
+     accents concurrents dans une interface de travail ne feraient que
+     brouiller le signal de l'interactif. */
+  --color-brand-600: oklch(0.516 0.243 264);
+  --color-brand-700: oklch(0.463 0.219 262);
+  --color-brand-900: oklch(0.264 0.117 261);
 
   /* ─── Sémantique : un statut, une teinte, sans recouvrement ────────
      Le rouge n'est jamais décoratif. En imagerie médicale il ne signifie
      qu'une chose, et un bouton de suppression ne mérite pas le même
-     signal qu'un examen urgent. */
-  --color-urgent-500: oklch(0.62 0.19 25);
-  --color-urgent-400: oklch(0.7 0.17 25);
-  --color-progress-500: oklch(0.72 0.14 75);
-  --color-progress-400: oklch(0.8 0.12 75);
-  --color-done-500: oklch(0.66 0.13 155);
-  --color-done-400: oklch(0.74 0.11 155);
+     signal qu'un examen urgent.
+
+     Le vert de « rendu » est franchement décalé vers le jaune pour ne
+     pas se confondre avec le turquoise de l'accent : à teintes voisines,
+     un statut passerait pour un élément cliquable. */
+  --color-urgent-500: oklch(0.605 0.205 22);
+  --color-urgent-400: oklch(0.695 0.185 22);
+  --color-progress-500: oklch(0.715 0.145 72);
+  --color-progress-400: oklch(0.805 0.135 74);
+  --color-done-500: oklch(0.655 0.155 148);
+  --color-done-400: oklch(0.775 0.155 149);
 
   /* ─── Typographie ─────────────────────────────────────────────────
-     Geist pour l'interface : dessin net à petite taille et vraies
+     Geist pour l'interface : dessin net à petite taille et vrais
      chiffres tabulaires, indispensables dans une worklist où les
      colonnes doivent s'aligner. */
   --font-sans:
@@ -76,7 +103,8 @@
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
 
   /* Échelle resserrée dans le bas : une interface dense vit entre 12 et
-     15 px, et les écarts doivent y rester perceptibles. */
+     15 px, et les écarts doivent y rester perceptibles. Le haut de
+     l'échelle, lui, est franc — un titre doit se voir sans être lu. */
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1rem;
   --text-xs: 0.75rem;
@@ -87,21 +115,27 @@
   --text-base--line-height: 1.5rem;
   --text-lg: 1rem;
   --text-lg--line-height: 1.5rem;
-  --text-xl: 1.125rem;
+  --text-xl: 1.1875rem;
   --text-xl--line-height: 1.625rem;
-  --text-2xl: 1.375rem;
+  --text-2xl: 1.5rem;
   --text-2xl--line-height: 1.875rem;
-  --text-3xl: 1.75rem;
-  --text-3xl--line-height: 2.125rem;
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 2.75rem;
+  --text-4xl--line-height: 2.9rem;
+  --text-5xl: 3.5rem;
+  --text-5xl--line-height: 3.6rem;
 
   /* ─── Rayons ──────────────────────────────────────────────────────
-     Discrets. Des angles très arrondis évoquent le grand public ; un
-     outil professionnel assume des formes plus franches. */
-  --radius-xs: 0.1875rem;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+     Mesurés. Des angles très arrondis évoquent le grand public ; des
+     angles vifs, l'outil interne bâclé. Entre les deux, une carte à
+     14 px paraît posée sur la page plutôt que découpée dedans. */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.3125rem;
+  --radius-md: 0.4375rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
 
   /* ─── Matière ─────────────────────────────────────────────────────
      Le détail qui sépare une interface sombre soignée d'un simple fond
@@ -109,8 +143,8 @@
      surfaces. Elle simule la lumière rasante d'une pièce et donne de
      l'épaisseur à ce qui serait autrement une découpe plate. Invisible
      consciemment, décisive dans l'impression d'ensemble. */
-  --edge-highlight: inset 0 1px 0 0 oklch(1 0 0 / 0.055);
-  --edge-highlight-strong: inset 0 1px 0 0 oklch(1 0 0 / 0.09);
+  --edge-highlight: inset 0 1px 0 0 oklch(1 0 0 / 0.07);
+  --edge-highlight-strong: inset 0 1px 0 0 oklch(1 0 0 / 0.12);
 
   /* ─── Mouvement ───────────────────────────────────────────────────
      Court et sans rebond. Une animation qui se remarque fait perdre du
@@ -130,6 +164,7 @@
 
 :root {
   /* Sombre : l'état par défaut, y compris avant hydratation. */
+  --surface-sunken: var(--color-ink-980);
   --surface-base: var(--color-ink-950);
   --surface-raised: var(--color-ink-900);
   --surface-overlay: var(--color-ink-850);
@@ -140,39 +175,47 @@
   --border-default: var(--color-ink-800);
   --border-strong: var(--color-ink-700);
 
-  --text-primary: var(--color-ink-100);
-  --text-secondary: var(--color-ink-400);
+  /* Contraste franc. Un texte principal terne est le premier signe
+     d'une interface qui manque de tenue : ici il frôle le blanc. */
+  --text-primary: var(--color-ink-50);
+  --text-secondary: var(--color-ink-300);
   --text-tertiary: var(--color-ink-500);
-  --text-inverted: var(--color-ink-950);
+  --text-inverted: var(--color-ink-980);
 
-  --accent: var(--color-accent-400);
-  --accent-hover: var(--color-accent-300);
-  --accent-muted: oklch(0.74 0.13 240 / 0.16);
-  --accent-contrast: var(--color-ink-950);
+  --accent: var(--color-accent-500);
+  --accent-hover: var(--color-accent-400);
+  --accent-muted: oklch(0.762 0.141 174 / 0.15);
+  --accent-contrast: var(--color-ink-980);
 
   --urgent: var(--color-urgent-400);
-  --urgent-muted: oklch(0.7 0.17 25 / 0.15);
+  --urgent-muted: oklch(0.695 0.185 22 / 0.16);
   --progress: var(--color-progress-400);
-  --progress-muted: oklch(0.8 0.12 75 / 0.15);
+  --progress-muted: oklch(0.805 0.135 74 / 0.15);
   --done: var(--color-done-400);
-  --done-muted: oklch(0.74 0.11 155 / 0.15);
+  --done-muted: oklch(0.775 0.155 149 / 0.15);
 
   /* En thème sombre, l'élévation se lit d'abord par la clarté de la
      surface — une ombre portée sur fond noir ne se voit pas — mais
-     l'arête claire, elle, fait toute la différence. */
-  --shadow-overlay: 0 16px 48px -12px oklch(0 0 0 / 0.7);
-  --shadow-raised: 0 1px 2px 0 oklch(0 0 0 / 0.4), var(--edge-highlight);
+     l'arête claire, elle, fait toute la différence. La grande ombre
+     diffuse ne sert qu'à décoller les cartes du fond. */
+  --shadow-raised:
+    0 1px 2px 0 oklch(0 0 0 / 0.5), 0 8px 24px -16px oklch(0 0 0 / 0.7),
+    var(--edge-highlight);
+  --shadow-overlay:
+    0 24px 64px -16px oklch(0 0 0 / 0.75), var(--edge-highlight-strong);
   --edge: var(--edge-highlight);
 
-  /* Halo d'accent, très dilué. Posé derrière la marque et sous l'en-tête,
-     il donne une source lumineuse implicite à l'interface plutôt qu'un
-     aplat uniforme. */
-  --glow-accent: oklch(0.74 0.13 240 / 0.1);
+  /* Halo d'accent, très dilué. Posé derrière la marque et sous les
+     en-têtes, il donne une source lumineuse implicite à l'interface
+     plutôt qu'un aplat uniforme. */
+  --glow-accent: oklch(0.762 0.141 174 / 0.16);
+  --glow-brand: oklch(0.516 0.243 264 / 0.22);
 
   color-scheme: dark;
 }
 
 .light {
+  --surface-sunken: var(--color-ink-100);
   --surface-base: var(--color-ink-50);
   --surface-raised: oklch(1 0 0);
   --surface-overlay: oklch(1 0 0);
@@ -183,38 +226,42 @@
   --border-default: var(--color-ink-300);
   --border-strong: var(--color-ink-400);
 
-  --text-primary: var(--color-ink-900);
+  --text-primary: var(--color-ink-950);
   --text-secondary: var(--color-ink-600);
   --text-tertiary: var(--color-ink-500);
   --text-inverted: var(--color-ink-50);
 
-  /* Teintes plus soutenues en clair : le contraste avec un fond blanc
-     demande davantage de chroma pour une lisibilité équivalente. */
-  --accent: var(--color-accent-600);
-  --accent-hover: var(--color-accent-700);
-  --accent-muted: oklch(0.56 0.16 246 / 0.11);
+  /* Teintes plus sombres en clair : le turquoise vif de la marque, posé
+     sur du blanc, tomberait sous le seuil de lisibilité d'un texte. */
+  --accent: var(--color-accent-700);
+  --accent-hover: var(--color-accent-800);
+  --accent-muted: oklch(0.655 0.128 175 / 0.14);
   --accent-contrast: oklch(1 0 0);
 
   --urgent: var(--color-urgent-500);
-  --urgent-muted: oklch(0.62 0.19 25 / 0.1);
-  --progress: oklch(0.6 0.14 75);
-  --progress-muted: oklch(0.72 0.14 75 / 0.14);
-  --done: oklch(0.55 0.13 155);
-  --done-muted: oklch(0.66 0.13 155 / 0.12);
+  --urgent-muted: oklch(0.605 0.205 22 / 0.11);
+  --progress: oklch(0.6 0.14 72);
+  --progress-muted: oklch(0.715 0.145 72 / 0.15);
+  --done: var(--color-done-500);
+  --done-muted: oklch(0.655 0.155 148 / 0.13);
 
-  --shadow-overlay: 0 16px 48px -16px oklch(0.2 0.02 250 / 0.18);
-  --shadow-raised: 0 1px 2px 0 oklch(0.2 0.02 250 / 0.06);
+  --shadow-raised:
+    0 1px 2px 0 oklch(0.2 0.03 262 / 0.06),
+    0 8px 24px -16px oklch(0.2 0.03 262 / 0.12);
+  --shadow-overlay: 0 24px 64px -20px oklch(0.2 0.03 262 / 0.22);
   /* En clair, une arête blanche ne se verrait pas : c'est l'ombre portée
      qui porte le relief. */
   --edge: 0 0 0 0 transparent;
 
-  --glow-accent: oklch(0.56 0.16 246 / 0.07);
+  --glow-accent: oklch(0.655 0.128 175 / 0.1);
+  --glow-brand: oklch(0.516 0.243 264 / 0.12);
 
   color-scheme: light;
 }
 
 /* Expose les rôles à Tailwind : bg-surface-raised, text-secondary… */
 @theme inline {
+  --color-surface-sunken: var(--surface-sunken);
   --color-surface-base: var(--surface-base);
   --color-surface-raised: var(--surface-raised);
   --color-surface-overlay: var(--surface-overlay);
@@ -274,6 +321,17 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* Les titres portent le poids et le resserrement. Un titre qui se
+     distingue du corps de texte par sa seule taille donne une page
+     molle ; le resserrement, lui, ne se remarque pas consciemment mais
+     fait toute la tenue. */
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+
   /* Un anneau de focus visible, jamais supprimé. Les radiologues
      naviguent au clavier ; sans repère, l'interface devient inutilisable
      pour eux — et inaccessible pour tout le monde. */
@@ -326,12 +384,46 @@
   .rail-urgent {
     box-shadow: inset 2px 0 0 0 var(--urgent);
   }
+
+  /* Texte en dégradé de marque. Réservé aux écrans publics et à
+     l'authentification : dans l'application, un titre coloré entrerait
+     en concurrence avec le signal de l'interactif. */
+  .text-brand-gradient {
+    background: linear-gradient(
+      100deg,
+      var(--color-accent-400) 0%,
+      var(--color-accent-500) 40%,
+      var(--color-brand-600) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Trame de points. Invisible en thème clair, à peine perceptible en
+     sombre : elle donne une matière au fond des grandes surfaces vides
+     — écrans d'authentification, états vides — sans attirer l'œil. */
+  .dot-grid {
+    background-image: radial-gradient(
+      circle,
+      oklch(1 0 0 / 0.045) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+  .light .dot-grid {
+    background-image: radial-gradient(
+      circle,
+      oklch(0.2 0.03 262 / 0.05) 1px,
+      transparent 1px
+    );
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
    Animations
 
-   Deux seulement, courtes. Elles servent à situer d'où vient un élément
+   Trois seulement, courtes. Elles servent à situer d'où vient un élément
    qui apparaît — une modale surgie sans transition donne l'impression
    d'un changement de page.
    ══════════════════════════════════════════════════════════════════════ */
@@ -346,6 +438,13 @@
   from {
     opacity: 0;
     transform: translate(-50%, calc(-50% + 4px)) scale(0.985);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
 
