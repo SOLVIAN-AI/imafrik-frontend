@@ -25,6 +25,8 @@ import {
 } from "@/components/domain/study-status";
 import type { StudyStatus } from "@/components/domain/study-status";
 import { useAutosave } from "@/hooks/use-autosave";
+import { useSession } from "@/lib/demo/session";
+import { homeFor } from "@/lib/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -100,12 +102,17 @@ function formatPatientName(dicomName: string): string {
 function StudyBar({
   study,
   signed,
+  canEdit,
   onSign,
 }: {
   study: WorkspaceStudy;
   signed: boolean;
+  canEdit: boolean;
   onSign: () => void;
 }) {
+  const { active } = useSession();
+  const role = active.role;
+
   return (
     <header
       className={cn(
@@ -113,13 +120,12 @@ function StudyBar({
         "bg-surface-raised/40 backdrop-blur-sm",
       )}
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Retour à la liste"
-        asChild
-      >
-        <Link href="/worklist">
+      {/* Le retour dépend du portail : la file de lecture pour un
+          radiologue, le suivi des examens pour une clinique. Un lien codé
+          en dur renverrait la moitié des utilisateurs vers un écran qui
+          n'existe pas pour eux. */}
+      <Button variant="ghost" size="icon" aria-label="Retour" asChild>
+        <Link href={homeFor(role)}>
           <ArrowLeft />
         </Link>
       </Button>
@@ -143,12 +149,13 @@ function StudyBar({
             confirmera au prochain chargement ; l'afficher tout de suite
             évite un écran qui se contredit lui-même. */}
         <StudyStatusChip status={signed ? "reported" : study.status} />
-        {signed ? (
+        {signed && (
           <span className="flex items-center gap-1.5 text-2xs text-done">
             <Lock className="size-3" aria-hidden />
             Signé
           </span>
-        ) : (
+        )}
+        {canEdit && !signed && (
           <Button size="sm" onClick={onSign}>
             <PenTool />
             Signer
@@ -175,9 +182,16 @@ function StudyBar({
  * l'autre, parce que la répartition idéale dépend de la modalité et de la
  * personne.
  *
+ * **Le même écran sert la consultation.** Une clinique qui ouvre ses
+ * propres images arrive ici avec `canEdit` à faux : elle voit les images
+ * et le compte-rendu tel qu'il est, sans barre de mise en forme ni
+ * signature. Écrire un second écran pour cela aurait dupliqué le volet
+ * d'images, le partage déplaçable et la mise en page du document.
+ *
  * @param study      Examen lu.
  * @param viewerUrl  URL signée du viewer, `null` s'il n'est pas joignable.
  * @param initial    Contenu initial du compte-rendu, tel qu'il est en base.
+ * @param canEdit    Faux en consultation : ni rédaction, ni signature.
  * @param signerName Nom porté par la signature.
  * @param saveDraft  Enregistre le brouillon. Doit rejeter en cas d'échec.
  * @param signReport Signe le compte-rendu. Doit rejeter en cas d'échec.
@@ -187,6 +201,7 @@ export function ReportWorkspace({
   viewerUrl,
   initial,
   initiallySigned = false,
+  canEdit = true,
   signerName,
   saveDraft,
   signReport,
@@ -195,6 +210,7 @@ export function ReportWorkspace({
   viewerUrl: string | null;
   initial: ReportSections;
   initiallySigned?: boolean;
+  canEdit?: boolean;
   signerName: string;
   saveDraft: (sections: ReportSections) => Promise<void>;
   signReport: (sections: ReportSections) => Promise<void>;
@@ -204,10 +220,13 @@ export function ReportWorkspace({
   const [confirming, setConfirming] = React.useState(false);
   const { groupRef, onLayoutChanged } = usePersistedLayout();
 
+  // Un compte-rendu signé, ou consulté par une clinique, ne s'écrit plus.
+  const locked = signed || !canEdit;
+
   const { state, flush } = useAutosave({
     value: sections,
     save: saveDraft,
-    disabled: signed,
+    disabled: locked,
   });
 
   const update = React.useCallback((key: SectionKey, html: string) => {
@@ -232,6 +251,7 @@ export function ReportWorkspace({
       <StudyBar
         study={study}
         signed={signed}
+        canEdit={canEdit}
         onSign={() => setConfirming(true)}
       />
 
@@ -263,7 +283,7 @@ export function ReportWorkspace({
             <ReportEditor
               sections={sections}
               saveState={state}
-              readOnly={signed}
+              readOnly={locked}
               onChange={update}
             />
           </div>

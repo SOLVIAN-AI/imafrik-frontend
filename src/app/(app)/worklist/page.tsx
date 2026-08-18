@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import {
   METRIC_ICONS,
-  WorklistSummary,
+  MetricGrid,
   type Metric,
-} from "@/components/domain/worklist-summary";
+} from "@/components/domain/metrics";
 import { Button } from "@/components/ui/button";
 import { formatAge } from "@/components/domain/study-age";
 import {
@@ -91,12 +91,15 @@ export default function WorklistPage() {
           </>
         }
       />
-      <WorklistSummary metrics={buildMetrics(DEMO_STUDIES, now)} />
+      <MetricGrid
+        metrics={buildMetrics(DEMO_STUDIES, now)}
+        className="px-6 pb-4"
+      />
       <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
         <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <WorklistTable
             studies={DEMO_STUDIES}
-            onOpen={(study) => router.push(`/examens/${study.id}`)}
+            onOpen={(study) => router.push(`/lecture/${study.id}`)}
           />
         </Panel>
       </div>

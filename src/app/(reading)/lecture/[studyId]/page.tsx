@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import * as React from "react";
 
 import { ReportWorkspace } from "@/components/editor/report-workspace";
+import { useSession } from "@/lib/demo/session";
+import { reportForStudy } from "@/lib/demo/reports";
 import { demoReport, findDemoStudy } from "@/lib/demo/studies";
 
 /**
@@ -19,6 +21,12 @@ const roundTrip = (ms = 400) =>
 /**
  * Écran de lecture d'un examen.
  *
+ * Distinct de `/examens/[id]`, qui reste la fiche de l'examen dans le
+ * châssis du portail : ici on **travaille**, là on **consulte**. Deux
+ * verbes, deux écrans, deux URL — un même écran qui changerait de forme
+ * selon le rôle serait impossible à décrire à un utilisateur au
+ * téléphone.
+ *
  * Composant client parce que tout y est interactif — frappe, sélection,
  * redimensionnement — et que les fonctions d'enregistrement passées à
  * l'espace de travail ne traversent pas la frontière serveur/client.
@@ -29,14 +37,21 @@ const roundTrip = (ms = 400) =>
  */
 export default function ReadingPage({
   params,
-}: PageProps<"/examens/[studyId]">) {
+}: PageProps<"/lecture/[studyId]">) {
   const { studyId } = React.use(params);
+  const { active } = useSession();
   const study = findDemoStudy(studyId);
 
   if (!study) notFound();
 
-  // À remplacer par `GET /reports?study_id=…`.
-  const initial = React.useMemo(() => demoReport(studyId), [studyId]);
+  // Un examen déjà signé s'ouvre sur son compte-rendu définitif ; les
+  // autres, sur leur brouillon. À remplacer par `GET /reports?study_id=…`,
+  // qui renverra l'un ou l'autre avec son état.
+  const signed = reportForStudy(studyId);
+  const initial = React.useMemo(
+    () => signed?.sections ?? demoReport(studyId),
+    [signed, studyId],
+  );
 
   // À remplacer par `PATCH /reports/{id}`.
   const saveDraft = React.useCallback(async () => {
@@ -55,6 +70,10 @@ export default function ReadingPage({
       // à brancher : le volet image affiche donc son état indisponible.
       viewerUrl={null}
       initial={initial}
+      initiallySigned={Boolean(signed)}
+      // Seul un radiologue rédige et signe. La clinique, elle, consulte
+      // — la barrière réelle restant les politiques RLS côté base.
+      canEdit={active.role === "radiologist"}
       signerName="Dr Adjo Kponton"
       saveDraft={saveDraft}
       signReport={signReport}

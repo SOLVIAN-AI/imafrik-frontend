@@ -119,7 +119,7 @@ export type SaveState = "idle" | "saving" | "saved" | "offline";
  *
  * @param placeholder Texte de substitution propre à la section.
  */
-function sectionExtensions(placeholder: string) {
+export function sectionExtensions(placeholder = "") {
   return [
     StarterKit.configure({
       heading: false,
