@@ -1,3 +1,8 @@
+import { redirect } from "next/navigation";
+
+import { SessionProvider } from "@/components/providers/session-provider";
+import { getSession } from "@/lib/session/server";
+
 /**
  * Ossature de l'écran de lecture.
  *
@@ -16,14 +21,19 @@
  *
  * Le retour à la liste reste à un clic, en tête de l'écran de lecture.
  */
-export default function ReadingLayout({
+export default async function ReadingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getSession();
+  if (!session) redirect("/connexion");
+
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-surface-base">
-      {children}
-    </div>
+    <SessionProvider session={session}>
+      <div className="flex h-dvh flex-col overflow-hidden bg-surface-base">
+        {children}
+      </div>
+    </SessionProvider>
   );
 }

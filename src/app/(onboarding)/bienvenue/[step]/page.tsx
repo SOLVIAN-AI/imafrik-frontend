@@ -18,7 +18,7 @@ import {
   SignatureStep,
   ValidationStep,
 } from "@/components/onboarding/steps/radiologist-steps";
-import { useSession } from "@/lib/demo/session";
+import { useSession } from "@/components/providers/session-provider";
 import { stepsFor } from "@/lib/onboarding/steps";
 
 /**

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import * as React from "react";
 
 import { ReportWorkspace } from "@/components/editor/report-workspace";
-import { useSession } from "@/lib/demo/session";
+import { useSession } from "@/components/providers/session-provider";
 import { reportForStudy } from "@/lib/demo/reports";
 import { demoReport, findDemoStudy } from "@/lib/demo/studies";
 

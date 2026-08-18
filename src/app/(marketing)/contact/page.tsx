@@ -17,7 +17,12 @@ const VOLUMES = [
 ] as const;
 
 /** Modalités disponibles à l'envoi. */
-const MODALITIES = ["Scanner (CT)", "IRM (MR)", "Radiographie (CR/DX)", "Échographie (US)"] as const;
+const MODALITIES = [
+  "Scanner (CT)",
+  "IRM (MR)",
+  "Radiographie (CR/DX)",
+  "Échographie (US)",
+] as const;
 
 /**
  * Demande de démonstration.
@@ -95,7 +100,10 @@ export default function ContactPage() {
             </div>
           </div>
           <div className="flex gap-3">
-            <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
+            <MapPin
+              className="mt-0.5 size-4 shrink-0 text-accent"
+              aria-hidden
+            />
             <div>
               <dt className="text-sm font-medium">Lomé, Togo</dt>
               <dd className="mt-0.5 text-xs text-tertiary">SOLVIAN AI LLC</dd>

@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
-import { useSession } from "@/lib/demo/session";
+import { useSession } from "@/components/providers/session-provider";
 import { homeFor, isRouteAllowed } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
@@ -21,19 +21,14 @@ import { cn } from "@/lib/utils";
  * rejouer une redirection en boucle.
  */
 function useRoleRouting() {
-  const { active, ready } = useSession();
+  const { active } = useSession();
   const pathname = usePathname();
   const router = useRouter();
 
   React.useEffect(() => {
-    // Sans cette attente, l'organisation par défaut — celle du rendu
-    // serveur — provoquerait une redirection avant même que le choix
-    // réel de l'utilisateur soit lu, et l'on rebondirait d'un portail à
-    // l'autre à chaque chargement.
-    if (!ready) return;
     if (isRouteAllowed(active.role, pathname)) return;
     router.replace(homeFor(active.role));
-  }, [ready, active.role, pathname, router]);
+  }, [active.role, pathname, router]);
 }
 
 /**

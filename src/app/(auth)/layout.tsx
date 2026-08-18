@@ -18,7 +18,8 @@ const PROOF_POINTS = [
   {
     icon: Stethoscope,
     title: "Radiologues inscrits à l’Ordre",
-    detail: "Qualifications vérifiées, signature nominative sur chaque document.",
+    detail:
+      "Qualifications vérifiées, signature nominative sur chaque document.",
   },
   {
     icon: Lock,
@@ -67,7 +68,10 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           }}
           aria-hidden
         />
-        <div className="dot-grid pointer-events-none absolute inset-0" aria-hidden />
+        <div
+          className="dot-grid pointer-events-none absolute inset-0"
+          aria-hidden
+        />
 
         <div className="relative flex flex-1 flex-col justify-between p-12 xl:p-16">
           <div className="flex items-center gap-2.5">

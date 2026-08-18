@@ -25,7 +25,7 @@ import {
 } from "@/components/domain/study-status";
 import type { StudyStatus } from "@/components/domain/study-status";
 import { useAutosave } from "@/hooks/use-autosave";
-import { useSession } from "@/lib/demo/session";
+import { useSession } from "@/components/providers/session-provider";
 import { homeFor } from "@/lib/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

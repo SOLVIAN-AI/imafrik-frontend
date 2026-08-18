@@ -13,7 +13,7 @@ import {
 import { StudyTimeline } from "@/components/domain/study-timeline";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { useSession } from "@/lib/demo/session";
+import { useSession } from "@/components/providers/session-provider";
 import { reportForStudy } from "@/lib/demo/reports";
 import { findDemoStudy } from "@/lib/demo/studies";
 import { DateTime } from "@/components/domain/date-time";

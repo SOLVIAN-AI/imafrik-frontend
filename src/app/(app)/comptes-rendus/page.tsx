@@ -6,7 +6,7 @@ import * as React from "react";
 
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Input } from "@/components/ui/input";
-import { useSession } from "@/lib/demo/session";
+import { useSession } from "@/components/providers/session-provider";
 import { reportsWithStudy } from "@/lib/demo/reports";
 import { DateTime } from "@/components/domain/date-time";
 import { formatPatientName } from "@/lib/format";

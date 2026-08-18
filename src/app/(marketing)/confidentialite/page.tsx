@@ -27,8 +27,8 @@ export default function PrivacyPage() {
 
       <h2>1. Données des professionnels utilisateurs</h2>
       <p>
-        Pour ces données, <strong>SOLVIAN AI LLC est responsable de
-        traitement</strong>.
+        Pour ces données,{" "}
+        <strong>SOLVIAN AI LLC est responsable de traitement</strong>.
       </p>
       <h3>Données traitées</h3>
       <ul>
@@ -41,9 +41,7 @@ export default function PrivacyPage() {
       </ul>
       <h3>Finalités et base légale</h3>
       <ul>
-        <li>
-          Fournir le service et gérer les accès — exécution du contrat
-        </li>
+        <li>Fournir le service et gérer les accès — exécution du contrat</li>
         <li>
           Assurer la traçabilité des accès aux données de santé — obligation
           légale et intérêt légitime à la sécurité
@@ -60,10 +58,11 @@ export default function PrivacyPage() {
 
       <h2>2. Données de santé des patients</h2>
       <p>
-        Pour ces données, <strong>l’établissement de santé est responsable de
-        traitement</strong> et IMAFRIK agit en qualité de{" "}
-        <strong>sous-traitant</strong>, sur instruction documentée, dans le
-        cadre de l’annexe de traitement des données annexée au contrat.
+        Pour ces données,{" "}
+        <strong>l’établissement de santé est responsable de traitement</strong>{" "}
+        et IMAFRIK agit en qualité de <strong>sous-traitant</strong>, sur
+        instruction documentée, dans le cadre de l’annexe de traitement des
+        données annexée au contrat.
       </p>
       <ul>
         <li>
@@ -80,16 +79,16 @@ export default function PrivacyPage() {
           contrat
         </li>
         <li>
-          Durée : fixée par l’établissement au contrat ; suppression du
-          stockage actif et des sauvegardes selon le calendrier convenu
+          Durée : fixée par l’établissement au contrat ; suppression du stockage
+          actif et des sauvegardes selon le calendrier convenu
         </li>
       </ul>
 
       <h2>Destinataires</h2>
       <p>
         Les examens ne sont accessibles qu’aux membres de l’établissement
-        émetteur et aux radiologues liés à celui-ci par un contrat de service
-        en cours. Le cloisonnement est appliqué par la base de données à chaque
+        émetteur et aux radiologues liés à celui-ci par un contrat de service en
+        cours. Le cloisonnement est appliqué par la base de données à chaque
         requête. Les sous-traitants ultérieurs — hébergement applicatif,
         stockage des images, service d’authentification — sont listés dans
         l’annexe de traitement des données et sont eux-mêmes soumis à des
@@ -117,9 +116,10 @@ export default function PrivacyPage() {
         rectification, d’effacement, de limitation et d’opposition sur leurs
         propres données, exerçables à{" "}
         <a href="mailto:donnees@imafrik.com">donnees@imafrik.com</a>. Les
-        patients exercent leurs droits <strong>auprès de l’établissement</strong>{" "}
-        qui a réalisé l’examen : c’est lui qui est responsable du traitement.
-        IMAFRIK lui apporte son concours dans les délais prévus au contrat.
+        patients exercent leurs droits{" "}
+        <strong>auprès de l’établissement</strong> qui a réalisé l’examen :
+        c’est lui qui est responsable du traitement. IMAFRIK lui apporte son
+        concours dans les délais prévus au contrat.
       </p>
 
       <h2>Réclamation</h2>

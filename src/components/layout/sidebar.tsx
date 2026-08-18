@@ -9,6 +9,7 @@ import {
   Hospital,
   LayoutDashboard,
   LayoutList,
+  Loader2,
   LogOut,
   Settings,
   Stethoscope,
@@ -18,7 +19,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import * as React from "react";
 
 import { BrandLockup } from "@/components/layout/brand";
 import {
@@ -29,8 +31,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ROLE_LABELS, useSession, type Membership } from "@/lib/demo/session";
+import { useSession } from "@/components/providers/session-provider";
+import { ROLE_LABELS, type Membership } from "@/lib/session/types";
 import { navigationFor, type NavItem } from "@/lib/navigation";
+import { setActiveMembership, signOut } from "@/lib/session/actions";
 import { cn } from "@/lib/utils";
 
 /**
@@ -74,7 +78,8 @@ const ORG_ICONS = {
  * d'erreur.
  */
 function OrganisationSwitcher() {
-  const { memberships, active, setActive } = useSession();
+  const { memberships, active } = useSession();
+  const [pending, startTransition] = React.useTransition();
   const ActiveIcon = ORG_ICONS[active.organizationKind];
 
   return (
@@ -102,10 +107,17 @@ function OrganisationSwitcher() {
               {ROLE_LABELS[active.role]}
             </span>
           </span>
-          <ChevronsUpDown
-            className="size-3.5 shrink-0 text-tertiary transition-colors group-hover:text-secondary"
-            aria-hidden
-          />
+          {pending ? (
+            <Loader2
+              className="size-3.5 shrink-0 animate-spin text-accent"
+              aria-hidden
+            />
+          ) : (
+            <ChevronsUpDown
+              className="size-3.5 shrink-0 text-tertiary transition-colors group-hover:text-secondary"
+              aria-hidden
+            />
+          )}
         </button>
       </DropdownMenuTrigger>
 
@@ -116,7 +128,9 @@ function OrganisationSwitcher() {
             key={membership.id}
             membership={membership}
             selected={membership.id === active.id}
-            onSelect={() => setActive(membership.id)}
+            onSelect={() =>
+              startTransition(() => setActiveMembership(membership.id))
+            }
           />
         ))}
       </DropdownMenuContent>
@@ -164,6 +178,7 @@ function OrganisationItem({
  */
 function UserCard() {
   const { user } = useSession();
+  const router = useRouter();
 
   const initials = user.fullName
     .split(" ")
@@ -208,7 +223,12 @@ function UserCard() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-urgent">
+        <DropdownMenuItem
+          className="text-urgent"
+          onSelect={() => {
+            void signOut().then(() => router.push("/connexion"));
+          }}
+        >
           <LogOut className="size-3.5" aria-hidden />
           Se déconnecter
         </DropdownMenuItem>

@@ -7,7 +7,8 @@ import { DicomSettingsCard } from "@/components/domain/dicom-settings";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
-import { ROLE_LABELS, useSession } from "@/lib/demo/session";
+import { useSession } from "@/components/providers/session-provider";
+import { ROLE_LABELS } from "@/lib/session/types";
 
 /**
  * Paramètres.

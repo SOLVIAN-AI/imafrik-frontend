@@ -6,8 +6,6 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
-import { useSession } from "@/lib/demo/session";
-import { homeFor } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 /**
@@ -24,7 +22,10 @@ import { cn } from "@/lib/utils";
 const PASSWORD_RULES = [
   { label: "Douze caractères au minimum", test: (v: string) => v.length >= 12 },
   { label: "Une lettre majuscule", test: (v: string) => /[A-ZÀ-Ý]/.test(v) },
-  { label: "Un chiffre ou un symbole", test: (v: string) => /[^\p{L}]/u.test(v) },
+  {
+    label: "Un chiffre ou un symbole",
+    test: (v: string) => /[^\p{L}]/u.test(v),
+  },
 ] as const;
 
 /**
@@ -46,7 +47,6 @@ export default function InvitationPage({
 }: PageProps<"/invitation/[token]">) {
   const { token } = React.use(params);
   const router = useRouter();
-  const { active } = useSession();
 
   const [name, setName] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -63,14 +63,17 @@ export default function InvitationPage({
   };
 
   const satisfied = PASSWORD_RULES.filter((rule) => rule.test(password));
-  const valid = name.trim().length >= 3 && satisfied.length === PASSWORD_RULES.length;
+  const valid =
+    name.trim().length >= 3 && satisfied.length === PASSWORD_RULES.length;
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!valid) return;
     setPending(true);
     await new Promise((resolve) => setTimeout(resolve, 800));
-    router.push(homeFor(active.role));
+    // Un accès qui vient d'être créé n'a encore rien de configuré : on
+    // enchaîne sur la mise en service plutôt que sur un portail vide.
+    router.push("/bienvenue");
   };
 
   return (
@@ -153,7 +156,9 @@ export default function InvitationPage({
                   <X className="size-3 shrink-0 opacity-50" aria-hidden />
                 )}
                 {rule.label}
-                <span className="sr-only">{ok ? " : satisfait" : " : non satisfait"}</span>
+                <span className="sr-only">
+                  {ok ? " : satisfait" : " : non satisfait"}
+                </span>
               </li>
             );
           })}

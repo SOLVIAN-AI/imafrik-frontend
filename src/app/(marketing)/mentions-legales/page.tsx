@@ -35,10 +35,10 @@ export default function LegalNoticePage() {
 
       <h2>Hébergement</h2>
       <p>
-        L’application est hébergée par [nom de l’hébergeur applicatif], [adresse].
-        Les images médicales et les données associées sont hébergées par
-        [nom de l’hébergeur de données], sur des infrastructures situées dans
-        l’Union européenne. La liste à jour des sous-traitants figure dans
+        L’application est hébergée par [nom de l’hébergeur applicatif],
+        [adresse]. Les images médicales et les données associées sont hébergées
+        par [nom de l’hébergeur de données], sur des infrastructures situées
+        dans l’Union européenne. La liste à jour des sous-traitants figure dans
         l’annexe de traitement des données annexée au contrat de service.
       </p>
 
@@ -54,20 +54,19 @@ export default function LegalNoticePage() {
 
       <h2>Propriété intellectuelle</h2>
       <p>
-        L’ensemble des éléments composant le service — code, interface,
-        marques, documentation — demeure la propriété de SOLVIAN AI LLC ou de
-        ses concédants. Les examens transmis et les comptes-rendus produits
-        restent la propriété de l’établissement client et de ses patients,
-        dans les conditions prévues au contrat.
+        L’ensemble des éléments composant le service — code, interface, marques,
+        documentation — demeure la propriété de SOLVIAN AI LLC ou de ses
+        concédants. Les examens transmis et les comptes-rendus produits restent
+        la propriété de l’établissement client et de ses patients, dans les
+        conditions prévues au contrat.
       </p>
 
       <h2>Signalement</h2>
       <p>
-        Tout contenu manifestement illicite ou tout dysfonctionnement peut
-        être signalé à{" "}
-        <a href="mailto:contact@imafrik.com">contact@imafrik.com</a>. Les
-        incidents de sécurité relèvent de la procédure décrite dans l’annexe de
-        traitement des données.
+        Tout contenu manifestement illicite ou tout dysfonctionnement peut être
+        signalé à <a href="mailto:contact@imafrik.com">contact@imafrik.com</a>.
+        Les incidents de sécurité relèvent de la procédure décrite dans l’annexe
+        de traitement des données.
       </p>
     </LegalPage>
   );

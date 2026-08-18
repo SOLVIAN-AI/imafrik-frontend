@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Field, Input } from "@/components/ui/input";
-import { useSession } from "@/lib/demo/session";
+import { useSession } from "@/components/providers/session-provider";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 

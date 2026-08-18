@@ -1,4 +1,9 @@
-import { CalendarCheck, FileCheck2, ShieldCheck, Stethoscope } from "lucide-react";
+import {
+  CalendarCheck,
+  FileCheck2,
+  ShieldCheck,
+  Stethoscope,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -99,9 +104,9 @@ export default async function VerifyPage({
           </span>
           <h1 className="mt-6 text-2xl font-semibold">Code inconnu</h1>
           <p className="mt-2 max-w-md text-sm leading-relaxed text-secondary">
-            Aucun compte-rendu ne correspond à ce code. Vérifiez la saisie —
-            les caractères se recopient mal depuis un document imprimé. Si le
-            code est correct, le document ne provient pas d’IMAFRIK.
+            Aucun compte-rendu ne correspond à ce code. Vérifiez la saisie — les
+            caractères se recopient mal depuis un document imprimé. Si le code
+            est correct, le document ne provient pas d’IMAFRIK.
           </p>
           <p className="mt-6 font-mono text-2xs text-tertiary">
             Code soumis : {token}

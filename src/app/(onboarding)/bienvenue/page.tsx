@@ -1,9 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useRouter } from "next/navigation";
-import * as React from "react";
-
-import { useSession } from "@/lib/demo/session";
+import { getSession } from "@/lib/session/server";
 import { stepsFor } from "@/lib/onboarding/steps";
 
 /**
@@ -14,19 +11,12 @@ import { stepsFor } from "@/lib/onboarding/steps";
  * « bienvenue, cliquez pour commencer », ne ferait qu'ajouter un clic à
  * quelqu'un qui vient précisément de cliquer pour commencer.
  *
- * La redirection a lieu **après le montage**, pas pendant le rendu : le
- * rôle vient de la session côté client, que le serveur ne connaît pas.
- * `replace` plutôt que `push` — cette adresse ne doit pas rester dans
- * l'historique, sinon le bouton « précédent » y ramènerait en boucle.
+ * Résolue côté serveur : la redirection part avant le moindre rendu, ce
+ * qui évite l'apparition fugace d'un écran vide.
  */
-export default function OnboardingEntryPage() {
-  const router = useRouter();
-  const { active, ready } = useSession();
+export default async function OnboardingEntryPage() {
+  const session = await getSession();
+  if (!session) redirect("/connexion");
 
-  React.useEffect(() => {
-    if (!ready) return;
-    router.replace(`/bienvenue/${stepsFor(active.role)[0].slug}`);
-  }, [ready, active.role, router]);
-
-  return null;
+  redirect(`/bienvenue/${stepsFor(session.active.role)[0].slug}`);
 }

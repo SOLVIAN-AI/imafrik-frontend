@@ -6,7 +6,7 @@ import * as React from "react";
 import { DicomSettingsCard } from "@/components/domain/dicom-settings";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { useSession } from "@/lib/demo/session";
+import { useSession } from "@/components/providers/session-provider";
 import { formatBytes } from "@/lib/format";
 import { cn } from "@/lib/utils";
 

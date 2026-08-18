@@ -4,6 +4,7 @@ import { ArrowLeft, MailCheck } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
+import { requestPasswordReset } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 
@@ -24,7 +25,9 @@ export default function ForgotPasswordPage() {
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setPending(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    // La confirmation s'affiche quelle que soit l'issue : voir la
+    // remarque sur la divulgation d'existence de compte.
+    await requestPasswordReset(email);
     setPending(false);
     setSent(true);
   };
@@ -40,9 +43,9 @@ export default function ForgotPasswordPage() {
         </span>
         <h2 className="mt-5 text-2xl font-semibold">Vérifiez vos courriels</h2>
         <p className="mt-2 text-sm leading-relaxed text-secondary">
-          Si un compte existe pour{" "}
-          <span className="text-primary">{email}</span>, un lien de
-          réinitialisation vient d’y être envoyé. Il expire dans une heure.
+          Si un compte existe pour <span className="text-primary">{email}</span>
+          , un lien de réinitialisation vient d’y être envoyé. Il expire dans
+          une heure.
         </p>
         <p className="mt-4 text-xs text-tertiary">
           Rien reçu au bout de quelques minutes ? Vérifiez les indésirables,

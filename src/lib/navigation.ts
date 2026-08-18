@@ -1,5 +1,5 @@
 import type { NavIconKey } from "@/components/layout/sidebar";
-import type { UserRole } from "@/lib/demo/session";
+import type { UserRole } from "@/lib/session/types";
 
 export interface NavItem {
   href: string;

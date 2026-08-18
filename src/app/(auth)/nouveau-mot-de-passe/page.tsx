@@ -12,7 +12,10 @@ import { cn } from "@/lib/utils";
 const PASSWORD_RULES = [
   { label: "Douze caractères au minimum", test: (v: string) => v.length >= 12 },
   { label: "Une lettre majuscule", test: (v: string) => /[A-ZÀ-Ý]/.test(v) },
-  { label: "Un chiffre ou un symbole", test: (v: string) => /[^\p{L}]/u.test(v) },
+  {
+    label: "Un chiffre ou un symbole",
+    test: (v: string) => /[^\p{L}]/u.test(v),
+  },
 ] as const;
 
 /**

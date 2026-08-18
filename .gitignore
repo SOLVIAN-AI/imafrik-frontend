@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# …sauf le gabarit, qui doit être versionné : c'est lui qui documente
+# les variables attendues.
+!.env.local.example
 
 # vercel
 .vercel

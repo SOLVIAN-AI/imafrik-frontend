@@ -95,9 +95,9 @@ export default function SecurityPage() {
         </h1>
         <p className="mt-5 text-base leading-relaxed text-secondary">
           Confier les examens de ses patients à un tiers engage la
-          responsabilité de l’établissement. Cette page dit précisément ce
-          qu’il advient d’une image entre le moment où elle quitte votre
-          console et celui où elle est supprimée.
+          responsabilité de l’établissement. Cette page dit précisément ce qu’il
+          advient d’une image entre le moment où elle quitte votre console et
+          celui où elle est supprimée.
         </p>
       </div>
 
@@ -118,9 +118,9 @@ export default function SecurityPage() {
         <p className="mt-3 text-sm leading-relaxed text-secondary">
           L’établissement reste responsable du traitement des données de ses
           patients ; IMAFRIK agit comme sous-traitant, sur instruction et dans
-          le cadre défini au contrat. Cette répartition, les mesures de
-          sécurité et la liste des sous-traitants ultérieurs figurent dans une
-          annexe de traitement des données, jointe à toute proposition.
+          le cadre défini au contrat. Cette répartition, les mesures de sécurité
+          et la liste des sous-traitants ultérieurs figurent dans une annexe de
+          traitement des données, jointe à toute proposition.
         </p>
         <p className="mt-4 text-sm leading-relaxed text-secondary">
           Aucun examen n’est utilisé à d’autres fins que la production du

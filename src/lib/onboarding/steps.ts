@@ -1,4 +1,4 @@
-import type { UserRole } from "@/lib/demo/session";
+import type { UserRole } from "@/lib/session/types";
 
 /**
  * Une étape de la mise en service.
