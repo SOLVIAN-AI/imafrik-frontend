@@ -27,6 +27,28 @@ Posés dans `vercel.json`, pour tout le domaine :
 `SAMEORIGIN` plutôt que `DENY` : le viewer d'images est chargé dans une
 `iframe` de notre propre domaine.
 
+## Deux pièges rencontrés
+
+**Le premier déploiement d'un projet part en production**, quelle que
+soit la commande. `vercel deploy` sans `--prod` produit bien un aperçu —
+mais seulement à partir du deuxième. Sur un projet neuf, il faut donc
+soit retirer l'alias de production immédiatement, soit accepter que la
+première mise en ligne soit publique.
+
+**Avec l'intégration Git, `main` va toujours en production.** Un
+déploiement de démonstration ne peut donc pas vivre sur cette branche :
+il faut une branche dédiée, dont Vercel fait un aperçu.
+
+## Ce que sert un déploiement de production non configuré
+
+Rien. L'intergiciel réécrit toute requête vers `/configuration-requise`,
+avec un statut 503 et l'indication des variables manquantes.
+
+Ce n'est pas une précaution théorique : servir le jeu de démonstration
+sous une adresse de production présenterait de faux patients à de vrais
+utilisateurs. Le refus est donc net — mais lisible, là où une exception
+aurait produit un 500 muet.
+
 ## Variables d'environnement
 
 À déclarer dans **Vercel → Settings → Environment Variables**, pour
