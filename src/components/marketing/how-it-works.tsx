@@ -1,35 +1,41 @@
-import { FileSignature, Send, ScanLine } from "lucide-react";
+import { FileSignature, HardDrive, ScanLine } from "lucide-react";
 
 import { Section } from "@/components/marketing/section";
 
 /**
  * Les trois temps du service.
  *
- * La numérotation est ici justifiée : c'est une véritable séquence, et
+ * La numérotation est justifiée : c'est une véritable séquence, et
  * l'ordre porte une information — on ne signe pas avant d'avoir lu. Un
- * marqueur numéroté sur des blocs qui ne se suivent pas ne serait que
- * de la décoration.
+ * marqueur numéroté sur des blocs qui ne se suivent pas ne serait que de
+ * la décoration.
+ *
+ * La première étape décrit la passerelle sans la nommer autrement que
+ * par ce qu'elle fait. « Store-and-forward » ne veut rien dire pour un
+ * directeur d'établissement ; « l'examen est accepté même si la liaison
+ * est coupée » lui parle immédiatement, parce que c'est arrivé la
+ * semaine dernière.
  */
 const STEPS = [
   {
-    icon: Send,
-    title: "La clinique envoie",
+    icon: HardDrive,
+    title: "La passerelle reçoit",
     detail:
-      "Le PACS pousse l’examen automatiquement dès la validation sur la console. Sans PACS routable, les fichiers se déposent depuis le navigateur.",
-    note: "Transfert chiffré · aucun logiciel à installer",
+      "Vos modalités envoient l’examen à un boîtier posé dans l’établissement, comme à n’importe quelle destination du réseau interne. Il accepte immédiatement, même si la liaison est coupée.",
+    note: "Aucun changement sur les consoles d’acquisition",
   },
   {
     icon: ScanLine,
     title: "Un radiologue lit",
     detail:
-      "L’examen entre dans une file commune. Le premier radiologue disponible le prend en charge ; les urgences remontent en tête.",
+      "L’examen part vers la plateforme dès que la liaison le permet, compressé et chiffré. Il entre dans une file de travail ; les urgences remontent en tête.",
     note: "Images et compte-rendu côte à côte",
   },
   {
     icon: FileSignature,
     title: "Le compte-rendu est signé",
     detail:
-      "Signature nominative, document verrouillé, transmis à l’établissement. Un code de vérification permet d’en attester l’authenticité.",
+      "Signature nominative, document verrouillé, transmis à l’établissement. Un code imprimé permet d’en vérifier l’authenticité en ligne.",
     note: "PDF disponible immédiatement",
   },
 ] as const;
@@ -40,7 +46,7 @@ export function HowItWorks() {
     <Section
       id="fonctionnement"
       eyebrow="Fonctionnement"
-      title="Trois étapes, aucune installation"
+      title="Trois étapes, rien à installer sur vos postes"
       lead="Entre l’acquisition et le compte-rendu signé, il n’y a que le temps de lecture du radiologue."
     >
       <ol className="mt-12 grid gap-5 md:grid-cols-3">
@@ -71,6 +77,11 @@ export function HowItWorks() {
           </li>
         ))}
       </ol>
+
+      <p className="mt-6 max-w-2xl text-xs leading-relaxed text-tertiary">
+        Pas encore de passerelle, ou un examen gravé sur CD ? Les fichiers se
+        déposent depuis un navigateur, sans rien installer.
+      </p>
     </Section>
   );
 }

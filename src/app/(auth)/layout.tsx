@@ -12,14 +12,14 @@ import { Mark } from "@/components/layout/brand";
 const PROOF_POINTS = [
   {
     icon: Clock3,
-    title: "Comptes-rendus en moins de deux heures",
-    detail: "Vingt minutes pour les urgences, la nuit et le week-end compris.",
+    title: "Des délais tenus par contrat",
+    detail: "Deux heures en routine, trente minutes pour une urgence.",
   },
   {
     icon: Stethoscope,
-    title: "Radiologues inscrits à l’Ordre",
+    title: "Une signature nommée",
     detail:
-      "Qualifications vérifiées, signature nominative sur chaque document.",
+      "Chaque compte-rendu porte le nom et le numéro d’ordre de son auteur.",
   },
   {
     icon: Lock,
@@ -89,8 +89,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
             </h1>
             <p className="mt-5 text-base leading-relaxed text-secondary">
               Vos examens sont lus par des radiologues disponibles, où qu’ils
-              soient. Vous gardez vos images, votre patient garde son
-              établissement.
+              soient. Votre patient reste dans votre établissement.
             </p>
 
             <ul className="mt-10 flex flex-col gap-5">

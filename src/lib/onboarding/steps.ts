@@ -22,8 +22,8 @@ export interface OnboardingStep {
  * Parcours d'une clinique.
  *
  * L'ordre n'est pas administratif mais opérationnel : on identifie
- * l'établissement, on branche le PACS, **on vérifie que ça marche**,
- * puis seulement on invite l'équipe. Rien ne rassure autant qu'une
+ * l'établissement, on raccorde les modalités, **on vérifie que ça
+ * marche**, puis seulement on invite l'équipe. Rien ne rassure autant qu'une
  * première image arrivée ; inviter des collègues avant que le flux
  * fonctionne reviendrait à leur montrer un écran vide.
  */
@@ -35,13 +35,13 @@ const CLINIC_STEPS: OnboardingStep[] = [
   },
   {
     slug: "connexion-pacs",
-    title: "Connexion PACS",
-    lead: "Les paramètres à recopier dans votre console d’imagerie.",
+    title: "Passerelle",
+    lead: "Les paramètres à saisir sur vos consoles d’acquisition.",
   },
   {
     slug: "premier-envoi",
     title: "Premier envoi",
-    lead: "On attend votre premier examen pour valider la liaison.",
+    lead: "Nous attendons un examen pour valider la liaison.",
   },
   {
     slug: "equipe",

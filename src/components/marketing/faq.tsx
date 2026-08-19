@@ -12,29 +12,29 @@ import { Section } from "@/components/marketing/section";
  */
 const QUESTIONS = [
   {
-    question: "Faut-il remplacer notre PACS ?",
+    question: "Faut-il changer notre installation ?",
     answer:
-      "Non. IMAFRIK reçoit les examens de votre PACS existant, quel qu’en soit l’éditeur, via le protocole DICOM standard. Votre installation ne change pas ; on y ajoute une destination d’envoi. Si votre console ne peut pas émettre vers l’extérieur, les fichiers se déposent depuis un navigateur.",
+      "Non. La passerelle se pose à côté de l’existant et vos modalités lui envoient les examens comme à n’importe quelle destination du réseau interne. Si vous avez déjà un PACS, il reste en place et continue de fonctionner.",
   },
   {
-    question: "Que se passe-t-il si la connexion Internet est coupée ?",
+    question: "Que se passe-t-il si Internet ou le courant est coupé ?",
     answer:
-      "Les envois interrompus reprennent automatiquement au rétablissement de la liaison : le PACS conserve la file. Un examen n’est jamais perdu, il est retardé. Pour les urgences, un contact téléphonique reste prévu au contrat.",
+      "L’examen est accepté quand même : la passerelle le conserve et le transfère dès que la liaison revient. Vos images restent consultables sur place pendant la coupure. C’est la raison d’être du boîtier : une console d’acquisition ne garde pas les envois qui échouent.",
   },
   {
     question: "Qui signe le compte-rendu, et qui en est responsable ?",
     answer:
-      "Un radiologue nommément identifié, inscrit à l’Ordre, dont le numéro figure sur le document. La responsabilité de l’interprétation lui incombe, comme pour un examen lu sur place. IMAFRIK assure la transmission et la traçabilité.",
+      "Un radiologue nommément identifié, inscrit à un ordre professionnel, dont le numéro figure sur le document. La responsabilité de l’interprétation lui incombe, comme pour un examen lu sur place. IMAFRIK assure la transmission et la traçabilité.",
   },
   {
     question: "Où sont stockées les images de nos patients ?",
     answer:
-      "Dans l’Union européenne, chiffrées au repos, sous une durée de conservation fixée au contrat. Elles restent la propriété de l’établissement, qui peut en demander l’export ou la suppression.",
+      "Sur la passerelle de votre établissement, et sur nos serveurs dans l’Union européenne, chiffrées. Elles restent la propriété de l’établissement, qui peut en demander l’export ou la suppression. La durée de conservation est fixée au contrat.",
   },
   {
     question: "Combien de temps prend la mise en service ?",
     answer:
-      "Le raccordement d’un PACS prend en général une demi-journée, planifiée avec votre prestataire technique. Le dépôt manuel, lui, est utilisable dès la création du compte.",
+      "Le raccordement des modalités à la passerelle se planifie avec votre technicien. Le dépôt depuis un navigateur, lui, est utilisable dès la création du compte : vous pouvez envoyer votre premier examen sans attendre le boîtier.",
   },
   {
     question: "Peut-on essayer avant de s’engager ?",

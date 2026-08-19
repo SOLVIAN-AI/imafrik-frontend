@@ -166,8 +166,7 @@ export function SignInForm({
       <div className="mt-8 rounded-xl border border-border-subtle bg-surface-raised px-4 py-3.5">
         <p className="text-xs font-medium">Pas encore de compte ?</p>
         <p className="mt-1 text-xs leading-relaxed text-tertiary">
-          L’accès à IMAFRIK se fait sur invitation : votre établissement, ou
-          l’équipe IMAFRIK pour un radiologue, vous envoie un lien.{" "}
+          L’accès se fait sur invitation.{" "}
           <Link href="/contact" className="text-accent hover:underline">
             Demander un accès
           </Link>

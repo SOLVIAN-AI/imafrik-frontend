@@ -1,7 +1,11 @@
 # Audit des textes de l'interface
 
-Inventaire de tout ce qu'un utilisateur lit à l'écran, et de ce qui ne
-va pas. **774 chaînes distinctes** dans 60 fichiers.
+Inventaire de tout ce qu'un utilisateur lit à l'écran. **775 chaînes
+distinctes** dans 60 fichiers.
+
+> **État : corrigé.** Les sections A, B, C, E et G ont été traitées. Ce
+> qui reste ouvert est signalé comme tel — mentions légales à faire
+> relire, et deux valeurs à confirmer.
 
 Le classement est par gravité, pas par écran : ce qui est **faux** se
 corrige avant ce qui est **maladroit**.
@@ -133,3 +137,29 @@ mais « nous installons une passerelle qui reçoit vos modalités ». Et
 
 **Cette réécriture attend la décision d'architecture.** La faire deux
 fois serait du gâchis.
+
+
+---
+
+## Ce qui a été corrigé
+
+| Sujet | Avant | Après |
+| --- | --- | --- |
+| Reprise après coupure | « le PACS conserve la file » *(faux)* | « la passerelle le conserve et le transfère dès que la liaison revient » |
+| Délais | présentés comme des faits | présentés comme **engagements de délai**, avec la mention « fixés au contrat » |
+| Radiologues | « Radiologues inscrits à l'Ordre » *(aucun recruté)* | « Chaque compte-rendu porte le nom et le numéro d'ordre de son auteur » — vrai par construction |
+| Téléphone | `+228 00 00 00 00` publié | retiré ; courriel et formulaire seulement |
+| Paramètres DICOM | `dicom.imafrik.com:11112` *(n'existe pas)* | adresse locale de la passerelle, `192.168.10.20:104` |
+| Délais de support | « réponse sous un jour ouvré », « sous 48 h », « demi-journée » | retirés |
+| Tirets cadratins | 16 | 7, tous de véritables incises |
+| Aide de formulaire | jusqu'à 170 signes | réduite de moitié |
+
+## Ce qui reste ouvert
+
+1. **Les trois pages légales** portent toujours leurs `[crochets]`. À
+   faire relire par un conseil avant toute mise en production.
+2. **`contact@imafrik.com`** doit exister avant la mise en ligne : un
+   courriel de prospect perdu est un client perdu.
+3. **Les délais annoncés** — 2 h, 30 min, 7 j/7 — sont des engagements
+   contractuels. Ils tiennent tant qu'une garde est organisée ; à revoir
+   après les premiers mois d'exploitation.

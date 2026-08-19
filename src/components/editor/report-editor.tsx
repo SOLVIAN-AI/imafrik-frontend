@@ -247,7 +247,7 @@ function SaveIndicator({ state }: { state: SaveState }) {
     offline: (
       <>
         <CloudOff className="size-3 text-progress" aria-hidden />
-        Hors ligne — conservé sur ce poste
+        Hors ligne, conservé sur ce poste
       </>
     ),
   }[state];

@@ -142,10 +142,10 @@ export function FacilityStep({ step, nextSlug }: StepProps) {
  *
  * **L'étape la plus délicate du parcours**, et souvent la seule qui se
  * fasse à deux, au téléphone avec un technicien. D'où les trois partis
- * pris : les valeurs à recopier sont affichées avant qu'on demande quoi
- * que ce soit, chacune est copiable en un clic, et l'AET de
- * l'établissement — la seule valeur que l'utilisateur doit choisir — est
- * pré-rempli à partir du nom saisi à l'étape précédente.
+ * pris : les valeurs à saisir sont affichées avant qu'on demande quoi
+ * que ce soit, chacune est copiable en un clic, et l'AET de la
+ * passerelle, seule valeur que l'utilisateur choisit, est pré-rempli à
+ * partir du nom de l'établissement.
  */
 export function PacsStep({ step, previousSlug, nextSlug }: StepProps) {
   const router = useRouter();
@@ -200,23 +200,23 @@ export function PacsStep({ step, previousSlug, nextSlug }: StepProps) {
     <StepShell step={step} previousSlug={previousSlug} onSubmit={submit}>
       <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-raised">
         <p className="border-b border-border-subtle px-4 py-3 text-xs leading-relaxed text-secondary">
-          Ces valeurs se recopient dans la configuration de votre PACS, en tant
-          que nouvelle destination d’envoi.
+          À saisir sur chaque console d’acquisition, comme nouvelle destination
+          d’envoi. Tout reste sur le réseau interne.
         </p>
         <DicomSettingsCard
           settings={{
-            calledAet: "IMAFRIK",
-            callingAet: callingAet || "VOTRE_AET",
-            host: "dicom.imafrik.com",
-            port: 11112,
+            calledAet: callingAet || "IMAFRIK_GW",
+            callingAet: "SCANNER_1",
+            host: "192.168.10.20",
+            port: 104,
           }}
         />
       </div>
 
       <Field
         id="callingAet"
-        label="AET de votre établissement"
-        hint="C’est lui qui identifie vos envois. Seize caractères au plus, sans espace ni accent."
+        label="AET de la passerelle"
+        hint="Le nom que vos consoles appelleront. Seize caractères au plus, sans espace ni accent."
         error={form.formState.errors.callingAet?.message}
       >
         <Input
@@ -227,11 +227,11 @@ export function PacsStep({ step, previousSlug, nextSlug }: StepProps) {
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field id="vendor" label="Éditeur du PACS" hint="Facultatif.">
+        <Field id="vendor" label="Marque de vos modalités" hint="Facultatif.">
           <Input
             id="vendor"
             className="h-10"
-            placeholder="Carestream, Agfa, dcm4chee…"
+            placeholder="Siemens, GE, Canon…"
             {...form.register("vendor")}
           />
         </Field>
@@ -316,7 +316,7 @@ export function FirstStudyStep({ step, previousSlug, nextSlug }: StepProps) {
             </span>
             <p className="text-base font-medium">En attente d’un examen</p>
             <p className="max-w-sm text-xs leading-relaxed text-secondary">
-              Envoyez n’importe quel examen depuis votre console — un examen de
+              Envoyez n’importe quel examen depuis une console ; un examen de
               test suffit. Cette page se met à jour toute seule.
             </p>
             <Loader2
@@ -332,8 +332,9 @@ export function FirstStudyStep({ step, previousSlug, nextSlug }: StepProps) {
           Rien n’arrive au bout de quelques minutes ?{" "}
           <Link href="/contact" className="text-accent hover:underline">
             Faites-vous accompagner
-          </Link>{" "}
-          — c’est souvent un pare-feu qui bloque le port 11112.
+          </Link>
+          . C’est le plus souvent l’AET de destination qui diffère d’un
+          caractère.
         </p>
       )}
     </StepShell>

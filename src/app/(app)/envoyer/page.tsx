@@ -168,20 +168,20 @@ export default function SendStudyPage() {
         <div className="flex flex-col gap-4">
           <Panel className="flex flex-col overflow-hidden">
             <h2 className="label-eyebrow flex h-11 shrink-0 items-center border-b border-border-subtle px-4">
-              Envoi automatique
+              Votre passerelle
             </h2>
             <p className="px-4 pt-3 text-xs leading-relaxed text-secondary">
-              Ces quatre valeurs se recopient dans la configuration du PACS de
-              l’établissement. Une fois enregistrées, chaque examen validé sur
-              la console part vers la plateforme sans autre geste.
+              Valeurs à saisir sur vos consoles d’acquisition. Tout reste sur le
+              réseau interne : la passerelle transfère ensuite, et reprend seule
+              après une coupure.
             </p>
             <div className="mt-2">
               <DicomSettingsCard
                 settings={{
-                  calledAet: "IMAFRIK",
-                  callingAet: "STJOSEPH_LOME",
-                  host: "dicom.imafrik.com",
-                  port: 11112,
+                  calledAet: "IMAFRIK_GW",
+                  callingAet: "SCANNER_1",
+                  host: "192.168.10.20",
+                  port: 104,
                 }}
               />
             </div>

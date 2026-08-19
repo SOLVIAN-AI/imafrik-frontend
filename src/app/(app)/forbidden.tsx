@@ -22,9 +22,9 @@ export default function Forbidden() {
       title="Cet examen ne vous est pas accessible"
       detail={
         <>
-          Il appartient à une organisation dont vous n’êtes pas membre — ou vous
-          êtes connecté sous une autre casquette. Vérifiez l’organisation active
-          en haut de la navigation avant d’ouvrir à nouveau le lien.
+          Il appartient à une organisation dont vous n’êtes pas membre. Il se
+          peut aussi que vous soyez connecté sous une autre casquette : vérifiez
+          l’organisation active en haut de la navigation.
         </>
       }
       actions={

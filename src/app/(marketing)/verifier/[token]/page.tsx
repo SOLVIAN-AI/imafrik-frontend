@@ -95,7 +95,7 @@ export default async function VerifyPage({
           </span>
           <h1 className="mt-6 text-2xl font-semibold">Code inconnu</h1>
           <p className="mt-2 max-w-md text-sm leading-relaxed text-secondary">
-            Aucun compte-rendu ne correspond à ce code. Vérifiez la saisie — les
+            Aucun compte-rendu ne correspond à ce code. Vérifiez la saisie : les
             caractères se recopient mal depuis un document imprimé. Si le code
             est correct, le document ne provient pas d’IMAFRIK.
           </p>

@@ -12,11 +12,11 @@ import { Button } from "@/components/ui/button";
  * frais annexes — installation, licence, maintenance, stockage.
  */
 const INCLUDED = [
-  "Mise en service et raccordement du PACS",
+  "Passerelle fournie, installée et supervisée",
   "Stockage et archivage des examens",
   "Portail clinique et accès pour toute l’équipe",
   "Comptes-rendus signés, PDF et vérification en ligne",
-  "Support pendant les heures ouvrées",
+  "Assistance au raccordement des modalités",
 ] as const;
 
 /**
@@ -36,8 +36,8 @@ export function Pricing() {
     <Section
       id="tarifs"
       eyebrow="Tarifs"
-      title="À l’acte. Sans abonnement, sans frais d’installation."
-      lead="Vous payez les examens lus, rien d’autre. Le tarif unitaire dépend de la modalité et du délai retenu ; il est fixé au contrat et n’évolue pas en cours d’année."
+      title="À l’acte, sans abonnement."
+      lead="Vous payez les examens lus. Le tarif unitaire dépend de la modalité et du délai retenu ; il est fixé au contrat et n’évolue pas en cours d’année."
     >
       <div className="mt-12 grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="rounded-2xl border border-border-subtle bg-surface-raised p-8 shadow-raised">
@@ -55,8 +55,7 @@ export function Pricing() {
           </ul>
 
           <p className="mt-8 border-t border-border-subtle pt-5 text-xs leading-relaxed text-tertiary">
-            Les radiologues du réseau sont rémunérés à l’acte lu. Aucun
-            engagement de volume n’est demandé à l’établissement.
+            Aucun engagement de volume n’est demandé à l’établissement.
           </p>
         </div>
 
@@ -70,8 +69,8 @@ export function Pricing() {
             </span>
             <h3 className="mt-5 text-xl font-semibold">Obtenir une grille</h3>
             <p className="mt-2 text-sm leading-relaxed text-secondary">
-              Dites-nous votre volume mensuel et vos modalités : vous recevez
-              une proposition chiffrée sous quarante-huit heures.
+              Dites-nous votre volume mensuel et vos modalités : nous vous
+              adressons une proposition chiffrée.
             </p>
           </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Mail, MapPin, Phone } from "lucide-react";
+import { CheckCircle2, Mail, MapPin } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -75,9 +75,9 @@ export default function ContactPage() {
           Parlons de votre installation
         </h1>
         <p className="mt-5 text-base leading-relaxed text-secondary">
-          Trente minutes suffisent : vous décrivez votre PACS et votre volume,
-          nous vous montrons le parcours complet d’un examen et vous repartez
-          avec une grille tarifaire.
+          Trente minutes suffisent : vous décrivez votre installation et votre
+          volume, nous vous montrons le parcours complet d’un examen, de
+          l’acquisition au compte-rendu signé.
         </p>
 
         <dl className="mt-10 flex flex-col gap-5">
@@ -86,16 +86,7 @@ export default function ContactPage() {
             <div>
               <dt className="text-sm font-medium">contact@imafrik.com</dt>
               <dd className="mt-0.5 text-xs text-tertiary">
-                Réponse sous un jour ouvré.
-              </dd>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <Phone className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
-            <div>
-              <dt className="text-sm font-medium">+228 00 00 00 00</dt>
-              <dd className="mt-0.5 text-xs text-tertiary">
-                Du lundi au vendredi, 8 h – 18 h.
+                Nous vous rappelons pour convenir d’un créneau.
               </dd>
             </div>
           </div>
@@ -130,8 +121,8 @@ export default function ContactPage() {
             <h2 className="mt-5 text-xl font-semibold">Demande envoyée</h2>
             <p className="mt-2 text-sm leading-relaxed text-secondary">
               Merci {form.name.split(" ")[0]}. Nous revenons vers vous à
-              l’adresse <span className="text-primary">{form.email}</span> sous
-              un jour ouvré, avec une proposition de créneau.
+              l’adresse <span className="text-primary">{form.email}</span> avec
+              une proposition de créneau.
             </p>
           </div>
         ) : (
@@ -249,7 +240,7 @@ export default function ContactPage() {
                 rows={4}
                 value={form.message}
                 onChange={(event) => update("message")(event.target.value)}
-                placeholder="Votre PACS, vos délais actuels, ce qui vous pose problème aujourd’hui…"
+                placeholder="Vos modalités, vos délais actuels, ce qui vous pose problème aujourd’hui…"
               />
             </Field>
 

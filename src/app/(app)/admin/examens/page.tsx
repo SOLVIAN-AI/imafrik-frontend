@@ -11,7 +11,7 @@ import { listAllStudies } from "@/lib/data/admin";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Examens — administration" };
+export const metadata: Metadata = { title: "Tous les examens" };
 
 /**
  * Tous les examens de la plateforme.

@@ -41,12 +41,12 @@ export default function PrivacyPage() {
       </ul>
       <h3>Finalités et base légale</h3>
       <ul>
-        <li>Fournir le service et gérer les accès — exécution du contrat</li>
+        <li>Fournir le service et gérer les accès : exécution du contrat</li>
         <li>
-          Assurer la traçabilité des accès aux données de santé — obligation
+          Assurer la traçabilité des accès aux données de santé : obligation
           légale et intérêt légitime à la sécurité
         </li>
-        <li>Facturer et rémunérer les actes — exécution du contrat</li>
+        <li>Facturer et rémunérer les actes : exécution du contrat</li>
       </ul>
       <h3>Durée de conservation</h3>
       <p>
@@ -125,7 +125,7 @@ export default function PrivacyPage() {
       <h2>Réclamation</h2>
       <p>
         Toute personne peut introduire une réclamation auprès de l’autorité de
-        protection des données compétente — [autorité et coordonnées].
+        protection des données compétente : [autorité et coordonnées].
       </p>
     </LegalPage>
   );

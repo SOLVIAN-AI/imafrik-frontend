@@ -20,15 +20,15 @@ import { Section } from "@/components/marketing/section";
 const GUARANTEES = [
   {
     icon: FileLock2,
-    title: "Chiffrement de bout en bout",
+    title: "Rien en clair sur Internet",
     detail:
-      "Images chiffrées pendant le transfert et au repos. Les clés ne quittent pas l’infrastructure.",
+      "Les images sortent chiffrées de la passerelle et le restent au stockage. Aucun port d’imagerie n’est exposé sur Internet.",
   },
   {
     icon: KeyRound,
     title: "Cloisonnement par établissement",
     detail:
-      "Chaque organisation ne voit que ses propres examens. L’isolation est appliquée par la base de données, pas seulement par l’interface.",
+      "L’isolation est appliquée par la base de données, pas seulement par l’interface : une erreur de programmation ne peut pas l’ouvrir.",
   },
   {
     icon: ScrollText,
@@ -40,7 +40,7 @@ const GUARANTEES = [
     icon: ServerCog,
     title: "Hébergement européen",
     detail:
-      "Stockage dans l’Union européenne, avec conservation et suppression contractuellement définies.",
+      "Stockage dans l’Union européenne. Durée de conservation et suppression fixées au contrat.",
   },
 ] as const;
 

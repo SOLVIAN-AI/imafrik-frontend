@@ -101,15 +101,15 @@ export default function SettingsPage() {
 
               <Panel className="overflow-hidden">
                 <SectionHeader
-                  title="Envoi DICOM"
-                  description="Valeurs à recopier dans la configuration de votre PACS. Modifier l’AET interrompt les envois jusqu’à mise à jour côté PACS."
+                  title="Passerelle"
+                  description="Valeurs à saisir sur vos consoles d’acquisition. Les modifier interrompt les envois jusqu’à mise à jour des consoles."
                 />
                 <DicomSettingsCard
                   settings={{
-                    calledAet: "IMAFRIK",
-                    callingAet: "STJOSEPH_LOME",
-                    host: "dicom.imafrik.com",
-                    port: 11112,
+                    calledAet: "IMAFRIK_GW",
+                    callingAet: "SCANNER_1",
+                    host: "192.168.10.20",
+                    port: 104,
                   }}
                 />
               </Panel>

@@ -6,13 +6,18 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Paramètres d'envoi DICOM d'un établissement.
+ * Paramètres de la passerelle installée dans l'établissement.
  *
- * Ce sont les quatre valeurs à recopier dans la console du PACS de la
- * clinique pour qu'il puisse pousser ses examens vers la plateforme.
- * `calledAet` est l'AET de la plateforme ; `callingAet` celui attribué à
- * l'établissement, qui sert à l'identifier — c'est lui qui décide de
- * l'organisation à laquelle un examen entrant sera rattaché.
+ * Ce sont les quatre valeurs à saisir sur les consoles d'acquisition
+ * pour qu'elles envoient leurs examens à la passerelle. **Tout se passe
+ * sur le réseau local** : l'adresse est une adresse interne, et aucun
+ * port d'imagerie n'est ouvert vers Internet. C'est la passerelle, et
+ * elle seule, qui parle à la plateforme — en sortant, jamais en
+ * entrant.
+ *
+ * `calledAet` est l'AET de la passerelle, celui que la console appelle.
+ * `callingAet` est celui de la modalité, qui sert à identifier la source
+ * dans le journal.
  */
 export interface DicomSettings {
   callingAet: string;
@@ -24,10 +29,10 @@ export interface DicomSettings {
 /**
  * Un paramètre, avec son bouton de copie.
  *
- * La copie n'est pas un confort : ces valeurs sont dictées au téléphone à
- * un technicien, et une lettre de travers dans un AET produit un rejet
- * silencieux côté PACS, sans message d'erreur exploitable. Le presse-
- * papiers supprime la faute de frappe.
+ * La copie n'est pas un confort : ces valeurs sont dictées au téléphone
+ * à un technicien, et une lettre de travers dans un AET produit un rejet
+ * silencieux côté console, sans message d'erreur exploitable. Le
+ * presse-papiers supprime la faute de frappe.
  */
 function CopyField({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = React.useState(false);
@@ -42,7 +47,7 @@ function CopyField({ label, value }: { label: string; value: string }) {
 
   return (
     <div className="flex items-center gap-3 px-4 py-2.5">
-      <span className="w-36 shrink-0 text-xs text-tertiary">{label}</span>
+      <span className="w-40 shrink-0 text-xs text-tertiary">{label}</span>
       <code className="min-w-0 flex-1 truncate font-mono text-xs text-primary">
         {value}
       </code>
@@ -72,20 +77,19 @@ function CopyField({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * Bloc des paramètres d'envoi automatique.
+ * Paramètres à saisir sur les consoles d'acquisition.
  *
  * Présent à deux endroits — l'écran d'envoi et les paramètres de
- * l'établissement — parce qu'on le cherche dans les deux, à deux moments
- * différents : à la mise en service, puis le jour où le technicien
- * reconfigure le PACS.
+ * l'établissement — parce qu'on les cherche aux deux, à deux moments :
+ * à la mise en service, puis le jour où l'on ajoute une modalité.
  */
 export function DicomSettingsCard({ settings }: { settings: DicomSettings }) {
   return (
     <dl className="divide-y divide-border-subtle">
-      <CopyField label="AET de destination" value={settings.calledAet} />
-      <CopyField label="AET de l’établissement" value={settings.callingAet} />
-      <CopyField label="Adresse" value={settings.host} />
+      <CopyField label="AET de la passerelle" value={settings.calledAet} />
+      <CopyField label="Adresse sur le réseau" value={settings.host} />
       <CopyField label="Port" value={String(settings.port)} />
+      <CopyField label="AET de la modalité" value={settings.callingAet} />
     </dl>
   );
 }

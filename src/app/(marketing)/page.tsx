@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     absolute: "IMAFRIK — Téléradiologie pour l’Afrique de l’Ouest",
   },
   description:
-    "Vos examens lus le jour même par des radiologues inscrits à l’Ordre. Aucun investissement matériel : votre PACS envoie, nous lisons, vous recevez un compte-rendu signé.",
+    "Le compte-rendu de vos examens le jour même. Nous installons une passerelle dans votre établissement ; vos manipulateurs ne changent rien à leurs habitudes.",
   robots: { index: true, follow: true },
 };
 
