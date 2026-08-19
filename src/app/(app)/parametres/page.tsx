@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertTriangle } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -7,6 +8,7 @@ import { DicomSettingsCard } from "@/components/domain/dicom-settings";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { useSession } from "@/components/providers/session-provider";
 import { ROLE_LABELS } from "@/lib/session/types";
 
@@ -116,6 +118,15 @@ export default function SettingsPage() {
             </>
           )}
 
+          {isClinic && (
+            <Section
+              title="Qui lit vos examens"
+              description="Vous choisissez. Le réglage s’applique immédiatement aux examens à venir ; ceux déjà pris en charge ne changent pas de main."
+            >
+              <RadiologistScope />
+            </Section>
+          )}
+
           <Section
             title="Notifications"
             description="Ce qui déclenche une alerte, et par quel canal."
@@ -154,6 +165,86 @@ export default function SettingsPage() {
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * Choix du mode d’attribution.
+ *
+ * **Deux modes, pas trois, et aucune bascule automatique.** Une règle
+ * qui s’explique en une phrase à un directeur d’établissement est une
+ * règle qu’il pourra défendre auprès de ses radiologues ; un mécanisme
+ * de débordement au bout de vingt minutes ne s’explique pas et se
+ * conteste au premier examen manqué.
+ *
+ * L’ouverture au pool est présentée en premier parce qu’elle reste le
+ * cas le plus fréquent, et le défaut en base.
+ *
+ * Un seul booléen le porte — `organizations.open_to_pool` — et il pilote
+ * à la fois la visibilité des examens et le droit de les prendre en
+ * charge. Les deux contrôles sont écrits séparément : la prise en charge
+ * passe par une fonction qui échappe aux politiques RLS et doit donc
+ * répéter la règle.
+ */
+function RadiologistScope() {
+  const [openToPool, setOpenToPool] = React.useState(true);
+
+  const options = [
+    {
+      value: true,
+      title: "Tous les radiologues de la plateforme",
+      detail:
+        "Vos examens entrent dans la file commune. Le premier radiologue disponible les prend en charge.",
+    },
+    {
+      value: false,
+      title: "Nos radiologues uniquement",
+      detail:
+        "Seuls les radiologues que vous avez invités voient vos examens. Personne d’autre, à aucun moment.",
+    },
+  ];
+
+  return (
+    <div className="flex flex-col gap-2">
+      {options.map((option) => {
+        const selected = openToPool === option.value;
+        return (
+          <label
+            key={option.title}
+            className={cn(
+              "flex cursor-pointer items-start gap-3 rounded-xl border p-4",
+              "transition-colors duration-100",
+              selected
+                ? "border-accent/40 bg-accent-muted"
+                : "border-border-subtle hover:border-border-default hover:bg-surface-hover",
+            )}
+          >
+            <input
+              type="radio"
+              name="radiologist-scope"
+              checked={selected}
+              onChange={() => setOpenToPool(option.value)}
+              className="mt-0.5 size-4 shrink-0 accent-[var(--accent)]"
+            />
+            <span className="min-w-0">
+              <span className="block text-xs font-medium">{option.title}</span>
+              <span className="mt-1 block text-2xs leading-relaxed text-tertiary">
+                {option.detail}
+              </span>
+            </span>
+          </label>
+        );
+      })}
+
+      {!openToPool && (
+        <p className="mt-2 flex items-start gap-2 rounded-lg bg-progress-muted px-3 py-2.5 text-2xs leading-relaxed text-progress">
+          <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden />
+          Aucun radiologue de la plateforme ne pourra lire vos examens, y
+          compris la nuit et le week-end. Assurez-vous que vos propres
+          radiologues couvrent ces périodes.
+        </p>
+      )}
+    </div>
   );
 }
 

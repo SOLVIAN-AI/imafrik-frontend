@@ -211,7 +211,7 @@ function InviteDialog({
           <Field
             id="invite-role"
             label="Rôle"
-            hint="Le rôle détermine ce que la personne pourra voir et faire."
+            hint="Un radiologue invité ici lit vos examens, que vous les ouvriez au pool ou non."
           >
             <select
               id="invite-role"
@@ -229,6 +229,9 @@ function InviteDialog({
               </option>
               <option value="admin">
                 Administrateur — gère l’équipe et les paramètres
+              </option>
+              <option value="radiologist">
+                Radiologue — lit et signe vos examens
               </option>
             </select>
           </Field>
