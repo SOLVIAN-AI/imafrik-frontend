@@ -68,7 +68,7 @@ export function HowItWorks() {
             </div>
 
             <h3 className="mt-5 text-lg font-semibold">{step.title}</h3>
-            <p className="mt-2 flex-1 text-sm leading-relaxed text-secondary">
+            <p className="prose-justify mt-2 flex-1 text-sm leading-relaxed text-secondary">
               {step.detail}
             </p>
             <p className="mt-4 border-t border-border-subtle pt-3 text-2xs text-tertiary">
@@ -78,7 +78,7 @@ export function HowItWorks() {
         ))}
       </ol>
 
-      <p className="mt-6 max-w-2xl text-xs leading-relaxed text-tertiary">
+      <p className="prose-justify mx-auto mt-6 max-w-2xl text-center text-xs leading-relaxed text-tertiary">
         Pas encore de passerelle, ou un examen gravé sur CD ? Les fichiers se
         déposent depuis un navigateur, sans rien installer.
       </p>

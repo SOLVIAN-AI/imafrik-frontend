@@ -57,7 +57,7 @@ export function SecurityTeaser() {
           <div key={guarantee.title} className="bg-surface-raised p-7">
             <guarantee.icon className="size-5 text-accent" aria-hidden />
             <h3 className="mt-4 text-base font-semibold">{guarantee.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-secondary">
+            <p className="prose-justify mt-2 text-sm leading-relaxed text-secondary">
               {guarantee.detail}
             </p>
           </div>

@@ -88,12 +88,16 @@ export const metadata: Metadata = {
 export default function SecurityPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-16 md:py-24">
-      <div className="max-w-2xl">
+      {/* En-tête centré : la grille de garanties qui suit est
+          symétrique, et un titre calé à gauche au-dessus d'elle
+          déséquilibre la page. Les paragraphes, eux, restent justifiés —
+          c'est de la lecture suivie. */}
+      <div className="mx-auto max-w-2xl text-center">
         <p className="label-eyebrow text-accent">Sécurité</p>
         <h1 className="mt-3 text-3xl font-semibold md:text-4xl">
           Ce que nous garantissons sur vos données
         </h1>
-        <p className="mt-5 text-base leading-relaxed text-secondary">
+        <p className="prose-justify mt-5 text-base leading-relaxed text-secondary">
           Confier les examens de ses patients à un tiers engage la
           responsabilité de l’établissement. Cette page dit précisément ce qu’il
           advient d’une image entre le moment où elle quitte votre console et
@@ -106,7 +110,7 @@ export default function SecurityPage() {
           <section key={chapter.title} className="bg-surface-raised p-7">
             <chapter.icon className="size-5 text-accent" aria-hidden />
             <h2 className="mt-4 text-base font-semibold">{chapter.title}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-secondary">
+            <p className="prose-justify mt-2 text-sm leading-relaxed text-secondary">
               {chapter.detail}
             </p>
           </section>
@@ -115,14 +119,14 @@ export default function SecurityPage() {
 
       <section className="mt-14 rounded-2xl border border-border-subtle bg-surface-raised p-8">
         <h2 className="text-lg font-semibold">Vos obligations, les nôtres</h2>
-        <p className="mt-3 text-sm leading-relaxed text-secondary">
+        <p className="prose-justify mt-3 text-sm leading-relaxed text-secondary">
           L’établissement reste responsable du traitement des données de ses
           patients ; IMAFRIK agit comme sous-traitant, sur instruction et dans
           le cadre défini au contrat. Cette répartition, les mesures de sécurité
           et la liste des sous-traitants ultérieurs figurent dans une annexe de
           traitement des données, jointe à toute proposition.
         </p>
-        <p className="mt-4 text-sm leading-relaxed text-secondary">
+        <p className="prose-justify mt-4 text-sm leading-relaxed text-secondary">
           Aucun examen n’est utilisé à d’autres fins que la production du
           compte-rendu demandé : ni entraînement de modèle, ni statistique
           nominative, ni transmission à un tiers non prévu au contrat.

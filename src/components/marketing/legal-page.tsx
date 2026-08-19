@@ -43,7 +43,7 @@ export function LegalPage({
 
       <div
         className={[
-          "mt-12 text-sm leading-relaxed text-secondary",
+          "prose-justify mt-12 text-sm leading-relaxed text-secondary",
           "[&>h2]:mt-10 [&>h2]:text-lg [&>h2]:font-semibold [&>h2]:text-primary",
           "[&>h3]:mt-7 [&>h3]:text-sm [&>h3]:font-semibold [&>h3]:text-primary",
           "[&>p]:mt-4",

@@ -385,6 +385,26 @@
     box-shadow: inset 2px 0 0 0 var(--urgent);
   }
 
+  /* Prose justifiée, avec césure.
+
+     Le justifié seul est un piège sur le web : sans césure, le
+     navigateur étire les espaces pour aligner la marge droite, ce qui
+     creuse des « rivières » verticales — d'autant plus visibles en
+     français, où les mots sont longs. La césure automatique répartit la
+     tension et rend le procédé lisible.
+
+     Elle suppose un attribut `lang` sur la page, sans quoi le navigateur
+     ne sait pas quel dictionnaire appliquer. Il est posé sur
+     `<html lang="fr">`.
+
+     À réserver aux paragraphes d'au moins trois lignes : sur deux
+     lignes, la dernière reste isolée à gauche et le bloc paraît cassé. */
+  .prose-justify {
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+  }
+
   /* Texte en dégradé de marque. Réservé aux écrans publics et à
      l'authentification : dans l'application, un titre coloré entrerait
      en concurrence avec le signal de l'interactif. */

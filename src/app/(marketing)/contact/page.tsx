@@ -74,7 +74,7 @@ export default function ContactPage() {
         <h1 className="mt-3 text-3xl font-semibold md:text-4xl">
           Parlons de votre installation
         </h1>
-        <p className="mt-5 text-base leading-relaxed text-secondary">
+        <p className="prose-justify mt-5 text-base leading-relaxed text-secondary">
           Trente minutes suffisent : vous décrivez votre installation et votre
           volume, nous vous montrons le parcours complet d’un examen, de
           l’acquisition au compte-rendu signé.
@@ -102,7 +102,7 @@ export default function ContactPage() {
           </div>
         </dl>
 
-        <p className="mt-10 rounded-xl border border-border-subtle bg-surface-raised px-4 py-3.5 text-xs leading-relaxed text-tertiary">
+        <p className="prose-justify mt-10 rounded-xl border border-border-subtle bg-surface-raised px-4 py-3.5 text-xs leading-relaxed text-tertiary">
           La démonstration se fait sur des examens de test. Ne nous transmettez
           aucune donnée de patient avant la signature d’un contrat et de son
           annexe de traitement des données.

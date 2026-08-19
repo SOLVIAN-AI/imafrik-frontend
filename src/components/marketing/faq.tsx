@@ -69,7 +69,7 @@ export function Faq() {
                 aria-hidden
               />
             </summary>
-            <p className="max-w-3xl px-6 pb-5 text-sm leading-relaxed text-secondary">
+            <p className="prose-justify max-w-3xl px-6 pb-5 text-sm leading-relaxed text-secondary">
               {entry.answer}
             </p>
           </details>
