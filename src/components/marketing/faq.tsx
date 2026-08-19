@@ -14,12 +14,17 @@ const QUESTIONS = [
   {
     question: "Faut-il changer notre installation ?",
     answer:
-      "Non. La passerelle se pose à côté de l’existant et vos modalités lui envoient les examens comme à n’importe quelle destination du réseau interne. Si vous avez déjà un PACS, il reste en place et continue de fonctionner.",
+      "Non. La passerelle est un logiciel que nous installons sur un poste de l’établissement ; vos modalités lui envoient les examens comme à n’importe quelle destination du réseau interne. Si vous avez déjà un PACS, il reste en place.",
+  },
+  {
+    question: "Quel ordinateur faut-il pour la passerelle ?",
+    answer:
+      "Un poste courant suffit : Windows, macOS ou Linux, quelques gigaoctets de disque libre. Une seule exigence, mais elle est ferme : il doit rester allumé, sinon les examens ne partent pas. Un poste dédié vaut mieux qu’un poste partagé qu’on éteint le soir. Nous chiffrons son disque à l’installation.",
   },
   {
     question: "Que se passe-t-il si Internet ou le courant est coupé ?",
     answer:
-      "L’examen est accepté quand même : la passerelle le conserve et le transfère dès que la liaison revient. Vos images restent consultables sur place pendant la coupure. C’est la raison d’être du boîtier : une console d’acquisition ne garde pas les envois qui échouent.",
+      "L’examen est accepté quand même : la passerelle le conserve et le transfère dès que la liaison revient. Vos images restent consultables sur place pendant la coupure. C’est sa raison d’être : une console d’acquisition, elle, ne garde pas les envois qui échouent.",
   },
   {
     question: "Qui signe le compte-rendu, et qui en est responsable ?",
@@ -34,7 +39,7 @@ const QUESTIONS = [
   {
     question: "Combien de temps prend la mise en service ?",
     answer:
-      "Le raccordement des modalités à la passerelle se planifie avec votre technicien. Le dépôt depuis un navigateur, lui, est utilisable dès la création du compte : vous pouvez envoyer votre premier examen sans attendre le boîtier.",
+      "L’installation de la passerelle et le raccordement des modalités se planifient avec votre technicien. Le dépôt depuis un navigateur, lui, est utilisable dès la création du compte : vous pouvez envoyer votre premier examen sans attendre.",
   },
   {
     question: "Peut-on essayer avant de s’engager ?",

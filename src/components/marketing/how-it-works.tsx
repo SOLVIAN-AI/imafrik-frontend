@@ -21,8 +21,8 @@ const STEPS = [
     icon: HardDrive,
     title: "La passerelle reçoit",
     detail:
-      "Vos modalités envoient l’examen à un boîtier posé dans l’établissement, comme à n’importe quelle destination du réseau interne. Il accepte immédiatement, même si la liaison est coupée.",
-    note: "Aucun changement sur les consoles d’acquisition",
+      "Vos modalités envoient l’examen à un poste de l’établissement, comme à n’importe quelle destination du réseau interne. Il accepte immédiatement, même si la liaison est coupée.",
+    note: "Un logiciel à installer, aucun matériel à acheter",
   },
   {
     icon: ScanLine,

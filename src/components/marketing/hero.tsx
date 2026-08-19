@@ -31,7 +31,7 @@ const COMMITMENTS = [
  *
  * Le second paragraphe répond immédiatement à l'objection technique, qui
  * arrive toujours en deuxième : *que faut-il changer chez nous ?* La
- * réponse — rien, une passerelle s'installe à côté — désamorce le sujet
+ * réponse — rien, un logiciel s'installe à côté — désamorce le sujet
  * avant qu'il ne bloque la conversation.
  */
 export function Hero() {
@@ -74,8 +74,8 @@ export function Hero() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-secondary md:text-lg">
-            Nous installons une passerelle dans votre établissement. Vos
-            manipulateurs y envoient les examens comme à n’importe quelle
+            Nous installons une passerelle sur un poste de votre établissement.
+            Vos manipulateurs y envoient les examens comme à n’importe quelle
             destination du réseau interne. Un radiologue les lit à distance et
             signe le compte-rendu.
           </p>

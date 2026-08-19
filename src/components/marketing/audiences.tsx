@@ -20,7 +20,7 @@ const AUDIENCES = [
     eyebrow: "Pour les cliniques",
     title: "Un service de radiologie, sans radiologue sur place",
     points: [
-      "Passerelle fournie, installée et supervisée par nos soins",
+      "Passerelle logicielle installée sur un de vos postes, sans matériel à acheter",
       "Rien à administrer : ni serveur, ni licence, ni sauvegarde",
       "Vos examens restent consultables sur place, même Internet coupé",
       "Suivi de chaque examen envoyé, jusqu’au compte-rendu signé",

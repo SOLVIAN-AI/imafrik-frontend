@@ -36,7 +36,7 @@ const CLINIC_STEPS: OnboardingStep[] = [
   {
     slug: "connexion-pacs",
     title: "Passerelle",
-    lead: "Les paramètres à saisir sur vos consoles d’acquisition.",
+    lead: "Le poste qui recevra vos examens, et ce qu’il faut saisir sur les consoles.",
   },
   {
     slug: "premier-envoi",

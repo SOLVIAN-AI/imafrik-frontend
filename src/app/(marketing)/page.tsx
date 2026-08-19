@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     absolute: "IMAFRIK — Téléradiologie pour l’Afrique de l’Ouest",
   },
   description:
-    "Le compte-rendu de vos examens le jour même. Nous installons une passerelle dans votre établissement ; vos manipulateurs ne changent rien à leurs habitudes.",
+    "Le compte-rendu de vos examens le jour même. Une passerelle logicielle sur un de vos postes, et vos manipulateurs ne changent rien à leurs habitudes.",
   robots: { index: true, follow: true },
 };
 

@@ -200,8 +200,9 @@ export function PacsStep({ step, previousSlug, nextSlug }: StepProps) {
     <StepShell step={step} previousSlug={previousSlug} onSubmit={submit}>
       <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-raised">
         <p className="border-b border-border-subtle px-4 py-3 text-xs leading-relaxed text-secondary">
-          À saisir sur chaque console d’acquisition, comme nouvelle destination
-          d’envoi. Tout reste sur le réseau interne.
+          Ces valeurs sont celles du poste sur lequel nous installons la
+          passerelle. À saisir sur chaque console d’acquisition, comme nouvelle
+          destination d’envoi.
         </p>
         <DicomSettingsCard
           settings={{

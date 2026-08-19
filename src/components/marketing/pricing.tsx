@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
  * frais annexes — installation, licence, maintenance, stockage.
  */
 const INCLUDED = [
-  "Passerelle fournie, installée et supervisée",
+  "Installation et supervision de la passerelle",
   "Stockage et archivage des examens",
   "Portail clinique et accès pour toute l’équipe",
   "Comptes-rendus signés, PDF et vérification en ligne",
