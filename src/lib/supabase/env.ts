@@ -22,26 +22,10 @@ export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
  *
  * Ce qu'il ne fait **pas** : masquer une erreur de configuration en
  * production. L'intergiciel refuse alors de servir le moindre écran et
- * affiche à la place ce qui manque — voir `isProductionDeployment`.
+ * affiche à la place ce qui manque — voir `mustRefuseToServe`.
  */
 export function isSupabaseConfigured(): boolean {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
-}
-
-/**
- * Indique si l'on tourne sur un déploiement de production.
- *
- * **Le contrôle porte sur `VERCEL_ENV`, pas sur `NODE_ENV`.** Toute
- * compilation Vercel — y compris celle d'un aperçu — s'exécute avec
- * `NODE_ENV=production` : s'y fier ferait échouer les aperçus, qui sont
- * précisément faits pour tourner sur le jeu de démonstration. Seul
- * `VERCEL_ENV` distingue une vraie mise en production.
- *
- * Hors Vercel, la variable est absente : un `next start` local reste
- * donc utilisable sans configuration.
- */
-export function isProductionDeployment(): boolean {
-  return process.env.VERCEL_ENV === "production";
 }
 
 /**

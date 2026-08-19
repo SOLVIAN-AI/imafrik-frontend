@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { StatusScreen } from "@/components/layout/status-screen";
+import { missingProductionConfig } from "@/lib/deployment";
 
 export const metadata: Metadata = {
   title: "Configuration requise",
@@ -11,17 +12,19 @@ export const metadata: Metadata = {
  * Déploiement de production non configuré.
  *
  * **Cet écran remplace un refus brutal.** Un déploiement de production
- * auquel il manque les variables d'environnement ne doit surtout pas
- * servir le jeu de démonstration — de faux patients présentés à de vrais
- * utilisateurs feraient plus de dégâts qu'une panne. Mais lever une
- * exception à chaque requête produirait un 500 qui ne dit rien : ni au
- * visiteur, ni à celui qui doit corriger.
+ * auquel il manque des variables ne doit surtout pas servir le jeu de
+ * démonstration — de faux patients présentés à de vrais utilisateurs
+ * feraient plus de dégâts qu'une panne. Mais lever une exception à
+ * chaque requête produirait un 500 qui ne dit rien : ni au visiteur, ni
+ * à celui qui doit corriger.
  *
- * L'écran dit donc les deux choses utiles : le service n'est pas en
- * cause, et voici précisément ce qui manque. Aucune donnée n'est servie
- * tant qu'il s'affiche.
+ * Il nomme donc **exactement** ce qui manque, et à quoi chaque variable
+ * sert. Une liste figée finirait par mentir le jour où l'une d'elles
+ * changerait de nom.
  */
 export default function ConfigurationRequiredPage() {
+  const missing = missingProductionConfig();
+
   return (
     <StatusScreen
       code="503"
@@ -30,19 +33,28 @@ export default function ConfigurationRequiredPage() {
       detail={
         <>
           <p>
-            Le service refuse de démarrer plutôt que de servir des données de
+            Le service refuse de servir plutôt que de présenter des données de
             démonstration sous une adresse de production.
           </p>
-          <p className="mt-4">
-            Il manque{" "}
-            <code className="font-mono text-xs text-primary">
-              NEXT_PUBLIC_SUPABASE_URL
-            </code>{" "}
-            et{" "}
-            <code className="font-mono text-xs text-primary">
-              NEXT_PUBLIC_SUPABASE_ANON_KEY
-            </code>{" "}
-            dans les variables d’environnement du déploiement.
+
+          {missing.length > 0 && (
+            <dl className="mt-6 divide-y divide-border-subtle overflow-hidden rounded-xl border border-border-subtle bg-surface-raised text-left">
+              {missing.map((variable) => (
+                <div key={variable.name} className="px-4 py-3">
+                  <dt className="font-mono text-xs text-primary">
+                    {variable.name}
+                  </dt>
+                  <dd className="mt-1 text-2xs text-tertiary">
+                    {variable.purpose}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <p className="mt-6 text-xs text-tertiary">
+            À déclarer dans les variables d’environnement du déploiement, puis
+            redéployer.
           </p>
         </>
       }

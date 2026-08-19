@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { isProductionDeployment } from "@/lib/supabase/env";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { mustRefuseToServe } from "@/lib/deployment";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /**
@@ -20,7 +19,7 @@ export async function middleware(request: NextRequest) {
   // Réécriture plutôt qu'exception : le résultat est le même — aucune
   // donnée n'est servie — mais l'écran dit ce qui manque, là où un 500
   // ne dirait rien ni au visiteur ni à celui qui doit corriger.
-  if (isProductionDeployment() && !isSupabaseConfigured()) {
+  if (mustRefuseToServe()) {
     const target = request.nextUrl.clone();
     if (target.pathname !== "/configuration-requise") {
       target.pathname = "/configuration-requise";
