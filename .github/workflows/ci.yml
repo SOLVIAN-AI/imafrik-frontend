@@ -1,0 +1,57 @@
+# Intégration continue du frontend IMAFRIK.
+#
+# Quatre contrôles, dans l'ordre du plus rapide au plus lent : rien ne
+# sert de compiler si le formatage est déjà en cause. Chacun échoue
+# séparément, pour que le journal dise *quoi* corriger sans avoir à le
+# lire en entier.
+#
+# Ce qui n'est pas ici, et pourquoi :
+#   • `api:check` compare le contrat au dépôt backend, absent de cette
+#     copie. Il tourne en local avant un changement de couche de données.
+#   • Les tests de bout en bout demandent un environnement complet
+#     (Supabase, API, Orthanc) ; ils viendront avec un compose dédié.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Un push qui en suit un autre annule la vérification devenue inutile :
+# c'est le dernier état de la branche qui compte.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Vérifications
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # `npm ci` plutôt que `npm install` : il installe exactement ce que
+      # décrit le verrou et échoue si celui-ci n'est pas à jour. Une
+      # dépendance qui glisse en CI produirait un résultat vert
+      # impossible à reproduire en local.
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Formatage
+        run: npm run format:check
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Compilation
+        run: npm run build

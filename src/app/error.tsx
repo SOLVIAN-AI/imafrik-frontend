@@ -41,9 +41,9 @@ export default function ErrorScreen({
       title="Quelque chose s’est mal passé"
       detail={
         <>
-          L’écran n’a pas pu être affiché. Réessayez : ces erreurs sont le
-          plus souvent passagères. Si elle se répète, communiquez au support
-          le code ci-dessus.
+          L’écran n’a pas pu être affiché. Réessayez : ces erreurs sont le plus
+          souvent passagères. Si elle se répète, communiquez au support le code
+          ci-dessus.
         </>
       }
       actions={

@@ -21,8 +21,8 @@ export default function NotFound() {
       title="Cette page n’existe pas"
       detail={
         <>
-          L’adresse est peut-être ancienne : un examen archivé, ou un lien
-          reçu il y a longtemps. Rien n’indique une panne du service.
+          L’adresse est peut-être ancienne : un examen archivé, ou un lien reçu
+          il y a longtemps. Rien n’indique une panne du service.
         </>
       }
       actions={

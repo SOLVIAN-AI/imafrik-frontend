@@ -2,7 +2,10 @@ import { AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 
 import { StudyAge } from "@/components/domain/study-age";
-import { StudyStatusChip, UrgentMarker } from "@/components/domain/study-status";
+import {
+  StudyStatusChip,
+  UrgentMarker,
+} from "@/components/domain/study-status";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { listAllStudies } from "@/lib/data/admin";
 import { formatPatientName } from "@/lib/format";
@@ -100,7 +103,10 @@ export default async function AdminStudiesPage() {
                     <td>
                       <span className="font-medium">{study.modality}</span>
                       {study.bodyPart && (
-                        <span className="text-secondary"> · {study.bodyPart}</span>
+                        <span className="text-secondary">
+                          {" "}
+                          · {study.bodyPart}
+                        </span>
                       )}
                     </td>
 

@@ -46,7 +46,10 @@ export function StatusScreen({
         }}
         aria-hidden
       />
-      <div className="dot-grid pointer-events-none absolute inset-0" aria-hidden />
+      <div
+        className="dot-grid pointer-events-none absolute inset-0"
+        aria-hidden
+      />
 
       <div className="relative max-w-md">
         <Link href="/" className="inline-flex items-center gap-2.5">
@@ -80,7 +83,11 @@ export function StatusScreen({
 }
 
 /** Retour à l'accueil, sortie par défaut de tous ces écrans. */
-export function BackHomeButton({ label = "Retour à l’accueil" }: { label?: string }) {
+export function BackHomeButton({
+  label = "Retour à l’accueil",
+}: {
+  label?: string;
+}) {
   return (
     <Button variant="secondary" size="lg" asChild>
       <Link href="/">{label}</Link>
