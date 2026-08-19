@@ -1,6 +1,7 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-import { assertConfiguredInProduction } from "@/lib/supabase/env";
+import { isProductionDeployment } from "@/lib/supabase/env";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /**
@@ -14,9 +15,20 @@ import { updateSession } from "@/lib/supabase/middleware";
 export async function middleware(request: NextRequest) {
   // Premier point de passage de toute requête : c'est ici qu'un
   // déploiement de production mal configuré doit s'arrêter, avant de
-  // servir le moindre écran. Sans cet appel, la garantie documentée
-  // n'existerait que sur le papier — ce qui a failli arriver.
-  assertConfiguredInProduction();
+  // servir le moindre écran.
+  //
+  // Réécriture plutôt qu'exception : le résultat est le même — aucune
+  // donnée n'est servie — mais l'écran dit ce qui manque, là où un 500
+  // ne dirait rien ni au visiteur ni à celui qui doit corriger.
+  if (isProductionDeployment() && !isSupabaseConfigured()) {
+    const target = request.nextUrl.clone();
+    if (target.pathname !== "/configuration-requise") {
+      target.pathname = "/configuration-requise";
+      target.search = "";
+      return NextResponse.rewrite(target, { status: 503 });
+    }
+    return NextResponse.next({ request });
+  }
 
   return updateSession(request);
 }

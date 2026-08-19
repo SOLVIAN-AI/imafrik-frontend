@@ -21,20 +21,15 @@ export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
  * code.
  *
  * Ce qu'il ne fait **pas** : masquer une erreur de configuration en
- * production. Le contrôle `assertConfiguredInProduction` échoue au
- * démarrage si les variables manquent hors développement.
+ * production. L'intergiciel refuse alors de servir le moindre écran et
+ * affiche à la place ce qui manque — voir `isProductionDeployment`.
  */
 export function isSupabaseConfigured(): boolean {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 }
 
 /**
- * Vérifie que la configuration est présente sur un déploiement de
- * production.
- *
- * Un déploiement de production qui retomberait silencieusement sur le
- * jeu de démonstration afficherait de faux patients à de vrais
- * utilisateurs. Mieux vaut refuser de servir.
+ * Indique si l'on tourne sur un déploiement de production.
  *
  * **Le contrôle porte sur `VERCEL_ENV`, pas sur `NODE_ENV`.** Toute
  * compilation Vercel — y compris celle d'un aperçu — s'exécute avec
@@ -42,21 +37,11 @@ export function isSupabaseConfigured(): boolean {
  * précisément faits pour tourner sur le jeu de démonstration. Seul
  * `VERCEL_ENV` distingue une vraie mise en production.
  *
- * Hors Vercel, la variable est absente et le contrôle ne s'applique
- * pas : un `next start` local reste utilisable.
- *
- * @throws Si les variables manquent sur un déploiement de production.
+ * Hors Vercel, la variable est absente : un `next start` local reste
+ * donc utilisable sans configuration.
  */
-export function assertConfiguredInProduction(): void {
-  const isProductionDeployment = process.env.VERCEL_ENV === "production";
-
-  if (isProductionDeployment && !isSupabaseConfigured()) {
-    throw new Error(
-      "NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY sont " +
-        "obligatoires sur un déploiement de production : sans elles, " +
-        "l'application servirait le jeu de démonstration.",
-    );
-  }
+export function isProductionDeployment(): boolean {
+  return process.env.VERCEL_ENV === "production";
 }
 
 /**
