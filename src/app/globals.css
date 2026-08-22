@@ -39,19 +39,24 @@
      avec la clarté : un fond profond assume sa teinte, un texte clair
      doit rester lisible et donc quasi neutre. Une échelle de gris pur,
      à cet endroit, donnerait une interface plate et bon marché. */
-  --color-ink-980: oklch(0.145 0.026 262);
-  --color-ink-950: oklch(0.172 0.029 262);
-  --color-ink-900: oklch(0.208 0.031 262);
-  --color-ink-850: oklch(0.245 0.033 262);
-  --color-ink-800: oklch(0.285 0.034 262);
-  --color-ink-700: oklch(0.355 0.034 262);
-  --color-ink-600: oklch(0.455 0.032 262);
-  --color-ink-500: oklch(0.575 0.028 262);
-  --color-ink-400: oklch(0.685 0.022 262);
-  --color-ink-300: oklch(0.795 0.016 262);
-  --color-ink-200: oklch(0.878 0.01 262);
-  --color-ink-100: oklch(0.935 0.006 262);
-  --color-ink-50: oklch(0.972 0.004 262);
+  --color-ink-980: oklch(0.136 0.028 265);
+  --color-ink-950: oklch(0.165 0.032 262);
+  --color-ink-900: oklch(0.201 0.034 263);
+  --color-ink-850: oklch(0.239 0.035 263);
+  --color-ink-800: oklch(0.28 0.036 262);
+  --color-ink-700: oklch(0.352 0.036 263);
+  --color-ink-600: oklch(0.452 0.034 263);
+  /* 0,580 et non 0,571 : c'est la clarté minimale qui tient le
+     rapport de contraste de 4,5:1 exigé pour du texte courant sur
+     le fond. Neuf millièmes d'écart, invisibles à l'œil, mais la
+     différence entre une aide de formulaire lisible et une aide
+     qu'on devine. */
+  --color-ink-500: oklch(0.58 0.03 262);
+  --color-ink-400: oklch(0.681 0.024 263);
+  --color-ink-300: oklch(0.791 0.018 264);
+  --color-ink-200: oklch(0.875 0.012 265);
+  --color-ink-100: oklch(0.936 0.007 261);
+  --color-ink-50: oklch(0.974 0.005 275);
 
   /* ─── Accent : turquoise ───────────────────────────────────────────
      La teinte de l'imagerie médicale francophone — vive sans être
@@ -61,12 +66,12 @@
 
      Réservée à l'action, au focus, à la sélection et à la marque. Jamais
      un aplat au contact d'une image. */
-  --color-accent-800: oklch(0.44 0.088 176);
-  --color-accent-700: oklch(0.545 0.108 175);
+  --color-accent-800: oklch(0.44 0.082 176);
+  --color-accent-700: oklch(0.547 0.103 175);
   --color-accent-600: oklch(0.655 0.128 175);
-  --color-accent-500: oklch(0.762 0.141 174);
-  --color-accent-400: oklch(0.825 0.118 174);
-  --color-accent-300: oklch(0.888 0.082 174);
+  --color-accent-500: oklch(0.768 0.145 174);
+  --color-accent-400: oklch(0.83 0.122 174);
+  --color-accent-300: oklch(0.893 0.086 174);
   --color-accent-200: oklch(0.94 0.042 174);
 
   /* ─── Bleu de marque ───────────────────────────────────────────────
@@ -75,7 +80,7 @@
      publics, où il donne au turquoise un point d'appui profond. Deux
      accents concurrents dans une interface de travail ne feraient que
      brouiller le signal de l'interactif. */
-  --color-brand-600: oklch(0.516 0.243 264);
+  --color-brand-600: oklch(0.519 0.245 264);
   --color-brand-700: oklch(0.463 0.219 262);
   --color-brand-900: oklch(0.264 0.117 261);
 
@@ -184,7 +189,7 @@
 
   --accent: var(--color-accent-500);
   --accent-hover: var(--color-accent-400);
-  --accent-muted: oklch(0.762 0.141 174 / 0.15);
+  --accent-muted: oklch(0.768 0.145 174 / 0.15);
   --accent-contrast: var(--color-ink-980);
 
   --urgent: var(--color-urgent-400);
@@ -213,7 +218,7 @@
   /* Halo d'accent, très dilué. Posé derrière la marque et sous les
      en-têtes, il donne une source lumineuse implicite à l'interface
      plutôt qu'un aplat uniforme. */
-  --glow-accent: oklch(0.762 0.141 174 / 0.18);
+  --glow-accent: oklch(0.768 0.145 174 / 0.18);
   --glow-brand: oklch(0.516 0.243 264 / 0.22);
 
   color-scheme: dark;
@@ -240,7 +245,7 @@
      sur du blanc, tomberait sous le seuil de lisibilité d'un texte. */
   --accent: var(--color-accent-700);
   --accent-hover: var(--color-accent-800);
-  --accent-muted: oklch(0.655 0.128 175 / 0.14);
+  --accent-muted: oklch(0.66 0.13 175 / 0.14);
   --accent-contrast: oklch(1 0 0);
 
   --urgent: var(--color-urgent-500);
