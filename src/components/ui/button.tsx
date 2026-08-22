@@ -42,10 +42,12 @@ const buttonVariants = cva(
           "bg-accent text-accent-contrast font-semibold",
           "hover:bg-accent-hover",
           "active:brightness-95",
-          // Ombre teintée par l'accent : le bouton paraît posé sur la
-          // page et légèrement lumineux, là où une ombre noire sur fond
-          // sombre ne se verrait pas du tout.
-          "shadow-[0_4px_16px_-8px_var(--accent)]",
+          // Ombre teintée par l'accent, en deux couches : le contact au
+          // ras de la page, puis la diffusion. Une ombre noire sur fond
+          // sombre ne se verrait pas du tout ; teintée, elle donne au
+          // bouton l'air d'être légèrement lumineux.
+          "shadow-[0_2px_10px_-2px_var(--glow-accent),0_10px_28px_-12px_var(--glow-accent)]",
+          "hover:shadow-[0_2px_12px_-2px_var(--glow-accent),0_12px_32px_-12px_var(--glow-accent)]",
         ],
         secondary: [
           "border border-border-default bg-surface-raised text-primary",

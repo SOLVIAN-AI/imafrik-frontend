@@ -123,14 +123,20 @@ export function MetricCard({ metric }: { metric: Metric }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-3.5 rounded-xl px-4 py-3.5",
+        "group flex items-center gap-3.5 rounded-xl px-4 py-3.5",
         "border border-border-subtle bg-surface-raised shadow-raised",
-        "transition-colors duration-150 hover:border-border-default",
+        // Le soulèvement est d'un demi-pixel de repère : assez pour que
+        // la carte réponde, trop peu pour distraire quelqu'un qui
+        // parcourt la page vingt fois par jour.
+        "transition-all duration-200 ease-(--ease-out-quart)",
+        "hover:-translate-y-0.5 hover:border-border-default hover:shadow-overlay",
       )}
     >
       <span
         className={cn(
           "flex size-10 shrink-0 items-center justify-center rounded-lg",
+          "transition-transform duration-200 ease-(--ease-out-quart)",
+          "group-hover:scale-105",
           tone.halo,
         )}
         aria-hidden
