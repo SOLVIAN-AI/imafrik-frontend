@@ -198,17 +198,22 @@
      surface — une ombre portée sur fond noir ne se voit pas — mais
      l'arête claire, elle, fait toute la différence. La grande ombre
      diffuse ne sert qu'à décoller les cartes du fond. */
+  /* Trois couches, pas une. Une ombre unique donne une découpe ; trois
+     donnent un objet : le contact serré au ras de la surface, la
+     transition à mi-distance, la diffusion lointaine. C'est ce qui
+     sépare une carte posée sur la page d'une carte découpée dedans. */
   --shadow-raised:
-    0 1px 2px 0 oklch(0 0 0 / 0.5), 0 8px 24px -16px oklch(0 0 0 / 0.7),
-    var(--edge-highlight);
+    0 1px 2px 0 oklch(0 0 0 / 0.5), 0 2px 4px -2px oklch(0 0 0 / 0.4),
+    0 8px 28px -20px oklch(0 0 0 / 0.75), var(--edge-highlight);
   --shadow-overlay:
-    0 24px 64px -16px oklch(0 0 0 / 0.75), var(--edge-highlight-strong);
+    0 4px 8px -2px oklch(0 0 0 / 0.5), 0 24px 64px -16px oklch(0 0 0 / 0.8),
+    var(--edge-highlight-strong);
   --edge: var(--edge-highlight);
 
   /* Halo d'accent, très dilué. Posé derrière la marque et sous les
      en-têtes, il donne une source lumineuse implicite à l'interface
      plutôt qu'un aplat uniforme. */
-  --glow-accent: oklch(0.762 0.141 174 / 0.16);
+  --glow-accent: oklch(0.762 0.141 174 / 0.18);
   --glow-brand: oklch(0.516 0.243 264 / 0.22);
 
   color-scheme: dark;
@@ -246,9 +251,12 @@
   --done-muted: oklch(0.655 0.155 148 / 0.13);
 
   --shadow-raised:
-    0 1px 2px 0 oklch(0.2 0.03 262 / 0.06),
-    0 8px 24px -16px oklch(0.2 0.03 262 / 0.12);
-  --shadow-overlay: 0 24px 64px -20px oklch(0.2 0.03 262 / 0.22);
+    0 1px 2px 0 oklch(0.2 0.03 262 / 0.05),
+    0 2px 4px -2px oklch(0.2 0.03 262 / 0.05),
+    0 8px 28px -20px oklch(0.2 0.03 262 / 0.14);
+  --shadow-overlay:
+    0 4px 8px -2px oklch(0.2 0.03 262 / 0.08),
+    0 24px 64px -20px oklch(0.2 0.03 262 / 0.24);
   /* En clair, une arête blanche ne se verrait pas : c'est l'ombre portée
      qui porte le relief. */
   --edge: 0 0 0 0 transparent;
@@ -328,8 +336,21 @@
   h1,
   h2,
   h3 {
-    letter-spacing: -0.022em;
     text-wrap: balance;
+  }
+
+  /* Le resserrement suit la taille : un titre de 56 px supporte —
+     et réclame — davantage qu'un titre de 20 px, où le même réglage
+     collerait les lettres. Une valeur unique pour toutes les tailles
+     laisse les grands titres trop aérés et les petits illisibles. */
+  h1 {
+    letter-spacing: -0.035em;
+  }
+  h2 {
+    letter-spacing: -0.028em;
+  }
+  h3 {
+    letter-spacing: -0.02em;
   }
 
   /* Un anneau de focus visible, jamais supprimé. Les radiologues

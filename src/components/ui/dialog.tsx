@@ -53,7 +53,7 @@ export function DialogContent({
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay
         className={cn(
-          "fixed inset-0 z-50 bg-ink-950/70 backdrop-blur-[2px]",
+          "fixed inset-0 z-50 bg-ink-950/70 backdrop-blur-md",
           "animate-[fade-in_120ms_var(--ease-out-quart)]",
         )}
       />

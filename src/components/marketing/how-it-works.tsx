@@ -53,11 +53,11 @@ export function HowItWorks() {
         {STEPS.map((step, index) => (
           <li
             key={step.title}
-            className="relative flex flex-col rounded-xl border border-border-subtle bg-surface-raised p-6 shadow-raised"
+            className="group relative flex flex-col rounded-xl border border-border-subtle bg-surface-raised p-6 shadow-raised transition-all duration-200 ease-(--ease-out-quart) hover:-translate-y-0.5 hover:border-border-default hover:shadow-overlay"
           >
             <div className="flex items-center justify-between">
               <span
-                className="flex size-10 items-center justify-center rounded-lg bg-accent-muted ring-1 ring-accent/25 ring-inset"
+                className="flex size-10 items-center justify-center rounded-lg bg-accent-muted ring-1 ring-accent/25 transition-transform duration-200 ease-(--ease-out-quart) ring-inset group-hover:scale-105"
                 aria-hidden
               >
                 <step.icon className="size-4.5 text-accent" />

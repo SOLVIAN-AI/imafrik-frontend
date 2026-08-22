@@ -54,7 +54,10 @@ export function SecurityTeaser() {
     >
       <div className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-border-subtle bg-border-subtle sm:grid-cols-2">
         {GUARANTEES.map((guarantee) => (
-          <div key={guarantee.title} className="bg-surface-raised p-7">
+          <div
+            key={guarantee.title}
+            className="bg-surface-raised p-7 transition-colors duration-200 hover:bg-surface-hover"
+          >
             <guarantee.icon className="size-5 text-accent" aria-hidden />
             <h3 className="mt-4 text-base font-semibold">{guarantee.title}</h3>
             <p className="prose-justify mt-2 text-sm leading-relaxed text-secondary">
