@@ -76,7 +76,7 @@ lien d'invitation :
 
 ```
 https://<déploiement>.vercel.app/auth/callback
-https://<domaine-final>/auth/callback
+https://imafrik.tech/auth/callback
 ```
 
 ## Indexation

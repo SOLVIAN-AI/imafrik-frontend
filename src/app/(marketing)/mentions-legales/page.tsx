@@ -29,7 +29,8 @@ export default function LegalNoticePage() {
         <li>Représentant légal : [nom et qualité]</li>
         <li>Directeur de la publication : [nom]</li>
         <li>
-          Contact : <a href="mailto:contact@imafrik.com">contact@imafrik.com</a>
+          Contact :{" "}
+          <a href="mailto:contact@imafrik.tech">contact@imafrik.tech</a>
         </li>
       </ul>
 
@@ -64,9 +65,9 @@ export default function LegalNoticePage() {
       <h2>Signalement</h2>
       <p>
         Tout contenu manifestement illicite ou tout dysfonctionnement peut être
-        signalé à <a href="mailto:contact@imafrik.com">contact@imafrik.com</a>.
-        Les incidents de sécurité relèvent de la procédure décrite dans l’annexe
-        de traitement des données.
+        signalé à <a href="mailto:contact@imafrik.tech">contact@imafrik.tech</a>
+        . Les incidents de sécurité relèvent de la procédure décrite dans
+        l’annexe de traitement des données.
       </p>
     </LegalPage>
   );

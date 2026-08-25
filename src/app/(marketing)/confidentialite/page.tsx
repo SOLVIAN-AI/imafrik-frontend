@@ -115,7 +115,7 @@ export default function PrivacyPage() {
         Les professionnels utilisateurs disposent des droits d’accès, de
         rectification, d’effacement, de limitation et d’opposition sur leurs
         propres données, exerçables à{" "}
-        <a href="mailto:donnees@imafrik.com">donnees@imafrik.com</a>. Les
+        <a href="mailto:donnees@imafrik.tech">donnees@imafrik.tech</a>. Les
         patients exercent leurs droits{" "}
         <strong>auprès de l’établissement</strong> qui a réalisé l’examen :
         c’est lui qui est responsable du traitement. IMAFRIK lui apporte son

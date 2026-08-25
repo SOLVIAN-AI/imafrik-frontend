@@ -49,7 +49,7 @@ export function demoSession(activeId?: string): Session {
   return {
     user: {
       id: "demo-user",
-      email: "demo@imafrik.com",
+      email: "demo@imafrik.tech",
       fullName: "Dr Adjo Kponton",
       title: "Radiologue",
     },

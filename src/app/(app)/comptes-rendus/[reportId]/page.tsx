@@ -72,7 +72,7 @@ export default async function ReportPage({
               <p className="font-mono text-sm">{report.verifyToken ?? "—"}</p>
               {report.verifyToken && (
                 <p className="text-2xs text-tertiary">
-                  imafrik.com/verifier/{report.verifyToken}
+                  imafrik.tech/verifier/{report.verifyToken}
                 </p>
               )}
             </div>

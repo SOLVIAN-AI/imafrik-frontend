@@ -84,7 +84,7 @@ export default function ContactPage() {
           <div className="flex gap-3">
             <Mail className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
             <div>
-              <dt className="text-sm font-medium">contact@imafrik.com</dt>
+              <dt className="text-sm font-medium">contact@imafrik.tech</dt>
               <dd className="mt-0.5 text-xs text-tertiary">
                 Nous vous rappelons pour convenir d’un créneau.
               </dd>
