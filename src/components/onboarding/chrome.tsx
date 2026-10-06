@@ -4,7 +4,7 @@ import { CircleHelp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
 import { Stepper } from "@/components/onboarding/stepper";
 import { useSession } from "@/components/providers/session-provider";
 import { stepsFor } from "@/lib/onboarding/steps";
@@ -47,10 +47,7 @@ export function OnboardingChrome({ children }: { children: React.ReactNode }) {
 
       <header className="relative flex h-16 shrink-0 items-center gap-6 border-b border-border-subtle px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <Mark className="size-6" />
-          <span className="text-sm font-semibold tracking-[-0.01em]">
-            IMAFRIK
-          </span>
+          <Wordmark className="h-5" />
         </Link>
 
         <div className="mx-auto hidden sm:block">

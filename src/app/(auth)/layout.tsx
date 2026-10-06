@@ -1,6 +1,6 @@
 import { Clock3, Lock, Stethoscope } from "lucide-react";
 
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
 
 /**
  * Ce que la plateforme promet, en trois lignes.
@@ -75,10 +75,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
 
         <div className="relative flex flex-1 flex-col justify-between p-12 xl:p-16">
           <div className="flex items-center gap-2.5">
-            <Mark className="size-7" />
-            <span className="text-base font-semibold tracking-[-0.01em]">
-              IMAFRIK
-            </span>
+            <Wordmark className="h-6" />
           </div>
 
           <div className="max-w-lg">

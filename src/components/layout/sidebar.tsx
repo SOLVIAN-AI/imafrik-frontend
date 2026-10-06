@@ -24,7 +24,7 @@ import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 
-import { BrandLockup } from "@/components/layout/brand";
+import { BrandLockup } from "@/components/brand/brand";
 import {
   DropdownMenu,
   DropdownMenuContent,

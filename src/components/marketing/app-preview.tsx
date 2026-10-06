@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/brand/brand";
 import { cn } from "@/lib/utils";
 
 /**
@@ -95,7 +96,12 @@ export function AppPreview({ className }: { className?: string }) {
           <span className="size-2 rounded-full bg-border-strong" />
           <span className="size-2 rounded-full bg-border-strong" />
           <span className="size-2 rounded-full bg-border-strong" />
-          <span className="ml-3 text-2xs text-tertiary">
+          <BrandMark
+            variant="micro"
+            title=""
+            className="ml-3 size-3.5 text-secondary"
+          />
+          <span className="text-2xs text-tertiary">
             IMAFRIK · file de lecture
           </span>
         </div>

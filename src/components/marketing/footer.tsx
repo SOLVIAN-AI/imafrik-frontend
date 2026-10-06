@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
 
 /**
  * Colonnes du pied de page.
@@ -45,10 +45,7 @@ export function MarketingFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2.5">
-            <Mark className="size-6" />
-            <span className="text-sm font-semibold tracking-[-0.01em]">
-              IMAFRIK
-            </span>
+            <Wordmark className="h-5" />
           </div>
           <p className="mt-3 max-w-xs text-xs leading-relaxed text-tertiary">
             Téléradiologie pour l’Afrique de l’Ouest. Vos examens lus par des

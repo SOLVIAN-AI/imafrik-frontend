@@ -5,7 +5,7 @@ import Link from "next/link";
 import * as React from "react";
 
 import { signIn, type AuthState } from "@/app/(auth)/actions";
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -57,10 +57,7 @@ export function SignInForm({
           panneau de gauche est masqué : sans elle, on ne saurait pas sur
           quel service on se connecte. */}
       <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-        <Mark className="size-7" />
-        <span className="text-base font-semibold tracking-[-0.01em]">
-          IMAFRIK
-        </span>
+        <Wordmark className="h-5" />
       </div>
 
       <h2 className="text-2xl font-semibold">Connexion</h2>

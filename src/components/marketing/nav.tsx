@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -39,10 +39,7 @@ export function MarketingNav() {
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface-base/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:gap-8">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <Mark className="size-7" />
-          <span className="text-base font-semibold tracking-[-0.01em]">
-            IMAFRIK
-          </span>
+          <Wordmark className="h-6" />
         </Link>
 
         <nav className="hidden flex-1 items-center gap-7 lg:flex">

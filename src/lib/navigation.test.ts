@@ -11,6 +11,7 @@ describe("isPublicRoute", () => {
       "/verifier/abc",
       "/robots.txt",
       "/sitemap.xml",
+      "/manifest.webmanifest",
     ]) {
       expect(isPublicRoute(path)).toBe(true);
     }

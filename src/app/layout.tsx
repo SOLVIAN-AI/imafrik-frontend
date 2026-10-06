@@ -25,6 +25,16 @@ export const metadata: Metadata = {
     template: "%s · IMAFRIK",
   },
   description: "Plateforme de téléradiologie",
+  applicationName: "IMAFRIK",
+  // Installation sur l'écran d'accueil d'un iPhone : nom sous l'icône,
+  // ouverture en plein écran, barre d’état sombre et opaque — « translucent »
+  // ferait passer l’en-tête de l’application sous l’encoche.
+  // L'icône elle-même est `app/apple-icon.png`, déclarée par Next.
+  appleWebApp: {
+    capable: true,
+    title: "IMAFRIK",
+    statusBarStyle: "black",
+  },
   // Aucune indexation : chaque écran est derrière authentification et
   // manipule des données de santé.
   robots: { index: false, follow: false },
@@ -34,7 +44,7 @@ export const viewport: Viewport = {
   // Accordé au fond de l'interface : sans cela, la barre du navigateur
   // mobile resterait claire au-dessus d'une application sombre.
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0c0e12" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1124" },
     { media: "(prefers-color-scheme: light)", color: "#f7f8f9" },
   ],
 };

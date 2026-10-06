@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import * as React from "react";
 
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
 import {
   CommandPalette,
   usePaletteShortcut,
@@ -162,13 +162,10 @@ export function Topbar({ counts }: { counts: NavCounts | null }) {
       <MobileNav counts={counts} />
       <Link
         href="/"
-        className="flex shrink-0 items-center gap-2 lg:hidden"
+        className="flex shrink-0 items-center lg:hidden"
         aria-label="IMAFRIK — accueil"
       >
-        <Mark className="size-6" />
-        <span className="hidden text-sm font-semibold tracking-[-0.01em] sm:inline">
-          IMAFRIK
-        </span>
+        <Wordmark className="h-4" title="" />
       </Link>
       <div className="flex min-w-0 flex-1 justify-end sm:justify-center">
         <SearchTrigger />

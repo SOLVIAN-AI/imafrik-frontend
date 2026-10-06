@@ -236,6 +236,9 @@ const PUBLIC_ROUTES = [
   "/configuration-requise",
   "/robots.txt",
   "/sitemap.xml",
+  // Lu par le navigateur avant toute connexion, pour proposer
+  // l'installation sur l'écran d'accueil.
+  "/manifest.webmanifest",
 ];
 
 /** Vrai si l'adresse est la racine donnée ou l'une de ses sous-pages. */

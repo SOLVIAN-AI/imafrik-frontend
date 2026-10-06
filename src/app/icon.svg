@@ -1,14 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-  <!-- Marque IMAFRIK, en couleurs fixes : une icône d'onglet ne lit pas
-       les variables CSS de l'application. Teintes reprises de
-       --color-accent-500 / -300 et du fond sombre de l'interface. -->
-  <defs>
-    <linearGradient id="m" x1="4" y1="20" x2="20" y2="4" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#2fceb0"/>
-      <stop offset="1" stop-color="#a8efe1"/>
-    </linearGradient>
-  </defs>
-  <rect x="1" y="1" width="22" height="22" rx="6" fill="#0c0e12"/>
-  <path d="M6.5 17.5 17.5 6.5" stroke="url(#m)" stroke-width="2.25" stroke-linecap="round"/>
-  <circle cx="8.75" cy="8.75" r="1.75" fill="url(#m)"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -12 128 128"><rect x="-14" y="-12" width="128" height="128" rx="30" fill="#0B1124"/><path fill="#E9EEF8" d="M17.50 0.50h47.00a7.50 7.50 0 0 1 0 15.00h-47.00a7.50 7.50 0 0 1 0 -15.00zM31.50 52.50h58.00a7.50 7.50 0 0 1 0 15.00h-58.00a7.50 7.50 0 0 1 0 -15.00zM50.50 77.50h23.00a7.50 7.50 0 0 1 0 15.00h-23.00a7.50 7.50 0 0 1 0 -15.00zM55.50 102.50h5.00a7.50 7.50 0 0 1 0 15.00h-5.00a7.50 7.50 0 0 1 0 -15.00z"/><path fill="#3FF2D0" d="M8.50 27.50h67.00a7.50 7.50 0 0 1 0 15.00h-67.00a7.50 7.50 0 0 1 0 -15.00z"/></svg>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -53,10 +53,7 @@ export function StatusScreen({
 
       <div className="relative max-w-md">
         <Link href="/" className="inline-flex items-center gap-2.5">
-          <Mark className="size-7" />
-          <span className="text-base font-semibold tracking-[-0.01em]">
-            IMAFRIK
-          </span>
+          <Wordmark className="h-6" />
         </Link>
 
         <p
