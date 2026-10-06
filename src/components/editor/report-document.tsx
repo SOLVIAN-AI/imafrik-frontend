@@ -3,9 +3,12 @@
 import { EditorContent, useEditor } from "@tiptap/react";
 
 import {
+  DOCUMENT_TEXT_CLASSES,
+  sectionExtensions,
+} from "@/components/editor/extensions";
+import {
   REPORT_SECTIONS,
   isSectionEmpty,
-  sectionExtensions,
   type ReportSections,
 } from "@/components/editor/report-editor";
 import { cn } from "@/lib/utils";
@@ -28,12 +31,9 @@ function DocumentSection({ title, html }: { title: string; html: string }) {
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: cn(
-          "max-w-[68ch] text-[0.9375rem] leading-[1.75]",
-          "[&_p+p]:mt-3 [&_strong]:font-semibold",
-          "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1",
-          "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1",
-        ),
+        // Mêmes classes que l'éditeur : un document signé a exactement
+        // l'allure qu'il avait pendant sa rédaction.
+        class: DOCUMENT_TEXT_CLASSES,
       },
     },
   });

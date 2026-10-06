@@ -69,6 +69,7 @@ export function SimulatedScan({
   // poumons, plus larges au milieu du thorax qu'aux apex et aux bases.
   const depth = total > 1 ? (slice - 1) / (total - 1) : 0.5;
   const lung = 0.55 + Math.sin(depth * Math.PI) * 0.45;
+  const region = regionOf(study.bodyPart);
   const demographics = formatDemographics(
     study.patientSex,
     study.patientBirthDate,
@@ -125,69 +126,93 @@ export function SimulatedScan({
           fill="none"
         />
         <g filter={`url(#${id("scan-soft-edge")})`}>
-          {/* Peau et graisse sous-cutanée */}
-          <ellipse cx="256" cy="268" rx="196" ry="152" fill="#4f4f4f" />
-          <ellipse cx="256" cy="268" rx="184" ry="141" fill="#383838" />
-          {/* Paroi musculaire */}
-          <ellipse
-            cx="256"
-            cy="268"
-            rx="170"
-            ry="128"
-            fill={`url(#${id("scan-soft")})`}
-            opacity="0.85"
-          />
-          {/* Côtes, sur le pourtour de la cage thoracique */}
-          {RIBS.map(([x, y, rotate]) => (
-            <ellipse
-              key={`${x}-${y}`}
-              cx={x}
-              cy={y}
-              rx="9"
-              ry="5"
-              transform={`rotate(${rotate} ${x} ${y})`}
-              fill="#d2d2d2"
-            />
-          ))}
-          {/* Poumons */}
-          <ellipse
-            cx={256 - 78}
-            cy="252"
-            rx={62 * lung + 12}
-            ry={92 * lung + 10}
-            fill={`url(#${id("scan-lung")})`}
-          />
-          <ellipse
-            cx={256 + 80}
-            cy="252"
-            rx={58 * lung + 12}
-            ry={90 * lung + 10}
-            fill={`url(#${id("scan-lung")})`}
-          />
-          {/* Vaisseaux pulmonaires : ils bougent d'une coupe à l'autre */}
-          {vessels(slice, lung).map(([x, y, r], index) => (
-            <circle key={index} cx={x} cy={y} r={r} fill="#5a5a5a" />
-          ))}
-          {/* Médiastin : cœur et aorte */}
-          <ellipse cx="248" cy="252" rx="46" ry="40" fill="#7c7c7c" />
-          <ellipse cx="236" cy="246" rx="18" ry="14" fill="#8e8e8e" />
-          <circle cx="282" cy="306" r="15" fill="#9a9a9a" />
-          {/* Muscles paravertébraux */}
-          <ellipse cx="222" cy="372" rx="24" ry="16" fill="#6c6c6c" />
-          <ellipse cx="290" cy="372" rx="24" ry="16" fill="#6c6c6c" />
-          {/* Vertèbre : corps, canal, arc postérieur */}
-          <circle cx="256" cy="340" r="22" fill="#d8d8d8" />
-          <circle cx="256" cy="340" r="13" fill="#b0b0b0" />
-          <path
-            d="M236 356 Q256 384 276 356"
-            stroke="#d0d0d0"
-            strokeWidth="6"
-            fill="none"
-          />
-          <circle cx="256" cy="366" r="6" fill="#2a2a2a" />
-          <rect x="252" y="380" width="8" height="18" rx="3" fill="#c8c8c8" />
-          {/* Sternum */}
-          <rect x="244" y="128" width="24" height="12" rx="4" fill="#c4c4c4" />
+          {region === "head" ? (
+            <HeadSlice depth={depth} mr={study.modality === "MR"} />
+          ) : region === "abdomen" ? (
+            <AbdomenSlice depth={depth} softFill={`url(#${id("scan-soft")})`} />
+          ) : region === "limb" ? (
+            <LimbSlice depth={depth} />
+          ) : (
+            <>
+              {/* Peau et graisse sous-cutanée */}
+              <ellipse cx="256" cy="268" rx="196" ry="152" fill="#4f4f4f" />
+              <ellipse cx="256" cy="268" rx="184" ry="141" fill="#383838" />
+              {/* Paroi musculaire */}
+              <ellipse
+                cx="256"
+                cy="268"
+                rx="170"
+                ry="128"
+                fill={`url(#${id("scan-soft")})`}
+                opacity="0.85"
+              />
+              {/* Côtes, sur le pourtour de la cage thoracique */}
+              {RIBS.map(([x, y, rotate]) => (
+                <ellipse
+                  key={`${x}-${y}`}
+                  cx={x}
+                  cy={y}
+                  rx="9"
+                  ry="5"
+                  transform={`rotate(${rotate} ${x} ${y})`}
+                  fill="#d2d2d2"
+                />
+              ))}
+              {/* Poumons */}
+              <ellipse
+                cx={256 - 78}
+                cy="252"
+                rx={62 * lung + 12}
+                ry={92 * lung + 10}
+                fill={`url(#${id("scan-lung")})`}
+              />
+              <ellipse
+                cx={256 + 80}
+                cy="252"
+                rx={58 * lung + 12}
+                ry={90 * lung + 10}
+                fill={`url(#${id("scan-lung")})`}
+              />
+              {/* Vaisseaux pulmonaires : ils bougent d'une coupe à l'autre */}
+              {vessels(slice, lung).map(([x, y, r], index) => (
+                <circle key={index} cx={x} cy={y} r={r} fill="#5a5a5a" />
+              ))}
+              {/* Médiastin : cœur et aorte */}
+              <ellipse cx="248" cy="252" rx="46" ry="40" fill="#7c7c7c" />
+              <ellipse cx="236" cy="246" rx="18" ry="14" fill="#8e8e8e" />
+              <circle cx="282" cy="306" r="15" fill="#9a9a9a" />
+              {/* Muscles paravertébraux */}
+              <ellipse cx="222" cy="372" rx="24" ry="16" fill="#6c6c6c" />
+              <ellipse cx="290" cy="372" rx="24" ry="16" fill="#6c6c6c" />
+              {/* Vertèbre : corps, canal, arc postérieur */}
+              <circle cx="256" cy="340" r="22" fill="#d8d8d8" />
+              <circle cx="256" cy="340" r="13" fill="#b0b0b0" />
+              <path
+                d="M236 356 Q256 384 276 356"
+                stroke="#d0d0d0"
+                strokeWidth="6"
+                fill="none"
+              />
+              <circle cx="256" cy="366" r="6" fill="#2a2a2a" />
+              <rect
+                x="252"
+                y="380"
+                width="8"
+                height="18"
+                rx="3"
+                fill="#c8c8c8"
+              />
+              {/* Sternum */}
+              <rect
+                x="244"
+                y="128"
+                width="24"
+                height="12"
+                rx="4"
+                fill="#c4c4c4"
+              />
+            </>
+          )}
         </g>
         {/* Grain d'acquisition */}
         <rect width="512" height="512" filter={`url(#${id("scan-grain")})`} />
@@ -225,6 +250,209 @@ export function SimulatedScan({
         G
       </span>
     </div>
+  );
+}
+
+/** Régions dessinées ; les autres empruntent la plus proche. */
+type Region = "head" | "thorax" | "abdomen" | "limb";
+
+/**
+ * Région à dessiner pour une partie du corps DICOM.
+ *
+ * Une IRM encéphalique illustrée par un thorax ôterait toute crédibilité
+ * à la démonstration devant un radiologue : la coupe suit la région.
+ */
+function regionOf(bodyPart: string | null): Region {
+  const part = (bodyPart ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+  if (/crane|tete|encephal|sinus|orbite|rocher/.test(part)) return "head";
+  if (/abdo|pelvi|bassin|rein|foie|rachis|lomb/.test(part)) return "abdomen";
+  if (/genou|cheville|coude|epaule|poignet|cuisse|jambe|bras|hanche/.test(part))
+    return "limb";
+  return "thorax";
+}
+
+/**
+ * Coupe encéphalique, au niveau des ventricules latéraux.
+ *
+ * Contraste propre à la modalité : au scanner l'os est blanc et le LCR
+ * sombre ; en IRM pondérée T2, c'est l'inverse. Un radiologue le voit au
+ * premier regard.
+ */
+function HeadSlice({ depth, mr }: { depth: number; mr: boolean }) {
+  const ventricle = 0.6 + Math.sin(depth * Math.PI) * 0.4;
+  const bone = mr ? "#1c1c1c" : "#e4e4e4";
+  const csf = mr ? "#d6d6d6" : "#2a2a2a";
+  const gray = mr ? "#8a8a8a" : "#6e6e6e";
+  const white = mr ? "#6a6a6a" : "#7c7c7c";
+  return (
+    <>
+      {/* Cuir chevelu, voûte, espaces péri-cérébraux */}
+      <ellipse
+        cx="256"
+        cy="250"
+        rx="168"
+        ry="196"
+        fill={mr ? "#9a9a9a" : "#4c4c4c"}
+      />
+      <ellipse cx="256" cy="250" rx="158" ry="186" fill={bone} />
+      <ellipse cx="256" cy="250" rx="144" ry="172" fill={csf} />
+      {/* Cortex, puis substance blanche */}
+      <ellipse cx="256" cy="250" rx="138" ry="166" fill={gray} />
+      <ellipse cx="256" cy="252" rx="104" ry="132" fill={white} />
+      {/* Faux du cerveau */}
+      <line x1="256" y1="84" x2="256" y2="190" stroke={csf} strokeWidth="3" />
+      <line x1="256" y1="318" x2="256" y2="416" stroke={csf} strokeWidth="3" />
+      {/* Ventricules latéraux */}
+      <ellipse
+        cx={238}
+        cy="248"
+        rx={12 * ventricle}
+        ry={46 * ventricle}
+        transform="rotate(-12 238 248)"
+        fill={csf}
+      />
+      <ellipse
+        cx={274}
+        cy="248"
+        rx={12 * ventricle}
+        ry={46 * ventricle}
+        transform="rotate(12 274 248)"
+        fill={csf}
+      />
+      {/* Noyaux gris centraux */}
+      <ellipse cx="214" cy="262" rx="16" ry="24" fill={gray} />
+      <ellipse cx="298" cy="262" rx="16" ry="24" fill={gray} />
+    </>
+  );
+}
+
+/** Coupe abdominale, à hauteur des reins. */
+function AbdomenSlice({
+  depth,
+  softFill,
+}: {
+  depth: number;
+  softFill: string;
+}) {
+  const kidney = 0.7 + Math.sin(depth * Math.PI) * 0.3;
+  return (
+    <>
+      <ellipse cx="256" cy="268" rx="200" ry="150" fill="#4f4f4f" />
+      <ellipse cx="256" cy="268" rx="188" ry="139" fill="#383838" />
+      <ellipse
+        cx="256"
+        cy="270"
+        rx="172"
+        ry="124"
+        fill={softFill}
+        opacity="0.85"
+      />
+      {/* Foie, à gauche de l'image : côté droit du patient */}
+      <path
+        d="M110 230 Q120 160 200 165 Q250 170 255 215 Q240 290 170 320 Q118 315 110 230 Z"
+        fill="#868686"
+      />
+      {/* Estomac et anses : gaz, contenu */}
+      <ellipse cx="330" cy="200" rx="46" ry="30" fill="#1a1a1a" />
+      <ellipse cx="350" cy="270" rx="24" ry="18" fill="#242424" />
+      <ellipse cx="300" cy="300" rx="20" ry="14" fill="#2a2a2a" />
+      {/* Reins, cortex rehaussé */}
+      <ellipse
+        cx="186"
+        cy="334"
+        rx={30 * kidney}
+        ry={20 * kidney}
+        fill="#a4a4a4"
+      />
+      <ellipse
+        cx="186"
+        cy="334"
+        rx={16 * kidney}
+        ry={10 * kidney}
+        fill="#6e6e6e"
+      />
+      <ellipse
+        cx="326"
+        cy="334"
+        rx={30 * kidney}
+        ry={20 * kidney}
+        fill="#a4a4a4"
+      />
+      <ellipse
+        cx="326"
+        cy="334"
+        rx={16 * kidney}
+        ry={10 * kidney}
+        fill="#6e6e6e"
+      />
+      {/* Aorte et veine cave */}
+      <circle cx="270" cy="306" r="12" fill="#c8c8c8" />
+      <ellipse cx="238" cy="304" rx="13" ry="10" fill="#9a9a9a" />
+      {/* Psoas, vertèbre */}
+      <ellipse cx="226" cy="356" rx="18" ry="14" fill="#6c6c6c" />
+      <ellipse cx="286" cy="356" rx="18" ry="14" fill="#6c6c6c" />
+      <circle cx="256" cy="344" r="22" fill="#d8d8d8" />
+      <circle cx="256" cy="344" r="13" fill="#b0b0b0" />
+      <path
+        d="M236 360 Q256 388 276 360"
+        stroke="#d0d0d0"
+        strokeWidth="6"
+        fill="none"
+      />
+      <circle cx="256" cy="370" r="6" fill="#2a2a2a" />
+      <rect x="252" y="384" width="8" height="18" rx="3" fill="#c8c8c8" />
+    </>
+  );
+}
+
+/** Coupe d'un genou, à hauteur des condyles fémoraux. */
+function LimbSlice({ depth }: { depth: number }) {
+  const condyle = 0.85 + Math.sin(depth * Math.PI) * 0.15;
+  return (
+    <>
+      <circle cx="256" cy="256" r="160" fill="#4f4f4f" />
+      <circle cx="256" cy="256" r="148" fill="#3a3a3a" />
+      <circle cx="256" cy="262" r="126" fill="#6c6c6c" />
+      {/* Condyles fémoraux : corticale claire, médullaire grise */}
+      <ellipse
+        cx="214"
+        cy="272"
+        rx={50 * condyle}
+        ry={56 * condyle}
+        fill="#dedede"
+      />
+      <ellipse
+        cx="214"
+        cy="272"
+        rx={40 * condyle}
+        ry={46 * condyle}
+        fill="#a2a2a2"
+      />
+      <ellipse
+        cx="300"
+        cy="272"
+        rx={46 * condyle}
+        ry={54 * condyle}
+        fill="#dedede"
+      />
+      <ellipse
+        cx="300"
+        cy="272"
+        rx={36 * condyle}
+        ry={44 * condyle}
+        fill="#a2a2a2"
+      />
+      {/* Échancrure intercondylienne */}
+      <ellipse cx="256" cy="300" rx="14" ry="26" fill="#5a5a5a" />
+      {/* Rotule */}
+      <ellipse cx="256" cy="168" rx="38" ry="18" fill="#d6d6d6" />
+      <ellipse cx="256" cy="168" rx="28" ry="11" fill="#a6a6a6" />
+      {/* Vaisseaux poplités */}
+      <circle cx="256" cy="350" r="9" fill="#8e8e8e" />
+    </>
   );
 }
 
