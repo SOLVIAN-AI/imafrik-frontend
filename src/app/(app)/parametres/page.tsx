@@ -39,7 +39,7 @@ export default async function SettingsPage() {
         description={`${session.active.organizationName} · ${ROLE_LABELS[session.active.role]}`}
       />
 
-      <div className="min-h-0 flex-1 overflow-auto px-6 pb-6">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pb-6 sm:px-6">
         <div className="flex max-w-2xl flex-col gap-4">
           <ProfileForm
             profile={profile}

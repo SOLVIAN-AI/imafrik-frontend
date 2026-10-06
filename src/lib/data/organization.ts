@@ -49,6 +49,90 @@ export function toMember(row: ApiMember): Member {
   };
 }
 
+/** Fabrique un collègue de démonstration. */
+function colleague(
+  id: string,
+  fullName: string,
+  title: string | null,
+  email: string,
+  role: UserRole,
+  joined: string,
+): Member {
+  return {
+    membershipId: `m-${id}`,
+    profileId: `p-${id}`,
+    fullName,
+    title,
+    email,
+    role,
+    joinedAt: new Date(joined),
+    isMe: false,
+  };
+}
+
+/**
+ * Collègues de démonstration, par appartenance active.
+ *
+ * Une équipe d'une seule personne ne montre rien de l'écran : ni la
+ * liste, ni les rôles, ni le retrait d'un membre.
+ */
+const DEMO_COLLEAGUES: Record<string, Member[]> = {
+  "m-clinic": [
+    colleague(
+      "kamouzou",
+      "Kossi Amouzou",
+      "Dr",
+      "k.amouzou@cliniquesaintjoseph.tg",
+      "clinic_staff",
+      "2026-06-02T09:00:00Z",
+    ),
+    colleague(
+      "ydoe",
+      "Yawa Doe",
+      null,
+      "y.doe@cliniquesaintjoseph.tg",
+      "clinic_staff",
+      "2026-06-15T09:00:00Z",
+    ),
+    colleague(
+      "klawson",
+      "Komi Lawson",
+      null,
+      "secretariat@cliniquesaintjoseph.tg",
+      "clinic_staff",
+      "2026-08-20T09:00:00Z",
+    ),
+  ],
+  "m-radio": [
+    colleague(
+      "ibakari",
+      "Ibrahim Bakari",
+      "Dr",
+      "i.bakari@imafrik.tech",
+      "radiologist",
+      "2026-05-12T09:00:00Z",
+    ),
+    colleague(
+      "etchalla",
+      "Essi Tchalla",
+      "Pr",
+      "e.tchalla@imafrik.tech",
+      "radiologist",
+      "2026-07-01T09:00:00Z",
+    ),
+  ],
+  "m-admin": [
+    colleague(
+      "sagbeko",
+      "Sena Agbeko",
+      null,
+      "support@imafrik.tech",
+      "platform_admin",
+      "2026-05-01T09:00:00Z",
+    ),
+  ],
+};
+
 /** L'organisation active. */
 export async function getOrganization(): Promise<Organization> {
   if (isDemoMode()) {
@@ -60,7 +144,7 @@ export async function getOrganization(): Promise<Organization> {
       kind: active.organizationKind,
       city: active.city,
       openToPool: true,
-      memberCount: 1,
+      memberCount: 1 + (DEMO_COLLEAGUES[active.id]?.length ?? 0),
     };
   }
   const row = await apiGet("/organization", organizationSchema);
@@ -78,18 +162,19 @@ export async function getOrganization(): Promise<Organization> {
 export async function listMembers(): Promise<Member[]> {
   if (isDemoMode()) {
     const session = await getSession();
-    return [
-      {
-        membershipId: session!.active!.id,
-        profileId: session!.user.id,
-        fullName: session!.user.fullName,
-        title: session!.user.title || null,
-        email: session!.user.email,
-        role: session!.active!.role,
-        joinedAt: new Date(),
-        isMe: true,
-      },
-    ];
+    const me: Member = {
+      membershipId: session!.active.id,
+      profileId: session!.user.id,
+      fullName: session!.user.fullName,
+      title: session!.user.title || null,
+      email: session!.user.email,
+      role: session!.active.role,
+      joinedAt: new Date("2026-06-02T09:00:00Z"),
+      isMe: true,
+    };
+    return [me, ...(DEMO_COLLEAGUES[session!.active.id] ?? [])].sort((a, b) =>
+      a.fullName.localeCompare(b.fullName, "fr"),
+    );
   }
   const rows = await apiGet("/organization/members", z.array(memberSchema));
   return rows.map(toMember);

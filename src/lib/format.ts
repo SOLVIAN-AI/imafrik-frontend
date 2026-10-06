@@ -83,3 +83,76 @@ export function formatDuration(minutes: number): string {
   const restHours = hours % 24;
   return restHours ? `${days} j ${restHours} h` : `${days} j`;
 }
+
+/**
+ * Sexe DICOM en toutes lettres.
+ *
+ * @param sex Valeur du tag PatientSex : `M`, `F`, `O`, ou vide.
+ * @returns « Homme », « Femme », « Autre », ou `null` s'il n'a pas été transmis.
+ */
+export function formatSex(sex: string | null): string | null {
+  switch (sex?.trim().toUpperCase()) {
+    case "M":
+      return "Homme";
+    case "F":
+      return "Femme";
+    case "O":
+      return "Autre";
+    default:
+      return null;
+  }
+}
+
+/**
+ * Âge du patient à une date donnée — celle de l'examen, pas d'aujourd'hui.
+ *
+ * Un compte-rendu se relit des mois plus tard : l'âge qui compte pour
+ * l'interprétation est celui du jour de l'acquisition. En dessous de deux
+ * ans, l'âge se dit en mois, comme en pédiatrie.
+ *
+ * @param birthDate Date de naissance `AAAA-MM-JJ`, ou `null`.
+ * @param at        Date de référence.
+ * @returns Par exemple « 58 ans » ou « 14 mois », ou `null` si la date
+ *          de naissance est absente ou illisible.
+ */
+export function formatPatientAge(
+  birthDate: string | null,
+  at: Date,
+): string | null {
+  const match = birthDate?.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return null;
+  const [year, month, day] = match.slice(1).map(Number);
+  let months =
+    (at.getUTCFullYear() - year) * 12 + (at.getUTCMonth() + 1 - month);
+  if (at.getUTCDate() < day) months -= 1;
+  if (months < 0) return null;
+  if (months < 24) return `${months} mois`;
+  return `${Math.floor(months / 12)} ans`;
+}
+
+/**
+ * Sexe et âge sur une ligne, pour situer un patient d'un coup d'œil.
+ *
+ * @returns Par exemple « Femme · 58 ans », ou `null` si rien n'a été transmis.
+ */
+export function formatDemographics(
+  sex: string | null,
+  birthDate: string | null,
+  at: Date,
+): string | null {
+  const parts = [formatSex(sex), formatPatientAge(birthDate, at)].filter(
+    Boolean,
+  );
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+/**
+ * Nom précédé du titre, tel qu'il s'imprime au bas d'un compte-rendu.
+ *
+ * @param title Titre du profil — « Dr », « Pr » — ou vide.
+ * @param name  Nom complet.
+ * @returns Par exemple « Dr Adjo Kponton ».
+ */
+export function formatPersonName(title: string | null, name: string): string {
+  return [title?.trim(), name.trim()].filter(Boolean).join(" ");
+}

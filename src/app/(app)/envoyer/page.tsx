@@ -33,7 +33,7 @@ export default async function SendStudyPage() {
         description={`${session.active.organizationName} · les images sont chiffrées pendant le transfert`}
       />
 
-      <div className="grid min-h-0 flex-1 items-start gap-4 overflow-auto px-6 pb-6 lg:grid-cols-3">
+      <div className="grid min-h-0 flex-1 items-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">
         <Panel className="flex flex-col overflow-hidden lg:col-span-2">
           <h2 className="label-eyebrow flex h-11 shrink-0 items-center border-b border-border-subtle px-4">
             Dépôt depuis ce navigateur

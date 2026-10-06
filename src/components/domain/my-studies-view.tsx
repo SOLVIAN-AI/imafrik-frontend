@@ -19,8 +19,8 @@ export function MyStudiesView({ studies }: { studies: Study[] }) {
         description="Examens que vous avez pris en charge et qui restent à rendre"
       />
 
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        <Panel className="flex min-h-0 flex-col overflow-hidden">
           <WorklistTable
             studies={studies}
             hrefFor={(study) => `/lecture/${study.id}`}

@@ -38,8 +38,8 @@ export default async function StudiesPage({
         actions={isClinic ? <ClinicStudiesActions /> : <ListToolbar />}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        <Panel className="flex min-h-0 flex-col overflow-hidden">
           <StudyList studies={studies} filtered={Boolean(search)} />
         </Panel>
       </div>

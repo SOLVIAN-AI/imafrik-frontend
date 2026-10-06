@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { BrandLockup } from "@/components/layout/brand";
 import {
@@ -33,9 +34,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/components/providers/session-provider";
-import { toast } from "sonner";
-import { navigationFor, type NavCounts, type NavItem } from "@/lib/navigation";
+import { formatPersonName } from "@/lib/format";
 import { clearLocalData } from "@/lib/local-data";
+import { navigationFor, type NavCounts, type NavItem } from "@/lib/navigation";
 import { setActiveMembership, signOut } from "@/lib/session/actions";
 import { ROLE_LABELS, type Membership } from "@/lib/session/types";
 import { cn } from "@/lib/utils";
@@ -48,7 +49,7 @@ import { cn } from "@/lib/utils";
  * table est ce qui permet de décrire un menu sans importer d'icônes là
  * où on décrit des routes.
  */
-const NAV_ICONS = {
+export const NAV_ICONS = {
   worklist: LayoutList,
   studies: Stethoscope,
   reports: FileText,
@@ -200,7 +201,7 @@ function UserCard() {
         <button
           type="button"
           className={cn(
-            "mx-2 mb-2 flex h-11 w-[calc(100%-1rem)] items-center gap-2.5 rounded-lg px-2.5",
+            "mx-2 mb-2 flex h-12 w-[calc(100%-1rem)] items-center gap-2.5 rounded-lg px-2.5",
             "transition-colors duration-100 hover:bg-surface-hover",
             "data-[state=open]:bg-surface-hover",
           )}
@@ -215,14 +216,25 @@ function UserCard() {
           >
             {initials}
           </span>
-          <span className="min-w-0 flex-1 truncate text-left text-xs font-medium">
-            {user.fullName}
+          <span className="min-w-0 flex-1 text-left">
+            <span className="block truncate text-xs font-medium">
+              {formatPersonName(user.title, user.fullName)}
+            </span>
+            <span className="block truncate text-2xs text-tertiary">
+              {user.email}
+            </span>
           </span>
+          <ChevronsUpDown
+            className="size-3.5 shrink-0 text-tertiary"
+            aria-hidden
+          />
         </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start" side="top" className="w-56">
-        <DropdownMenuLabel>{user.fullName}</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          {formatPersonName(user.title, user.fullName)}
+        </DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <Link href="/parametres">
             <User className="size-3.5 text-tertiary" aria-hidden />
@@ -329,7 +341,13 @@ function NavLink({
  * aplat d'accent : une zone colorée dans le châssis entrerait en
  * concurrence avec les images médicales affichées à côté.
  */
-export function Sidebar({ counts }: { counts: NavCounts | null }) {
+export function Sidebar({
+  counts,
+  className,
+}: {
+  counts: NavCounts | null;
+  className?: string;
+}) {
   const pathname = usePathname();
   const { active } = useSession();
   const groups = navigationFor(active.role);
@@ -340,6 +358,7 @@ export function Sidebar({ counts }: { counts: NavCounts | null }) {
       className={cn(
         "flex h-full w-60 shrink-0 flex-col",
         "border-r border-border-subtle",
+        className,
         // Dégradé très léger de haut en bas : la navigation paraît
         // éclairée par le haut, comme le reste de l'interface.
         "bg-linear-to-b from-surface-raised to-surface-base",

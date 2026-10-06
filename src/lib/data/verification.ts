@@ -5,6 +5,7 @@ import { verificationSchema } from "@/lib/api/contracts";
 import { isDemoMode } from "@/lib/demo/mode";
 import { DEMO_REPORTS } from "@/lib/demo/reports";
 import { DEMO_STUDIES } from "@/lib/demo/studies";
+import { formatPersonName } from "@/lib/format";
 
 /**
  * Ce qu'atteste la vérification publique.
@@ -63,8 +64,9 @@ export async function verifyReport(
       : undefined;
     if (!report || !study) return null;
     return {
-      radiologist: report.signedBy,
-      licenseNumber: null,
+      // Même composition que l'API : titre puis nom.
+      radiologist: formatPersonName(report.signerTitle, report.signedBy),
+      licenseNumber: report.signerLicense,
       signedAt: report.signedAt,
       modality: study.modality,
       studyDate: study.receivedAt,

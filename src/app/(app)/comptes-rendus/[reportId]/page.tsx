@@ -8,7 +8,7 @@ import { ReportDocument } from "@/components/editor/report-document";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { getReport } from "@/lib/data/reports";
 import { getStudy } from "@/lib/data/studies";
-import { formatPatientName } from "@/lib/format";
+import { formatPatientName, formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
 
 /** Adresse publique du site, pour afficher le lien de vérification. */
@@ -37,9 +37,7 @@ export default async function ReportPage({
   // Un brouillon ne s'affiche pas ici : il se rédige dans l'écran de lecture.
   if (!report || !study || report.status !== "signed") notFound();
 
-  const signer = [report.signerTitle, report.signedBy]
-    .filter(Boolean)
-    .join(" ");
+  const signer = formatPersonName(report.signerTitle, report.signedBy ?? "");
 
   return (
     <>
@@ -49,7 +47,7 @@ export default async function ReportPage({
         actions={<DownloadPdfButton reportId={report.id} />}
       />
 
-      <div className="min-h-0 flex-1 overflow-auto px-6 pb-6">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pb-6 sm:px-6">
         <div className="mx-auto max-w-3xl">
           <Panel className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
             <div>
@@ -75,7 +73,7 @@ export default async function ReportPage({
                 </p>
                 <a
                   href={`/verifier/${report.verifyToken}`}
-                  className="block truncate text-2xs text-accent hover:underline"
+                  className="-mb-1 block truncate py-1 text-2xs text-accent hover:underline"
                 >
                   {SITE_URL.replace(/^https?:\/\//, "")}/verifier/
                   {report.verifyToken.slice(0, 8)}…

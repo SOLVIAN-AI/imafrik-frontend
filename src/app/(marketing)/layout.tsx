@@ -15,7 +15,7 @@ import { MarketingNav } from "@/components/marketing/nav";
  */
 export default function MarketingLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex min-h-dvh flex-col bg-surface-base">
+    <div className="flex min-h-dvh flex-col overflow-x-clip bg-surface-base">
       <MarketingNav />
       <main className="flex-1">{children}</main>
       <MarketingFooter />

@@ -39,7 +39,7 @@ function DocumentSection({ title, html }: { title: string; html: string }) {
   });
 
   return (
-    <section className="border-b border-border-subtle px-10 py-6 last:border-b-0">
+    <section className="border-b border-border-subtle px-5 py-5 last:border-b-0 sm:px-10 sm:py-6">
       <h3 className="label-eyebrow mb-2">{title}</h3>
       <EditorContent editor={editor} />
     </section>

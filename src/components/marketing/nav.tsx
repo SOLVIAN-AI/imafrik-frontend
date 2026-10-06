@@ -37,7 +37,7 @@ export function MarketingNav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface-base/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:gap-8">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           <Mark className="size-7" />
           <span className="text-base font-semibold tracking-[-0.01em]">
@@ -45,7 +45,7 @@ export function MarketingNav() {
           </span>
         </Link>
 
-        <nav className="hidden flex-1 items-center gap-7 md:flex">
+        <nav className="hidden flex-1 items-center gap-7 lg:flex">
           {LINKS.map((link) => (
             <Link
               key={link.href}
@@ -57,7 +57,7 @@ export function MarketingNav() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 md:ml-0">
+        <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <Button
             variant="ghost"
             size="sm"
@@ -67,14 +67,21 @@ export function MarketingNav() {
             <Link href="/connexion">Se connecter</Link>
           </Button>
           <Button size="sm" asChild>
-            <Link href="/contact">Demander une démonstration</Link>
+            <Link href="/contact">
+              {/* Libellé court sur téléphone : le long ne tient pas à côté
+                  du logo et du menu. */}
+              <span className="sm:hidden">Démonstration</span>
+              <span className="hidden sm:inline">
+                Demander une démonstration
+              </span>
+            </Link>
           </Button>
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}
             aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={open}
-            className="flex size-8 items-center justify-center rounded-md text-secondary md:hidden"
+            className="flex size-9 items-center justify-center rounded-md text-secondary transition-colors hover:bg-surface-hover hover:text-primary lg:hidden"
           >
             {open ? <X className="size-4" /> : <Menu className="size-4" />}
           </button>
@@ -82,7 +89,7 @@ export function MarketingNav() {
       </div>
 
       {open && (
-        <nav className="flex flex-col gap-1 border-t border-border-subtle px-6 py-3 md:hidden">
+        <nav className="flex flex-col gap-1 border-t border-border-subtle px-4 py-3 sm:px-6 lg:hidden">
           {LINKS.map((link) => (
             <Link
               key={link.href}

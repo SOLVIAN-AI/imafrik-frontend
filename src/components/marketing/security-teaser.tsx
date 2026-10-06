@@ -69,7 +69,7 @@ export function SecurityTeaser() {
 
       <Link
         href="/securite"
-        className="mt-8 inline-flex items-center gap-1.5 text-sm text-accent transition-opacity hover:opacity-80"
+        className="mt-7 inline-flex items-center gap-1.5 py-1 text-sm text-accent transition-opacity hover:opacity-80"
       >
         Le détail des garanties et de la conformité
         <ArrowRight className="size-4" aria-hidden />

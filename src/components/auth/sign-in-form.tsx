@@ -138,7 +138,7 @@ export function SignInForm({
         <div className="flex items-center justify-end">
           <Link
             href="/mot-de-passe-oublie"
-            className="text-xs text-tertiary transition-colors hover:text-accent"
+            className="-my-1 inline-block py-1 text-xs text-tertiary transition-colors hover:text-accent"
           >
             Mot de passe oublié ?
           </Link>

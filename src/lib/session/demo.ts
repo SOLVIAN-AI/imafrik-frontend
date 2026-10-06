@@ -38,6 +38,36 @@ export const DEMO_MEMBERSHIPS: Membership[] = [
 ];
 
 /**
+ * Qui l'on incarne dans chaque portail.
+ *
+ * Un seul compte appartient aux trois organisations — c'est le cas que
+ * l'architecture doit tenir — mais une démonstration où la même
+ * radiologue apparaît dans l'équipe d'une clinique et dans le
+ * back-office brouille le propos. Chaque portail montre donc la personne
+ * qu'un vrai client y verrait.
+ */
+const PERSONAS: Record<string, Session["user"]> = {
+  "m-radio": {
+    id: DEMO_USER_ID,
+    email: "a.kponton@imafrik.tech",
+    fullName: "Adjo Kponton",
+    title: "Dr",
+  },
+  "m-admin": {
+    id: DEMO_USER_ID,
+    email: "operations@imafrik.tech",
+    fullName: "Edem Agbodjan",
+    title: "",
+  },
+  "m-clinic": {
+    id: DEMO_USER_ID,
+    email: "accueil@cliniquesaintjoseph.tg",
+    fullName: "Akouvi Mensah",
+    title: "",
+  },
+};
+
+/**
  * Construit la session de démonstration.
  *
  * @param activeId Appartenance choisie, si l'utilisateur en a changé.
@@ -48,12 +78,7 @@ export function demoSession(activeId?: string): Session {
     DEMO_MEMBERSHIPS[0];
 
   return {
-    user: {
-      id: DEMO_USER_ID,
-      email: "demo@imafrik.tech",
-      fullName: "Dr Adjo Kponton",
-      title: "Radiologue",
-    },
+    user: PERSONAS[active.id],
     memberships: DEMO_MEMBERSHIPS,
     active,
     isDemo: true,

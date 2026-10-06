@@ -27,6 +27,10 @@ export interface Study {
   patientName: string;
   /** Identifiant patient propre à la clinique. */
   patientId: string;
+  /** Sexe DICOM : `M`, `F`, `O`, ou `null` s'il n'a pas été transmis. */
+  patientSex: string | null;
+  /** Date de naissance, `AAAA-MM-JJ`, si la console l'a transmise. */
+  patientBirthDate: string | null;
   modality: string;
   bodyPart: string | null;
   /** Renseignement clinique saisi par la clinique. */
@@ -57,6 +61,8 @@ function toStudy(row: ApiStudy): Study {
     studyInstanceUid: row.study_instance_uid,
     patientName: row.patient_name ?? "",
     patientId: row.patient_id_local ?? "",
+    patientSex: row.patient_sex,
+    patientBirthDate: row.patient_birthdate,
     modality: row.modality ?? "—",
     bodyPart: row.body_part,
     clinicalInfo: row.clinical_info,

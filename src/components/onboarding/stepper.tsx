@@ -46,7 +46,7 @@ export function Stepper({
             </span>
             <span
               className={cn(
-                "hidden text-xs whitespace-nowrap md:block",
+                "hidden text-xs whitespace-nowrap lg:block",
                 current ? "font-medium text-primary" : "text-tertiary",
               )}
             >
@@ -77,7 +77,7 @@ export function Stepper({
             {index < steps.length - 1 && (
               <span
                 className={cn(
-                  "h-px w-4 md:w-8",
+                  "h-px w-4 lg:w-8",
                   done ? "bg-accent/40" : "bg-border-default",
                 )}
                 aria-hidden

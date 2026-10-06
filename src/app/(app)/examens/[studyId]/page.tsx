@@ -1,4 +1,4 @@
-import { FileText, ImageOff, PenTool } from "lucide-react";
+import { FileText, ImageOff, Maximize2, PenTool } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type * as React from "react";
@@ -6,6 +6,7 @@ import type * as React from "react";
 import { AddendaPanel } from "@/components/domain/addenda-panel";
 import { DownloadPdfButton } from "@/components/domain/download-pdf-button";
 import { ReportDocument } from "@/components/editor/report-document";
+import { SimulatedScan } from "@/components/editor/simulated-scan";
 import {
   StudyStatusChip,
   UrgentMarker,
@@ -14,10 +15,10 @@ import { StudyTimeline } from "@/components/domain/study-timeline";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { getReportForStudy } from "@/lib/data/reports";
-import { getStudy } from "@/lib/data/studies";
+import { getStudy, type Study } from "@/lib/data/studies";
 import { requireSession } from "@/lib/session/server";
 import { DateTime } from "@/components/domain/date-time";
-import { formatPatientName } from "@/lib/format";
+import { formatPatientName, formatPersonName } from "@/lib/format";
 
 /**
  * Fiche d'un examen.
@@ -66,21 +67,19 @@ export default async function StudySheetPage({
                   Lire et rédiger
                 </Link>
               </Button>
-            ) : (
-              <DownloadPdfButton reportId={signed?.id ?? null} />
-            )}
+            ) : signed ? (
+              <DownloadPdfButton reportId={signed.id} />
+            ) : null}
           </>
         }
       />
 
-      <div className="grid min-h-0 flex-1 gap-4 overflow-auto px-6 pb-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-4 lg:col-span-2">
-          <ImagesPanel
-            clinicalInfo={study.clinicalInfo}
-            seriesCount={study.seriesCount}
-            instanceCount={study.instanceCount}
-            studyId={study.id}
-          />
+      {/* `min-w-0` sur chaque colonne : sans lui, une colonne de grille ne
+          rétrécit pas sous la largeur de son contenu, et la page déborde
+          sur un téléphone. */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
+          <ImagesPanel study={study} demo={session.isDemo} />
 
           <Panel className="flex flex-col overflow-hidden">
             <PanelTitle>Compte-rendu</PanelTitle>
@@ -90,15 +89,16 @@ export default async function StudySheetPage({
                   <span>
                     Signé par{" "}
                     <span className="text-secondary">
-                      {[signed.signerTitle, signed.signedBy]
-                        .filter(Boolean)
-                        .join(" ")}
+                      {formatPersonName(
+                        signed.signerTitle,
+                        signed.signedBy ?? "",
+                      )}
                     </span>
                   </span>
                   {signed.signedAt && <DateTime date={signed.signedAt} />}
                   <Link
                     href={`/comptes-rendus/${signed.id}`}
-                    className="ml-auto flex items-center gap-1.5 text-accent hover:underline"
+                    className="-my-1.5 ml-auto flex items-center gap-1.5 py-1.5 text-accent hover:underline"
                   >
                     <FileText className="size-3.5" aria-hidden />
                     Document complet
@@ -126,7 +126,7 @@ export default async function StudySheetPage({
           )}
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <Panel className="flex flex-col overflow-hidden">
             <PanelTitle>Avancement</PanelTitle>
             <div className="p-4">
@@ -174,35 +174,44 @@ export default async function StudySheetPage({
  * clinique n'a pas les mêmes exigences qu'un diagnostic, et le viewer
  * complet s'ouvre d'un clic. Le fond reste noir — même pour un aperçu,
  * une image en niveaux de gris ne se juge pas sur un fond clair.
+ *
+ * En démonstration, l'aperçu est la coupe simulée de l'écran de lecture,
+ * signalée comme telle.
  */
-function ImagesPanel({
-  clinicalInfo,
-  seriesCount,
-  instanceCount,
-  studyId,
-}: {
-  clinicalInfo: string | null;
-  seriesCount: number;
-  instanceCount: number;
-  studyId: string;
-}) {
+function ImagesPanel({ study, demo }: { study: Study; demo: boolean }) {
   return (
     <Panel className="flex flex-col overflow-hidden">
       <PanelTitle>
         Images
-        <span className="ml-auto font-normal text-tertiary normal-case">
-          {seriesCount} série{seriesCount > 1 ? "s" : ""} ·{" "}
-          {instanceCount.toLocaleString("fr-FR")} coupes
+        <span className="ml-auto hidden truncate font-normal text-tertiary normal-case sm:inline">
+          {study.seriesCount} série{study.seriesCount > 1 ? "s" : ""} ·{" "}
+          {study.instanceCount.toLocaleString("fr-FR")} coupes
         </span>
-      </PanelTitle>
-      <div className="flex h-64 flex-col items-center justify-center gap-2 bg-ink-950">
-        <ImageOff className="size-5 text-ink-600" aria-hidden />
-        <p className="text-xs text-ink-500">
-          {clinicalInfo ?? "Aperçu indisponible"}
-        </p>
-        <Button variant="secondary" size="sm" className="mt-1" asChild>
-          <Link href={`/lecture/${studyId}`}>Ouvrir les images</Link>
+        {/* Dans l'en-tête, pas sur l'image : posé sur l'aperçu, le bouton
+            recouvrait les surimpressions des coins. */}
+        <Button
+          variant="secondary"
+          size="sm"
+          className="ml-auto shrink-0 tracking-normal normal-case sm:ml-0"
+          asChild
+        >
+          <Link href={`/lecture/${study.id}`}>
+            <Maximize2 />
+            Ouvrir les images
+          </Link>
         </Button>
+      </PanelTitle>
+      <div className="relative h-64 bg-black sm:h-72">
+        {demo ? (
+          <SimulatedScan study={study} interactive={false} />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+            <ImageOff className="size-5 text-ink-600" aria-hidden />
+            <p className="text-xs text-ink-500">
+              Les images s’ouvrent dans le viewer, avec un accès tracé.
+            </p>
+          </div>
+        )}
       </div>
     </Panel>
   );

@@ -1,6 +1,15 @@
 "use client";
 
-import { ArrowLeft, Hand, Lock, PenTool, Undo2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ClipboardList,
+  CornerDownLeft,
+  Hand,
+  Lock,
+  PenTool,
+  Undo2,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -32,6 +41,7 @@ import {
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { type SaveOutcome, useAutosave } from "@/hooks/use-autosave";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   claimStudy,
   releaseStudy,
@@ -45,7 +55,7 @@ import {
   readReportBackup,
   writeReportBackup,
 } from "@/lib/editor/backup";
-import { formatPatientName } from "@/lib/format";
+import { formatDemographics, formatPatientName } from "@/lib/format";
 import { homeFor } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
@@ -140,11 +150,21 @@ function StudyBar({
   actions: React.ReactNode;
 }) {
   const { active } = useSession();
+  // L'âge est celui du jour de l'examen : c'est lui qui compte pour
+  // l'interprétation, et il ne dépend pas de l'horloge du poste — le
+  // rendu serveur et le rendu client donnent donc le même texte.
+  const demographics = formatDemographics(
+    study.patientSex,
+    study.patientBirthDate,
+    study.receivedAt,
+  );
 
   return (
     <header
       className={cn(
-        "flex h-13 shrink-0 items-center gap-3 border-b border-border-subtle px-4",
+        // Sur un écran étroit, les actions passent sur une seconde ligne
+        // plutôt que de recouvrir le nom du patient.
+        "flex min-h-13 shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border-subtle px-3 py-2 sm:px-4",
         "bg-surface-raised/40 backdrop-blur-sm",
       )}
     >
@@ -156,7 +176,7 @@ function StudyBar({
         </Link>
       </Button>
 
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <h1 className="truncate text-sm font-semibold tracking-[-0.01em]">
             {formatPatientName(study.patientName)}
@@ -164,22 +184,29 @@ function StudyBar({
           {study.urgent && <UrgentMarker />}
         </div>
         <p className="truncate text-2xs text-tertiary">
+          {demographics && (
+            <span className="text-secondary">{demographics} · </span>
+          )}
           <span className="font-mono">{study.patientId || "—"}</span> ·{" "}
           {study.modality}
           {study.bodyPart && ` ${study.bodyPart}`} · {study.clinic}
         </p>
       </div>
 
-      <div className="ml-auto flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3">
         <StudyStatusChip status={signed ? "reported" : study.status} />
         {signed && (
-          <span className="flex items-center gap-1.5 text-2xs text-done">
+          <span className="hidden items-center gap-1.5 text-2xs text-done sm:flex">
             <Lock className="size-3" aria-hidden />
             Signé
           </span>
         )}
-        {actions}
       </div>
+      {actions && (
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 lg:w-auto">
+          {actions}
+        </div>
+      )}
     </header>
   );
 }
@@ -205,6 +232,8 @@ function StudyBar({
  * @param signed     Le compte-rendu est déjà signé.
  * @param signerName Nom porté par la signature.
  * @param templates  Modèles proposés à l'auteur — ceux de la modalité.
+ * @param nextStudyId Prochain examen de la file, proposé après la
+ *                    signature : on enchaîne sans repasser par la liste.
  */
 export function ReportWorkspace({
   study,
@@ -214,6 +243,7 @@ export function ReportWorkspace({
   signed: initiallySigned,
   signerName,
   templates = [],
+  nextStudyId = null,
 }: {
   study: WorkspaceStudy;
   viewerUrl: string | null;
@@ -222,14 +252,18 @@ export function ReportWorkspace({
   signed: boolean;
   signerName: string;
   templates?: ReportTemplate[];
+  nextStudyId?: string | null;
 }) {
   const router = useRouter();
-  const { isDemo } = useSession();
+  const { isDemo, active } = useSession();
   const [sections, setSections] = React.useState<ReportSections>(initial);
   const [signed, setSigned] = React.useState(initiallySigned);
   const [confirming, setConfirming] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
   const { groupRef, onLayoutChanged } = usePersistedLayout();
+  // Côte à côte à partir de 1024 px ; en dessous, chaque volet aurait
+  // moins de 340 px — ni l'image ni le texte n'y sont exploitables.
+  const wide = useMediaQuery("(min-width: 1024px)", true);
 
   const author = mode.kind === "author" ? mode : null;
   const locked = signed || !author;
@@ -320,8 +354,16 @@ export function ReportWorkspace({
     const result = await signReport(author.reportId);
     if (!result.ok) throw new Error(result.error);
     setSigned(true);
+    toast.success("Compte-rendu signé et transmis à la clinique.", {
+      action: nextStudyId
+        ? {
+            label: "Examen suivant",
+            onClick: () => router.push(`/lecture/${nextStudyId}`),
+          }
+        : undefined,
+    });
     router.refresh();
-  }, [author, flush, router, state]);
+  }, [author, flush, nextStudyId, router, state]);
 
   const claim = () =>
     startTransition(async () => {
@@ -353,7 +395,19 @@ export function ReportWorkspace({
     });
   };
 
-  const actions = signed ? null : author ? (
+  const next =
+    nextStudyId && active.role === "radiologist" ? (
+      <Button size="sm" variant="secondary" asChild>
+        <Link href={`/lecture/${nextStudyId}`}>
+          Examen suivant
+          <ArrowRight />
+        </Link>
+      </Button>
+    ) : null;
+
+  const actions = signed ? (
+    next
+  ) : author ? (
     <>
       <TemplatePicker
         templates={templates}
@@ -379,60 +433,85 @@ export function ReportWorkspace({
       <Hand />
       Prendre en charge
     </Button>
-  ) : null;
+  ) : (
+    next
+  );
+
+  const viewer = (
+    <ViewerPane study={study} viewerUrl={viewerUrl} demo={isDemo} />
+  );
+  const report = (
+    <div className="flex h-full min-h-0 flex-col">
+      {signed && (
+        <Banner tone="done">
+          Compte-rendu signé et transmis : il n’est plus modifiable.
+        </Banner>
+      )}
+      {!signed && mode.kind === "readonly" && mode.notice && (
+        <Banner tone="neutral">{mode.notice}</Banner>
+      )}
+      {!signed && mode.kind === "claimable" && (
+        <Banner tone="neutral">
+          Prenez l’examen en charge pour commencer le compte-rendu. Il vous sera
+          réservé jusqu’à la signature, ou jusqu’à ce que vous le rendiez au
+          pool.
+        </Banner>
+      )}
+      <ClinicalContext
+        info={study.clinicalInfo}
+        onUse={
+          !locked && isBlank(sections.indication)
+            ? () =>
+                update(
+                  "indication",
+                  `<p>${escapeHtml(study.clinicalInfo ?? "")}</p>`,
+                )
+            : undefined
+        }
+      />
+      <ReportEditor
+        sections={sections}
+        saveState={state}
+        readOnly={locked}
+        onChange={update}
+      />
+    </div>
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <StudyBar study={study} signed={signed} actions={actions} />
 
-      <Group
-        orientation="horizontal"
-        groupRef={groupRef}
-        onLayoutChanged={onLayoutChanged}
-        className="min-h-0 flex-1"
-      >
-        {/* 34 % minimum de chaque côté : en deçà, l'image devient
-            inexploitable ou le texte tombe sous la mesure lisible. */}
-        <Panel id="viewer" defaultSize="56" minSize="34" className="min-w-0">
-          <ViewerPane study={study} viewerUrl={viewerUrl} demo={isDemo} />
-        </Panel>
+      {wide ? (
+        <Group
+          orientation="horizontal"
+          groupRef={groupRef}
+          onLayoutChanged={onLayoutChanged}
+          className="min-h-0 flex-1"
+        >
+          {/* 34 % minimum de chaque côté : en deçà, l'image devient
+              inexploitable ou le texte tombe sous la mesure lisible. */}
+          <Panel id="viewer" defaultSize="56" minSize="34" className="min-w-0">
+            {viewer}
+          </Panel>
 
-        <Separator
-          className={cn(
-            "w-px shrink-0 bg-border-default outline-none",
-            // La poignée est fine à l'œil mais large au pointeur : la
-            // zone de saisie déborde du trait sans l'épaissir.
-            "relative after:absolute after:inset-y-0 after:-inset-x-1 after:content-['']",
-            "transition-colors data-[state=hover]:bg-accent data-[state=drag]:bg-accent",
-          )}
-        />
+          <Separator
+            className={cn(
+              "w-px shrink-0 bg-border-default outline-none",
+              // La poignée est fine à l'œil mais large au pointeur : la
+              // zone de saisie déborde du trait sans l'épaissir.
+              "relative after:absolute after:inset-y-0 after:-inset-x-1 after:content-['']",
+              "transition-colors data-[state=hover]:bg-accent data-[state=drag]:bg-accent",
+            )}
+          />
 
-        <Panel id="report" defaultSize="44" minSize="34" className="min-w-0">
-          <div className="flex h-full min-h-0 flex-col">
-            {signed && (
-              <Banner tone="done">
-                Compte-rendu signé et transmis : il n’est plus modifiable.
-              </Banner>
-            )}
-            {!signed && mode.kind === "readonly" && mode.notice && (
-              <Banner tone="neutral">{mode.notice}</Banner>
-            )}
-            {!signed && mode.kind === "claimable" && (
-              <Banner tone="neutral">
-                Prenez l’examen en charge pour commencer le compte-rendu. Il
-                vous sera réservé jusqu’à la signature, ou jusqu’à ce que vous
-                le rendiez au pool.
-              </Banner>
-            )}
-            <ReportEditor
-              sections={sections}
-              saveState={state}
-              readOnly={locked}
-              onChange={update}
-            />
-          </div>
-        </Panel>
-      </Group>
+          <Panel id="report" defaultSize="44" minSize="34" className="min-w-0">
+            {report}
+          </Panel>
+        </Group>
+      ) : (
+        <NarrowLayout viewer={viewer} report={report} />
+      )}
 
       {author && (
         <SignReportDialog
@@ -472,6 +551,140 @@ function Banner({
     >
       {tone === "done" && <Lock className="size-3 shrink-0" aria-hidden />}
       {children}
+    </div>
+  );
+}
+
+/** Vrai si une section ne contient aucun texte. */
+function isBlank(html: string): boolean {
+  return (
+    html
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .trim() === ""
+  );
+}
+
+/** Échappe un texte saisi par la clinique avant de l'insérer comme HTML. */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Renseignement clinique transmis par la clinique.
+ *
+ * **C'est la question posée au radiologue**, et il doit l'avoir sous les
+ * yeux en rédigeant : relégué en légende sous l'image, il se lisait mal
+ * et s'oubliait. Placé en tête du compte-rendu, il peut aussi en devenir
+ * l'indication d'un geste — la ressaisir à la main était une source de
+ * fautes de copie.
+ *
+ * @param info  Texte saisi par la clinique, ou `null`.
+ * @param onUse Recopie dans l'indication ; absent quand elle n'est pas
+ *              modifiable ou déjà rédigée.
+ */
+function ClinicalContext({
+  info,
+  onUse,
+}: {
+  info: string | null;
+  onUse?: () => void;
+}) {
+  if (!info) return null;
+  return (
+    <div className="flex shrink-0 items-start gap-3 border-b border-border-subtle bg-surface-sunken/50 px-4 py-2.5">
+      <ClipboardList
+        className="mt-0.5 size-3.5 shrink-0 text-tertiary"
+        aria-hidden
+      />
+      <div className="min-w-0 flex-1">
+        <p className="label-eyebrow">Renseignement clinique</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-secondary">{info}</p>
+      </div>
+      {onUse && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="shrink-0"
+          onClick={onUse}
+          title="Recopier dans l’indication clinique"
+        >
+          <CornerDownLeft />
+          Indication
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Écran de lecture sur une largeur réduite : un volet à la fois.
+ *
+ * Tablette ou téléphone d'astreinte : on bascule entre les images et le
+ * compte-rendu plutôt que de les serrer côte à côte. Les deux volets
+ * restent montés — seul l'un est affiché — pour que le texte en cours et
+ * la position dans les images survivent à la bascule.
+ */
+function NarrowLayout({
+  viewer,
+  report,
+}: {
+  viewer: React.ReactNode;
+  report: React.ReactNode;
+}) {
+  const [tab, setTab] = React.useState<"images" | "report">("images");
+  const tabs = [
+    { id: "images", label: "Images" },
+    { id: "report", label: "Compte-rendu" },
+  ] as const;
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div
+        role="tablist"
+        aria-label="Volet affiché"
+        className="flex shrink-0 gap-1 border-b border-border-subtle bg-surface-raised/40 p-1.5"
+      >
+        {tabs.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            role="tab"
+            id={`tab-${entry.id}`}
+            aria-selected={tab === entry.id}
+            aria-controls={`pane-${entry.id}`}
+            onClick={() => setTab(entry.id)}
+            className={cn(
+              "h-9 flex-1 rounded-md text-sm font-medium transition-colors",
+              tab === entry.id
+                ? "bg-surface-active text-primary shadow-edge"
+                : "text-tertiary hover:text-secondary",
+            )}
+          >
+            {entry.label}
+          </button>
+        ))}
+      </div>
+      <div
+        id="pane-images"
+        role="tabpanel"
+        aria-labelledby="tab-images"
+        className={cn("min-h-0 flex-1", tab !== "images" && "hidden")}
+      >
+        {viewer}
+      </div>
+      <div
+        id="pane-report"
+        role="tabpanel"
+        aria-labelledby="tab-report"
+        className={cn("min-h-0 flex-1", tab !== "report" && "hidden")}
+      >
+        {report}
+      </div>
     </div>
   );
 }

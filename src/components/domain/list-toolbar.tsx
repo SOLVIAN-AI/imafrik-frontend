@@ -40,9 +40,12 @@ export function ListToolbar({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    // Pleine largeur sur téléphone : le champ prend la place disponible et
+    // les boutons se réduisent à leur icône.
+    <div className="flex w-full items-center gap-2 sm:w-auto">
       <form
         role="search"
+        className="min-w-0 flex-1 sm:flex-none"
         onSubmit={(event) => {
           event.preventDefault();
           const value = String(
@@ -63,7 +66,7 @@ export function ListToolbar({
             defaultValue={params.get("q") ?? ""}
             placeholder="Patient, identifiant, modalité…"
             className={cn(
-              "h-8 w-56 rounded-lg border border-border-subtle bg-surface-base/60 pr-2.5 pl-8",
+              "h-9 w-full rounded-lg border border-border-subtle bg-surface-base/60 pr-2.5 pl-8 sm:h-8 sm:w-56",
               "text-xs placeholder:text-tertiary",
               "focus-visible:border-accent focus-visible:outline-none",
             )}
@@ -83,7 +86,8 @@ export function ListToolbar({
           }
         >
           <Siren />
-          Urgences seulement
+          <span className="sm:hidden">Urgences</span>
+          <span className="hidden sm:inline">Urgences seulement</span>
         </Button>
       )}
 
@@ -92,9 +96,10 @@ export function ListToolbar({
         size="sm"
         loading={pending}
         onClick={() => startTransition(() => router.refresh())}
+        aria-label="Actualiser"
       >
         <RefreshCw />
-        Actualiser
+        <span className="hidden sm:inline">Actualiser</span>
       </Button>
     </div>
   );

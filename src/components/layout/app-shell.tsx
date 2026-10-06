@@ -57,7 +57,9 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <header className="relative flex shrink-0 items-end justify-between gap-4 px-6 pt-6 pb-5">
+    // Les actions passent sous le titre quand la largeur manque, au lieu
+    // de le recouvrir : `flex-wrap`, et une largeur de base au titre.
+    <header className="relative flex shrink-0 flex-wrap items-end justify-between gap-x-4 gap-y-3 px-4 pt-6 pb-5 sm:px-6">
       <div
         className="pointer-events-none absolute inset-x-0 -top-24 h-48 opacity-70"
         style={{
@@ -66,14 +68,16 @@ export function PageHeader({
         }}
         aria-hidden
       />
-      <div className="relative min-w-0">
+      <div className="relative min-w-0 flex-[1_1_16rem]">
         <h1 className="truncate text-2xl font-semibold">{title}</h1>
         {description && (
-          <p className="mt-1 truncate text-xs text-tertiary">{description}</p>
+          <p className="mt-1 text-xs text-tertiary sm:truncate">
+            {description}
+          </p>
         )}
       </div>
       {actions && (
-        <div className="relative flex shrink-0 items-center gap-2">
+        <div className="relative flex max-w-full flex-wrap items-center gap-2">
           {actions}
         </div>
       )}
@@ -133,9 +137,11 @@ export function AppShell({
 
   return (
     <div className="flex h-dvh overflow-hidden bg-surface-base">
-      <Sidebar counts={counts} />
+      {/* Barre latérale fixe à partir de 1024 px ; en dessous, la même
+          navigation s'ouvre en tiroir depuis la barre supérieure. */}
+      <Sidebar counts={counts} className="hidden lg:flex" />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
+        <Topbar counts={counts} />
         <main className="flex min-h-0 flex-1 flex-col">{children}</main>
       </div>
     </div>

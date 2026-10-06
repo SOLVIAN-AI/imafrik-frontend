@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import { EmptyState } from "@/components/ui/empty-state";
 import { listContactRequests } from "@/lib/data/admin";
 import { requireSession } from "@/lib/session/server";
 
@@ -26,14 +27,14 @@ export default async function ContactRequestsPage() {
         title="Demandes reçues"
         description={`${requests.length} demande${requests.length > 1 ? "s" : ""} — formulaire du site`}
       />
-      <div className="min-h-0 flex-1 overflow-auto px-6 pb-6">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pb-6 sm:px-6">
         {requests.length === 0 ? (
-          <Panel className="flex flex-col items-center justify-center gap-2 py-20">
-            <Inbox className="size-5 text-tertiary" aria-hidden />
-            <p className="text-sm font-medium">Aucune demande</p>
-            <p className="text-xs text-tertiary">
-              Les demandes du site apparaîtront ici.
-            </p>
+          <Panel>
+            <EmptyState
+              icon={Inbox}
+              title="Aucune demande"
+              detail="Les demandes envoyées depuis le formulaire de contact du site apparaîtront ici."
+            />
           </Panel>
         ) : (
           <div className="flex flex-col gap-3">

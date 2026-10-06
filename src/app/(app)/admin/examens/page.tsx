@@ -58,9 +58,47 @@ export default async function AdminStudiesPage({
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="min-h-0 flex-1 overflow-auto">
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        <Panel className="flex min-h-0 flex-col overflow-hidden">
+          {/* Téléphone : une carte par examen, comme dans les portails. */}
+          <ul className="min-h-0 flex-1 divide-y divide-border-subtle overflow-auto lg:hidden">
+            {studies.map((study) => (
+              <li
+                key={study.id}
+                className={cn(
+                  "flex items-start gap-3 px-4 py-3",
+                  study.urgent && "rail-urgent",
+                )}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm font-medium">
+                      {formatPatientName(study.patientName)}
+                    </span>
+                    {study.urgent && <UrgentMarker />}
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-secondary">
+                    <span className="font-medium text-primary">
+                      {study.modality}
+                    </span>
+                    {study.bodyPart && ` · ${study.bodyPart}`} · {study.clinic}
+                  </p>
+                  <p className="mt-0.5 truncate text-2xs text-tertiary">
+                    {study.assignedToName ?? "Non attribué"}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  <StudyAge
+                    date={study.receivedAt}
+                    muted={study.status === "delivered"}
+                  />
+                  <StudyStatusChip status={study.status} />
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden min-h-0 flex-1 overflow-auto lg:block">
             <table className="w-full border-separate border-spacing-0 text-sm">
               <thead className="sticky top-0 z-10">
                 <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
@@ -110,7 +148,7 @@ export default async function AdminStudiesPage({
                       </span>
                     </td>
 
-                    <td>
+                    <td className="whitespace-nowrap">
                       <span className="font-medium">{study.modality}</span>
                       {study.bodyPart && (
                         <span className="text-secondary">

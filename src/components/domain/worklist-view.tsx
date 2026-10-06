@@ -96,9 +96,12 @@ export function WorklistView({
         description={describeScope(studies)}
         actions={<ListToolbar urgentFilter />}
       />
-      <MetricGrid metrics={buildMetrics(studies, now)} className="px-6 pb-4" />
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <MetricGrid
+        metrics={buildMetrics(studies, now)}
+        className="px-4 pb-4 sm:px-6"
+      />
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        <Panel className="flex min-h-0 flex-col overflow-hidden">
           <WorklistTable
             studies={studies}
             hrefFor={(study) => `/lecture/${study.id}`}

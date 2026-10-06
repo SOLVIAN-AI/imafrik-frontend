@@ -50,7 +50,7 @@ function FormatButton({
       aria-pressed={active}
       title={label}
       className={cn(
-        "flex size-7 items-center justify-center rounded-md",
+        "flex size-7 shrink-0 items-center justify-center rounded-md",
         "transition-colors duration-75",
         "disabled:pointer-events-none disabled:opacity-35",
         active
@@ -65,7 +65,9 @@ function FormatButton({
 
 /** Séparateur entre deux groupes de commandes. */
 function Divider() {
-  return <span className="mx-1 h-4 w-px bg-border-default" aria-hidden />;
+  return (
+    <span className="mx-1 h-4 w-px shrink-0 bg-border-default" aria-hidden />
+  );
 }
 
 /**
@@ -99,7 +101,9 @@ export function FormatToolbar({
   return (
     <div
       className={cn(
-        "flex h-11 shrink-0 items-center gap-0.5 border-b border-border-subtle px-3",
+        // Sur un écran étroit, la barre défile plutôt que d'écraser ses
+        // boutons sous la taille d'une cible tactile.
+        "flex h-11 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border-subtle px-3",
         "bg-surface-raised/60 backdrop-blur-sm",
       )}
       role="toolbar"

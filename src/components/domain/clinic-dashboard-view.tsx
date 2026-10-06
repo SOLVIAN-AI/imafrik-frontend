@@ -97,12 +97,15 @@ export function ClinicDashboardView({
         }
       />
 
-      <MetricGrid metrics={buildMetrics(metrics)} className="px-6 pb-4" />
+      <MetricGrid
+        metrics={buildMetrics(metrics)}
+        className="px-4 pb-4 sm:px-6"
+      />
 
       {/* `items-start` : les deux panneaux prennent la hauteur de leur
           contenu. Étirés sur toute la fenêtre, ils laisseraient de larges
           zones vides qui donnent à l'écran un air inachevé. */}
-      <div className="grid min-h-0 flex-1 items-start gap-4 overflow-auto px-6 pb-6 lg:grid-cols-3">
+      <div className="grid min-h-0 flex-1 items-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">
         {/* Ce qui appelle une action occupe la place principale. */}
         <Panel className="flex flex-col overflow-hidden lg:col-span-2">
           <SectionTitle
@@ -206,7 +209,7 @@ function SectionTitle({
       {action && (
         <Link
           href={action.href}
-          className="flex items-center gap-1 text-2xs text-tertiary transition-colors hover:text-accent"
+          className="-my-1.5 flex items-center gap-1 py-1.5 text-2xs text-tertiary transition-colors hover:text-accent"
         >
           {action.label}
           <ArrowRight className="size-3" aria-hidden />

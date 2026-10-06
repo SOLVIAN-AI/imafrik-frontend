@@ -38,118 +38,166 @@ export default async function AdminOrganizationsPage() {
     <>
       <PageHeader
         title="Organisations"
-        description={`${plural(clinics.length, "clinique", "cliniques")} · ${plural(groups, "groupe de radiologie", "groupes de radiologie")} · raccordement d’une clinique : make clinic`}
+        description={`${plural(clinics.length, "clinique", "cliniques")} · ${plural(groups, "groupe de radiologie", "groupes de radiologie")} `}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <table className="w-full border-separate border-spacing-0 text-sm">
-            <thead className="sticky top-0 z-10">
-              <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
-                <th scope="col" className="w-[32%]">
-                  <span className="label-eyebrow">Organisation</span>
-                </th>
-                <th scope="col" className="w-[16%]">
-                  <span className="label-eyebrow">Nature</span>
-                </th>
-                <th scope="col" className="w-[14%]">
-                  <span className="label-eyebrow">PACS</span>
-                </th>
-                <th scope="col" className="w-[10%] text-right">
-                  <span className="label-eyebrow">Membres</span>
-                </th>
-                <th scope="col" className="w-[10%] text-right">
-                  <span className="label-eyebrow">Examens</span>
-                </th>
-                <th scope="col" className="w-[10%] text-right">
-                  <span className="label-eyebrow">État</span>
-                </th>
-                <th scope="col" className="w-[14%] text-right">
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        <Panel className="flex min-h-0 flex-col overflow-hidden">
+          {/* Téléphone : une carte par organisation, actions comprises —
+              dans un tableau rogné, elles devenaient inaccessibles. */}
+          <ul className="min-h-0 divide-y divide-border-subtle overflow-auto md:hidden">
+            {organizations.map((org) => (
+              <li key={org.id} className="flex flex-col gap-3 px-4 py-3.5">
+                <div className="flex items-start gap-3">
+                  <OrgIcon kind={org.kind} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{org.name}</p>
+                    <p className="truncate text-2xs text-tertiary">
+                      {org.kind === "clinic" ? "Clinique" : "Groupe"} ·{" "}
+                      {org.city} ·{" "}
+                      {plural(org.memberCount, "membre", "membres")} ·{" "}
+                      {plural(org.studyCount, "examen", "examens")}
+                    </p>
+                  </div>
+                  <ActiveState active={org.active} />
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <PacsState kind={org.kind} connected={org.connected} />
+                  <OrganizationRowActions organization={org} />
+                </div>
+              </li>
+            ))}
+          </ul>
 
-            <tbody>
-              {organizations.map((org) => (
-                <tr
-                  key={org.id}
-                  className={cn(
-                    "[&>td]:h-12 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4",
-                    "last:[&>td]:border-b-0",
-                  )}
-                >
-                  <td>
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-surface-active"
-                        aria-hidden
-                      >
-                        {org.kind === "clinic" ? (
-                          <Hospital className="size-3.5 text-tertiary" />
-                        ) : (
-                          <Building2 className="size-3.5 text-tertiary" />
-                        )}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{org.name}</p>
-                        <p className="truncate text-2xs text-tertiary">
-                          {org.city}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="text-secondary">
-                    {org.kind === "clinic" ? "Clinique" : "Groupe"}
-                  </td>
-
-                  <td className="text-2xs">
-                    {org.kind !== "clinic" ? (
-                      <span className="text-tertiary">—</span>
-                    ) : org.connected ? (
-                      <span className="text-done">Raccordée</span>
-                    ) : (
-                      <span className="text-progress">Non raccordée</span>
-                    )}
-                  </td>
-
-                  <td className="text-right text-secondary tabular-nums">
-                    {org.memberCount}
-                  </td>
-                  <td className="text-right text-secondary tabular-nums">
-                    {org.studyCount}
-                  </td>
-
-                  <td className="text-right">
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-2xs font-medium",
-                        org.active
-                          ? "bg-done-muted text-done"
-                          : "bg-surface-active text-tertiary",
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "size-1.5 rounded-full",
-                          org.active ? "bg-done" : "bg-tertiary",
-                        )}
-                        aria-hidden
-                      />
-                      {org.active ? "Active" : "Suspendue"}
-                    </span>
-                  </td>
-
-                  <td>
-                    <OrganizationRowActions organization={org} />
-                  </td>
+          <div className="hidden min-h-0 overflow-auto md:block">
+            <table className="w-full border-separate border-spacing-0 text-sm">
+              <thead className="sticky top-0 z-10">
+                <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
+                  <th scope="col" className="w-[32%]">
+                    <span className="label-eyebrow">Organisation</span>
+                  </th>
+                  <th scope="col" className="w-[16%]">
+                    <span className="label-eyebrow">Nature</span>
+                  </th>
+                  <th scope="col" className="w-[14%]">
+                    <span className="label-eyebrow">PACS</span>
+                  </th>
+                  <th scope="col" className="w-[10%] text-right">
+                    <span className="label-eyebrow">Membres</span>
+                  </th>
+                  <th scope="col" className="w-[10%] text-right">
+                    <span className="label-eyebrow">Examens</span>
+                  </th>
+                  <th scope="col" className="w-[10%] text-right">
+                    <span className="label-eyebrow">État</span>
+                  </th>
+                  <th scope="col" className="w-[14%] text-right">
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {organizations.map((org) => (
+                  <tr
+                    key={org.id}
+                    className={cn(
+                      "[&>td]:h-12 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4",
+                      "last:[&>td]:border-b-0",
+                    )}
+                  >
+                    <td>
+                      <div className="flex items-center gap-2.5">
+                        <OrgIcon kind={org.kind} />
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{org.name}</p>
+                          <p className="truncate text-2xs text-tertiary">
+                            {org.city}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="text-secondary">
+                      {org.kind === "clinic" ? "Clinique" : "Groupe"}
+                    </td>
+
+                    <td>
+                      <PacsState kind={org.kind} connected={org.connected} />
+                    </td>
+
+                    <td className="text-right text-secondary tabular-nums">
+                      {org.memberCount}
+                    </td>
+                    <td className="text-right text-secondary tabular-nums">
+                      {org.studyCount}
+                    </td>
+
+                    <td className="text-right">
+                      <ActiveState active={org.active} />
+                    </td>
+
+                    <td>
+                      <OrganizationRowActions organization={org} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Panel>
       </div>
     </>
+  );
+}
+
+/** Pastille de nature : clinique ou groupe de radiologie. */
+function OrgIcon({ kind }: { kind: "clinic" | "radiology_group" }) {
+  const Icon = kind === "clinic" ? Hospital : Building2;
+  return (
+    <span
+      className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-active"
+      aria-hidden
+    >
+      <Icon className="size-3.5 text-tertiary" />
+    </span>
+  );
+}
+
+/** Raccordement PACS d'une clinique ; sans objet pour un groupe. */
+function PacsState({
+  kind,
+  connected,
+}: {
+  kind: "clinic" | "radiology_group";
+  connected: boolean;
+}) {
+  if (kind !== "clinic")
+    return <span className="text-2xs text-tertiary">Pas de PACS</span>;
+  return connected ? (
+    <span className="text-2xs text-done">PACS raccordé</span>
+  ) : (
+    <span className="text-2xs text-progress">PACS non raccordé</span>
+  );
+}
+
+/** État de l'organisation : active, ou suspendue. */
+function ActiveState({ active }: { active: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-2xs font-medium",
+        active ? "bg-done-muted text-done" : "bg-surface-active text-tertiary",
+      )}
+    >
+      <span
+        className={cn(
+          "size-1.5 rounded-full",
+          active ? "bg-done" : "bg-tertiary",
+        )}
+        aria-hidden
+      />
+      {active ? "Active" : "Suspendue"}
+    </span>
   );
 }

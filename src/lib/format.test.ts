@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDuration, formatPatientName } from "@/lib/format";
+import {
+  formatDuration,
+  formatPatientAge,
+  formatPatientName,
+  formatSex,
+} from "@/lib/format";
 
 describe("formatDuration", () => {
   it.each([
@@ -18,5 +23,32 @@ describe("formatPatientName", () => {
   it("met en forme un nom DICOM", () => {
     expect(formatPatientName("koffi^Ama")).toBe("KOFFI Ama");
     expect(formatPatientName("")).toBe("—");
+  });
+});
+
+describe("formatPatientAge", () => {
+  const at = new Date("2026-10-07T10:00:00Z");
+
+  it("compte en années, à la date de l'examen", () => {
+    expect(formatPatientAge("1968-03-14", at)).toBe("58 ans");
+    expect(formatPatientAge("1968-10-08", at)).toBe("57 ans");
+  });
+
+  it("compte en mois sous deux ans", () => {
+    expect(formatPatientAge("2025-08-01", at)).toBe("14 mois");
+  });
+
+  it("ne devine rien d'une date absente ou incohérente", () => {
+    expect(formatPatientAge(null, at)).toBeNull();
+    expect(formatPatientAge("inconnue", at)).toBeNull();
+    expect(formatPatientAge("2030-01-01", at)).toBeNull();
+  });
+});
+
+describe("formatSex", () => {
+  it("traduit le tag DICOM", () => {
+    expect(formatSex("F")).toBe("Femme");
+    expect(formatSex("m")).toBe("Homme");
+    expect(formatSex(null)).toBeNull();
   });
 });

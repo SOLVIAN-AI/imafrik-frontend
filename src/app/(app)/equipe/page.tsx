@@ -6,7 +6,7 @@ import {
 } from "@/components/domain/team-actions";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { listMembers } from "@/lib/data/organization";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
 import { ROLE_LABELS } from "@/lib/session/types";
 
@@ -50,8 +50,8 @@ export default async function TeamPage() {
         }
       />
 
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        <Panel className="flex min-h-0 flex-col overflow-hidden">
           <ul className="divide-y divide-border-subtle overflow-auto">
             {members.map((member) => (
               <li
@@ -67,7 +67,7 @@ export default async function TeamPage() {
 
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">
-                    {[member.title, member.fullName].filter(Boolean).join(" ")}
+                    {formatPersonName(member.title, member.fullName)}
                     {member.isMe && (
                       <span className="ml-2 text-2xs text-tertiary">
                         (vous)
@@ -77,12 +77,18 @@ export default async function TeamPage() {
                   <p className="truncate text-2xs text-tertiary">
                     {member.email ?? "—"}
                   </p>
+                  {/* Téléphone : rôle et date passent sous le nom, qui
+                      sinon se réduisait à son initiale. */}
+                  <p className="mt-0.5 truncate text-2xs text-tertiary sm:hidden">
+                    {ROLE_LABELS[member.role]} · depuis le{" "}
+                    {formatDate(member.joinedAt)}
+                  </p>
                 </div>
 
-                <span className="shrink-0 text-xs text-secondary">
+                <span className="hidden shrink-0 text-xs text-secondary sm:inline">
                   {ROLE_LABELS[member.role]}
                 </span>
-                <span className="w-36 shrink-0 text-right text-2xs text-tertiary">
+                <span className="hidden w-36 shrink-0 text-right text-2xs text-tertiary md:inline">
                   Depuis le {formatDate(member.joinedAt)}
                 </span>
 

@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
  * 20 px, assez spécifique pour ne pas ressembler au logo d'un outil de
  * gestion de tâches.
  *
- * Le dégradé du trait suit l'accent bleu ciel. Il n'est pas décoratif :
- * c'est le seul endroit de l'interface où la marque s'exprime, tout le
- * reste étant neutre.
+ * Teintes pleines plutôt qu'un dégradé référencé par identifiant : la
+ * marque est rendue plusieurs fois par page, et un dégradé défini dans
+ * une copie masquée — la barre latérale sur téléphone — rendait toutes
+ * les autres invisibles.
  */
 export function Mark({ className }: { className?: string }) {
   return (
@@ -20,12 +21,6 @@ export function Mark({ className }: { className?: string }) {
       fill="none"
       aria-hidden
     >
-      <defs>
-        <linearGradient id="imafrik-mark" x1="4" y1="20" x2="20" y2="4">
-          <stop offset="0%" stopColor="var(--color-accent-500)" />
-          <stop offset="100%" stopColor="var(--color-accent-300)" />
-        </linearGradient>
-      </defs>
       <rect
         x="2.75"
         y="2.75"
@@ -37,11 +32,11 @@ export function Mark({ className }: { className?: string }) {
       />
       <path
         d="M6.5 17.5 17.5 6.5"
-        stroke="url(#imafrik-mark)"
+        stroke="var(--color-accent-500)"
         strokeWidth="2.25"
         strokeLinecap="round"
       />
-      <circle cx="8.75" cy="8.75" r="1.75" fill="url(#imafrik-mark)" />
+      <circle cx="8.75" cy="8.75" r="1.75" fill="var(--color-accent-300)" />
     </svg>
   );
 }

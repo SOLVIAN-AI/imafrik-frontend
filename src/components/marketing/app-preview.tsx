@@ -131,7 +131,9 @@ export function AppPreview({ className }: { className?: string }) {
                   <p className={cn("text-lg font-semibold", metric.tone)}>
                     {metric.value}
                   </p>
-                  <p className="label-eyebrow mt-0.5">{metric.label}</p>
+                  <p className="label-eyebrow mt-0.5 truncate">
+                    {metric.label}
+                  </p>
                 </div>
               ))}
             </div>

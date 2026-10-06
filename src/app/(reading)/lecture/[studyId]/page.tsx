@@ -6,8 +6,14 @@ import {
   type WorkspaceMode,
 } from "@/components/editor/report-workspace";
 import { getReportForStudy, type Report } from "@/lib/data/reports";
-import { getStudy, getViewerUrl, type Study } from "@/lib/data/studies";
+import {
+  getStudy,
+  getViewerUrl,
+  listStudies,
+  type Study,
+} from "@/lib/data/studies";
 import { listTemplates } from "@/lib/data/templates";
+import { formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
 import type { Session } from "@/lib/session/types";
 
@@ -44,6 +50,29 @@ function workspaceMode(
 }
 
 /**
+ * Prochain examen à lire : la première urgence, sinon l'attente la plus
+ * longue — l'ordre dans lequel un radiologue vide sa file.
+ *
+ * Un échec n'empêche pas d'ouvrir l'examen courant : le bouton « Examen
+ * suivant » n'est qu'un raccourci.
+ */
+async function findNextStudy(currentId: string): Promise<string | null> {
+  try {
+    const waiting = (await listStudies({ status: ["received"] })).filter(
+      (study) => study.id !== currentId,
+    );
+    const byAge = (a: Study, b: Study) =>
+      a.receivedAt.getTime() - b.receivedAt.getTime();
+    const next =
+      waiting.filter((study) => study.urgent).sort(byAge)[0] ??
+      waiting.sort(byAge)[0];
+    return next?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Écran de lecture d'un examen.
  *
  * Distinct de `/examens/[id]`, qui reste la fiche de l'examen dans le
@@ -59,10 +88,12 @@ export default async function ReadingPage({
   const session = await requireSession(["radiologist", "clinic_staff"]);
   const { studyId } = await params;
 
-  const [study, report, viewerUrl] = await Promise.all([
+  const radiologist = session.active.role === "radiologist";
+  const [study, report, viewerUrl, nextStudyId] = await Promise.all([
     getStudy(studyId),
     getReportForStudy(studyId),
     getViewerUrl(studyId),
+    radiologist ? findNextStudy(studyId) : null,
   ]);
   if (!study) notFound();
 
@@ -81,10 +112,9 @@ export default async function ReadingPage({
       mode={mode}
       initial={report?.sections ?? EMPTY_REPORT_SECTIONS}
       signed={report?.status === "signed"}
-      signerName={[session.user.title, session.user.fullName]
-        .filter(Boolean)
-        .join(" ")}
+      signerName={formatPersonName(session.user.title, session.user.fullName)}
       templates={templates}
+      nextStudyId={nextStudyId}
     />
   );
 }

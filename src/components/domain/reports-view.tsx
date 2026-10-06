@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Search } from "lucide-react";
+import { FileText, Search, SearchX } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
@@ -8,6 +8,7 @@ import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Input } from "@/components/ui/input";
 import { useSession } from "@/components/providers/session-provider";
 import { DateTime } from "@/components/domain/date-time";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Study } from "@/lib/data/studies";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -69,20 +70,18 @@ export function ReportsView({ studies }: { studies: Study[] }) {
         }
       />
 
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        <Panel className="flex min-h-0 flex-col overflow-hidden">
           {rows.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-2 py-20">
-              <FileText className="size-5 text-tertiary" aria-hidden />
-              <p className="text-sm font-medium">
-                {query ? "Aucun résultat" : "Aucun compte-rendu"}
-              </p>
-              <p className="text-xs text-tertiary">
-                {query
+            <EmptyState
+              icon={query ? SearchX : FileText}
+              title={query ? "Aucun résultat" : "Aucun compte-rendu"}
+              detail={
+                query
                   ? "Essayez un autre nom ou un autre identifiant."
-                  : "Les comptes-rendus signés apparaissent ici."}
-              </p>
-            </div>
+                  : "Les comptes-rendus signés apparaissent ici, avec leur PDF et leur lien de vérification."
+              }
+            />
           ) : (
             <ul className="min-h-0 flex-1 divide-y divide-border-subtle overflow-auto">
               {rows.map((study) => (
