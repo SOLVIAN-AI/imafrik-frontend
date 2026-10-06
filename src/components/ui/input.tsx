@@ -57,6 +57,32 @@ export function Textarea({
 }
 
 /**
+ * Liste déroulante native, mêmes règles que `Input`.
+ *
+ * Native plutôt qu'un composant sur mesure : sur une liste de deux ou
+ * trois options, elle est accessible, utilisable au clavier et adaptée
+ * au mobile sans une ligne de plus.
+ */
+export function Select({
+  className,
+  ...props
+}: React.ComponentProps<"select">) {
+  return (
+    <select
+      className={cn(
+        "h-8 w-full rounded-md px-2 text-sm",
+        "border border-border-default bg-surface-base",
+        "transition-colors duration-100 hover:border-border-strong",
+        "focus:border-accent focus:outline-none",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/**
  * Un champ de formulaire : intitulé, saisie, aide ou erreur.
  *
  * L'intitulé est **toujours** au-dessus et toujours visible. Les

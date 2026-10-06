@@ -88,14 +88,19 @@ manipule des données de santé.
 | Route | Écran | Phase |
 | --- | --- | --- |
 | `/connexion` | Identifiant et mot de passe. | V1 |
-| `/invitation/[jeton]` | Rejoindre une organisation sur invitation : le destinataire choisit son mot de passe et entre directement dans l'application. | V1 |
 | `/mot-de-passe-oublie` | Demande de lien de réinitialisation. | V1 |
 | `/nouveau-mot-de-passe` | Saisie du nouveau mot de passe, après le lien reçu. | V1 |
 | `/rejoindre` | **Candidature d'un radiologue.** Pas une inscription : un dossier, soumis à validation. Voir la décision n° 1. | V2 |
 | `/verification` | Second facteur (code à usage unique). Voir la décision n° 4. | V2 |
 
-**6 écrans**, plus deux gestionnaires de route sans interface :
-`/auth/callback` (retour Supabase) et `/deconnexion`.
+| `/en-attente` | Compte valide rattaché à aucune organisation active : candidature en cours d'examen ou organisation suspendue. | V1 |
+
+**6 écrans**, plus un gestionnaire de route sans interface :
+`/auth/callback`, retour des liens Supabase. Une **invitation** passe par
+lui : le courriel envoyé par l'API ramène à
+`/auth/callback?suite=/nouveau-mot-de-passe`, où l'invité choisit son mot
+de passe. La **déconnexion** est une action serveur, qui révoque d'abord
+les jetons de visualisation puis ferme la session.
 
 ---
 
@@ -255,9 +260,9 @@ se font en SQL — tenable pour une clinique, intenable pour dix.
   d'une facture.
 - **La palette de commandes** (⌘K) — recherche et navigation, présente
   partout.
-- **Les gestionnaires de route** — `/auth/callback`, `/deconnexion`,
-  téléchargement de PDF : ils redirigent ou renvoient un fichier, ils
-  n'affichent rien.
+- **Les gestionnaires de route** — `/auth/callback` : il redirige, il
+  n'affiche rien. Le PDF d'un compte-rendu est servi par un lien signé
+  de courte durée, obtenu par une action serveur.
 
 ---
 

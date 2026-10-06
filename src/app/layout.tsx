@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
@@ -38,14 +39,26 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+/**
+ * Disposition racine.
+ *
+ * Elle lit le nonce de la politique de sécurité du contenu, posé par le
+ * proxy pour cette requête, et le transmet à next-themes — dont le script
+ * d'initialisation du thème est le seul script en ligne de l'application
+ * que Next ne marque pas lui-même. Lire les en-têtes rend chaque page
+ * dynamique : c'est la condition, documentée par Next, pour qu'un nonce
+ * différent puisse être servi à chaque requête.
+ */
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     // suppressHydrationWarning : next-themes pose la classe de thème sur
     // <html> avant l'hydratation, ce que React signalerait autrement
     // comme une divergence.
     <html lang="fr" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ThemeProvider>
+        <ThemeProvider nonce={nonce}>
           {children}
           <Toaster />
         </ThemeProvider>

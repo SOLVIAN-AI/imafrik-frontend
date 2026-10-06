@@ -1,25 +1,19 @@
-import { Filter, Search, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import Link from "next/link";
 
+import { ListToolbar } from "@/components/domain/list-toolbar";
 import { Button } from "@/components/ui/button";
 
 /**
- * Actions de l'écran de suivi d'une clinique.
+ * Actions de l'écran de suivi d'une clinique : recherche, actualisation,
+ * et accès à la page de raccordement.
  *
- * Extraites de la page pour que celle-ci reste un composant serveur : un
- * en-tête n'a pas besoin d'être rendu côté client, seules ses commandes
- * le sont.
+ * Extraites de la page pour que celle-ci reste un composant serveur.
  */
 export function ClinicStudiesActions() {
   return (
     <>
-      <Button variant="ghost" size="icon" aria-label="Rechercher">
-        <Search />
-      </Button>
-      <Button variant="ghost" size="sm">
-        <Filter />
-        Filtrer
-      </Button>
+      <ListToolbar />
       <Button size="sm" asChild>
         <Link href="/envoyer">
           <Upload />

@@ -8,8 +8,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { PdfHashCheck } from "@/components/marketing/pdf-hash-check";
 import { verifyReport } from "@/lib/data/verification";
-import { formatDateTime } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Vérification d’un compte-rendu",
@@ -65,8 +66,12 @@ export default async function VerifyPage({
             <Row
               icon={Stethoscope}
               label="Signé par"
-              value={attestation.signedBy}
-              detail={attestation.signerTitle}
+              value={attestation.radiologist}
+              detail={
+                attestation.licenseNumber
+                  ? `Ordre n° ${attestation.licenseNumber}`
+                  : undefined
+              }
             />
             <Row
               icon={CalendarCheck}
@@ -76,14 +81,37 @@ export default async function VerifyPage({
             <Row
               icon={FileCheck2}
               label="Examen"
-              value={`${attestation.modality} · ${attestation.bodyPart ?? "—"}`}
-              detail={attestation.clinic}
+              value={[
+                attestation.modality ?? "—",
+                attestation.studyDate
+                  ? formatDate(attestation.studyDate)
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+              detail={[
+                attestation.clinic,
+                attestation.patientInitial
+                  ? `Patient ${attestation.patientInitial}`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             />
           </dl>
 
-          <p className="mt-6 font-mono text-2xs text-tertiary">
-            Code vérifié : {attestation.token}
-          </p>
+          {attestation.addendaCount > 0 && (
+            <p className="mt-4 text-xs text-secondary">
+              Ce compte-rendu a été complété par{" "}
+              {attestation.addendaCount === 1
+                ? "un addendum"
+                : `${attestation.addendaCount} addenda`}{" "}
+              depuis sa signature. Demandez-en le texte à l’établissement qui
+              vous a remis le document.
+            </p>
+          )}
+
+          {attestation.sha256 && <PdfHashCheck expected={attestation.sha256} />}
         </>
       ) : (
         <>
@@ -95,9 +123,9 @@ export default async function VerifyPage({
           </span>
           <h1 className="mt-6 text-2xl font-semibold">Code inconnu</h1>
           <p className="mt-2 max-w-md text-sm leading-relaxed text-secondary">
-            Aucun compte-rendu ne correspond à ce code. Vérifiez la saisie : les
-            caractères se recopient mal depuis un document imprimé. Si le code
-            est correct, le document ne provient pas d’IMAFRIK.
+            Aucun compte-rendu signé ne correspond à ce code. Vérifiez que
+            l’adresse est complète — le plus sûr est de scanner le QR code du
+            document. Si elle l’est, le document ne provient pas d’IMAFRIK.
           </p>
           <p className="mt-6 font-mono text-2xs text-tertiary">
             Code soumis : {token}

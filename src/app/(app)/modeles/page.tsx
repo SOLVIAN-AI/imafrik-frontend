@@ -1,10 +1,11 @@
-import { FileStack, Lock, Plus } from "lucide-react";
+import { FileStack, Lock } from "lucide-react";
 import type { Metadata } from "next";
 
+import { DeleteTemplateButton } from "@/components/domain/delete-template-button";
 import { ReportDocument } from "@/components/editor/report-document";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
-import { Button } from "@/components/ui/button";
 import { listTemplates } from "@/lib/data/templates";
+import { requireSession } from "@/lib/session/server";
 
 export const metadata: Metadata = { title: "Modèles" };
 
@@ -19,21 +20,20 @@ export const metadata: Metadata = { title: "Modèles" };
  * Le contenu est montré **en entier**, pas résumé. Un modèle qu'on ne
  * peut pas relire avant de l'appliquer ne sera pas utilisé : personne ne
  * signe un texte qu'il n'a pas vu.
+ *
+ * Les modèles s'appliquent et se créent là où se trouve le texte : dans
+ * l'écran de lecture (« Modèle », « Enregistrer comme modèle »). Cette
+ * page sert à les relire, et à supprimer ceux de l'organisation.
  */
 export default async function TemplatesPage() {
+  await requireSession(["radiologist"]);
   const templates = await listTemplates();
 
   return (
     <>
       <PageHeader
         title="Modèles"
-        description="Squelettes de comptes-rendus, à corriger là où l’examen s’écarte de la normale"
-        actions={
-          <Button size="sm">
-            <Plus />
-            Nouveau modèle
-          </Button>
-        }
+        description="À appliquer depuis l’écran de lecture ; à créer depuis un compte-rendu en cours"
       />
 
       <div className="min-h-0 flex-1 overflow-auto px-6 pb-6">
@@ -42,7 +42,8 @@ export default async function TemplatesPage() {
             <FileStack className="size-5 text-tertiary" aria-hidden />
             <p className="text-sm font-medium">Aucun modèle</p>
             <p className="text-xs text-tertiary">
-              Créez-en un depuis un compte-rendu que vous venez de signer.
+              Dans l’écran de lecture, « Enregistrer comme modèle » transforme
+              le texte en cours en modèle pour toute l’organisation.
             </p>
           </Panel>
         ) : (
@@ -55,21 +56,22 @@ export default async function TemplatesPage() {
                       {template.name}
                     </h2>
                     <p className="mt-0.5 text-2xs text-tertiary">
-                      {template.modality}
+                      {template.modality ?? "Toutes modalités"}
                       {template.bodyPart && ` · ${template.bodyPart}`}
                     </p>
                   </div>
 
-                  {template.shared && (
+                  {template.shared ? (
                     <span className="flex items-center gap-1.5 rounded-full bg-surface-active px-2 py-0.5 text-2xs text-tertiary">
                       <Lock className="size-3" aria-hidden />
                       Fourni par IMAFRIK
                     </span>
+                  ) : (
+                    <DeleteTemplateButton
+                      templateId={template.id}
+                      name={template.name}
+                    />
                   )}
-
-                  <Button variant="secondary" size="sm">
-                    Utiliser
-                  </Button>
                 </div>
 
                 {/* Le modèle est rendu par le même composant que les

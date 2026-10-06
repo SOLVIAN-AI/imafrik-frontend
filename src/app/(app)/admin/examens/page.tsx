@@ -7,7 +7,9 @@ import {
   UrgentMarker,
 } from "@/components/domain/study-status";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
-import { listAllStudies } from "@/lib/data/admin";
+import { ListToolbar } from "@/components/domain/list-toolbar";
+import { listStudies } from "@/lib/data/studies";
+import { requireSession } from "@/lib/session/server";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -21,12 +23,19 @@ export const metadata: Metadata = { title: "Tous les examens" };
  * qu'un examen « n'est pas arrivé », il faut pouvoir répondre sans
  * ouvrir un client SQL.
  *
- * Elle est réservée au rôle `platform_admin`, et son usage est tracé
- * comme tout accès à un examen — c'est précisément ce qu'un audit
- * viendra vérifier.
+ * Elle est réservée au rôle `platform_admin` : c'est la policy RLS
+ * `study_select_admin` qui ouvre ce périmètre, sur la même route
+ * `GET /studies` que tout le monde. Les images, elles, ne s'ouvrent pas
+ * d'ici : regarder un examen reste un acte de lecture, tracé comme tel.
  */
-export default async function AdminStudiesPage() {
-  const studies = await listAllStudies();
+export default async function AdminStudiesPage({
+  searchParams,
+}: PageProps<"/admin/examens">) {
+  await requireSession(["platform_admin"]);
+  const { q } = await searchParams;
+  const studies = await listStudies({
+    search: typeof q === "string" ? q : undefined,
+  });
   const stuck = studies.filter(
     (study) => study.status === "received" && study.urgent,
   );
@@ -36,6 +45,7 @@ export default async function AdminStudiesPage() {
       <PageHeader
         title="Examens"
         description={`${studies.length} examens, toutes organisations confondues`}
+        actions={<ListToolbar />}
       />
 
       {stuck.length > 0 && (
@@ -96,7 +106,7 @@ export default async function AdminStudiesPage() {
                         {study.urgent && <UrgentMarker />}
                       </div>
                       <span className="font-mono text-2xs text-tertiary">
-                        {study.patientId}
+                        {study.patientId || "—"}
                       </span>
                     </td>
 
@@ -117,7 +127,7 @@ export default async function AdminStudiesPage() {
                     </td>
 
                     <td className="truncate text-secondary">
-                      {study.assignedTo ?? (
+                      {study.assignedToName ?? (
                         <span className="text-tertiary">—</span>
                       )}
                     </td>

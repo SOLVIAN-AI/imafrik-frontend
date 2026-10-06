@@ -3,13 +3,12 @@ import type { UserRole } from "@/lib/session/types";
 /**
  * Une étape de la mise en service.
  *
- * @property slug   Segment d'URL. Il rend l'étape adressable : on peut
- *                  fermer l'onglet, revenir par le bouton précédent, ou
- *                  envoyer un lien au technicien pour qu'il fasse « sa »
- *                  partie.
- * @property title  Intitulé affiché dans le fil d'étapes.
- * @property lead   Ce que l'étape demande, en une phrase.
- * @property optional Une étape franchissable sans rien saisir.
+ * @property slug     Segment d'URL. Il rend l'étape adressable : on peut
+ *                    fermer l'onglet et reprendre, ou envoyer le lien à la
+ *                    personne qui saura la remplir.
+ * @property title    Intitulé affiché dans le fil d'étapes.
+ * @property lead     Ce que l'étape demande, en une phrase.
+ * @property optional Une étape franchissable sans rien faire.
  */
 export interface OnboardingStep {
   slug: string;
@@ -21,27 +20,30 @@ export interface OnboardingStep {
 /**
  * Parcours d'une clinique.
  *
- * L'ordre n'est pas administratif mais opérationnel : on identifie
- * l'établissement, on raccorde les modalités, **on vérifie que ça
- * marche**, puis seulement on invite l'équipe. Rien ne rassure autant qu'une
- * première image arrivée ; inviter des collègues avant que le flux
- * fonctionne reviendrait à leur montrer un écran vide.
+ * Chaque étape enregistre réellement quelque chose, auprès du service : le
+ * profil, la règle de lecture, un premier examen, l'équipe. L'ordre est
+ * opérationnel : **on vérifie que ça marche** avant d'inviter l'équipe —
+ * rien ne rassure autant qu'une première image arrivée, et inviter des
+ * collègues avant reviendrait à leur montrer un écran vide.
+ *
+ * Le raccordement de la passerelle n'est pas une étape : il se fait avec
+ * le paquet d'installation remis par IMAFRIK, sur le poste de la clinique.
  */
 const CLINIC_STEPS: OnboardingStep[] = [
   {
-    slug: "etablissement",
-    title: "Établissement",
-    lead: "Qui vous êtes, et qui appeler en cas d’urgence.",
+    slug: "profil",
+    title: "Votre profil",
+    lead: "Votre nom, tel qu’il figurera dans le journal d’accès.",
   },
   {
-    slug: "connexion-pacs",
-    title: "Passerelle",
-    lead: "Le poste qui recevra vos examens, et ce qu’il faut saisir sur les consoles.",
+    slug: "lecture",
+    title: "Qui lit vos examens",
+    lead: "Vos radiologues, ou tous ceux de la plateforme.",
   },
   {
     slug: "premier-envoi",
     title: "Premier envoi",
-    lead: "Nous attendons un examen pour valider la liaison.",
+    lead: "Un examen, par la passerelle ou depuis ce navigateur, pour valider la liaison.",
   },
   {
     slug: "equipe",
@@ -55,38 +57,38 @@ const CLINIC_STEPS: OnboardingStep[] = [
 /**
  * Parcours d'un radiologue.
  *
- * Il se termine par une attente : le dossier passe en validation. Le
- * dire dès le fil d'étapes évite la déception de celui qui croyait
- * pouvoir lire immédiatement.
+ * Un radiologue arrive ici invité par IMAFRIK ou par la clinique qui
+ * l'emploie : son accès est déjà ouvert. Il ne lui reste qu'à vérifier ce
+ * qui sera imprimé sous sa signature.
  */
 const RADIOLOGIST_STEPS: OnboardingStep[] = [
   {
     slug: "profil",
-    title: "Profil",
-    lead: "Votre identité professionnelle et ce que vous lisez.",
+    title: "Votre profil",
+    lead: "Ce qui sera imprimé sous votre signature, sur chaque compte-rendu.",
   },
   {
-    slug: "qualifications",
-    title: "Qualifications",
-    lead: "Inscription à l’ordre et assurance professionnelle.",
-  },
-  {
-    slug: "signature",
-    title: "Signature",
-    lead: "Le bloc apposé au bas de vos comptes-rendus.",
-  },
-  {
-    slug: "preferences",
-    title: "Préférences",
-    lead: "Vos disponibilités et vos alertes.",
-    optional: true,
-  },
-  {
-    slug: "validation",
-    title: "Validation",
-    lead: "Dernière étape avant l’ouverture de votre accès.",
+    slug: "termine",
+    title: "Terminé",
+    lead: "Votre file de lecture vous attend.",
   },
 ];
+
+/** Parcours d'un membre de l'équipe IMAFRIK : son profil, rien de plus. */
+const ADMIN_STEPS: OnboardingStep[] = [
+  {
+    slug: "profil",
+    title: "Votre profil",
+    lead: "Votre nom, tel qu’il figurera dans le journal d’audit.",
+  },
+  { slug: "termine", title: "Terminé", lead: "Le back-office vous attend." },
+];
+
+const STEPS_BY_ROLE: Record<UserRole, OnboardingStep[]> = {
+  clinic_staff: CLINIC_STEPS,
+  radiologist: RADIOLOGIST_STEPS,
+  platform_admin: ADMIN_STEPS,
+};
 
 /**
  * Étapes correspondant à un rôle.
@@ -94,5 +96,5 @@ const RADIOLOGIST_STEPS: OnboardingStep[] = [
  * @param role Rôle de l'appartenance active.
  */
 export function stepsFor(role: UserRole): OnboardingStep[] {
-  return role === "clinic_staff" ? CLINIC_STEPS : RADIOLOGIST_STEPS;
+  return STEPS_BY_ROLE[role];
 }

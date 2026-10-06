@@ -36,7 +36,7 @@ export function isSupabaseConfigured(): boolean {
 export function supabaseEnv(): { url: string; anonKey: string } {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     throw new Error(
-      "Supabase n'est pas configuré. Renseignez NEXT_PUBLIC_SUPABASE_URL et " +
+      "Supabase n’est pas configuré. Renseignez NEXT_PUBLIC_SUPABASE_URL et " +
         "NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local.",
     );
   }

@@ -1,6 +1,8 @@
 "use client";
 
 import { Clock } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { StudyAge } from "@/components/domain/study-age";
 import {
@@ -8,6 +10,7 @@ import {
   UrgentMarker,
 } from "@/components/domain/study-status";
 import type { Study } from "@/lib/data/studies";
+import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,21 +22,6 @@ import { cn } from "@/lib/utils";
  * mauvais moment.
  */
 export type WorklistStudy = Study;
-
-/**
- * Formate un nom au format DICOM pour la lecture.
- *
- * DICOM stocke `NOM^Prénom`. Affiché tel quel, le séparateur trahit une
- * interface qui expose sa plomberie.
- *
- * @param dicomName Nom brut issu du tag PatientName.
- * @returns Le nom lisible, ou « — » s'il est absent.
- */
-function formatPatientName(dicomName: string): string {
-  const [family = "", given = ""] = dicomName.split("^");
-  const formatted = [family.toUpperCase(), given].filter(Boolean).join(" ");
-  return formatted || "—";
-}
 
 /**
  * Tableau des examens à lire.
@@ -50,19 +38,30 @@ function formatPatientName(dicomName: string): string {
  *   demande une comparaison mentale ; la couleur fait ressortir ce qui
  *   traîne sans qu'on ait à lire chaque ligne.
  *
- * La navigation clavier est complète : chaque ligne est un `<tr>`
- * focusable, activable par Entrée ou Espace. Un radiologue enchaîne les
- * examens plus vite au clavier qu'à la souris.
+ * **Chaque ligne porte un vrai lien**, sur le nom du patient : il se
+ * parcourt à la tabulation, s'annonce comme un lien aux lecteurs d'écran
+ * et s'ouvre dans un nouvel onglet au clic du milieu. Le clic n'importe
+ * où sur la ligne reste un raccourci pour la souris. Une ligne rendue
+ * focusable à la main, sans rôle et sans anneau de focus, n'offrait rien
+ * de tout cela.
+ *
+ * @param studies Examens à afficher.
+ * @param hrefFor Adresse ouverte pour un examen.
+ * @param empty   Message affiché quand la liste est vide.
  */
 export function WorklistTable({
   studies,
-  onOpen,
+  hrefFor,
+  empty,
 }: {
   studies: WorklistStudy[];
-  onOpen?: (study: WorklistStudy) => void;
+  hrefFor: (study: WorklistStudy) => string;
+  empty?: { title: string; detail: string };
 }) {
+  const router = useRouter();
+
   if (studies.length === 0) {
-    return <EmptyState />;
+    return <EmptyState {...(empty ?? DEFAULT_EMPTY)} />;
   }
 
   return (
@@ -98,28 +97,28 @@ export function WorklistTable({
           {studies.map((study) => (
             <tr
               key={study.id}
-              tabIndex={0}
-              onClick={() => onOpen?.(study)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  onOpen?.(study);
-                }
+              onClick={(event) => {
+                // Le lien gère lui-même son clic (et ses modificateurs).
+                if ((event.target as HTMLElement).closest("a")) return;
+                router.push(hrefFor(study));
               }}
               className={cn(
-                "cursor-pointer outline-none",
+                "cursor-pointer",
                 "[&>td]:h-11 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4",
                 "last:[&>td]:border-b-0",
                 "transition-colors duration-75",
-                "hover:bg-surface-hover focus-visible:bg-surface-hover",
+                "hover:bg-surface-hover focus-within:bg-surface-hover",
                 study.urgent && "rail-urgent",
               )}
             >
               <td>
                 <div className="flex items-center gap-2">
-                  <span className="truncate font-medium">
+                  <Link
+                    href={hrefFor(study)}
+                    className="truncate rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  >
                     {formatPatientName(study.patientName)}
-                  </span>
+                  </Link>
                   {study.urgent && <UrgentMarker />}
                 </div>
                 <span className="font-mono text-2xs text-tertiary">
@@ -141,7 +140,9 @@ export function WorklistTable({
               </td>
 
               <td className="truncate text-secondary">
-                {study.assignedTo ?? <span className="text-tertiary">—</span>}
+                {study.assignedToName ?? (
+                  <span className="text-tertiary">—</span>
+                )}
               </td>
 
               <td className="text-right text-secondary tabular-nums">
@@ -169,14 +170,17 @@ export function WorklistTable({
  * vide est une bonne nouvelle dans ce métier — l'écran doit le refléter
  * plutôt que ressembler à une erreur de chargement.
  */
-function EmptyState() {
+const DEFAULT_EMPTY = {
+  title: "Aucun examen en attente",
+  detail: "Les nouveaux examens apparaissent ici dès leur réception.",
+};
+
+function EmptyState({ title, detail }: { title: string; detail: string }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-2 py-20">
       <Clock className="size-5 text-tertiary" aria-hidden />
-      <p className="text-sm font-medium">Aucun examen en attente</p>
-      <p className="text-xs text-tertiary">
-        Les nouveaux examens apparaissent ici dès leur réception.
-      </p>
+      <p className="text-sm font-medium">{title}</p>
+      <p className="text-xs text-tertiary">{detail}</p>
     </div>
   );
 }

@@ -128,7 +128,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Component
         ref={ref}
         className={cn(buttonVariants({ variant, size }), className)}
-        disabled={disabled ?? loading}
+        // `||` et non `??` : un appelant qui passe `disabled={false}`
+        // pendant un chargement ne doit pas rendre le bouton cliquable —
+        // c'est ce qui permettait un double envoi de la signature.
+        disabled={Boolean(disabled) || loading}
         // Annonce l'attente aux lecteurs d'écran, que le visuel seul ne
         // transmettrait pas.
         aria-busy={loading || undefined}

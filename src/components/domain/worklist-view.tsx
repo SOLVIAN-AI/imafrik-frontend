@@ -1,26 +1,23 @@
 "use client";
 
-import { Filter, RefreshCw, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
-
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import { ListToolbar } from "@/components/domain/list-toolbar";
 import {
   METRIC_ICONS,
   MetricGrid,
   type Metric,
 } from "@/components/domain/metrics";
-import { Button } from "@/components/ui/button";
 import { formatAge } from "@/components/domain/study-age";
 import { WorklistTable } from "@/components/domain/worklist-table";
 import { useNow } from "@/hooks/use-now";
 import type { Study } from "@/lib/data/studies";
 
 /**
- * Mesures d'en-tête, dérivées de la liste affichée.
+ * Mesures d'en-tête, dérivées de la file affichée.
  *
- * Calculées ici plutôt que reçues du serveur : tant que la liste tient
- * en une page, un aller-retour supplémentaire n'apporterait rien. Elles
- * viendront de l'API le jour où la pagination arrivera.
+ * La file est celle que le service a renvoyée pour ce radiologue — les
+ * examens non rendus du pool qu'il sert — et tient en une page : les
+ * dériver ici évite un second appel sans rien perdre en exactitude.
  */
 function buildMetrics(studies: Study[], now: number): Metric[] {
   const waiting = studies.filter((s) => s.status === "received");
@@ -63,37 +60,56 @@ function buildMetrics(studies: Study[], now: number): Metric[] {
   ];
 }
 
-export function WorklistView({ studies }: { studies: Study[] }) {
-  const router = useRouter();
+/**
+ * Décrit le périmètre de la file : les établissements dont elle contient
+ * des examens. Écrit en dur, il nommait deux cliniques à tout le monde.
+ */
+function describeScope(studies: Study[]): string {
+  const clinics = [...new Set(studies.map((study) => study.clinic))].sort();
+  if (clinics.length === 0) return "File de travail du groupe";
+  if (clinics.length <= 3)
+    return `File de travail du groupe · ${clinics.join(", ")}`;
+  return `File de travail du groupe · ${clinics.length} établissements`;
+}
+
+/**
+ * File de lecture du radiologue.
+ *
+ * @param studies Examens non rendus du pool, déjà filtrés par le service.
+ * @param filtered Vrai si une recherche ou un filtre est actif — l'état
+ *                 vide ne dit alors pas « rien à lire » mais « aucun
+ *                 résultat ».
+ */
+export function WorklistView({
+  studies,
+  filtered,
+}: {
+  studies: Study[];
+  filtered: boolean;
+}) {
   const now = useNow();
 
   return (
     <>
       <PageHeader
         title="À lire"
-        description="File de travail du groupe · Clinique Saint-Joseph, Polyclinique de Kara"
-        actions={
-          <>
-            <Button variant="ghost" size="icon" aria-label="Rechercher">
-              <Search />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Filter />
-              Filtrer
-            </Button>
-            <Button variant="secondary" size="sm">
-              <RefreshCw />
-              Actualiser
-            </Button>
-          </>
-        }
+        description={describeScope(studies)}
+        actions={<ListToolbar urgentFilter />}
       />
       <MetricGrid metrics={buildMetrics(studies, now)} className="px-6 pb-4" />
       <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
         <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <WorklistTable
             studies={studies}
-            onOpen={(study) => router.push(`/lecture/${study.id}`)}
+            hrefFor={(study) => `/lecture/${study.id}`}
+            empty={
+              filtered
+                ? {
+                    title: "Aucun résultat",
+                    detail: "Modifiez la recherche ou retirez le filtre.",
+                  }
+                : undefined
+            }
           />
         </Panel>
       </div>

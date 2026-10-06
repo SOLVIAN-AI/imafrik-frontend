@@ -58,8 +58,9 @@ chaque environnement où elles s'appliquent.
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | staging | production | Publique. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | staging | production | Publique ; encadrée par RLS. |
-| `NEXT_PUBLIC_API_URL` | API de staging | API de production | Sans elle, jeu de démonstration. |
-| `NEXT_PUBLIC_SITE_URL` | URL du déploiement | domaine final | Sert aux liens des courriels. |
+| `NEXT_PUBLIC_API_URL` | API de staging | API de production | Sans elle, jeu de démonstration — et une production refuse de servir. |
+| `NEXT_PUBLIC_SITE_URL` | URL du déploiement | domaine final | Liens des courriels et lien de vérification. |
+| `NEXT_PUBLIC_VIEWER_URL` | viewer de staging | viewer de production | Seul cadre autorisé par la CSP ; sans elle, pas d'images. |
 
 > ⚠️ **Jamais** la clé `service_role` : elle contourne les politiques
 > RLS, et toute variable `NEXT_PUBLIC_*` part dans le navigateur.

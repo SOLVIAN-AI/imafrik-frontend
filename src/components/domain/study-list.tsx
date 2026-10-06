@@ -1,6 +1,7 @@
 "use client";
 
 import { FileCheck, Inbox } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { StudyAge } from "@/components/domain/study-age";
@@ -13,18 +14,6 @@ import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
- * Un examen accompagné de l'état de son compte-rendu.
- *
- * La clinique regarde d'abord la dernière colonne : le document est-il
- * arrivé ? L'information ne vient pas de la table des examens, d'où ce
- * champ ajouté au type de base plutôt qu'un second appel par ligne.
- */
-export type ListedStudy = Study & {
-  /** Identifiant du compte-rendu signé, s'il existe. */
-  reportId?: string;
-};
-
-/**
  * Liste des examens envoyés, vue de la clinique.
  *
  * **Elle ne ressemble pas à la worklist du radiologue, et c'est
@@ -35,18 +24,34 @@ export type ListedStudy = Study & {
  * usages finirait par mal servir les deux.
  *
  * La dernière colonne est la plus regardée : c'est celle qui dit si le
- * document est disponible.
+ * document est disponible. Elle vient de l'examen lui-même
+ * (`reportedAt`, la date de signature), que le service renvoie avec la
+ * liste : aucun appel supplémentaire par ligne.
+ *
+ * @param studies  Examens à afficher.
+ * @param filtered Une recherche est active : l'état vide dit « aucun
+ *                 résultat » plutôt que « aucun examen ».
  */
-export function StudyList({ studies }: { studies: ListedStudy[] }) {
+export function StudyList({
+  studies,
+  filtered = false,
+}: {
+  studies: Study[];
+  filtered?: boolean;
+}) {
   const router = useRouter();
 
   if (studies.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2 py-20">
         <Inbox className="size-5 text-tertiary" aria-hidden />
-        <p className="text-sm font-medium">Aucun examen envoyé</p>
+        <p className="text-sm font-medium">
+          {filtered ? "Aucun résultat" : "Aucun examen envoyé"}
+        </p>
         <p className="text-xs text-tertiary">
-          Les examens transmis depuis votre PACS apparaissent ici.
+          {filtered
+            ? "Modifiez la recherche pour élargir la liste."
+            : "Les examens transmis par votre passerelle apparaissent ici."}
         </p>
       </div>
     );
@@ -82,28 +87,28 @@ export function StudyList({ studies }: { studies: ListedStudy[] }) {
           {studies.map((study) => (
             <tr
               key={study.id}
-              tabIndex={0}
-              onClick={() => router.push(`/examens/${study.id}`)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  router.push(`/examens/${study.id}`);
-                }
+              onClick={(event) => {
+                // Le lien gère lui-même son clic (et ses modificateurs).
+                if ((event.target as HTMLElement).closest("a")) return;
+                router.push(`/examens/${study.id}`);
               }}
               className={cn(
-                "cursor-pointer outline-none",
+                "cursor-pointer",
                 "[&>td]:h-11 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4",
                 "last:[&>td]:border-b-0",
                 "transition-colors duration-75",
-                "hover:bg-surface-hover focus-visible:bg-surface-hover",
+                "hover:bg-surface-hover focus-within:bg-surface-hover",
                 study.urgent && "rail-urgent",
               )}
             >
               <td>
                 <div className="flex items-center gap-2">
-                  <span className="truncate font-medium">
+                  <Link
+                    href={`/examens/${study.id}`}
+                    className="truncate rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  >
                     {formatPatientName(study.patientName)}
-                  </span>
+                  </Link>
                   {study.urgent && <UrgentMarker />}
                 </div>
                 <span className="font-mono text-2xs text-tertiary">
@@ -134,7 +139,7 @@ export function StudyList({ studies }: { studies: ListedStudy[] }) {
               </td>
 
               <td className="text-right">
-                {study.reportId ? (
+                {study.reportedAt ? (
                   <span className="inline-flex items-center gap-1.5 text-2xs font-medium text-done">
                     <FileCheck className="size-3.5" aria-hidden />
                     Disponible

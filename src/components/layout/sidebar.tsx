@@ -7,6 +7,7 @@ import {
   FileStack,
   FileText,
   Hospital,
+  Inbox,
   LayoutDashboard,
   LayoutList,
   Loader2,
@@ -32,9 +33,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/components/providers/session-provider";
-import { ROLE_LABELS, type Membership } from "@/lib/session/types";
-import { navigationFor, type NavItem } from "@/lib/navigation";
+import { toast } from "sonner";
+import { navigationFor, type NavCounts, type NavItem } from "@/lib/navigation";
+import { clearLocalData } from "@/lib/local-data";
 import { setActiveMembership, signOut } from "@/lib/session/actions";
+import { ROLE_LABELS, type Membership } from "@/lib/session/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -54,6 +57,7 @@ const NAV_ICONS = {
   send: Upload,
   team: Users,
   settings: Settings,
+  inbox: Inbox,
 } satisfies Record<string, LucideIcon>;
 
 export type NavIconKey = keyof typeof NAV_ICONS;
@@ -129,7 +133,10 @@ function OrganisationSwitcher() {
             membership={membership}
             selected={membership.id === active.id}
             onSelect={() =>
-              startTransition(() => setActiveMembership(membership.id))
+              startTransition(async () => {
+                const result = await setActiveMembership(membership.id);
+                if (!result.ok) toast.error(result.error);
+              })
             }
           />
         ))}
@@ -226,7 +233,14 @@ function UserCard() {
         <DropdownMenuItem
           className="text-urgent"
           onSelect={() => {
-            void signOut().then(() => router.push("/connexion"));
+            // Brouillons et copies de secours vivent dans le navigateur :
+            // sur un poste partagé, ils ne doivent pas survivre à la
+            // session de celui qui les a saisis.
+            clearLocalData();
+            void signOut().then(() => {
+              router.push("/connexion");
+              router.refresh();
+            });
           }}
         >
           <LogOut className="size-3.5" aria-hidden />
@@ -238,8 +252,19 @@ function UserCard() {
 }
 
 /** Une entrée de navigation. */
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+function NavLink({
+  item,
+  active,
+  counts,
+}: {
+  item: NavItem;
+  active: boolean;
+  counts: NavCounts | null;
+}) {
   const Icon = NAV_ICONS[item.icon];
+  const count = item.count && counts ? counts[item.count] : 0;
+  const urgent =
+    item.urgentCount && counts ? counts[item.urgentCount] > 0 : false;
 
   return (
     <Link
@@ -271,14 +296,15 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
         aria-hidden
       />
       <span className="flex-1 truncate">{item.label}</span>
-      {item.count !== undefined && item.count > 0 && (
+      {count > 0 && (
         <span
           className={cn(
             "rounded px-1.5 py-0.5 text-2xs font-medium tabular-nums",
-            item.urgent ? "bg-urgent-muted text-urgent" : "text-tertiary",
+            urgent ? "bg-urgent-muted text-urgent" : "text-tertiary",
           )}
+          aria-label={urgent ? `${count}, dont des urgences` : String(count)}
         >
-          {item.count}
+          {count}
         </span>
       )}
     </Link>
@@ -295,13 +321,15 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
  *
  * Son contenu vient du **rôle dans l'organisation active** : la clinique
  * et le radiologue ne voient pas la même chose, et changer d'organisation
- * change le portail sans recharger la page.
+ * change le portail sans recharger la page. Les compteurs viennent du
+ * service, calculés sur le périmètre réel de l'utilisateur ; `null` quand
+ * il est injoignable — la navigation reste utilisable, sans chiffres.
  *
  * L'élément actif est signalé par un rail et une surface, jamais par un
  * aplat d'accent : une zone colorée dans le châssis entrerait en
  * concurrence avec les images médicales affichées à côté.
  */
-export function Sidebar() {
+export function Sidebar({ counts }: { counts: NavCounts | null }) {
   const pathname = usePathname();
   const { active } = useSession();
   const groups = navigationFor(active.role);
@@ -331,6 +359,7 @@ export function Sidebar() {
                 <li key={item.href}>
                   <NavLink
                     item={item}
+                    counts={counts}
                     active={
                       pathname === item.href ||
                       pathname.startsWith(`${item.href}/`)

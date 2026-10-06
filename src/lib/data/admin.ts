@@ -1,72 +1,120 @@
-import { DEMO_STUDIES } from "@/lib/demo/studies";
+import "server-only";
+
+import { z } from "zod";
+
+import { apiGet } from "@/lib/api/client";
+import {
+  adminOrganizationSchema,
+  contactRequestSchema,
+} from "@/lib/api/contracts";
+import { isDemoMode } from "@/lib/demo/mode";
+import { DEMO_CLINIC_IDS, DEMO_STUDIES } from "@/lib/demo/studies";
+import type { OrgKind } from "@/lib/session/types";
 
 /**
  * Une organisation, vue du back-office.
  *
- * ⚠️ **Aucune route d'administration n'existe encore côté service.** Ces
- * données viennent du jeu de démonstration, et cette couche existe pour
- * que la bascule ne touche qu'un fichier le jour où l'API les publiera.
- * Tant qu'elles manquent, ces opérations se font en SQL — tenable pour
- * une clinique, intenable pour dix.
+ * L'AE Title d'une clinique n'y figure pas — seulement le fait qu'elle
+ * soit raccordée : c'est un secret, et l'écran n'a pas à l'afficher.
  */
 export interface AdminOrganization {
   id: string;
   name: string;
-  kind: "clinic" | "radiology_group";
+  kind: OrgKind;
   city: string;
   active: boolean;
-  /** Examens envoyés ou lus, tous statuts confondus. */
+  openToPool: boolean;
+  connected: boolean;
+  /** Examens envoyés, tous statuts confondus. */
   studyCount: number;
   memberCount: number;
-  dicomAet: string | null;
+  createdAt: Date;
 }
 
-const DEMO_ORGANIZATIONS: AdminOrganization[] = [
-  {
-    id: "org-stj",
-    name: "Clinique Saint-Joseph",
-    kind: "clinic",
-    city: "Lomé",
-    active: true,
-    studyCount: 4,
-    memberCount: 3,
-    dicomAet: "STJOSEPH_LOME",
-  },
-  {
-    id: "org-pka",
-    name: "Polyclinique de Kara",
-    kind: "clinic",
-    city: "Kara",
-    active: true,
-    studyCount: 3,
-    memberCount: 2,
-    dicomAet: "POLYKARA",
-  },
-  {
-    id: "org-radio",
-    name: "IMAFRIK Radiologie",
-    kind: "radiology_group",
-    city: "Lomé",
-    active: true,
-    studyCount: 7,
-    memberCount: 4,
-    dicomAet: null,
-  },
-];
+/** Une demande reçue par le formulaire de contact du site. */
+export interface ContactRequest {
+  id: string;
+  fullName: string;
+  organization: string | null;
+  email: string;
+  phone: string | null;
+  message: string | null;
+  handledAt: Date | null;
+  createdAt: Date;
+}
 
-/** Toutes les organisations de la plateforme. */
-export async function listOrganizations(): Promise<AdminOrganization[]> {
-  return DEMO_ORGANIZATIONS;
+/** Organisations de démonstration, dérivées du jeu d'examens. */
+function demoOrganizations(): AdminOrganization[] {
+  const clinics = Object.entries(DEMO_CLINIC_IDS).map(([name, id]) => ({
+    id,
+    name,
+    kind: "clinic" as const,
+    city: name.includes("Kara") ? "Kara" : "Lomé",
+    active: true,
+    openToPool: true,
+    connected: true,
+    studyCount: DEMO_STUDIES.filter((study) => study.clinicId === id).length,
+    memberCount: 2,
+    createdAt: new Date("2026-08-01"),
+  }));
+  return [
+    ...clinics,
+    {
+      id: "org-radio",
+      name: "IMAFRIK Radiologie",
+      kind: "radiology_group",
+      city: "Lomé",
+      active: true,
+      openToPool: false,
+      connected: false,
+      studyCount: 0,
+      memberCount: 4,
+      createdAt: new Date("2026-08-01"),
+    },
+  ];
 }
 
 /**
- * Tous les examens, sans restriction d'organisation.
+ * Toutes les organisations de la plateforme.
  *
- * **La seule vue du produit qui ignore le cloisonnement**, et elle est
- * réservée à l'équipe IMAFRIK. En base, elle suppose un rôle
- * `platform_admin` et une politique dédiée : l'accès y est donc tracé
- * comme le reste, et c'est précisément ce qu'un audit vérifiera.
+ * Réservé à l'équipe IMAFRIK : le service le vérifie en base à chaque
+ * appel, quel que soit ce que l'interface affiche.
  */
-export async function listAllStudies() {
-  return DEMO_STUDIES;
+export async function listOrganizations(): Promise<AdminOrganization[]> {
+  if (isDemoMode()) return demoOrganizations();
+  const rows = await apiGet(
+    "/admin/organizations",
+    z.array(adminOrganizationSchema),
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    kind: row.kind,
+    city: row.city ?? "",
+    active: row.is_active,
+    openToPool: row.open_to_pool,
+    connected: row.has_dicom_aet,
+    studyCount: row.study_count,
+    memberCount: row.member_count,
+    createdAt: new Date(row.created_at),
+  }));
+}
+
+/** Demandes reçues par le site, les plus récentes d'abord. */
+export async function listContactRequests(): Promise<ContactRequest[]> {
+  if (isDemoMode()) return [];
+  const rows = await apiGet(
+    "/admin/contact-requests",
+    z.array(contactRequestSchema),
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    fullName: row.full_name,
+    organization: row.organization,
+    email: row.email,
+    phone: row.phone,
+    message: row.message,
+    handledAt: row.handled_at ? new Date(row.handled_at) : null,
+    createdAt: new Date(row.created_at),
+  }));
 }

@@ -4,6 +4,156 @@
  */
 
 export interface paths {
+  "/admin/contact-requests": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Demandes reçues par le site
+     * @description Liste les demandes de contact, les plus récentes d'abord.
+     *
+     *     Args:
+     *         principal: Administrateur de la plateforme.
+     *
+     *     Returns:
+     *         Les deux cents demandes les plus récentes.
+     */
+    get: operations["list_contact_requests_admin_contact_requests_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/organizations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Toutes les organisations
+     * @description Liste les organisations de la plateforme, avec leurs volumes.
+     *
+     *     Args:
+     *         principal: Administrateur de la plateforme.
+     *
+     *     Returns:
+     *         Les organisations, triées par nom.
+     */
+    get: operations["list_organizations_admin_organizations_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/organizations/{organization_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Activer ou suspendre
+     * @description Active ou suspend une organisation.
+     *
+     *     Args:
+     *         organization_id: Organisation visée.
+     *         body: Nouvel état.
+     *         principal: Administrateur de la plateforme.
+     *
+     *     Returns:
+     *         L'organisation après modification.
+     *
+     *     Raises:
+     *         NotFound: Organisation inconnue.
+     */
+    patch: operations["update_organization_admin_organizations__organization_id__patch"];
+    trace?: never;
+  };
+  "/admin/organizations/{organization_id}/invitations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Inviter une personne dans une organisation
+     * @description Invite une personne dans n'importe quelle organisation, à n'importe quel rôle.
+     *
+     *     C'est le seul chemin pour ajouter un radiologue à un groupe du pool.
+     *
+     *     Args:
+     *         organization_id: Organisation d'accueil.
+     *         body: Personne et rôle.
+     *         principal: Administrateur de la plateforme.
+     *
+     *     Returns:
+     *         Le nouveau membre.
+     *
+     *     Raises:
+     *         NotFound: Organisation inconnue.
+     */
+    post: operations["invite_admin_organizations__organization_id__invitations_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/contact": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Envoyer une demande de contact
+     * @description Enregistre une demande de contact.
+     *
+     *     Sans authentification : c'est le site public. Deux protections, sans
+     *     service tiers : une limite de débit par adresse IP, tenue dans Redis,
+     *     et un champ piège que seuls les robots remplissent.
+     *
+     *     Args:
+     *         body: Demande.
+     *         request: Requête brute, pour l'adresse de l'appelant.
+     *
+     *     Returns:
+     *         L'accusé de réception.
+     *
+     *     Raises:
+     *         TooManyRequests: Limite horaire atteinte pour cette adresse.
+     */
+    post: operations["contact_contact_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/health": {
     parameters: {
       query?: never;
@@ -37,6 +187,8 @@ export interface paths {
      *
      *     Chacune est signalée individuellement : un état global masquerait
      *     laquelle est tombée, ce qui est précisément l'information utile.
+     *     La sonde est publique : elle dit *qu'une* dépendance est tombée,
+     *     jamais *pourquoi* — la cause reste dans les journaux.
      */
     get: operations["health_deep_health_deep_get"];
     put?: never;
@@ -76,6 +228,49 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/internal/orthanc/user-profile": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Décrire ce qu'un jeton donne à voir
+     * @description Renvoie au plugin les étiquettes que ce jeton autorise.
+     *
+     *     C'est la pièce qui manquait pour qu'une **recherche** DICOMweb soit
+     *     contrôlée : le moteur de décision ne voit que les requêtes visant une
+     *     ressource identifiée, et une recherche n'en vise aucune.
+     *
+     *     Le corps est relu depuis la requête brute plutôt que par un paramètre
+     *     typé, pour deux raisons : le format varie d'une version du plugin à
+     *     l'autre, et un corps inattendu doit produire l'absence de profil —
+     *     donc la fermeture — et non une 422 que le plugin interpréterait mal.
+     *
+     *     Args:
+     *         request: Requête brute, dont le corps JSON est posté par le plugin.
+     *         settings: Configuration injectée.
+     *
+     *     Returns:
+     *         Le profil en JSON, ou une réponse 403 sans corps si le jeton
+     *         n'ouvre aucun profil. **Cette 403 n'est pas un refus d'accès** :
+     *         elle dit au plugin « pas de profil pour ce jeton », qui traite
+     *         alors l'appelant en anonyme — aucune étiquette, donc aucun
+     *         résultat de recherche — tout en lui laissant le mécanisme des
+     *         resource tokens. C'est ce qui permet aux jetons de visualisation
+     *         du viewer, qui ne sont pas des JWT, de continuer à ouvrir leur
+     *         étude.
+     */
+    post: operations["profile_internal_orthanc_user_profile_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/internal/webhooks/study-stable": {
     parameters: {
       query?: never;
@@ -87,10 +282,12 @@ export interface paths {
     put?: never;
     /**
      * Ingérer une étude complète
-     * @description Crée ou actualise l'étude côté métier.
+     * @description Crée ou actualise l'étude côté métier, puis l'étiquette dans Orthanc.
      *
      *     Args:
      *         event: Événement émis par le script Lua d'Orthanc.
+     *         background: Tâches exécutées après la réponse. L'étiquetage en
+     *             fait partie : voir :func:`app.services.ingestion.label_study`.
      *         settings: Configuration injectée.
      *         x_webhook_secret: Secret partagé, comparé en temps constant.
      *
@@ -100,6 +297,7 @@ export interface paths {
      *     Raises:
      *         Unauthorized: Secret absent ou incorrect.
      *         Unprocessable: Clinique émettrice introuvable.
+     *         Conflict: L'étude appartient déjà à une autre clinique.
      */
     post: operations["study_stable_internal_webhooks_study_stable_post"];
     delete?: never;
@@ -131,7 +329,25 @@ export interface paths {
     delete?: never;
     options?: never;
     head?: never;
-    patch?: never;
+    /**
+     * Modifier son profil
+     * @description Met à jour les champs du profil fournis, et eux seuls.
+     *
+     *     Un champ absent du corps n'est pas touché. Une signature déjà apposée
+     *     n'est pas affectée : l'identité du signataire est figée sur chaque
+     *     compte-rendu au moment de la signature.
+     *
+     *     Args:
+     *         body: Champs à modifier.
+     *         principal: Appelant authentifié.
+     *
+     *     Returns:
+     *         Le profil après modification.
+     *
+     *     Raises:
+     *         NotFound: Le profil n'existe pas encore côté métier.
+     */
+    patch: operations["update_profile_me_patch"];
     trace?: never;
   };
   "/me/active-organization": {
@@ -224,7 +440,132 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  "/reports/{report_id}": {
+  "/metrics/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Indicateurs du périmètre de l'appelant
+     * @description Renvoie les indicateurs du périmètre visible par l'appelant.
+     *
+     *     Args:
+     *         principal: Appelant disposant d'une organisation active.
+     *
+     *     Returns:
+     *         Les compteurs par statut, les urgences ouvertes, la charge de
+     *         l'appelant et le délai médian de lecture.
+     */
+    get: operations["summary_metrics_summary_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organization": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Organisation active
+     * @description Renvoie l'organisation active et ses réglages.
+     *
+     *     Args:
+     *         principal: Appelant dont l'appartenance est vérifiée.
+     *
+     *     Returns:
+     *         L'organisation.
+     */
+    get: operations["read_organization_organization_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Régler l'ouverture au pool
+     * @description Modifie les réglages de la clinique active.
+     *
+     *     L'écriture passe par RLS : la policy ``organization_update_own`` et le
+     *     droit colonne par colonne n'autorisent que ``open_to_pool``, et pour sa
+     *     propre clinique.
+     *
+     *     Args:
+     *         body: Nouveaux réglages.
+     *         principal: Membre du personnel de la clinique.
+     *
+     *     Returns:
+     *         L'organisation après modification.
+     */
+    patch: operations["update_organization_organization_patch"];
+    trace?: never;
+  };
+  "/organization/invitations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Inviter une personne dans la clinique
+     * @description Invite une personne dans la clinique active.
+     *
+     *     Args:
+     *         body: Personne et rôle — personnel ou radiologue employé.
+     *         principal: Membre du personnel de la clinique.
+     *
+     *     Returns:
+     *         Le nouveau membre.
+     *
+     *     Raises:
+     *         Forbidden: Rôle que la clinique ne peut pas attribuer.
+     *         Conflict: Déjà membre.
+     */
+    post: operations["invite_organization_invitations_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organization/members": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Membres de l'organisation active
+     * @description Liste les membres de l'organisation active.
+     *
+     *     Args:
+     *         principal: Appelant dont l'appartenance est vérifiée.
+     *
+     *     Returns:
+     *         Les membres, triés par nom.
+     */
+    get: operations["list_members_organization_members_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organization/members/{membership_id}": {
     parameters: {
       query?: never;
       header?: never;
@@ -234,6 +575,55 @@ export interface paths {
     get?: never;
     put?: never;
     post?: never;
+    /**
+     * Retirer un membre de la clinique
+     * @description Retire une appartenance à la clinique active.
+     *
+     *     Le compte de la personne n'est pas supprimé : elle perd l'accès à
+     *     cette clinique, et garde ses autres appartenances. L'accès se ferme à
+     *     sa requête suivante, sans attendre l'expiration de son jeton —
+     *     ``auth_role()`` relit l'appartenance en base.
+     *
+     *     Args:
+     *         membership_id: Appartenance à retirer.
+     *         principal: Membre du personnel de la clinique.
+     *
+     *     Raises:
+     *         Forbidden: Tentative de se retirer soi-même — on ne ferme pas la
+     *             porte derrière soi par mégarde.
+     *         NotFound: Appartenance absente de cette clinique.
+     */
+    delete: operations["remove_member_organization_members__membership_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/reports/{report_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Lire un compte-rendu
+     * @description Renvoie un compte-rendu par son identifiant.
+     *
+     *     Args:
+     *         report_id: Compte-rendu demandé.
+     *         principal: Appelant disposant d'une organisation active.
+     *
+     *     Returns:
+     *         Le compte-rendu, brouillon ou signé.
+     *
+     *     Raises:
+     *         NotFound: Compte-rendu inexistant ou hors du périmètre de
+     *             l'appelant — les deux cas sont confondus volontairement.
+     */
+    get: operations["read_report_reports__report_id__get"];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -241,24 +631,71 @@ export interface paths {
      * Enregistrer un brouillon
      * @description Fusionne les sections reçues dans le brouillon.
      *
-     *     Appelé toutes les cinq secondes pendant la dictée, et à chaque perte
-     *     de focus. Le client conserve en parallèle une copie en
-     *     ``localStorage`` : le serveur protège de la panne de poste, le
-     *     ``localStorage`` de la coupure réseau. À Lomé, il faut les deux.
+     *     Appelé toutes les quelques secondes pendant la dictée, et à chaque
+     *     perte de focus. Le client conserve en parallèle une copie locale : le
+     *     serveur protège de la panne de poste, la copie locale de la coupure
+     *     réseau. À Lomé, il faut les deux.
+     *
+     *     Chaque enregistrement incrémente ``version`` (trigger). Le client qui
+     *     renvoie ``expected_version`` est protégé contre l'écrasement par un
+     *     autre onglet ; celui qui l'omet écrit sans condition.
      *
      *     Args:
      *         report_id: Compte-rendu à mettre à jour.
-     *         body: Sections modifiées.
+     *         body: Sections modifiées et, en option, la version attendue.
      *         principal: Radiologue authentifié.
      *
      *     Returns:
-     *         Le compte-rendu après fusion.
+     *         Le compte-rendu après fusion, avec sa nouvelle version.
      *
      *     Raises:
-     *         Conflict: Compte-rendu absent, appartenant à un autre auteur, ou
-     *             déjà signé — donc verrouillé par le trigger.
+     *         Conflict: Compte-rendu absent, appartenant à un autre auteur, déjà
+     *             signé — donc verrouillé par le trigger — ou modifié depuis la
+     *             version indiquée.
      */
     patch: operations["autosave_reports__report_id__patch"];
+    trace?: never;
+  };
+  "/reports/{report_id}/addenda": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Ajouter un addendum à un compte-rendu signé
+     * @description Corrige un compte-rendu signé par un addendum daté et signé.
+     *
+     *     Le compte-rendu lui-même reste intact — un trigger l'interdit de toute
+     *     façon. L'addendum s'y ajoute, visible de tous ceux qui voient le
+     *     compte-rendu, avec l'identité de son auteur figée à l'écriture.
+     *
+     *     Tout radiologue qui lit le compte-rendu peut l'amender : le signataire
+     *     d'origine n'est pas toujours disponible, et une correction urgente ne
+     *     doit pas attendre son retour. L'auteur de chaque addendum est tracé.
+     *
+     *     Args:
+     *         report_id: Compte-rendu à corriger.
+     *         body: Texte de la correction.
+     *         principal: Radiologue authentifié.
+     *
+     *     Returns:
+     *         L'addendum créé.
+     *
+     *     Raises:
+     *         NotFound: Compte-rendu inaccessible.
+     *         Conflict: Compte-rendu encore en brouillon — il se corrige
+     *             directement.
+     *         Unprocessable: Texte vide une fois les espaces retirés.
+     */
+    post: operations["add_addendum_reports__report_id__addenda_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   "/reports/{report_id}/pdf": {
@@ -273,7 +710,9 @@ export interface paths {
      * @description Renvoie une URL pré-signée vers le PDF d'un compte-rendu signé.
      *
      *     Le droit d'accès est vérifié par RLS : si la ligne ne remonte pas,
-     *     l'appelant n'y a pas droit.
+     *     l'appelant n'y a pas droit. Le premier téléchargement par la clinique
+     *     émettrice marque l'examen ``delivered`` : c'est le moment où le
+     *     compte-rendu l'a effectivement atteinte.
      *
      *     Args:
      *         report_id: Compte-rendu concerné.
@@ -307,16 +746,24 @@ export interface paths {
      * Valider et signer
      * @description Verrouille le compte-rendu, produit le PDF et le dépose sur R2.
      *
-     *     **L'ordre des opérations n'est pas arbitraire.** Le PDF est produit et
-     *     déposé *avant* que la base ne bascule en ``signed``. Si le dépôt
-     *     échoue, il ne reste qu'un objet R2 orphelin, écrasé au prochain essai
-     *     puisque la clé dérive de l'identifiant du compte-rendu. L'ordre
-     *     inverse laisserait un compte-rendu signé — donc définitivement
-     *     verrouillé par le trigger — sans PDF associé.
+     *     **L'ordre des opérations n'est pas arbitraire.**
      *
-     *     La bascule finale passe par le rôle de service : elle doit couvrir
-     *     dans une seule transaction le compte-rendu, le statut de l'examen et
-     *     l'entrée d'audit.
+     *     1. Le brouillon est lu avec sa ``version``.
+     *     2. Le PDF est rendu dans un thread — WeasyPrint est lent et
+     *        synchrone, et ce processus sert aussi le chemin d'autorisation du
+     *        viewer — puis déposé sur R2 sous une clé qui contient le jeton de
+     *        vérification, donc **jamais réutilisée** : deux signatures
+     *        concurrentes n'écrasent pas le PDF l'une de l'autre.
+     *     3. La bascule en ``signed`` n'a lieu que si le brouillon est toujours
+     *        à la version lue, toujours assigné au signataire, et toujours un
+     *        brouillon. Un auto-save arrivé pendant le rendu, ou une seconde
+     *        signature, se voient refuser : le PDF déposé correspondrait à un
+     *        texte qui n'est plus celui de la base.
+     *
+     *     Si la bascule échoue, il reste un objet R2 orphelin, inaccessible
+     *     (aucune ligne ne le référence) et sans donnée de plus que le document
+     *     qui sera signé ensuite. L'ordre inverse laisserait un compte-rendu
+     *     verrouillé sans PDF, ce qui est irréparable.
      *
      *     Args:
      *         report_id: Compte-rendu à signer.
@@ -327,8 +774,10 @@ export interface paths {
      *
      *     Raises:
      *         NotFound: Compte-rendu inaccessible.
-     *         Conflict: Déjà signé, ou signé entre-temps par une autre requête.
-     *         Forbidden: L'appelant n'est pas l'auteur du brouillon.
+     *         Conflict: Déjà signé, modifié pendant la signature, ou examen
+     *             plus assigné au signataire.
+     *         Forbidden: L'appelant n'est pas l'auteur du brouillon, ou n'a plus
+     *             l'examen en charge.
      *         Unprocessable: Une section obligatoire est vide.
      */
     post: operations["sign_reports__report_id__sign_post"];
@@ -346,7 +795,7 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * List Studies
+     * Lister les examens visibles
      * @description Liste les examens visibles par l'appelant.
      *
      *     Le périmètre est décidé par RLS, pas par ce code : une clinique voit
@@ -355,13 +804,15 @@ export interface paths {
      *
      *     Args:
      *         principal: Appelant disposant d'une organisation active.
-     *         status_filter: Restreint à un statut donné.
-     *         q: Filtre sur le nom du patient.
+     *         status_filter: Restreint aux statuts donnés. Plusieurs valeurs
+     *             s'additionnent : ``?status=reported&status=delivered``.
+     *         q: Recherche libre, insensible à la casse.
+     *         mine: Restreint aux examens que l'appelant a pris en charge.
      *         limit: Nombre maximal d'examens renvoyés.
      *         offset: Décalage, pour la pagination.
      *
      *     Returns:
-     *         Un objet ``{"items": [...], "total": n}``.
+     *         La page demandée et le nombre total d'examens correspondants.
      */
     get: operations["list_studies_studies_get"];
     put?: never;
@@ -380,7 +831,7 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Get Study
+     * Détail d'un examen
      * @description Renvoie le détail d'un examen.
      *
      *     Args:
@@ -402,8 +853,22 @@ export interface paths {
     options?: never;
     head?: never;
     /**
-     * Update Study
+     * Compléter le renseignement clinique
      * @description La clinique complète le renseignement clinique ou signale une urgence.
+     *
+     *     Le droit d'écrire — sa propre clinique, examen pas encore rendu — est
+     *     tenu par la policy ``study_update_clinic``.
+     *
+     *     Args:
+     *         study_id: Examen à compléter.
+     *         body: Champs à modifier.
+     *         principal: Appelant disposant d'une organisation active.
+     *
+     *     Returns:
+     *         L'examen mis à jour.
+     *
+     *     Raises:
+     *         NotFound: Examen inexistant, hors périmètre, ou déjà rendu.
      */
     patch: operations["update_study_studies__study_id__patch"];
     trace?: never;
@@ -418,8 +883,23 @@ export interface paths {
     get?: never;
     put?: never;
     /**
-     * Claim
+     * Prendre un examen en charge
      * @description Pool commun : le premier radiologue qui ouvre l'examen se l'attribue.
+     *
+     *     La prise en charge est le préalable à toute rédaction : seul le
+     *     radiologue assigné peut ouvrir un brouillon, et c'est la base qui le
+     *     vérifie.
+     *
+     *     Args:
+     *         study_id: Examen à prendre.
+     *         principal: Radiologue authentifié.
+     *
+     *     Returns:
+     *         L'examen, assigné à l'appelant.
+     *
+     *     Raises:
+     *         Conflict: Déjà pris en charge par un autre radiologue.
+     *         Forbidden: Examen hors du périmètre de l'appelant.
      */
     post: operations["claim_studies__study_id__claim_post"];
     delete?: never;
@@ -438,8 +918,12 @@ export interface paths {
     get?: never;
     put?: never;
     /**
-     * Release
+     * Rendre un examen au pool
      * @description Rend au pool un examen pris par erreur.
+     *
+     *     Le brouillon éventuellement commencé est effacé avec lui : un
+     *     brouillon orphelin bloquerait le radiologue suivant, qui ne pourrait
+     *     ni le modifier ni en créer un autre.
      *
      *     Args:
      *         study_id: Examen à libérer.
@@ -467,12 +951,12 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Ouvrir le compte-rendu d'un examen
-     * @description Renvoie le compte-rendu d'un examen, en créant le brouillon au besoin.
+     * Lire le compte-rendu d'un examen
+     * @description Renvoie le compte-rendu d'un examen, s'il existe et s'il est visible.
      *
-     *     Un radiologue qui ouvre un examen pour la première fois obtient un
-     *     brouillon vide. Une clinique, elle, ne voit rien tant que le document
-     *     n'est pas signé — c'est RLS qui l'applique, pas ce code.
+     *     Une clinique ne voit rien tant que le document n'est pas signé —
+     *     c'est RLS qui l'applique, pas ce code. Cet appel ne crée jamais de
+     *     brouillon : voir :func:`create_draft`.
      *
      *     Args:
      *         study_id: Examen concerné.
@@ -482,12 +966,33 @@ export interface paths {
      *         Le compte-rendu, brouillon ou signé.
      *
      *     Raises:
-     *         NotFound: Aucun compte-rendu visible, et l'appelant n'est pas
-     *             radiologue donc ne peut pas en créer.
+     *         NotFound: Aucun compte-rendu visible pour cet examen.
      */
-    get: operations["get_or_create_draft_studies__study_id__report_get"];
+    get: operations["read_study_report_studies__study_id__report_get"];
     put?: never;
-    post?: never;
+    /**
+     * Ouvrir un brouillon
+     * @description Ouvre le brouillon de compte-rendu d'un examen pris en charge.
+     *
+     *     Idempotent pour son auteur : rouvrir un brouillon existant le renvoie
+     *     tel quel, avec le code 201 — l'appelant n'a pas à distinguer les deux
+     *     cas. Deux appels simultanés du même radiologue ne produisent qu'une
+     *     ligne, grâce à l'unicité de ``study_id`` et au ``on conflict``.
+     *
+     *     Args:
+     *         study_id: Examen pris en charge par l'appelant.
+     *         principal: Radiologue authentifié.
+     *
+     *     Returns:
+     *         Le brouillon.
+     *
+     *     Raises:
+     *         Forbidden: L'appelant n'a pas pris cet examen en charge — c'est
+     *             la policy ``report_insert_author`` qui le dit.
+     *         Conflict: Un compte-rendu existe déjà pour cet examen et il
+     *             n'appartient pas à l'appelant, ou il est déjà signé.
+     */
+    post: operations["create_draft_studies__study_id__report_post"];
     delete?: never;
     options?: never;
     head?: never;
@@ -504,11 +1009,21 @@ export interface paths {
     get?: never;
     put?: never;
     /**
-     * Viewer Token
+     * Ouvrir le viewer
      * @description Émet un jeton opaque limité à cette étude et à quinze minutes.
      *
-     *     Le JWT Supabase n'est jamais transmis à Orthanc (AD-4) : s'il fuitait par
-     *     un log ou un Referer, il donnerait accès à tout le compte.
+     *     Le JWT Supabase n'est jamais transmis à Orthanc (AD-4) : s'il fuitait
+     *     par un journal ou un ``Referer``, il donnerait accès à tout le compte.
+     *
+     *     Args:
+     *         study_id: Examen à ouvrir.
+     *         principal: Appelant disposant d'une organisation active.
+     *
+     *     Returns:
+     *         Le jeton, sa durée de vie et l'URL du viewer.
+     *
+     *     Raises:
+     *         NotFound: Examen inexistant ou hors du périmètre de l'appelant.
      */
     post: operations["viewer_token_studies__study_id__viewer_token_post"];
     delete?: never;
@@ -541,7 +1056,112 @@ export interface paths {
      */
     get: operations["list_templates_templates_get"];
     put?: never;
+    /**
+     * Créer un modèle
+     * @description Crée un modèle pour l'organisation active.
+     *
+     *     L'écriture passe par RLS : la policy ``template_write`` n'autorise
+     *     qu'un radiologue, et pour sa propre organisation. Les modèles fournis
+     *     par IMAFRIK (sans organisation) ne se créent pas par cette voie.
+     *
+     *     Args:
+     *         body: Contenu du modèle.
+     *         principal: Radiologue authentifié.
+     *
+     *     Returns:
+     *         Le modèle créé.
+     */
+    post: operations["create_template_templates_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/templates/{template_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
     post?: never;
+    /**
+     * Supprimer un modèle
+     * @description Supprime un modèle de l'organisation active.
+     *
+     *     Un modèle fourni par IMAFRIK ne se supprime pas : la policy
+     *     ``template_delete`` ne le laisse pas voir à la suppression.
+     *
+     *     Args:
+     *         template_id: Modèle à supprimer.
+     *         principal: Radiologue authentifié.
+     *
+     *     Raises:
+     *         NotFound: Modèle absent, d'une autre organisation, ou fourni par
+     *             IMAFRIK.
+     */
+    delete: operations["delete_template_templates__template_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/uploads": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Déposer un fichier DICOM
+     * @description Reçoit une instance DICOM et la transmet au PACS.
+     *
+     *     Args:
+     *         file: Fichier déposé.
+     *         x_upload_token: Jeton de dépôt émis par ``POST /uploads/token``.
+     *
+     *     Returns:
+     *         L'issue du dépôt.
+     *
+     *     Raises:
+     *         Unauthorized: Jeton absent, expiré ou révoqué.
+     *         FileTooLarge: Fichier au-delà de la taille admise.
+     *         Unprocessable: Fichier non DICOM, ou refusé par le PACS.
+     *         Conflict: L'étude appartient à une autre clinique.
+     */
+    post: operations["upload_uploads_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/uploads/token": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Obtenir un jeton de dépôt
+     * @description Émet un jeton de dépôt pour la clinique active.
+     *
+     *     Args:
+     *         principal: Membre du personnel de la clinique, vérifié en base.
+     *
+     *     Returns:
+     *         Le jeton et sa durée de vie.
+     */
+    post: operations["issue_token_uploads_token_post"];
     delete?: never;
     options?: never;
     head?: never;
@@ -585,6 +1205,122 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /**
+     * Addendum
+     * @description Correction apportée à un compte-rendu signé.
+     *
+     *     Attributes:
+     *         id: Identifiant.
+     *         report_id: Compte-rendu corrigé.
+     *         author_id: Radiologue auteur.
+     *         body: Texte de la correction.
+     *         author_name: Nom de l'auteur, figé à l'écriture.
+     *         author_title: Titre de l'auteur, figé à l'écriture.
+     *         author_license: Numéro d'ordre, figé à l'écriture.
+     *         created_at: Date et heure — elles font foi.
+     */
+    Addendum: {
+      /**
+       * Author Id
+       * Format: uuid
+       */
+      author_id: string;
+      /** Author License */
+      author_license: string | null;
+      /** Author Name */
+      author_name: string;
+      /** Author Title */
+      author_title: string | null;
+      /** Body */
+      body: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Report Id
+       * Format: uuid
+       */
+      report_id: string;
+    };
+    /**
+     * AddendumCreate
+     * @description Texte d'un addendum.
+     *
+     *     Attributes:
+     *         body: La correction, en texte. Elle s'ajoute au compte-rendu signé,
+     *             qui, lui, ne change pas.
+     */
+    AddendumCreate: {
+      /** Body */
+      body: string;
+    };
+    /**
+     * AdminOrganization
+     * @description Une organisation, vue du back-office.
+     *
+     *     Attributes:
+     *         id: Identifiant.
+     *         name: Nom.
+     *         kind: Clinique ou groupe de radiologie.
+     *         city: Ville.
+     *         is_active: Désactivée = plus aucun accès pour ses membres.
+     *         open_to_pool: Clinique ouverte au pool.
+     *         has_dicom_aet: La clinique est raccordée au PACS. L'AE Title lui
+     *             même n'est jamais renvoyé : c'est un secret.
+     *         study_count: Examens envoyés (clinique) — zéro pour un groupe.
+     *         member_count: Membres.
+     *         created_at: Création.
+     */
+    AdminOrganization: {
+      /** City */
+      city: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Has Dicom Aet */
+      has_dicom_aet: boolean;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Is Active */
+      is_active: boolean;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "clinic" | "radiology_group";
+      /** Member Count */
+      member_count: number;
+      /** Name */
+      name: string;
+      /** Open To Pool */
+      open_to_pool: boolean;
+      /** Study Count */
+      study_count: number;
+    };
+    /**
+     * AdminOrganizationUpdate
+     * @description Changement d'état d'une organisation.
+     *
+     *     Attributes:
+     *         is_active: Activer ou suspendre. Une suspension ferme l'accès de
+     *             tous les membres à leur requête suivante.
+     */
+    AdminOrganizationUpdate: {
+      /** Is Active */
+      is_active: boolean;
+    };
     /**
      * AuthorizationRequest
      * @description Corps posté par le plugin Authorization d'Orthanc.
@@ -633,13 +1369,21 @@ export interface components {
     } & {
       [key: string]: unknown;
     };
+    /** Body_upload_uploads_post */
+    Body_upload_uploads_post: {
+      /**
+       * File
+       * @description Une instance DICOM
+       */
+      file: string;
+    };
     /**
      * ClinicalInfo
      * @description Renseignements que la clinique peut compléter après l'envoi.
      *
      *     Attributes:
-     *         clinical_info: Contexte clinique de l'examen. Un champ vide laisse
-     *             la valeur existante inchangée.
+     *         clinical_info: Contexte clinique de l'examen. Un champ absent
+     *             laisse la valeur existante inchangée.
      *         priority: Passage en urgence, ou retour en routine.
      */
     ClinicalInfo: {
@@ -648,10 +1392,115 @@ export interface components {
       /** Priority */
       priority?: ("routine" | "urgent") | null;
     };
+    /**
+     * ContactForm
+     * @description Demande envoyée par le formulaire du site.
+     *
+     *     Attributes:
+     *         full_name: Nom de la personne.
+     *         organization: Établissement.
+     *         email: Adresse de réponse.
+     *         phone: Téléphone, facultatif.
+     *         message: Message libre.
+     *         website: Champ piège, invisible pour un humain. Rempli, la demande
+     *             est ignorée — en silence, pour ne rien apprendre au robot.
+     */
+    ContactForm: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /** Full Name */
+      full_name: string;
+      /** Message */
+      message?: string | null;
+      /** Organization */
+      organization?: string | null;
+      /** Phone */
+      phone?: string | null;
+      /** Website */
+      website?: string | null;
+    };
+    /**
+     * ContactReceipt
+     * @description Accusé de réception.
+     *
+     *     Attributes:
+     *         received: Toujours ``True``.
+     */
+    ContactReceipt: {
+      /**
+       * Received
+       * @default true
+       */
+      received: boolean;
+    };
+    /**
+     * ContactRequest
+     * @description Une demande reçue par le formulaire du site.
+     *
+     *     Attributes:
+     *         id: Identifiant.
+     *         full_name: Nom.
+     *         organization: Établissement.
+     *         email: Adresse.
+     *         phone: Téléphone.
+     *         message: Message.
+     *         handled_at: Traitée le.
+     *         created_at: Reçue le.
+     */
+    ContactRequest: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Email */
+      email: string;
+      /** Full Name */
+      full_name: string;
+      /** Handled At */
+      handled_at: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Message */
+      message: string | null;
+      /** Organization */
+      organization: string | null;
+      /** Phone */
+      phone: string | null;
+    };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
+    };
+    /**
+     * Invitation
+     * @description Invitation d'une personne dans l'organisation active.
+     *
+     *     Attributes:
+     *         email: Adresse de la personne.
+     *         full_name: Son nom, tel qu'il apparaîtra.
+     *         role: Rôle attribué.
+     */
+    Invitation: {
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /** Full Name */
+      full_name: string;
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: "platform_admin" | "radiologist" | "clinic_staff";
     };
     /**
      * LogoutResult
@@ -664,6 +1513,116 @@ export interface components {
     LogoutResult: {
       /** Revoked Viewer Tokens */
       revoked_viewer_tokens: number;
+    };
+    /**
+     * Member
+     * @description Un membre de l'organisation.
+     *
+     *     Attributes:
+     *         membership_id: Identifiant de l'appartenance — c'est elle qu'on
+     *             retire, pas le compte.
+     *         profile_id: Identifiant du profil.
+     *         full_name: Nom.
+     *         title: Titre.
+     *         email: Adresse de connexion.
+     *         role: Rôle dans l'organisation.
+     *         joined_at: Date d'arrivée.
+     *         is_me: ``True`` pour l'appelant.
+     */
+    Member: {
+      /** Email */
+      email: string | null;
+      /** Full Name */
+      full_name: string;
+      /** Is Me */
+      is_me: boolean;
+      /**
+       * Joined At
+       * Format: date-time
+       */
+      joined_at: string;
+      /**
+       * Membership Id
+       * Format: uuid
+       */
+      membership_id: string;
+      /**
+       * Profile Id
+       * Format: uuid
+       */
+      profile_id: string;
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: "platform_admin" | "radiologist" | "clinic_staff";
+      /** Title */
+      title: string | null;
+    };
+    /**
+     * Metrics
+     * @description Indicateurs du périmètre de l'appelant, calculés en base.
+     *
+     *     Le périmètre est celui que RLS accorde : une clinique mesure ses
+     *     propres examens, un radiologue le pool qu'il sert.
+     *
+     *     Attributes:
+     *         by_status: Nombre d'examens par étape.
+     *         urgent_open: Urgences pas encore rendues.
+     *         assigned_to_me: Examens en cours de lecture par l'appelant.
+     *         received_last_30_days: Examens reçus sur trente jours.
+     *         median_turnaround_minutes: Délai médian entre réception et
+     *             signature, sur trente jours. ``None`` sans examen rendu.
+     *         reports_to_download: Comptes-rendus signés pas encore téléchargés
+     *             par la clinique.
+     */
+    Metrics: {
+      /** Assigned To Me */
+      assigned_to_me: number;
+      /** By Status */
+      by_status: {
+        [key: string]: number;
+      };
+      /** Median Turnaround Minutes */
+      median_turnaround_minutes: number | null;
+      /** Received Last 30 Days */
+      received_last_30_days: number;
+      /** Reports To Download */
+      reports_to_download: number;
+      /** Urgent Open */
+      urgent_open: number;
+    };
+    /**
+     * Organization
+     * @description L'organisation active et ses réglages.
+     *
+     *     Attributes:
+     *         id: Identifiant.
+     *         name: Nom.
+     *         kind: Clinique ou groupe de radiologie.
+     *         city: Ville.
+     *         open_to_pool: Clinique : ses examens sont-ils proposés au pool ?
+     *         member_count: Nombre de membres.
+     */
+    Organization: {
+      /** City */
+      city: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "clinic" | "radiology_group";
+      /** Member Count */
+      member_count: number;
+      /** Name */
+      name: string;
+      /** Open To Pool */
+      open_to_pool: boolean;
     };
     /**
      * OrganizationMembership
@@ -690,6 +1649,18 @@ export interface components {
       organization_id: string;
       /** Role */
       role: string;
+    };
+    /**
+     * OrganizationUpdate
+     * @description Réglages modifiables par la clinique.
+     *
+     *     Attributes:
+     *         open_to_pool: Proposer ses examens aux radiologues du pool, ou les
+     *             réserver à ses propres radiologues.
+     */
+    OrganizationUpdate: {
+      /** Open To Pool */
+      open_to_pool: boolean;
     };
     /**
      * PdfLink
@@ -735,6 +1706,108 @@ export interface components {
       title?: string | null;
     };
     /**
+     * ProfileUpdate
+     * @description Champs du profil que l'utilisateur peut modifier lui-même.
+     *
+     *     Ce sont exactement les colonnes accordées en écriture au rôle
+     *     ``authenticated`` ; tout autre champ — organisation active, rôle —
+     *     passe par un chemin dédié qui vérifie l'appartenance.
+     *
+     *     Attributes:
+     *         full_name: Nom complet, tel qu'imprimé sur les comptes-rendus.
+     *         title: Titre — « Dr », spécialité.
+     *         license_number: Numéro d'ordre.
+     *         locale: Langue préférée.
+     */
+    ProfileUpdate: {
+      /** Full Name */
+      full_name?: string | null;
+      /** License Number */
+      license_number?: string | null;
+      /** Locale */
+      locale?: string | null;
+      /** Title */
+      title?: string | null;
+    };
+    /**
+     * Report
+     * @description Un compte-rendu, brouillon ou signé.
+     *
+     *     Attributes:
+     *         id: Identifiant.
+     *         study_id: Examen concerné.
+     *         author_id: Radiologue qui le rédige.
+     *         status: Brouillon ou signé.
+     *         sections: Texte, une clé par section.
+     *         version: Incrémentée à chaque enregistrement du texte.
+     *         signed_at: Horodatage de la signature.
+     *         signed_by: Profil signataire.
+     *         signer_name: Nom du signataire, figé à la signature.
+     *         signer_title: Titre du signataire, figé à la signature.
+     *         signer_license: Numéro d'ordre, figé à la signature.
+     *         pdf_sha256: Empreinte du PDF signé.
+     *         verify_token: Code de vérification publique, celui du QR code du
+     *             PDF. Visible de qui peut lire le compte-rendu.
+     *         addenda: Corrections apportées après signature, de la plus
+     *             ancienne à la plus récente.
+     *         created_at: Création du brouillon.
+     *         updated_at: Dernière modification.
+     */
+    Report: {
+      /** Addenda */
+      addenda: components["schemas"]["Addendum"][];
+      /**
+       * Author Id
+       * Format: uuid
+       */
+      author_id: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Pdf Sha256 */
+      pdf_sha256: string | null;
+      /** Sections */
+      sections: {
+        [key: string]: string;
+      };
+      /** Signed At */
+      signed_at: string | null;
+      /** Signed By */
+      signed_by: string | null;
+      /** Signer License */
+      signer_license: string | null;
+      /** Signer Name */
+      signer_name: string | null;
+      /** Signer Title */
+      signer_title: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "draft" | "signed";
+      /**
+       * Study Id
+       * Format: uuid
+       */
+      study_id: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Verify Token */
+      verify_token: string | null;
+      /** Version */
+      version: number;
+    };
+    /**
      * ReportTemplate
      * @description Modèle de compte-rendu.
      *
@@ -774,8 +1847,14 @@ export interface components {
      *         sections: Sections modifiées, fusionnées avec les existantes.
      *             L'envoi est partiel : l'éditeur ne transmet que ce qui a
      *             changé.
+     *         expected_version: Version du brouillon telle que le client l'a
+     *             lue. Si elle est fournie et ne correspond plus — un autre
+     *             onglet a écrit entre-temps — l'enregistrement est refusé
+     *             plutôt que d'écraser en silence.
      */
     SectionsPatch: {
+      /** Expected Version */
+      expected_version?: number | null;
       /** Sections */
       sections?: {
         [key: string]: string;
@@ -802,12 +1881,114 @@ export interface components {
       role: string | null;
     };
     /**
-     * StudyStableEvent
-     * @description Événement émis quand Orthanc considère une étude complète.
+     * Study
+     * @description Un examen, tel que les listes et la fiche l'affichent.
      *
-     *     Le déclencheur est ``OnStableStudy``, jamais ``OnStoredInstance`` :
-     *     sur un scanner de 2 000 coupes, ce dernier produirait 2 000 appels
-     *     pour un seul examen.
+     *     Attributes:
+     *         id: Identifiant métier.
+     *         organization_id: Clinique émettrice.
+     *         clinic_name: Son nom, pour l'affichage.
+     *         study_instance_uid: ``StudyInstanceUID`` DICOM.
+     *         patient_name: Nom au format DICOM (``NOM^Prénom``).
+     *         patient_id_local: Identifiant patient propre à la clinique.
+     *         patient_birthdate: Date de naissance.
+     *         patient_sex: ``M``, ``F`` ou ``O``.
+     *         modality: Modalité principale.
+     *         body_part: Région anatomique.
+     *         study_date: Date de réalisation.
+     *         instance_count: Nombre d'images.
+     *         series_count: Nombre de séries.
+     *         status: Étape du cycle de vie.
+     *         priority: Routine ou urgence.
+     *         assigned_to: Radiologue qui a pris l'examen en charge.
+     *         assigned_to_name: Son nom, quand l'appelant a le droit de le voir.
+     *         clinical_info: Renseignement clinique saisi par la clinique.
+     *         received_at: Arrivée sur la plateforme.
+     *         reported_at: Signature du compte-rendu, s'il l'est.
+     *         reported_by_name: Signataire, tel que figé à la signature.
+     *         report_id: Compte-rendu de l'examen, s'il est visible de
+     *             l'appelant — signé pour une clinique, brouillon compris pour
+     *             le radiologue qui le rédige.
+     */
+    Study: {
+      /** Assigned To */
+      assigned_to: string | null;
+      /** Assigned To Name */
+      assigned_to_name: string | null;
+      /** Body Part */
+      body_part: string | null;
+      /** Clinic Name */
+      clinic_name: string;
+      /** Clinical Info */
+      clinical_info: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Instance Count */
+      instance_count: number;
+      /** Modality */
+      modality: string | null;
+      /**
+       * Organization Id
+       * Format: uuid
+       */
+      organization_id: string;
+      /** Patient Birthdate */
+      patient_birthdate: string | null;
+      /** Patient Id Local */
+      patient_id_local: string | null;
+      /** Patient Name */
+      patient_name: string | null;
+      /** Patient Sex */
+      patient_sex: string | null;
+      /**
+       * Priority
+       * @enum {string}
+       */
+      priority: "routine" | "urgent";
+      /**
+       * Received At
+       * Format: date-time
+       */
+      received_at: string;
+      /** Report Id */
+      report_id: string | null;
+      /** Reported At */
+      reported_at: string | null;
+      /** Reported By Name */
+      reported_by_name: string | null;
+      /** Series Count */
+      series_count: number;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status:
+        "received" | "assigned" | "in_progress" | "reported" | "delivered";
+      /** Study Date */
+      study_date: string | null;
+      /** Study Instance Uid */
+      study_instance_uid: string;
+    };
+    /**
+     * StudyPage
+     * @description Une page d'examens.
+     *
+     *     Attributes:
+     *         items: Les examens de la page.
+     *         total: Nombre total d'examens correspondant aux filtres.
+     */
+    StudyPage: {
+      /** Items */
+      items: components["schemas"]["Study"][];
+      /** Total */
+      total: number;
+    };
+    /**
+     * StudyStableEvent
+     * @description Description d'une étude complète, telle qu'Orthanc la connaît.
      *
      *     Attributes:
      *         orthanc_study_id: Identifiant interne Orthanc de l'étude.
@@ -868,15 +2049,12 @@ export interface components {
     };
     /**
      * StudyStableResult
-     * @description Résultat de l'ingestion.
+     * @description Réponse du webhook.
      *
      *     Attributes:
      *         study_id: Identifiant métier de l'étude, côté Supabase.
-     *         created: ``True`` si l'étude vient d'être créée ; ``False`` si
-     *             l'événement n'a fait qu'actualiser les compteurs.
+     *         created: ``True`` si l'étude vient d'être créée.
      *         within_quota: ``False`` si la clinique dépasse son quota mensuel.
-     *             L'examen est accepté malgré tout : il est déjà dans le PACS,
-     *             et un patient n'a pas à pâtir d'un litige commercial.
      */
     StudyStableResult: {
       /** Created */
@@ -924,6 +2102,60 @@ export interface components {
        */
       status: string;
     };
+    /**
+     * TemplateCreate
+     * @description Nouveau modèle, propre à l'organisation active.
+     *
+     *     Attributes:
+     *         name: Intitulé affiché dans l'éditeur.
+     *         modality: Modalité visée ; ``None`` pour toutes.
+     *         body_part: Région anatomique visée.
+     *         sections: Texte de chaque section, au format de l'éditeur.
+     */
+    TemplateCreate: {
+      /** Body Part */
+      body_part?: string | null;
+      /** Modality */
+      modality?: string | null;
+      /** Name */
+      name: string;
+      /** Sections */
+      sections?: {
+        [key: string]: string;
+      };
+    };
+    /**
+     * UploadResult
+     * @description Issue du dépôt d'un fichier.
+     *
+     *     Attributes:
+     *         status: ``stored`` — reçu ; ``duplicate`` — déjà reçu, rien n'a
+     *             changé ; ``ignored`` — sommaire de CD, sans image.
+     *         study_instance_uid: Étude à laquelle appartient le fichier.
+     */
+    UploadResult: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "stored" | "duplicate" | "ignored";
+      /** Study Instance Uid */
+      study_instance_uid: string | null;
+    };
+    /**
+     * UploadToken
+     * @description Jeton de dépôt remis au navigateur.
+     *
+     *     Attributes:
+     *         token: Jeton opaque, à présenter dans l'en-tête ``X-Upload-Token``.
+     *         expires_in: Durée de vie, en secondes.
+     */
+    UploadToken: {
+      /** Expires In */
+      expires_in: number;
+      /** Token */
+      token: string;
+    };
     /** ValidationError */
     ValidationError: {
       /** Context */
@@ -956,8 +2188,17 @@ export interface components {
      *             l'empreinte de son exemplaire et la compare — c'est ici
      *             qu'elle figure, et non dans le PDF, car l'empreinte d'un
      *             fichier ne peut pas être écrite à l'intérieur de ce fichier.
+     *         addenda_count: Corrections apportées depuis la signature. Le
+     *             document imprimé reste authentique, mais un tiers doit savoir
+     *             qu'il a été complété — leur contenu, médical, n'est pas
+     *             public.
      */
     VerificationResult: {
+      /**
+       * Addenda Count
+       * @default 0
+       */
+      addenda_count: number;
       /** Clinic */
       clinic: string;
       /** License Number */
@@ -1008,6 +2249,175 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  list_contact_requests_admin_contact_requests_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ContactRequest"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_organizations_admin_organizations_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminOrganization"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_organization_admin_organizations__organization_id__patch: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path: {
+        organization_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AdminOrganizationUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AdminOrganization"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  invite_admin_organizations__organization_id__invitations_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path: {
+        organization_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Invitation"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Member"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  contact_contact_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ContactForm"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ContactReceipt"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   health_health_get: {
     parameters: {
       query?: never;
@@ -1087,6 +2497,33 @@ export interface operations {
       };
     };
   };
+  profile_internal_orthanc_user_profile_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Aucun profil pour ce jeton */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
   study_stable_internal_webhooks_study_stable_post: {
     parameters: {
       query?: never;
@@ -1140,6 +2577,41 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["SessionInfo"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_profile_me_patch: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProfileUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Profile"];
         };
       };
       /** @description Validation Error */
@@ -1250,6 +2722,233 @@ export interface operations {
       };
     };
   };
+  summary_metrics_summary_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Metrics"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  read_organization_organization_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Organization"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_organization_organization_patch: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["OrganizationUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Organization"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  invite_organization_invitations_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["Invitation"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Member"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_members_organization_members_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Member"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  remove_member_organization_members__membership_id__delete: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path: {
+        membership_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  read_report_reports__report_id__get: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path: {
+        report_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Report"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   autosave_reports__report_id__patch: {
     parameters: {
       query?: never;
@@ -1273,9 +2972,44 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["Report"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  add_addendum_reports__report_id__addenda_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path: {
+        report_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AddendumCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Addendum"];
         };
       };
       /** @description Validation Error */
@@ -1341,9 +3075,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["Report"];
         };
       };
       /** @description Validation Error */
@@ -1360,9 +3092,14 @@ export interface operations {
   list_studies_studies_get: {
     parameters: {
       query?: {
-        status?: string | null;
-        /** @description Recherche sur le nom du patient */
+        /** @description Un ou plusieurs statuts ; vide = tous */
+        status?: (
+          "received" | "assigned" | "in_progress" | "reported" | "delivered"
+        )[];
+        /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
         q?: string | null;
+        /** @description Seulement les examens pris en charge par l'appelant */
+        mine?: boolean;
         limit?: number;
         offset?: number;
       };
@@ -1380,9 +3117,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["StudyPage"];
         };
       };
       /** @description Validation Error */
@@ -1415,9 +3150,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["Study"];
         };
       };
       /** @description Validation Error */
@@ -1454,9 +3187,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["Study"];
         };
       };
       /** @description Validation Error */
@@ -1489,9 +3220,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["Study"];
         };
       };
       /** @description Validation Error */
@@ -1524,9 +3253,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["Study"];
         };
       };
       /** @description Validation Error */
@@ -1540,7 +3267,7 @@ export interface operations {
       };
     };
   };
-  get_or_create_draft_studies__study_id__report_get: {
+  read_study_report_studies__study_id__report_get: {
     parameters: {
       query?: never;
       header?: {
@@ -1559,9 +3286,40 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": {
-            [key: string]: unknown;
-          };
+          "application/json": components["schemas"]["Report"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_draft_studies__study_id__report_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path: {
+        study_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Report"];
         };
       };
       /** @description Validation Error */
@@ -1631,6 +3389,138 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ReportTemplate"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_template_templates_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TemplateCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReportTemplate"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_template_templates__template_id__delete: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path: {
+        template_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  upload_uploads_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        "x-upload-token"?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_upload_uploads_post"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  issue_token_uploads_token_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadToken"];
         };
       };
       /** @description Validation Error */

@@ -64,3 +64,22 @@ export function formatBytes(bytes: number): string {
   }
   return `${value.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} ${units[unit]}`;
 }
+
+/**
+ * Durée lisible, à partir d'un nombre de minutes.
+ *
+ * @param minutes Durée en minutes.
+ * @returns Par exemple « 45 min », « 2 h 10 », « 3 j 4 h ».
+ */
+export function formatDuration(minutes: number): string {
+  const total = Math.max(0, Math.round(minutes));
+  if (total < 60) return `${total} min`;
+  const hours = Math.floor(total / 60);
+  if (hours < 24) {
+    const rest = total % 60;
+    return rest ? `${hours} h ${String(rest).padStart(2, "0")}` : `${hours} h`;
+  }
+  const days = Math.floor(hours / 24);
+  const restHours = hours % 24;
+  return restHours ? `${days} j ${restHours} h` : `${days} j`;
+}

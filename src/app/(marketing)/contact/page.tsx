@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
+import { submitContact } from "@/lib/actions/contact";
 import { cn } from "@/lib/utils";
 
 /** Volumes proposés, en tranches larges plutôt qu'en chiffre libre. */
@@ -35,10 +36,17 @@ const MODALITIES = [
  *
  * Aucune donnée patient n'est demandée, et la page le dit — c'est le
  * genre de précision qui rassure justement les gens qui font attention.
+ *
+ * La demande est enregistrée par le service, qui limite le débit par
+ * adresse ; l'équipe IMAFRIK la retrouve dans le back-office (« Demandes
+ * reçues »). Fonction, volume et modalités n'ont pas de colonne à eux : ils
+ * sont joints au message, en tête, pour préparer l'entretien.
  */
 export default function ContactPage() {
   const [sent, setSent] = React.useState(false);
-  const [pending, setPending] = React.useState(false);
+  const [pending, startTransition] = React.useTransition();
+  const [error, setError] = React.useState<string | null>(null);
+  const [trap, setTrap] = React.useState("");
   const [form, setForm] = React.useState({
     name: "",
     organization: "",
@@ -58,13 +66,31 @@ export default function ContactPage() {
   const update = (key: keyof typeof form) => (value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
 
-  const submit = async (event: React.FormEvent) => {
+  const submit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!valid) return;
-    setPending(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setPending(false);
-    setSent(true);
+    setError(null);
+    const context = [
+      form.role && `Fonction : ${form.role}`,
+      `Volume : ${form.volume}`,
+      modalities.length > 0 && `Modalités : ${modalities.join(", ")}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    startTransition(async () => {
+      const result = await submitContact({
+        fullName: form.name,
+        organization: form.organization,
+        email: form.email,
+        phone: form.phone,
+        message: form.message.trim()
+          ? `${context}\n\n${form.message.trim()}`
+          : context,
+        website: trap,
+      });
+      if (result.ok) setSent(true);
+      else setError(result.error);
+    });
   };
 
   return (
@@ -126,7 +152,7 @@ export default function ContactPage() {
             </p>
           </div>
         ) : (
-          <form onSubmit={submit} className="flex flex-col gap-4">
+          <form onSubmit={submit} className="relative flex flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field id="name" label="Nom complet">
                 <Input
@@ -243,6 +269,29 @@ export default function ContactPage() {
                 placeholder="Vos modalités, vos délais actuels, ce qui vous pose problème aujourd’hui…"
               />
             </Field>
+
+            {/* Champ piège : invisible et ignoré par un humain, rempli par les
+                robots. Le service ignore alors la demande sans le leur dire. */}
+            <div
+              aria-hidden
+              className="absolute -left-[9999px] h-0 w-0 overflow-hidden"
+            >
+              <label htmlFor="website">Site web</label>
+              <input
+                id="website"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={trap}
+                onChange={(event) => setTrap(event.target.value)}
+              />
+            </div>
+
+            {error && (
+              <p role="alert" className="text-xs text-urgent">
+                {error}
+              </p>
+            )}
 
             <Button
               type="submit"

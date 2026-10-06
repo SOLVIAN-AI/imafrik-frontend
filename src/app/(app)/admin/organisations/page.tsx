@@ -1,9 +1,10 @@
-import { Building2, Hospital, Plus } from "lucide-react";
+import { Building2, Hospital } from "lucide-react";
 import type { Metadata } from "next";
 
+import { OrganizationRowActions } from "@/components/admin/organization-row-actions";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
-import { Button } from "@/components/ui/button";
 import { listOrganizations } from "@/lib/data/admin";
+import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Organisations" };
@@ -11,12 +12,18 @@ export const metadata: Metadata = { title: "Organisations" };
 /**
  * Organisations de la plateforme.
  *
- * Écran de l'équipe IMAFRIK. Il affiche l'AET DICOM déclaré parce que
- * c'est **la** valeur qui casse en premier : un technicien la modifie
- * côté PACS, les envois cessent d'arriver, et personne ne comprend
- * pourquoi tant qu'on ne compare pas les deux.
+ * Écran de l'équipe IMAFRIK : volumes, état, et les deux gestes du
+ * quotidien — inviter quelqu'un, suspendre ou réactiver.
+ *
+ * L'AE Title d'une clinique n'est pas affiché, seulement le fait qu'elle
+ * soit raccordée : c'est son identifiant secret, et un écran n'a pas à le
+ * montrer. **Le raccordement d'une clinique** — AE Title, certificat
+ * DICOM TLS, paquet d'installation — se fait depuis le poste
+ * d'exploitation (`make clinic`), qui détient les certificats : il n'a pas
+ * sa place dans un navigateur.
  */
 export default async function AdminOrganizationsPage() {
+  await requireSession(["platform_admin"]);
   const organizations = await listOrganizations();
   const clinics = organizations.filter((org) => org.kind === "clinic");
   const groups = organizations.length - clinics.length;
@@ -31,13 +38,7 @@ export default async function AdminOrganizationsPage() {
     <>
       <PageHeader
         title="Organisations"
-        description={`${plural(clinics.length, "clinique", "cliniques")} · ${plural(groups, "cabinet de radiologie", "cabinets de radiologie")}`}
-        actions={
-          <Button size="sm">
-            <Plus />
-            Créer une organisation
-          </Button>
-        }
+        description={`${plural(clinics.length, "clinique", "cliniques")} · ${plural(groups, "groupe de radiologie", "groupes de radiologie")} · raccordement d’une clinique : make clinic`}
       />
 
       <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
@@ -51,8 +52,8 @@ export default async function AdminOrganizationsPage() {
                 <th scope="col" className="w-[16%]">
                   <span className="label-eyebrow">Nature</span>
                 </th>
-                <th scope="col" className="w-[22%]">
-                  <span className="label-eyebrow">AET DICOM</span>
+                <th scope="col" className="w-[14%]">
+                  <span className="label-eyebrow">PACS</span>
                 </th>
                 <th scope="col" className="w-[10%] text-right">
                   <span className="label-eyebrow">Membres</span>
@@ -62,6 +63,9 @@ export default async function AdminOrganizationsPage() {
                 </th>
                 <th scope="col" className="w-[10%] text-right">
                   <span className="label-eyebrow">État</span>
+                </th>
+                <th scope="col" className="w-[14%] text-right">
+                  <span className="sr-only">Actions</span>
                 </th>
               </tr>
             </thead>
@@ -97,14 +101,16 @@ export default async function AdminOrganizationsPage() {
                   </td>
 
                   <td className="text-secondary">
-                    {org.kind === "clinic" ? "Clinique" : "Cabinet"}
+                    {org.kind === "clinic" ? "Clinique" : "Groupe"}
                   </td>
 
-                  <td>
-                    {org.dicomAet ? (
-                      <code className="font-mono text-2xs">{org.dicomAet}</code>
+                  <td className="text-2xs">
+                    {org.kind !== "clinic" ? (
+                      <span className="text-tertiary">—</span>
+                    ) : org.connected ? (
+                      <span className="text-done">Raccordée</span>
                     ) : (
-                      <span className="text-2xs text-tertiary">—</span>
+                      <span className="text-progress">Non raccordée</span>
                     )}
                   </td>
 
@@ -133,6 +139,10 @@ export default async function AdminOrganizationsPage() {
                       />
                       {org.active ? "Active" : "Suspendue"}
                     </span>
+                  </td>
+
+                  <td>
+                    <OrganizationRowActions organization={org} />
                   </td>
                 </tr>
               ))}

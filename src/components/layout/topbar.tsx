@@ -1,44 +1,93 @@
 "use client";
 
-import { Bell, FlaskConical, Moon, Search, Sun } from "lucide-react";
+import { FlaskConical, Moon, Search, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
+import * as React from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+/** Liste où cherche chaque portail : celle que l'utilisateur consulte le plus. */
+const SEARCH_TARGET = {
+  radiologist: "/worklist",
+  clinic_staff: "/examens",
+  platform_admin: "/admin/examens",
+} as const;
+
 /**
- * Déclencheur de la palette de commandes.
+ * Recherche globale.
  *
- * Placé au centre plutôt qu'en bout de barre : c'est le point d'entrée
- * principal d'un outil qu'on pilote au clavier. Il affiche son raccourci,
- * parce qu'une fonction que personne ne découvre n'existe pas.
+ * Elle mène à la liste principale du portail, filtrée : la file de
+ * lecture pour un radiologue, le suivi pour une clinique, tous les
+ * examens pour l'équipe IMAFRIK. La recherche elle-même est faite par le
+ * service, sur le périmètre de l'utilisateur.
+ *
+ * `/` place le curseur dans le champ depuis n'importe quel écran, sauf
+ * quand on écrit déjà ailleurs — dans un compte-rendu, notamment.
  */
-function CommandTrigger() {
+function GlobalSearch() {
+  const router = useRouter();
+  const { active } = useSession();
+  const input = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    const focus = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target?.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "");
+      if (event.key === "/" && !typing) {
+        event.preventDefault();
+        input.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", focus);
+    return () => window.removeEventListener("keydown", focus);
+  }, []);
+
   return (
-    <button
-      type="button"
-      className={cn(
-        "group flex h-8 w-full max-w-md items-center gap-2 rounded-lg px-2.5",
-        "border border-border-subtle bg-surface-base/60 shadow-edge",
-        "text-xs text-tertiary transition-colors duration-100",
-        "hover:border-border-default hover:bg-surface-hover hover:text-secondary",
-      )}
+    <form
+      role="search"
+      className="w-full max-w-md"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const query = input.current?.value.trim() ?? "";
+        const target = SEARCH_TARGET[active.role];
+        router.push(
+          query ? `${target}?q=${encodeURIComponent(query)}` : target,
+        );
+      }}
     >
-      <Search className="size-3.5 shrink-0" aria-hidden />
-      <span className="flex-1 text-left">
-        Rechercher un patient, un examen…
-      </span>
-      <kbd
+      <label
         className={cn(
-          "rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5",
-          "font-sans text-2xs text-tertiary",
+          "group flex h-8 w-full items-center gap-2 rounded-lg px-2.5",
+          "border border-border-subtle bg-surface-base/60 shadow-edge",
+          "text-xs text-tertiary transition-colors duration-100",
+          "focus-within:border-accent hover:border-border-default",
         )}
       >
-        ⌘K
-      </kbd>
-    </button>
+        <Search className="size-3.5 shrink-0" aria-hidden />
+        <span className="sr-only">Rechercher un patient ou un examen</span>
+        <input
+          ref={input}
+          type="search"
+          placeholder="Rechercher un patient, un examen…"
+          className="min-w-0 flex-1 bg-transparent text-primary placeholder:text-tertiary focus:outline-none"
+        />
+        <kbd
+          className={cn(
+            "rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5",
+            "font-sans text-2xs text-tertiary",
+          )}
+          aria-hidden
+        >
+          /
+        </kbd>
+      </label>
+    </form>
   );
 }
 
@@ -88,7 +137,9 @@ function ThemeToggle() {
  * établissement qui verrait de vraies données là où il n'y en a pas —
  * ou l'inverse — perdrait confiance pour de bon.
  *
- * Il disparaît de lui-même dès que Supabase et l'API sont configurés.
+ * Il disparaît de lui-même dès que Supabase et l'API sont tous deux
+ * configurés — la même règle que celle qui fait servir le jeu de
+ * démonstration (`lib/demo/mode.ts`).
  */
 function DemoBadge() {
   const { isDemo } = useSession();
@@ -113,8 +164,8 @@ function DemoBadge() {
  * Barre supérieure.
  *
  * Elle porte ce qui vaut pour toute l'application — recherche globale,
- * notifications, thème — par opposition à l'en-tête de page, qui porte
- * les actions de l'écran courant. Séparer les deux évite qu'un utilisateur
+ * thème, mention de démonstration — par opposition à l'en-tête de page,
+ * qui porte les actions de l'écran courant. Séparer les deux évite qu'un utilisateur
  * cherche une action au mauvais endroit.
  */
 export function Topbar() {
@@ -126,22 +177,10 @@ export function Topbar() {
       )}
     >
       <div className="flex flex-1 justify-center">
-        <CommandTrigger />
+        <GlobalSearch />
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <DemoBadge />
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Notifications"
-          className="relative"
-        >
-          <Bell />
-          <span
-            className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-accent"
-            aria-hidden
-          />
-        </Button>
         <ThemeToggle />
       </div>
     </div>

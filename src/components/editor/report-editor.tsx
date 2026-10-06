@@ -5,8 +5,10 @@ import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Check, CloudOff, Loader2 } from "lucide-react";
+import { AlertTriangle, Check, CloudOff, Loader2 } from "lucide-react";
 import * as React from "react";
+
+import type { AutosaveState } from "@/hooks/use-autosave";
 
 import { FormatToolbar } from "@/components/editor/format-toolbar";
 import { cn } from "@/lib/utils";
@@ -96,8 +98,8 @@ export function missingRequiredSections(sections: ReportSections): string[] {
   ).map((section) => section.title);
 }
 
-/** État de la sauvegarde automatique, tel qu'affiché à l'utilisateur. */
-export type SaveState = "idle" | "saving" | "saved" | "offline";
+/** État de la sauvegarde automatique — voir `useAutosave`. */
+export type SaveState = AutosaveState;
 
 /**
  * Extensions communes à toutes les sections.
@@ -244,10 +246,19 @@ function SaveIndicator({ state }: { state: SaveState }) {
         Enregistré
       </>
     ),
+    // Vrai désormais : la copie de secours est écrite dans le navigateur
+    // à chaque échec, et renvoyée dès que le service répond — voir
+    // `ReportWorkspace`.
     offline: (
       <>
         <CloudOff className="size-3 text-progress" aria-hidden />
-        Hors ligne, conservé sur ce poste
+        Hors ligne — copie gardée sur ce poste
+      </>
+    ),
+    conflict: (
+      <>
+        <AlertTriangle className="size-3 text-urgent" aria-hidden />
+        Modifié dans un autre onglet — rechargez
       </>
     ),
   }[state];

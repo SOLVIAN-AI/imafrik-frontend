@@ -1,21 +1,28 @@
-import type { WorkspaceStudy } from "@/components/editor/report-workspace";
 import type { ReportSections } from "@/components/editor/report-editor";
-import { EMPTY_REPORT_SECTIONS } from "@/components/editor/report-editor";
-import type { WorklistStudy } from "@/components/domain/worklist-table";
+import type { Study } from "@/lib/data/studies";
 
 /**
- * Jeu de démonstration, en attendant le client d'API.
+ * Jeu de démonstration, servi quand l'un des services n'est pas configuré
+ * (voir `lib/demo/mode.ts`) — aperçus et postes de développement.
  *
  * **Aucune donnée réelle.** Les noms, les identifiants et les UID sont
  * fabriqués : la règle du dépôt interdit toute donnée patient hors
  * production, et un jeu de test issu d'un vrai service la violerait même
  * anonymisé — un identifiant de clinique suffit souvent à réidentifier.
  *
- * Ce module sera remplacé par les appels `GET /studies` et
- * `GET /studies/{id}` une fois le client généré depuis l'OpenAPI. Il est
- * isolé ici précisément pour que cette bascule ne touche qu'un fichier.
+ * Il porte exactement la forme de l'interface (`Study`) : la couche de
+ * données le sert tel quel, sans traduction.
  */
-export interface DemoStudy extends WorklistStudy, WorkspaceStudy {}
+export type DemoStudy = Study;
+
+/** Identifiant de l'utilisateur de démonstration — voir `lib/session/demo.ts`. */
+export const DEMO_USER_ID = "demo-user";
+
+/** Organisations de démonstration, par nom. */
+export const DEMO_CLINIC_IDS: Record<string, string> = {
+  "Clinique Saint-Joseph": "org-stj",
+  "Polyclinique de Kara": "org-pka",
+};
 
 const MINUTE = 60_000;
 const now = Date.now();
@@ -31,14 +38,19 @@ export const DEMO_STUDIES: DemoStudy[] = [
     patientId: "STJ-04821",
     modality: "CT",
     bodyPart: "Thorax",
-    description: "TDM thoracique avec injection",
     clinic: "Clinique Saint-Joseph",
+    clinicId: DEMO_CLINIC_IDS["Clinique Saint-Joseph"],
     status: "received",
     urgent: true,
     seriesCount: 4,
     instanceCount: 1284,
+    clinicalInfo: "TDM thoracique avec injection",
     receivedAt: new Date(now - 8 * MINUTE),
     assignedTo: null,
+    assignedToName: null,
+    reportId: null,
+    reportedAt: null,
+    reportedBy: null,
   },
   {
     id: "2",
@@ -47,14 +59,19 @@ export const DEMO_STUDIES: DemoStudy[] = [
     patientId: "STJ-04820",
     modality: "MR",
     bodyPart: "Crâne",
-    description: "IRM encéphalique sans injection",
     clinic: "Clinique Saint-Joseph",
+    clinicId: DEMO_CLINIC_IDS["Clinique Saint-Joseph"],
     status: "in_progress",
     urgent: false,
     seriesCount: 7,
     instanceCount: 642,
+    clinicalInfo: "IRM encéphalique sans injection",
     receivedAt: new Date(now - 47 * MINUTE),
-    assignedTo: "Dr Adjo",
+    assignedTo: DEMO_USER_ID,
+    assignedToName: "Dr Adjo",
+    reportId: null,
+    reportedAt: null,
+    reportedBy: null,
   },
   {
     id: "3",
@@ -63,14 +80,19 @@ export const DEMO_STUDIES: DemoStudy[] = [
     patientId: "PKA-01193",
     modality: "CR",
     bodyPart: "Thorax",
-    description: "Radiographie thoracique de face",
     clinic: "Polyclinique de Kara",
+    clinicId: DEMO_CLINIC_IDS["Polyclinique de Kara"],
     status: "received",
     urgent: false,
     seriesCount: 1,
     instanceCount: 2,
+    clinicalInfo: "Radiographie thoracique de face",
     receivedAt: new Date(now - 320 * MINUTE),
     assignedTo: null,
+    assignedToName: null,
+    reportId: null,
+    reportedAt: null,
+    reportedBy: null,
   },
   {
     id: "4",
@@ -79,14 +101,19 @@ export const DEMO_STUDIES: DemoStudy[] = [
     patientId: "STJ-04815",
     modality: "CT",
     bodyPart: "Abdomen",
-    description: "TDM abdomino-pelvienne",
     clinic: "Clinique Saint-Joseph",
+    clinicId: DEMO_CLINIC_IDS["Clinique Saint-Joseph"],
     status: "reported",
     urgent: false,
     seriesCount: 5,
     instanceCount: 918,
+    clinicalInfo: "TDM abdomino-pelvienne",
     receivedAt: new Date(now - 190 * MINUTE),
-    assignedTo: "Dr Bakari",
+    assignedTo: "demo-bakari",
+    assignedToName: "Dr Bakari",
+    reportId: "r-4815",
+    reportedAt: new Date(now - (190 - 30) * MINUTE),
+    reportedBy: "Dr Ibrahim Bakari",
   },
   {
     id: "5",
@@ -95,14 +122,19 @@ export const DEMO_STUDIES: DemoStudy[] = [
     patientId: "PKA-01190",
     modality: "US",
     bodyPart: "Pelvis",
-    description: "Échographie pelvienne",
     clinic: "Polyclinique de Kara",
+    clinicId: DEMO_CLINIC_IDS["Polyclinique de Kara"],
     status: "assigned",
     urgent: false,
     seriesCount: 1,
     instanceCount: 46,
+    clinicalInfo: "Échographie pelvienne",
     receivedAt: new Date(now - 95 * MINUTE),
-    assignedTo: "Dr Adjo",
+    assignedTo: DEMO_USER_ID,
+    assignedToName: "Dr Adjo",
+    reportId: null,
+    reportedAt: null,
+    reportedBy: null,
   },
   {
     id: "6",
@@ -111,14 +143,19 @@ export const DEMO_STUDIES: DemoStudy[] = [
     patientId: "STJ-04809",
     modality: "CT",
     bodyPart: "Rachis",
-    description: "TDM du rachis lombaire",
     clinic: "Clinique Saint-Joseph",
+    clinicId: DEMO_CLINIC_IDS["Clinique Saint-Joseph"],
     status: "delivered",
     urgent: false,
     seriesCount: 3,
     instanceCount: 1520,
+    clinicalInfo: "TDM du rachis lombaire",
     receivedAt: new Date(now - 1580 * MINUTE),
-    assignedTo: "Dr Bakari",
+    assignedTo: "demo-bakari",
+    assignedToName: "Dr Bakari",
+    reportId: "r-4809",
+    reportedAt: new Date(now - (1580 - 60) * MINUTE),
+    reportedBy: "Dr Ibrahim Bakari",
   },
   {
     id: "7",
@@ -127,26 +164,21 @@ export const DEMO_STUDIES: DemoStudy[] = [
     patientId: "PKA-01188",
     modality: "MR",
     bodyPart: "Genou",
-    description: "IRM du genou droit",
     clinic: "Polyclinique de Kara",
+    clinicId: DEMO_CLINIC_IDS["Polyclinique de Kara"],
     status: "received",
     urgent: true,
     seriesCount: 6,
     instanceCount: 384,
+    clinicalInfo: "IRM du genou droit",
     receivedAt: new Date(now - 21 * MINUTE),
     assignedTo: null,
+    assignedToName: null,
+    reportId: null,
+    reportedAt: null,
+    reportedBy: null,
   },
 ];
-
-/**
- * Retrouve un examen de démonstration.
- *
- * @param id Identifiant d'examen issu de l'URL.
- * @returns L'examen, ou `undefined` si l'identifiant est inconnu.
- */
-export function findDemoStudy(id: string): DemoStudy | undefined {
-  return DEMO_STUDIES.find((study) => study.id === id);
-}
 
 /**
  * Brouillons de démonstration.
@@ -167,11 +199,11 @@ const DEMO_DRAFTS: Record<string, Partial<ReportSections>> = {
 };
 
 /**
- * Contenu initial du compte-rendu d'un examen.
+ * Brouillon de démonstration d'un examen.
  *
  * @param studyId Identifiant d'examen.
- * @returns Les cinq sections, complétées par des chaînes vides.
+ * @returns Les sections déjà rédigées, vide si l'examen n'en a pas.
  */
-export function demoReport(studyId: string): ReportSections {
-  return { ...EMPTY_REPORT_SECTIONS, ...DEMO_DRAFTS[studyId] };
+export function demoDraftSections(studyId: string): Partial<ReportSections> {
+  return DEMO_DRAFTS[studyId] ?? {};
 }

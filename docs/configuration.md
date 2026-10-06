@@ -7,7 +7,7 @@ présence de deux variables d'environnement.
 
 | Mode | Condition | Ce qui change |
 | --- | --- | --- |
-| **Démonstration** | `NEXT_PUBLIC_SUPABASE_*` absentes | Session, examens et comptes-rendus viennent du jeu de démonstration. Aucune authentification. |
+| **Démonstration** | `NEXT_PUBLIC_SUPABASE_*` ou `NEXT_PUBLIC_API_URL` absentes | Session, examens et comptes-rendus viennent du jeu de démonstration. Aucune authentification. |
 | **Réel** | Les deux variables présentes | Session Supabase, cookies `httpOnly`, routes protégées, appartenances lues en base sous les politiques RLS. |
 
 Ce repli est **délibéré et explicite**. Il permet de travailler
@@ -67,17 +67,27 @@ Conséquence pratique : le client Supabase serveur est recréé à chaque
 requête pour lire les cookies de *cette* requête, et ne peut pas être mis
 en cache dans un module.
 
-### L'intergiciel, avant tout rendu
+### Le proxy, avant tout rendu
 
-`middleware.ts` s'exécute avant chaque rendu, pour deux raisons qui ne
-peuvent être traitées ailleurs :
+`src/proxy.ts` (le successeur de `middleware.ts` depuis Next 16)
+s'exécute avant chaque rendu, pour quatre raisons qui ne peuvent être
+traitées ailleurs :
 
-1. **Renouveler le jeton.** Un jeton d'accès expire au bout d'une heure ;
+1. **Refuser une production incomplète** — voir `lib/deployment.ts` et
+   la liste des variables ci-dessus.
+2. **Poser la politique de sécurité du contenu**, avec un nonce propre à
+   chaque requête (`lib/security/csp.ts`).
+3. **Renouveler le jeton.** Un jeton d'accès expire au bout d'une heure ;
    un composant serveur rendu n'a plus le droit d'écrire un cookie de
-   réponse. Sans l'intergiciel, un radiologue verrait sa session tomber
-   en pleine rédaction.
-2. **Refuser l'accès** aux écrans protégés avant que la moindre donnée ne
-   soit lue.
+   réponse. Sans le proxy, un radiologue verrait sa session tomber en
+   pleine rédaction.
+4. **Trier les accès** aux écrans protégés avant que la moindre donnée
+   ne soit lue : un anonyme vers la connexion, un compte sans
+   organisation vers `/en-attente`, chacun vers son portail.
+
+Ce tri, fait sur les claims du jeton, est une première barrière.
+Chaque disposition le refait sur la session relue en base
+(`requireSession`), et les données restent protégées par l'API et RLS.
 
 La liste des adresses publiques est une **liste blanche** : ajouter un
 écran ne peut pas l'exposer par oubli.
@@ -116,9 +126,13 @@ npm run api:types    # régénère src/lib/api/schema.d.ts
 npm run api:check    # échoue si le contrat a changé sans régénération
 ```
 
-`api:check` a sa place dans l'intégration continue : c'est ce qui
-transforme un changement d'API silencieux en échec de build, plutôt qu'en
-écran cassé découvert par un utilisateur.
+`api:check` tourne dans l'intégration continue (le dépôt backend y est
+extrait avec le secret `BACKEND_READ_TOKEN`) : c'est ce qui transforme
+un changement d'API silencieux en échec de build, plutôt qu'en écran
+cassé découvert par un utilisateur. Chaque schéma zod de
+`lib/api/contracts.ts` est en outre comparé, **à la compilation**, au
+type généré correspondant : un champ ajouté d'un côté seulement ne
+compile pas.
 
 ### Validation au passage de la frontière
 

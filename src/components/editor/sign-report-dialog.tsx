@@ -64,10 +64,15 @@ export function SignReportDialog({
     try {
       await onConfirm();
       onOpenChange(false);
-    } catch {
+    } catch (failure) {
+      // Le message vient du service ou de l'écran de lecture, écrit pour
+      // l'utilisateur : il dit *pourquoi* — texte modifié ailleurs,
+      // connexion coupée, examen repris — et donc quoi faire.
       setError(
-        "La signature n’a pas abouti. Le compte-rendu reste un brouillon ; " +
-          "vos modifications sont conservées.",
+        failure instanceof Error && failure.message
+          ? `${failure.message} Le compte-rendu reste un brouillon.`
+          : "La signature n’a pas abouti. Le compte-rendu reste un brouillon ; " +
+              "vos modifications sont conservées.",
       );
     } finally {
       setSigning(false);

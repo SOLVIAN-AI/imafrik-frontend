@@ -7,10 +7,11 @@
  * une page où les deux cohabitent paraît assemblée à la hâte.
  *
  * Le remplacement ne vise que les **chaînes entre guillemets doubles
- * contenant une espace** — donc de la prose. Une classe CSS, un
- * identifiant ou une URL ne contient pas d'apostrophe, et une chaîne
- * sans espace n'est pas une phrase : la règle est volontairement étroite
- * pour ne jamais toucher au code.
+ * contenant une espace** — donc de la prose — et, à l'intérieur, épargne
+ * tout ce qui est entre crochets. Une liste de classes Tailwind contient
+ * des espaces *et* des apostrophes de code dans ses valeurs arbitraires
+ * (`after:content-['']`) : les convertir avait cassé un séparateur de
+ * l'écran de lecture sans la moindre erreur à la compilation.
  *
  * Usage : node tools/typographic-apostrophes.mjs
  */
@@ -25,7 +26,13 @@ for (const file of files) {
 
   const after = before.replace(/"([^"\\\n]*)"/g, (match, content) => {
     if (!content.includes("'") || !content.includes(" ")) return match;
-    return `"${content.replaceAll("'", "’")}"`;
+    // Les segments entre crochets — valeurs arbitraires Tailwind — sont
+    // du code : on ne remplace qu'en dehors d'eux.
+    const typographic = content
+      .split(/(\[[^\]]*\])/)
+      .map((part) => (part.startsWith("[") ? part : part.replaceAll("'", "’")))
+      .join("");
+    return `"${typographic}"`;
   });
 
   if (after !== before) {

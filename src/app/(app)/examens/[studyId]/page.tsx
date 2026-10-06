@@ -1,8 +1,10 @@
-import { Download, ImageOff, PenTool, ShieldCheck } from "lucide-react";
+import { FileText, ImageOff, PenTool } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type * as React from "react";
 
+import { AddendaPanel } from "@/components/domain/addenda-panel";
+import { DownloadPdfButton } from "@/components/domain/download-pdf-button";
 import { ReportDocument } from "@/components/editor/report-document";
 import {
   StudyStatusChip,
@@ -13,10 +15,9 @@ import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { getReportForStudy } from "@/lib/data/reports";
 import { getStudy } from "@/lib/data/studies";
-import { getSession } from "@/lib/session/server";
+import { requireSession } from "@/lib/session/server";
 import { DateTime } from "@/components/domain/date-time";
 import { formatPatientName } from "@/lib/format";
-import type { StudyStatus } from "@/components/domain/study-status";
 
 /**
  * Fiche d'un examen.
@@ -33,41 +34,40 @@ import type { StudyStatus } from "@/components/domain/study-status";
 export default async function StudySheetPage({
   params,
 }: PageProps<"/examens/[studyId]">) {
+  const session = await requireSession(["clinic_staff", "radiologist"]);
   const { studyId } = await params;
 
-  // Les trois lectures sont indépendantes : les enchaîner ferait
-  // attendre l'écran pour rien.
-  const [study, report, session] = await Promise.all([
+  // Les deux lectures sont indépendantes : les enchaîner ferait attendre
+  // l'écran pour rien.
+  const [study, report] = await Promise.all([
     getStudy(studyId),
     getReportForStudy(studyId),
-    getSession(),
   ]);
-
   if (!study) notFound();
 
-  const isRadiologist = session?.active.role === "radiologist";
+  const isRadiologist = session.active.role === "radiologist";
+  // Un brouillon n'est visible que de son auteur, dans l'écran de
+  // lecture ; ici, seul un document signé s'affiche.
+  const signed = report?.status === "signed" ? report : null;
 
   return (
     <>
       <PageHeader
         title={formatPatientName(study.patientName)}
-        description={`${study.patientId} · ${study.modality} ${study.bodyPart ?? ""} · ${study.clinic}`}
+        description={`${study.patientId || "—"} · ${study.modality} ${study.bodyPart ?? ""} · ${study.clinic}`}
         actions={
           <>
             {study.urgent && <UrgentMarker />}
             <StudyStatusChip status={study.status} />
-            {isRadiologist ? (
+            {isRadiologist && !signed ? (
               <Button size="sm" asChild>
                 <Link href={`/lecture/${study.id}`}>
                   <PenTool />
-                  {report ? "Ouvrir" : "Lire et rédiger"}
+                  Lire et rédiger
                 </Link>
               </Button>
             ) : (
-              <Button size="sm" disabled={!report}>
-                <Download />
-                Télécharger le PDF
-              </Button>
+              <DownloadPdfButton reportId={signed?.id ?? null} />
             )}
           </>
         }
@@ -76,7 +76,7 @@ export default async function StudySheetPage({
       <div className="grid min-h-0 flex-1 gap-4 overflow-auto px-6 pb-6 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <ImagesPanel
-            description={study.description}
+            clinicalInfo={study.clinicalInfo}
             seriesCount={study.seriesCount}
             instanceCount={study.instanceCount}
             studyId={study.id}
@@ -84,22 +84,28 @@ export default async function StudySheetPage({
 
           <Panel className="flex flex-col overflow-hidden">
             <PanelTitle>Compte-rendu</PanelTitle>
-            {report ? (
+            {signed ? (
               <>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border-subtle px-4 py-2.5 text-2xs text-tertiary">
                   <span>
                     Signé par{" "}
-                    <span className="text-secondary">{report.signedBy}</span>
+                    <span className="text-secondary">
+                      {[signed.signerTitle, signed.signedBy]
+                        .filter(Boolean)
+                        .join(" ")}
+                    </span>
                   </span>
-                  <span>{report.signerTitle}</span>
-                  {report.signedAt && <DateTime date={report.signedAt} />}
-                  <span className="ml-auto flex items-center gap-1.5 text-done">
-                    <ShieldCheck className="size-3.5" aria-hidden />
-                    <span className="font-mono">{report.verifyToken}</span>
-                  </span>
+                  {signed.signedAt && <DateTime date={signed.signedAt} />}
+                  <Link
+                    href={`/comptes-rendus/${signed.id}`}
+                    className="ml-auto flex items-center gap-1.5 text-accent hover:underline"
+                  >
+                    <FileText className="size-3.5" aria-hidden />
+                    Document complet
+                  </Link>
                 </div>
                 <div className="p-4">
-                  <ReportDocument sections={report.sections} />
+                  <ReportDocument sections={signed.sections} />
                 </div>
               </>
             ) : (
@@ -110,6 +116,14 @@ export default async function StudySheetPage({
               </p>
             )}
           </Panel>
+
+          {signed && (
+            <AddendaPanel
+              reportId={signed.id}
+              addenda={signed.addenda}
+              canAdd={isRadiologist}
+            />
+          )}
         </div>
 
         <div className="flex flex-col gap-4">
@@ -118,11 +132,10 @@ export default async function StudySheetPage({
             <div className="p-4">
               <StudyTimeline
                 status={study.status}
-                dates={timelineDates(
-                  study.status,
-                  study.receivedAt,
-                  report?.signedAt ?? undefined,
-                )}
+                dates={{
+                  received: study.receivedAt,
+                  ...(study.reportedAt ? { reported: study.reportedAt } : {}),
+                }}
               />
             </div>
           </Panel>
@@ -131,7 +144,7 @@ export default async function StudySheetPage({
             <PanelTitle>Informations</PanelTitle>
             <dl className="divide-y divide-border-subtle text-xs">
               <Field label="Établissement" value={study.clinic} />
-              <Field label="Description" value={study.description ?? "—"} />
+              <Field label="Renseignement" value={study.clinicalInfo ?? "—"} />
               <Field
                 label="Séries"
                 value={`${study.seriesCount} · ${study.instanceCount.toLocaleString("fr-FR")} coupes`}
@@ -141,7 +154,9 @@ export default async function StudySheetPage({
               </Field>
               <Field
                 label="Radiologue"
-                value={study.assignedTo ?? "Non attribué"}
+                value={
+                  study.reportedBy ?? study.assignedToName ?? "Non attribué"
+                }
               />
               <Field label="UID d’étude" value={study.studyInstanceUid} mono />
             </dl>
@@ -153,35 +168,6 @@ export default async function StudySheetPage({
 }
 
 /**
- * Horodatages de l'avancement.
- *
- * Reconstitués ici à partir du statut, faute de journal d'événements
- * dans le jeu de démonstration. En production ils viendront de
- * `audit_log`, qui les enregistre déjà : c'est la seule source qui fasse
- * foi en cas de litige sur un délai.
- */
-function timelineDates(
-  status: StudyStatus,
-  receivedAt: Date,
-  signedAt?: Date,
-): Partial<Record<StudyStatus, Date>> {
-  const dates: Partial<Record<StudyStatus, Date>> = { received: receivedAt };
-  if (status === "received") return dates;
-
-  dates.assigned = new Date(receivedAt.getTime() + 12 * 60_000);
-  if (status === "assigned") return dates;
-
-  dates.in_progress = new Date(receivedAt.getTime() + 20 * 60_000);
-  if (status === "in_progress") return dates;
-
-  if (signedAt) dates.reported = signedAt;
-  if (status === "delivered" && signedAt) {
-    dates.delivered = new Date(signedAt.getTime() + 30 * 60_000);
-  }
-  return dates;
-}
-
-/**
  * Volet d'images.
  *
  * Il porte un aperçu, pas un poste de lecture : la consultation par une
@@ -190,12 +176,12 @@ function timelineDates(
  * une image en niveaux de gris ne se juge pas sur un fond clair.
  */
 function ImagesPanel({
-  description,
+  clinicalInfo,
   seriesCount,
   instanceCount,
   studyId,
 }: {
-  description: string | null;
+  clinicalInfo: string | null;
   seriesCount: number;
   instanceCount: number;
   studyId: string;
@@ -212,7 +198,7 @@ function ImagesPanel({
       <div className="flex h-64 flex-col items-center justify-center gap-2 bg-ink-950">
         <ImageOff className="size-5 text-ink-600" aria-hidden />
         <p className="text-xs text-ink-500">
-          {description ?? "Aperçu indisponible"}
+          {clinicalInfo ?? "Aperçu indisponible"}
         </p>
         <Button variant="secondary" size="sm" className="mt-1" asChild>
           <Link href={`/lecture/${studyId}`}>Ouvrir les images</Link>

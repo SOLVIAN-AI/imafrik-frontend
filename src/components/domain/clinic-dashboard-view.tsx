@@ -1,71 +1,63 @@
 "use client";
 
-import { ArrowRight, Download, Upload } from "lucide-react";
+import { ArrowRight, Upload } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
-import { StudyAge } from "@/components/domain/study-age";
-import { StudyStatusChip } from "@/components/domain/study-status";
+import { DateTime } from "@/components/domain/date-time";
+import { DownloadPdfButton } from "@/components/domain/download-pdf-button";
 import {
   METRIC_ICONS,
   MetricGrid,
   type Metric,
 } from "@/components/domain/metrics";
+import { StudyAge } from "@/components/domain/study-age";
+import { StudyStatusChip } from "@/components/domain/study-status";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
-import { Button } from "@/components/ui/button";
 import { useSession } from "@/components/providers/session-provider";
-import type { ReportRow } from "@/components/domain/reports-view";
+import { Button } from "@/components/ui/button";
+import type { Metrics } from "@/lib/data/metrics";
 import type { Study } from "@/lib/data/studies";
-import { DateTime } from "@/components/domain/date-time";
-import { formatPatientName } from "@/lib/format";
+import { formatDuration, formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
  * Mesures du tableau de bord d'une clinique.
  *
  * Elles ne comptent pas la même chose que celles du radiologue. Une
- * clinique ne se demande pas combien d'examens attendent dans le pool :
- * elle se demande ce qu'elle a envoyé, ce qui revient, et si le délai
- * habituel est tenu.
+ * clinique se demande ce qu'elle a envoyé, ce qui revient, et si le délai
+ * habituel est tenu. Toutes viennent du service ; aucune n'est estimée ici.
  */
-function buildMetrics(studies: Study[], readyCount: number): Metric[] {
-  const inReading = studies.filter(
-    (study) => study.status === "assigned" || study.status === "in_progress",
-  );
-
+function buildMetrics(metrics: Metrics): Metric[] {
+  const inReading = metrics.byStatus.assigned + metrics.byStatus.in_progress;
   return [
     {
-      label: "Examens envoyés",
-      value: String(studies.length),
+      label: "Envoyés sur 30 jours",
+      value: String(metrics.receivedLast30Days),
       icon: METRIC_ICONS.sent,
       tone: "neutral",
     },
     {
       label: "En cours de lecture",
-      value: String(inReading.length),
+      value: String(inReading),
       icon: METRIC_ICONS.writing,
       tone: "progress",
     },
     {
       label: "Comptes-rendus prêts",
-      value: String(readyCount),
-      hint: readyCount > 0 ? "à récupérer" : undefined,
+      value: String(metrics.reportsToDownload),
+      hint: metrics.reportsToDownload > 0 ? "à télécharger" : undefined,
       icon: METRIC_ICONS.ready,
-      tone: readyCount > 0 ? "accent" : "neutral",
+      tone: metrics.reportsToDownload > 0 ? "accent" : "neutral",
     },
     {
-      label: "Délai moyen",
-      value: "2 h 10",
+      label: "Délai médian sur 30 jours",
+      value:
+        metrics.medianTurnaroundMinutes === null
+          ? "—"
+          : formatDuration(metrics.medianTurnaroundMinutes),
+      hint: "de la réception à la signature",
       icon: METRIC_ICONS.wait,
       tone: "done",
-      // Un délai qui baisse est une bonne nouvelle : le sens de la
-      // variation ne suffit pas à le dire, il est donc déclaré.
-      trend: {
-        value: "18 %",
-        direction: "down",
-        good: true,
-        label: "par rapport à la semaine dernière",
-      },
     },
   ];
 }
@@ -73,27 +65,28 @@ function buildMetrics(studies: Study[], readyCount: number): Metric[] {
 /**
  * Tableau de bord de la clinique.
  *
- * Il est construit autour d'une seule question : **qu'est-ce qui
- * m'attend ?** D'où l'ordre — d'abord les comptes-rendus prêts, qui
- * appellent une action ; ensuite les examens en cours, qui n'appellent
- * que de la patience ; l'envoi d'un nouvel examen reste accessible en
- * permanence, en tête de la navigation comme ici.
+ * @param recent  Derniers examens envoyés.
+ * @param ready   Comptes-rendus signés pas encore téléchargés.
+ * @param metrics Indicateurs calculés par le service.
  */
 export function ClinicDashboardView({
-  studies,
+  recent,
   ready,
+  metrics,
 }: {
-  studies: Study[];
-  ready: ReportRow[];
+  recent: Study[];
+  ready: Study[];
+  metrics: Metrics;
 }) {
-  const router = useRouter();
   const { active } = useSession();
 
   return (
     <>
       <PageHeader
         title="Tableau de bord"
-        description={`${active.organizationName} · ${active.city}`}
+        description={[active.organizationName, active.city]
+          .filter(Boolean)
+          .join(" · ")}
         actions={
           <Button size="sm" asChild>
             <Link href="/envoyer">
@@ -104,10 +97,7 @@ export function ClinicDashboardView({
         }
       />
 
-      <MetricGrid
-        metrics={buildMetrics(studies, ready.length)}
-        className="px-6 pb-4"
-      />
+      <MetricGrid metrics={buildMetrics(metrics)} className="px-6 pb-4" />
 
       {/* `items-start` : les deux panneaux prennent la hauteur de leur
           contenu. Étirés sur toute la fenêtre, ils laisseraient de larges
@@ -116,7 +106,7 @@ export function ClinicDashboardView({
         {/* Ce qui appelle une action occupe la place principale. */}
         <Panel className="flex flex-col overflow-hidden lg:col-span-2">
           <SectionTitle
-            title="Comptes-rendus prêts"
+            title="Comptes-rendus à télécharger"
             action={{ label: "Tout voir", href: "/comptes-rendus" }}
           />
 
@@ -124,32 +114,31 @@ export function ClinicDashboardView({
             <EmptyRow>Aucun compte-rendu en attente de récupération.</EmptyRow>
           ) : (
             <ul className="divide-y divide-border-subtle">
-              {ready.map(({ report, study }) => (
-                <li key={report.id}>
+              {ready.map((study) => (
+                <li
+                  key={study.id}
+                  className="flex items-center gap-3 px-4 py-3"
+                >
                   <Link
-                    href={`/comptes-rendus/${report.id}`}
-                    className={cn(
-                      "flex items-center gap-3 px-4 py-3",
-                      "transition-colors hover:bg-surface-hover",
-                    )}
+                    href={`/comptes-rendus/${study.reportId}`}
+                    className="min-w-0 flex-1 rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-accent"
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">
-                        {formatPatientName(study.patientName)}
-                      </p>
-                      <p className="truncate text-2xs text-tertiary">
-                        {study.modality} {study.bodyPart} · signé par{" "}
-                        {report.signedBy} ·{" "}
-                        {report.signedAt && <DateTime date={report.signedAt} />}
-                      </p>
-                    </div>
-                    <Button variant="secondary" size="sm" asChild>
-                      <span>
-                        <Download />
-                        PDF
-                      </span>
-                    </Button>
+                    <p className="truncate text-sm font-medium">
+                      {formatPatientName(study.patientName)}
+                    </p>
+                    <p className="truncate text-2xs text-tertiary">
+                      {study.modality}
+                      {study.bodyPart && ` ${study.bodyPart}`} · signé par{" "}
+                      {study.reportedBy ?? "—"}
+                      {study.reportedAt && (
+                        <>
+                          {" · "}
+                          <DateTime date={study.reportedAt} />
+                        </>
+                      )}
+                    </p>
                   </Link>
+                  <DownloadPdfButton reportId={study.reportId} />
                 </li>
               ))}
             </ul>
@@ -163,18 +152,18 @@ export function ClinicDashboardView({
             action={{ label: "Tout voir", href: "/examens" }}
           />
 
-          {studies.length === 0 ? (
+          {recent.length === 0 ? (
             <EmptyRow>Aucun examen envoyé pour le moment.</EmptyRow>
           ) : (
             <ul className="divide-y divide-border-subtle">
-              {studies.slice(0, 5).map((study) => (
+              {recent.map((study) => (
                 <li key={study.id}>
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/examens/${study.id}`)}
+                  <Link
+                    href={`/examens/${study.id}`}
                     className={cn(
                       "flex w-full items-center gap-2 px-4 py-2.5 text-left",
                       "transition-colors hover:bg-surface-hover",
+                      "focus-visible:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
                     )}
                   >
                     <div className="min-w-0 flex-1">
@@ -182,7 +171,8 @@ export function ClinicDashboardView({
                         {formatPatientName(study.patientName)}
                       </p>
                       <p className="truncate text-2xs text-tertiary">
-                        {study.modality} · {study.bodyPart}
+                        {study.modality}
+                        {study.bodyPart && ` · ${study.bodyPart}`}
                       </p>
                     </div>
                     <StudyStatusChip status={study.status} />
@@ -191,7 +181,7 @@ export function ClinicDashboardView({
                       muted={study.status === "delivered"}
                       className="w-10 shrink-0 text-right text-2xs tabular-nums"
                     />
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>

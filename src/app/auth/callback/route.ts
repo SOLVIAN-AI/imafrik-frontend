@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { isDemoMode } from "@/lib/demo/mode";
+import { safeRedirect } from "@/lib/security/redirect";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -20,9 +21,13 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get("code");
-  const suite = searchParams.get("suite") ?? "/worklist";
+  // `suite` vient d'un lien que nous avons nous-mêmes fabriqué, mais il
+  // transite par le courriel : on le traite comme une entrée non fiable.
+  // À défaut, la connexion : le proxy y renvoie un utilisateur connecté
+  // vers l’accueil de son portail.
+  const target = safeRedirect(searchParams.get("suite")) ?? "/connexion";
 
-  if (!isSupabaseConfigured() || !code) {
+  if (isDemoMode() || !code) {
     return NextResponse.redirect(`${origin}/connexion?motif=lien-invalide`);
   }
 
@@ -33,9 +38,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/connexion?motif=lien-expire`);
   }
 
-  // `suite` vient d'un lien que nous avons nous-mêmes fabriqué, mais il
-  // transite par le courriel : on le traite comme une entrée non fiable.
-  const target =
-    suite.startsWith("/") && !suite.startsWith("//") ? suite : "/worklist";
   return NextResponse.redirect(`${origin}${target}`);
 }

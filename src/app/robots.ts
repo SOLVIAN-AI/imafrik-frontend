@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { isApiConfigured } from "@/lib/api/client";
+import { isApiConfigured } from "@/lib/api/config";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 /**

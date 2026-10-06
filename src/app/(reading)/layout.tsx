@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
-
 import { SessionProvider } from "@/components/providers/session-provider";
-import { getSession } from "@/lib/session/server";
+import { requireSession } from "@/lib/session/server";
 
 /**
  * Ossature de l'écran de lecture.
@@ -26,8 +24,7 @@ export default async function ReadingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-  if (!session) redirect("/connexion");
+  const session = await requireSession();
 
   return (
     <SessionProvider session={session}>

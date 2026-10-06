@@ -7,8 +7,30 @@ TypeScript, Tailwind 4. Déployé sur Vercel.
 
 ```bash
 npm install
+cp .env.local.example .env.local   # vide : l'application tourne sur le jeu de démonstration
 npm run dev        # http://localhost:3000
 ```
+
+Renseigner `.env.local` (Supabase, API, viewer, adresse du site) branche
+l'interface sur un backend réel. Voir
+[`docs/configuration.md`](docs/configuration.md) ; une production à
+laquelle manque une variable refuse de servir plutôt que d'afficher des
+données inventées.
+
+## Vérifier
+
+```bash
+npm run format:check && npm run typecheck && npm run lint
+npm test           # tests unitaires (Vitest)
+npm run api:check  # contrat d'API, si le dépôt backend est voisin
+npm run build
+```
+
+L'intégration continue ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
+lance exactement ces commandes. Les tests unitaires couvrent la logique
+pure dont dépend la sécurité : destinations de redirection, accès aux
+écrans par rôle, politique de sécurité du contenu, variables
+obligatoires, contrat d'API.
 
 ## Le système de design en trois principes
 
@@ -68,14 +90,26 @@ illisible pour un daltonien — environ un homme sur douze.
 ```
 src/
 ├── app/               routes (App Router)
-│   ├── (app)/           portail authentifié
+│   ├── (marketing)/     vitrine publique et vérification d'un compte-rendu
+│   ├── (auth)/          connexion, mot de passe
+│   ├── (onboarding)/    mise en service
+│   ├── (app)/           portails clinique, radiologue et administration
+│   ├── (reading)/       écran de lecture
 │   └── globals.css      système de design — source de vérité
+├── proxy.ts           CSP, session, tri des accès — avant tout rendu
 ├── components/
 │   ├── ui/              primitives génériques
-│   ├── domain/          composants métier : statuts, worklist
+│   ├── domain/          composants métier
+│   ├── editor/          rédaction et signature des comptes-rendus
 │   ├── layout/          ossature de l'application
-│   └── providers/       thème, requêtes
-└── lib/                 utilitaires
+│   └── providers/       thème
+├── hooks/
+└── lib/
+    ├── api/             client serveur, contrat zod, types générés
+    ├── data/            lectures (composants serveur)
+    ├── actions/         écritures (actions serveur → ActionResult)
+    ├── session/         session, rôles, démonstration
+    └── security/        CSP, redirections, mots de passe
 ```
 
 ## Contrat d'API

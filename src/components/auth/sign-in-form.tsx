@@ -130,20 +130,12 @@ export function SignInForm({
           </p>
         )}
 
-        <div className="flex items-center justify-between">
-          <label
-            htmlFor="remember"
-            className="flex cursor-pointer items-center gap-2 text-xs text-secondary"
-          >
-            <input
-              id="remember"
-              name="remember"
-              type="checkbox"
-              defaultChecked
-              className="size-3.5 rounded-xs border-border-default accent-[var(--accent)]"
-            />
-            Rester connecté
-          </label>
+        {/* Pas de case « Rester connecté » : la durée de la session est
+            fixée par Supabase, que la bibliothèque de cookies ne laisse pas
+            raccourcir, et une case sans effet serait un mensonge. La
+            protection d'un poste partagé est le verrouillage après
+            inactivité. */}
+        <div className="flex items-center justify-end">
           <Link
             href="/mot-de-passe-oublie"
             className="text-xs text-tertiary transition-colors hover:text-accent"

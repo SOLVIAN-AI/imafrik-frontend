@@ -1,8 +1,6 @@
-import { redirect } from "next/navigation";
-
 import { OnboardingChrome } from "@/components/onboarding/chrome";
 import { SessionProvider } from "@/components/providers/session-provider";
-import { getSession } from "@/lib/session/server";
+import { requireSession } from "@/lib/session/server";
 
 /**
  * Disposition du parcours de mise en service.
@@ -13,8 +11,7 @@ import { getSession } from "@/lib/session/server";
  * situer l'étape.
  */
 export default async function OnboardingLayout({ children }: LayoutProps<"/">) {
-  const session = await getSession();
-  if (!session) redirect("/connexion");
+  const session = await requireSession();
 
   return (
     <SessionProvider session={session}>

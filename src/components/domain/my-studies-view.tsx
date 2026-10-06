@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { WorklistTable } from "@/components/domain/worklist-table";
 import type { Study } from "@/lib/data/studies";
@@ -14,8 +12,6 @@ import type { Study } from "@/lib/data/studies";
  * réapprendre où regarder.
  */
 export function MyStudiesView({ studies }: { studies: Study[] }) {
-  const router = useRouter();
-
   return (
     <>
       <PageHeader
@@ -27,7 +23,11 @@ export function MyStudiesView({ studies }: { studies: Study[] }) {
         <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <WorklistTable
             studies={studies}
-            onOpen={(study) => router.push(`/lecture/${study.id}`)}
+            hrefFor={(study) => `/lecture/${study.id}`}
+            empty={{
+              title: "Aucun examen en cours",
+              detail: "Prenez un examen en charge depuis la file « À lire ».",
+            }}
           />
         </Panel>
       </div>

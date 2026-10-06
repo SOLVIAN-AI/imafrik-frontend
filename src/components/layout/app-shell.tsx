@@ -6,7 +6,7 @@ import * as React from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { useSession } from "@/components/providers/session-provider";
-import { homeFor, isRouteAllowed } from "@/lib/navigation";
+import { homeFor, isRouteAllowed, type NavCounts } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,6 +19,9 @@ import { cn } from "@/lib/utils";
  * La redirection remplace l'entrée d'historique au lieu d'en empiler une :
  * revenir en arrière doit ramener où l'on était *avant* la bascule, pas
  * rejouer une redirection en boucle.
+ *
+ * Ce n'est qu'un confort de navigation : le contrôle d'accès est fait côté
+ * serveur, par le proxy et par chaque page (`requireSession`).
  */
 function useRoleRouting() {
   const { active } = useSession();
@@ -118,12 +121,19 @@ export function Panel({
  * où une page se tromperait, l'utilisateur verrait une navigation qui ne
  * correspond pas à ses droits.
  */
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  counts,
+  children,
+}: {
+  /** Compteurs de navigation ; `null` si le service n'a pas répondu. */
+  counts: NavCounts | null;
+  children: React.ReactNode;
+}) {
   useRoleRouting();
 
   return (
     <div className="flex h-dvh overflow-hidden bg-surface-base">
-      <Sidebar />
+      <Sidebar counts={counts} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
         <main className="flex min-h-0 flex-1 flex-col">{children}</main>

@@ -1,30 +1,56 @@
-import { redirect } from "next/navigation";
-
 import { AppShell } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
-import { getSession } from "@/lib/session/server";
+import { getMetrics } from "@/lib/data/metrics";
+import type { NavCounts } from "@/lib/navigation";
+import { requireSession } from "@/lib/session/server";
 
 /**
- * Disposition commune aux portails clinique et radiologue.
+ * Compteurs de navigation, tirés des indicateurs du service.
  *
- * **La session est résolue ici, une fois, avant tout rendu.** Trois
- * conséquences : aucun écran ne s'affiche à quelqu'un qui n'est pas
- * connecté, le jeton reste dans un cookie que seul le serveur lit, et
- * les composants clients reçoivent une session déjà connue — donc sans
- * l'état « en cours de chargement » qui parsème habituellement ce genre
- * d'application.
+ * Un service momentanément injoignable ne doit pas rendre toute
+ * l'application inutilisable : la navigation s'affiche alors sans
+ * chiffres, et l'écran concerné dit lui-même ce qui ne va pas.
+ */
+async function navCounts(): Promise<NavCounts | null> {
+  try {
+    const metrics = await getMetrics();
+    return {
+      // Même définition que l'indicateur « En attente de lecture » de la file.
+      toRead: metrics.byStatus.received,
+      urgentToRead: metrics.urgentOpen,
+      mine: metrics.assignedToMe,
+      clinicOpen:
+        metrics.byStatus.received +
+        metrics.byStatus.assigned +
+        metrics.byStatus.in_progress,
+      reportsToDownload: metrics.reportsToDownload,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Disposition commune aux portails clinique, radiologue et administration.
  *
- * Un seul châssis pour les deux portails : ce qui les distingue —
- * navigation, écrans, droits — découle du rôle dans l'organisation
- * active.
+ * **La session est résolue ici, une fois, avant tout rendu.** Aucun écran
+ * ne s'affiche à quelqu'un qui n'est pas connecté, le jeton reste dans un
+ * cookie que seul le serveur lit, et les composants clients reçoivent une
+ * session déjà connue — sans état « en cours de chargement ».
+ *
+ * Chaque page vérifie en plus que le rôle actif lui correspond
+ * (`requireSession(roles)`) : une disposition ne connaît pas l'adresse
+ * qu'elle enveloppe, et le proxy, qui la connaît, n'est pas rejoué quand
+ * une action serveur rafraîchit la page après un changement
+ * d'organisation.
  */
 export default async function AppLayout({ children }: LayoutProps<"/">) {
-  const session = await getSession();
-  if (!session) redirect("/connexion");
+  const session = await requireSession();
+  const counts = await navCounts();
 
   return (
     <SessionProvider session={session}>
-      <AppShell>{children}</AppShell>
+      <AppShell counts={counts}>{children}</AppShell>
     </SessionProvider>
   );
 }

@@ -1,4 +1,4 @@
-import { isApiConfigured } from "@/lib/api/client";
+import { isApiConfigured } from "@/lib/api/config";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 /**
@@ -17,14 +17,28 @@ export function isProductionDeployment(): boolean {
   return process.env.VERCEL_ENV === "production";
 }
 
+/** Vrai si la valeur est une adresse absolue exploitable. */
+function isAbsoluteUrl(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    return Boolean(new URL(value).origin);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Variables indispensables à un déploiement de production.
  *
- * **Les trois, pas seulement les deux premières.** Un déploiement muni
- * des seules clés Supabase authentifierait de vrais utilisateurs pour
- * leur présenter ensuite des patients inventés — le pire des deux
- * mondes, et une configuration à moitié faite qui passerait inaperçue
- * jusqu'à ce que quelqu'un cherche un examen qui n'existe pas.
+ * **Toutes, pas seulement les clés Supabase.** Un déploiement muni des
+ * seules clés Supabase authentifierait de vrais utilisateurs pour leur
+ * présenter ensuite des patients inventés — le pire des deux mondes, et
+ * une configuration à moitié faite qui passerait inaperçue jusqu'à ce que
+ * quelqu'un cherche un examen qui n'existe pas. Les deux dernières
+ * échouent plus discrètement encore : sans l'adresse du viewer, la
+ * politique de sécurité du contenu interdit de l'encadrer, et l'écran de
+ * lecture reste vide ; sans l'adresse du site, les liens des courriels
+ * de réinitialisation pointent nulle part.
  */
 const REQUIRED_IN_PRODUCTION = [
   {
@@ -41,6 +55,16 @@ const REQUIRED_IN_PRODUCTION = [
     name: "NEXT_PUBLIC_API_URL",
     purpose: "examens, comptes-rendus et jetons de visualisation",
     present: () => isApiConfigured(),
+  },
+  {
+    name: "NEXT_PUBLIC_VIEWER_URL",
+    purpose: "affichage des images dans l'écran de lecture",
+    present: () => isAbsoluteUrl(process.env.NEXT_PUBLIC_VIEWER_URL),
+  },
+  {
+    name: "NEXT_PUBLIC_SITE_URL",
+    purpose: "liens des courriels et lien de vérification des comptes-rendus",
+    present: () => isAbsoluteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   },
 ] as const;
 

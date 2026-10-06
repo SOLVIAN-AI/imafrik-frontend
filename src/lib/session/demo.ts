@@ -1,3 +1,4 @@
+import { DEMO_USER_ID } from "@/lib/demo/studies";
 import type { Membership, Session } from "@/lib/session/types";
 
 /**
@@ -48,7 +49,7 @@ export function demoSession(activeId?: string): Session {
 
   return {
     user: {
-      id: "demo-user",
+      id: DEMO_USER_ID,
       email: "demo@imafrik.tech",
       fullName: "Dr Adjo Kponton",
       title: "Radiologue",
