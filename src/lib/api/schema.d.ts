@@ -1026,7 +1026,9 @@ export interface paths {
          *     Le droit d'accès est vérifié par RLS : si la ligne ne remonte pas,
          *     l'appelant n'y a pas droit. Le premier téléchargement par la clinique
          *     émettrice marque l'examen ``delivered`` : c'est le moment où le
-         *     compte-rendu l'a effectivement atteinte.
+         *     compte-rendu l'a effectivement atteinte. **Chaque** téléchargement,
+         *     par qui que ce soit, est tracé (``report.downloaded``) : un PDF sorti
+         *     de la plateforme est un accès à des données de santé.
          *
          *     Args:
          *         report_id: Compte-rendu concerné.
