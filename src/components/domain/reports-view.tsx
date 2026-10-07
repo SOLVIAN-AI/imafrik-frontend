@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useSession } from "@/components/providers/session-provider";
 import { DateTime } from "@/components/domain/date-time";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ import { cn } from "@/lib/utils";
  */
 export function ReportsView({ studies }: { studies: Study[] }) {
   const { active } = useSession();
+  const t = useMessages().clinic.reports;
   const [query, setQuery] = React.useState("");
 
   const isClinic = active.role === "clinic_staff";
@@ -47,12 +49,8 @@ export function ReportsView({ studies }: { studies: Study[] }) {
   return (
     <>
       <PageHeader
-        title="Comptes-rendus"
-        description={
-          isClinic
-            ? "Documents signés et transmis à votre établissement"
-            : "Les comptes-rendus que vous avez signés"
-        }
+        title={t.title}
+        description={isClinic ? t.descriptionClinic : t.descriptionRadiologist}
         actions={
           <div className="relative w-64">
             <Search
@@ -62,8 +60,8 @@ export function ReportsView({ studies }: { studies: Study[] }) {
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Patient, identifiant, modalité…"
-              aria-label="Rechercher un compte-rendu"
+              placeholder={t.searchPlaceholder}
+              aria-label={t.searchLabel}
               className="pl-8"
             />
           </div>
@@ -75,12 +73,8 @@ export function ReportsView({ studies }: { studies: Study[] }) {
           {rows.length === 0 ? (
             <EmptyState
               icon={query ? SearchX : FileText}
-              title={query ? "Aucun résultat" : "Aucun compte-rendu"}
-              detail={
-                query
-                  ? "Essayez un autre nom ou un autre identifiant."
-                  : "Les comptes-rendus signés apparaissent ici, avec leur PDF et leur lien de vérification."
-              }
+              title={query ? t.noResult : t.empty}
+              detail={query ? t.noResultDetail : t.emptyDetail}
             />
           ) : (
             <ul className="min-h-0 flex-1 divide-y divide-border-subtle overflow-auto">
@@ -133,8 +127,8 @@ export function ReportsView({ studies }: { studies: Study[] }) {
                         )}
                       >
                         {study.status === "reported"
-                          ? "À télécharger"
-                          : "Téléchargé"}
+                          ? t.toDownload
+                          : t.downloaded}
                       </span>
                     )}
                   </Link>

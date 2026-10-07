@@ -3,8 +3,11 @@ import type { Metadata } from "next";
 import { ReportsView } from "@/components/domain/reports-view";
 import { listStudies } from "@/lib/data/studies";
 import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Comptes-rendus" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.clinic.reports.title };
+}
 
 /**
  * Comptes-rendus signés.

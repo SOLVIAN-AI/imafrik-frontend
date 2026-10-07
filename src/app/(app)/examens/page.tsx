@@ -7,8 +7,11 @@ import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { listStudies } from "@/lib/data/studies";
 import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Examens" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.clinic.studies.title };
+}
 
 /**
  * Tous les examens du périmètre de l'utilisateur.
@@ -27,12 +30,13 @@ export default async function StudiesPage() {
   const search = await readListSearch("examens", session);
   const studies = await listStudies({ search });
   const isClinic = session.active.role === "clinic_staff";
+  const { t } = await getMessages();
 
   return (
     <>
       <PageHeader
-        title="Examens"
-        description={`${studies.length} examen${studies.length > 1 ? "s" : ""} · ${session.active.organizationName}`}
+        title={t.clinic.studies.title}
+        description={`${t.clinic.studies.count(studies.length)} · ${session.active.organizationName}`}
         actions={
           isClinic ? (
             <ClinicStudiesActions search={search} />

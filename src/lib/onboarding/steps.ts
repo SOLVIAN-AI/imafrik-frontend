@@ -1,3 +1,4 @@
+import type { AppMessages } from "@/i18n";
 import type { UserRole } from "@/lib/session/types";
 
 /**
@@ -17,6 +18,9 @@ export interface OnboardingStep {
   optional?: boolean;
 }
 
+/** Étape sans ses textes, qui dépendent de la langue. */
+type StepDefinition = Omit<OnboardingStep, "title" | "lead">;
+
 /**
  * Parcours d'une clinique.
  *
@@ -29,29 +33,12 @@ export interface OnboardingStep {
  * Le raccordement de la passerelle n'est pas une étape : il se fait avec
  * le paquet d'installation remis par IMAFRIK, sur le poste de la clinique.
  */
-const CLINIC_STEPS: OnboardingStep[] = [
-  {
-    slug: "profil",
-    title: "Votre profil",
-    lead: "Votre nom, tel qu’il figurera dans le journal d’accès.",
-  },
-  {
-    slug: "lecture",
-    title: "Qui lit vos examens",
-    lead: "Vos radiologues, ou tous ceux de la plateforme.",
-  },
-  {
-    slug: "premier-envoi",
-    title: "Premier envoi",
-    lead: "Un examen, par la passerelle ou depuis ce navigateur, pour valider la liaison.",
-  },
-  {
-    slug: "equipe",
-    title: "Équipe",
-    lead: "Les personnes qui suivront les examens au quotidien.",
-    optional: true,
-  },
-  { slug: "termine", title: "Terminé", lead: "Votre service est ouvert." },
+const CLINIC_STEPS: StepDefinition[] = [
+  { slug: "profil" },
+  { slug: "lecture" },
+  { slug: "premier-envoi" },
+  { slug: "equipe", optional: true },
+  { slug: "termine" },
 ];
 
 /**
@@ -61,40 +48,41 @@ const CLINIC_STEPS: OnboardingStep[] = [
  * l'emploie : son accès est déjà ouvert. Il ne lui reste qu'à vérifier ce
  * qui sera imprimé sous sa signature.
  */
-const RADIOLOGIST_STEPS: OnboardingStep[] = [
-  {
-    slug: "profil",
-    title: "Votre profil",
-    lead: "Ce qui sera imprimé sous votre signature, sur chaque compte-rendu.",
-  },
-  {
-    slug: "termine",
-    title: "Terminé",
-    lead: "Votre file de lecture vous attend.",
-  },
+const RADIOLOGIST_STEPS: StepDefinition[] = [
+  { slug: "profil" },
+  { slug: "termine" },
 ];
 
 /** Parcours d'un membre de l'équipe IMAFRIK : son profil, rien de plus. */
-const ADMIN_STEPS: OnboardingStep[] = [
-  {
-    slug: "profil",
-    title: "Votre profil",
-    lead: "Votre nom, tel qu’il figurera dans le journal d’audit.",
-  },
-  { slug: "termine", title: "Terminé", lead: "Le back-office vous attend." },
-];
+const ADMIN_STEPS: StepDefinition[] = [{ slug: "profil" }, { slug: "termine" }];
 
-const STEPS_BY_ROLE: Record<UserRole, OnboardingStep[]> = {
-  clinic_staff: CLINIC_STEPS,
-  radiologist: RADIOLOGIST_STEPS,
-  platform_admin: ADMIN_STEPS,
+/** Parcours par rôle, et clé de ses textes dans `onboarding.steps`. */
+const STEPS_BY_ROLE: Record<
+  UserRole,
+  { steps: StepDefinition[]; texts: keyof AppMessages["onboarding"]["steps"] }
+> = {
+  clinic_staff: { steps: CLINIC_STEPS, texts: "clinic" },
+  radiologist: { steps: RADIOLOGIST_STEPS, texts: "radiologist" },
+  platform_admin: { steps: ADMIN_STEPS, texts: "admin" },
 };
 
 /**
- * Étapes correspondant à un rôle.
+ * Étapes correspondant à un rôle, avec leurs textes.
  *
- * @param role Rôle de l'appartenance active.
+ * @param role     Rôle de l'appartenance active.
+ * @param messages Textes du parcours dans la langue de l'utilisateur
+ *                 (`t.onboarding`).
  */
-export function stepsFor(role: UserRole): OnboardingStep[] {
-  return STEPS_BY_ROLE[role];
+export function stepsFor(
+  role: UserRole,
+  messages: AppMessages["onboarding"],
+): OnboardingStep[] {
+  const { steps, texts } = STEPS_BY_ROLE[role];
+  const labels: Partial<Record<string, { title: string; lead: string }>> =
+    messages.steps[texts];
+  return steps.map((step) => {
+    const label = labels[step.slug];
+    if (!label) throw new Error(`Étape sans texte : ${texts}/${step.slug}`);
+    return { ...step, ...label };
+  });
 }

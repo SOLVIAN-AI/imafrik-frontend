@@ -6,8 +6,11 @@ import { StudyUploader } from "@/components/domain/study-uploader";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { listStudies } from "@/lib/data/studies";
 import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Envoyer un examen" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.clinic.send.title };
+}
 
 /**
  * Envoi d'un examen.
@@ -25,18 +28,20 @@ export const metadata: Metadata = { title: "Envoyer un examen" };
 export default async function SendStudyPage() {
   const session = await requireSession(["clinic_staff"]);
   const [latest] = await listStudies({ limit: 1 });
+  const { t } = await getMessages();
+  const messages = t.clinic.send;
 
   return (
     <>
       <PageHeader
-        title="Envoyer un examen"
-        description={`Les images de ${session.active.organizationName} sont chiffrées pendant le transfert`}
+        title={messages.title}
+        description={messages.description(session.active.organizationName)}
       />
 
       <div className="grid min-h-0 flex-1 items-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">
         <Panel className="flex flex-col overflow-hidden lg:col-span-2">
           <h2 className="label-eyebrow flex h-11 shrink-0 items-center border-b border-border-subtle px-4">
-            Dépôt depuis ce navigateur
+            {messages.browserUpload}
           </h2>
           <StudyUploader />
         </Panel>
@@ -44,16 +49,12 @@ export default async function SendStudyPage() {
         <Panel className="flex flex-col overflow-hidden">
           <h2 className="label-eyebrow flex h-11 shrink-0 items-center gap-2 border-b border-border-subtle px-4">
             <Router className="size-3.5" aria-hidden />
-            Passerelle de l’établissement
+            {messages.gateway}
           </h2>
           <div className="flex flex-col gap-3 p-4 text-xs leading-relaxed text-secondary">
+            <p>{messages.gatewayText}</p>
             <p>
-              Si votre établissement est équipé de la passerelle IMAFRIK, vos
-              consoles n’ont rien à faire de plus : chaque examen part
-              automatiquement, chiffré, une minute après la dernière image.
-            </p>
-            <p>
-              <span className="text-tertiary">Dernier examen reçu : </span>
+              <span className="text-tertiary">{messages.lastReceived}</span>
               {latest ? (
                 <DateTime
                   date={latest.receivedAt}
@@ -61,15 +62,14 @@ export default async function SendStudyPage() {
                 />
               ) : (
                 <span className="font-medium text-primary">
-                  aucun pour l’instant
+                  {messages.noneYet}
                 </span>
               )}
             </p>
             <p className="text-tertiary">
-              Un examen envoyé qui n’apparaît pas ? Lancez{" "}
-              <span className="font-mono">verifier.bat</span> sur le poste de la
-              passerelle, puis consultez le guide remis à l’installation
-              (LISEZ-MOI).
+              {messages.troubleshootBefore}{" "}
+              <span className="font-mono">verifier.bat</span>{" "}
+              {messages.troubleshootAfter}
             </p>
           </div>
         </Panel>

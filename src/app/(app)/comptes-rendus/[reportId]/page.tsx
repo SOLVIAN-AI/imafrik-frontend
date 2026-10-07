@@ -10,6 +10,7 @@ import { getReport } from "@/lib/data/reports";
 import { getStudy } from "@/lib/data/studies";
 import { formatPatientName, formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
 /** Adresse publique du site, pour afficher le lien de vérification. */
 const SITE_URL = (
@@ -37,6 +38,7 @@ export default async function ReportPage({
   // Un brouillon ne s'affiche pas ici : il se rédige dans l'écran de lecture.
   if (!report || !study || report.status !== "signed") notFound();
 
+  const messages = (await getMessages()).t.clinic.reports;
   const signer = formatPersonName(report.signerTitle, report.signedBy ?? "");
 
   return (
@@ -51,16 +53,16 @@ export default async function ReportPage({
         <div className="mx-auto max-w-3xl">
           <Panel className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
             <div>
-              <p className="label-eyebrow">Signé par</p>
+              <p className="label-eyebrow">{messages.signedBy}</p>
               <p className="text-sm font-medium">{signer || "—"}</p>
               {report.signerLicense && (
                 <p className="text-2xs text-tertiary">
-                  Ordre n° {report.signerLicense}
+                  {messages.license(report.signerLicense)}
                 </p>
               )}
             </div>
             <div>
-              <p className="label-eyebrow">Date de signature</p>
+              <p className="label-eyebrow">{messages.signatureDate}</p>
               {report.signedAt && (
                 <DateTime date={report.signedAt} className="text-sm" />
               )}
@@ -69,7 +71,7 @@ export default async function ReportPage({
               <div className="ml-auto min-w-0 text-right">
                 <p className="label-eyebrow flex items-center justify-end gap-1.5">
                   <ShieldCheck className="size-3 text-done" aria-hidden />
-                  Vérification publique
+                  {messages.publicVerification}
                 </p>
                 <a
                   href={`/verifier/${report.verifyToken}`}

@@ -10,6 +10,7 @@ import { InviteMemberButton } from "@/components/domain/team-actions";
 import { StepShell } from "@/components/onboarding/step-shell";
 import { useSession } from "@/components/providers/session-provider";
 import { Field, Input } from "@/components/ui/input";
+import { useMessages } from "@/i18n/client";
 import { hasReceivedStudy } from "@/lib/actions/onboarding";
 import { setOpenToPool } from "@/lib/actions/organization";
 import { updateProfile } from "@/lib/actions/profile";
@@ -49,6 +50,7 @@ export function ProfileStep({
   profile,
 }: StepProps) {
   const { active } = useSession();
+  const t = useMessages().onboarding.profile;
   const advance = useAdvance(nextSlug);
   const [pending, startTransition] = React.useTransition();
   const isRadiologist = active.role === "radiologist";
@@ -74,7 +76,7 @@ export function ProfileStep({
         });
       }}
     >
-      <Field id="fullName" label="Nom complet">
+      <Field id="fullName" label={t.fullName}>
         <Input
           id="fullName"
           name="fullName"
@@ -85,12 +87,8 @@ export function ProfileStep({
       </Field>
       <Field
         id="title"
-        label="Titre"
-        hint={
-          isRadiologist
-            ? "Imprimé devant votre nom, par exemple « Dr » ou « Pr »."
-            : "Votre fonction dans l’établissement."
-        }
+        label={t.title}
+        hint={isRadiologist ? t.titleHintRadiologist : t.titleHintStaff}
       >
         <Input
           id="title"
@@ -100,11 +98,7 @@ export function ProfileStep({
         />
       </Field>
       {isRadiologist && (
-        <Field
-          id="licenseNumber"
-          label="Numéro d’ordre"
-          hint="Imprimé sous votre signature."
-        >
+        <Field id="licenseNumber" label={t.license} hint={t.licenseHint}>
           <Input
             id="licenseNumber"
             name="licenseNumber"
@@ -125,6 +119,7 @@ export function ReadingStep({
   nextSlug,
   openToPool,
 }: StepProps) {
+  const t = useMessages().onboarding.reading;
   const advance = useAdvance(nextSlug);
   const [value, setValue] = React.useState(openToPool);
   const [pending, startTransition] = React.useTransition();
@@ -132,15 +127,13 @@ export function ReadingStep({
   const options = [
     {
       value: true,
-      title: "Tous les radiologues de la plateforme",
-      detail:
-        "Vos examens entrent dans la file commune ; le premier radiologue disponible les prend.",
+      title: t.poolTitle,
+      detail: t.poolDetail,
     },
     {
       value: false,
-      title: "Nos radiologues uniquement",
-      detail:
-        "Seuls les radiologues que vous inviterez dans votre équipe verront vos examens.",
+      title: t.ownTitle,
+      detail: t.ownDetail,
     },
   ];
 
@@ -159,7 +152,7 @@ export function ReadingStep({
       }}
     >
       <fieldset className="flex flex-col gap-2">
-        <legend className="sr-only">Qui lit vos examens</legend>
+        <legend className="sr-only">{t.legend}</legend>
         {options.map((option) => (
           <label
             key={option.title}
@@ -186,9 +179,7 @@ export function ReadingStep({
           </label>
         ))}
       </fieldset>
-      <p className="text-xs text-tertiary">
-        Ce réglage se change à tout moment dans les paramètres.
-      </p>
+      <p className="text-xs text-tertiary">{t.note}</p>
     </StepShell>
   );
 }
@@ -206,6 +197,7 @@ const POLL_MS = 10_000;
  * fonctionne ; l'apprendre le jour d'une urgence serait trop tard.
  */
 export function FirstStudyStep({ step, previousSlug, nextSlug }: StepProps) {
+  const t = useMessages().onboarding;
   const advance = useAdvance(nextSlug);
   const [received, setReceived] = React.useState(false);
 
@@ -229,7 +221,7 @@ export function FirstStudyStep({ step, previousSlug, nextSlug }: StepProps) {
     <StepShell
       step={step}
       previousSlug={previousSlug}
-      submitLabel={received ? "Continuer" : "En attente d’un examen…"}
+      submitLabel={received ? t.continue : t.firstStudy.waiting}
       onSubmit={(event) => {
         event.preventDefault();
         if (received) advance();
@@ -250,9 +242,7 @@ export function FirstStudyStep({ step, previousSlug, nextSlug }: StepProps) {
         ) : (
           <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
         )}
-        {received
-          ? "Un examen est arrivé : la liaison fonctionne."
-          : "Envoyez un examen depuis votre console, ou déposez-le ci-dessous. Cet écran se met à jour seul."}
+        {received ? t.firstStudy.received : t.firstStudy.instructions}
       </div>
       {!received && (
         <div className="rounded-xl border border-border-subtle">
@@ -267,6 +257,7 @@ export function FirstStudyStep({ step, previousSlug, nextSlug }: StepProps) {
 export function TeamStep({ step, previousSlug, nextSlug }: StepProps) {
   const advance = useAdvance(nextSlug);
   const { active } = useSession();
+  const t = useMessages().onboarding.team;
 
   return (
     <StepShell
@@ -278,11 +269,7 @@ export function TeamStep({ step, previousSlug, nextSlug }: StepProps) {
       }}
       onSkip={advance}
     >
-      <p className="text-sm text-secondary">
-        Invitez les personnes qui suivront les examens, et les radiologues que
-        vous employez. Chacune reçoit un lien et choisit son propre mot de
-        passe.
-      </p>
+      <p className="text-sm text-secondary">{t.intro}</p>
       <div>
         <InviteMemberButton organizationName={active.organizationName} />
       </div>
@@ -294,6 +281,7 @@ export function TeamStep({ step, previousSlug, nextSlug }: StepProps) {
 export function DoneStep({ step, previousSlug }: StepProps) {
   const advance = useAdvance(undefined);
   const { active } = useSession();
+  const t = useMessages().onboarding.done;
 
   return (
     <StepShell
@@ -301,8 +289,10 @@ export function DoneStep({ step, previousSlug }: StepProps) {
       previousSlug={previousSlug}
       submitLabel={
         active.role === "clinic_staff"
-          ? "Ouvrir le tableau de bord"
-          : "Ouvrir la file de lecture"
+          ? t.openDashboard
+          : active.role === "platform_admin"
+            ? t.openControlTower
+            : t.openWorklist
       }
       onSubmit={(event) => {
         event.preventDefault();
@@ -311,7 +301,7 @@ export function DoneStep({ step, previousSlug }: StepProps) {
     >
       <p className="flex items-center gap-2 text-sm text-done">
         <CheckCircle2 className="size-4" aria-hidden />
-        Tout est en place.
+        {t.ready}
       </p>
     </StepShell>
   );

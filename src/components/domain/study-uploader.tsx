@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
+import { useLocale, useMessages } from "@/i18n/client";
+import type { AppMessages } from "@/i18n";
 import { type UploadGrant, getUploadGrant } from "@/lib/actions/uploads";
 import { formatBytes } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -30,6 +32,9 @@ type ItemState =
   | { kind: "ignored" }
   | { kind: "failed"; reason: string };
 
+/** Textes du dépôt, dans la langue de l'utilisateur. */
+type UploaderMessages = AppMessages["clinic"]["uploader"];
+
 interface UploadItem {
   id: string;
   file: File;
@@ -42,11 +47,17 @@ interface UploadItem {
  * `XMLHttpRequest` plutôt que `fetch` : seul il expose la progression de
  * l'envoi, et sans retour visible un dépôt de deux mille coupes donne
  * l'impression que rien ne se passe.
+ *
+ * @param grant      Jeton et adresse de dépôt.
+ * @param file       Fichier à envoyer.
+ * @param onProgress Appelé à chaque progression, avec la fraction envoyée.
+ * @param messages   Textes du dépôt, pour les motifs d'échec génériques.
  */
 function sendFile(
   grant: UploadGrant,
   file: File,
   onProgress: (fraction: number) => void,
+  messages: UploaderMessages,
 ): Promise<ItemState> {
   return new Promise((resolve) => {
     const request = new XMLHttpRequest();
@@ -77,11 +88,11 @@ function sendFile(
       }
       resolve({
         kind: "failed",
-        reason: detail || `Refusé (${request.status})`,
+        reason: detail || messages.refused(request.status),
       });
     };
     request.onerror = () =>
-      resolve({ kind: "failed", reason: "Connexion interrompue" });
+      resolve({ kind: "failed", reason: messages.connectionLost });
     request.send(body);
   });
 }
@@ -100,6 +111,8 @@ function sendFile(
  */
 export function StudyUploader() {
   const router = useRouter();
+  const t = useMessages().clinic.uploader;
+  const locale = useLocale();
   const [items, setItems] = React.useState<UploadItem[]>([]);
   const [dragging, setDragging] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -144,12 +157,15 @@ export function StudyUploader() {
         const item = queue[next++];
         const active = await currentGrant();
         if (!active) {
-          update(item.id, { kind: "failed", reason: "Dépôt indisponible" });
+          update(item.id, { kind: "failed", reason: t.unavailable });
           continue;
         }
         update(item.id, { kind: "sending", progress: 0 });
-        const outcome = await sendFile(active, item.file, (progress) =>
-          update(item.id, { kind: "sending", progress }),
+        const outcome = await sendFile(
+          active,
+          item.file,
+          (progress) => update(item.id, { kind: "sending", progress }),
+          t,
         );
         update(item.id, outcome);
       }
@@ -196,13 +212,8 @@ export function StudyUploader() {
         )}
       >
         <FileUp className="size-6 text-tertiary" aria-hidden />
-        <p className="text-sm font-medium">
-          Déposez ici les fichiers de l’examen
-        </p>
-        <p className="max-w-sm text-xs text-tertiary">
-          Ou choisissez le dossier entier d’un CD : le sommaire et les fichiers
-          qui ne sont pas des images sont écartés automatiquement.
-        </p>
+        <p className="text-sm font-medium">{t.dropTitle}</p>
+        <p className="max-w-sm text-xs text-tertiary">{t.dropDetail}</p>
         <div className="mt-1 flex gap-2">
           <Button
             variant="secondary"
@@ -211,7 +222,7 @@ export function StudyUploader() {
             onClick={() => filesInput.current?.click()}
           >
             <FileUp />
-            Choisir des fichiers
+            {t.chooseFiles}
           </Button>
           <Button
             variant="secondary"
@@ -220,7 +231,7 @@ export function StudyUploader() {
             onClick={() => folderInput.current?.click()}
           >
             <FolderUp />
-            Choisir un dossier
+            {t.chooseFolder}
           </Button>
         </div>
         <input
@@ -256,14 +267,9 @@ export function StudyUploader() {
       {items.length > 0 && (
         <div>
           <p className="mb-2 text-xs text-secondary" aria-live="polite">
-            {done.length} / {items.length} fichier{items.length > 1 ? "s" : ""}{" "}
-            traité
-            {done.length > 1 ? "s" : ""}
-            {failed.length > 0 &&
-              `, ${failed.length} refusé${failed.length > 1 ? "s" : ""}`}
-            {!running &&
-              done.length > 0 &&
-              ". L’examen apparaîtra dans le suivi d’ici une minute."}
+            {t.progress(done.length, items.length)}
+            {failed.length > 0 && t.rejected(failed.length)}
+            {!running && done.length > 0 && t.finished}
           </p>
           <ul className="max-h-80 divide-y divide-border-subtle overflow-auto rounded-lg border border-border-subtle">
             {items.map((item) => (
@@ -276,10 +282,10 @@ export function StudyUploader() {
                   {item.file.name}
                 </span>
                 <span className="shrink-0 text-tertiary tabular-nums">
-                  {formatBytes(item.file.size)}
+                  {formatBytes(item.file.size, locale)}
                 </span>
                 <span className="w-44 shrink-0 truncate text-right text-tertiary">
-                  {describe(item.state)}
+                  {describe(item.state, t)}
                 </span>
               </li>
             ))}
@@ -290,19 +296,24 @@ export function StudyUploader() {
   );
 }
 
-/** Libellé de l'état d'un fichier. */
-function describe(state: ItemState): string {
+/**
+ * Libellé de l'état d'un fichier.
+ *
+ * @param state    État du fichier.
+ * @param messages Textes du dépôt, dans la langue de l'utilisateur.
+ */
+function describe(state: ItemState, messages: UploaderMessages): string {
   switch (state.kind) {
     case "waiting":
-      return "En attente";
+      return messages.waiting;
     case "sending":
-      return `Envoi… ${Math.round(state.progress * 100)} %`;
+      return messages.sending(Math.round(state.progress * 100));
     case "stored":
-      return "Envoyé";
+      return messages.stored;
     case "duplicate":
-      return "Déjà reçu";
+      return messages.duplicate;
     case "ignored":
-      return "Sommaire du CD, écarté";
+      return messages.ignored;
     case "failed":
       return state.reason;
   }

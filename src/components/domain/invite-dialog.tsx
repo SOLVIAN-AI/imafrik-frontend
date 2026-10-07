@@ -15,8 +15,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, Input, Select } from "@/components/ui/input";
+import { useMessages } from "@/i18n/client";
 import type { ActionResult } from "@/lib/actions/result";
-import { ROLE_LABELS, type UserRole } from "@/lib/session/types";
+import type { UserRole } from "@/lib/session/types";
 
 /** Ce que le formulaire transmet. */
 export interface InviteInput {
@@ -51,6 +52,8 @@ export function InviteDialog({
   onInvite: (input: InviteInput) => Promise<ActionResult<unknown>>;
   trigger?: React.ReactNode;
 }) {
+  const t = useMessages();
+  const messages = t.clinic.invite;
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -70,7 +73,7 @@ export function InviteDialog({
         setError(result.error);
         return;
       }
-      toast.success(`${input.fullName} a été ajouté(e) à ${organizationName}.`);
+      toast.success(messages.added(input.fullName, organizationName));
       setOpen(false);
     });
   };
@@ -87,23 +90,19 @@ export function InviteDialog({
         {trigger ?? (
           <Button size="sm">
             <UserPlus />
-            Inviter
+            {messages.button}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent>
         <form onSubmit={submit}>
           <DialogHeader>
-            <DialogTitle>Inviter dans {organizationName}</DialogTitle>
-            <DialogDescription>
-              La personne reçoit un lien par courriel et choisit elle-même son
-              mot de passe. Si elle utilise déjà IMAFRIK, elle est simplement
-              ajoutée.
-            </DialogDescription>
+            <DialogTitle>{messages.title(organizationName)}</DialogTitle>
+            <DialogDescription>{messages.description}</DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-4 px-5 pb-5">
-            <Field id="invite-name" label="Nom complet">
+            <Field id="invite-name" label={messages.fullName}>
               <Input
                 id="invite-name"
                 name="fullName"
@@ -112,7 +111,7 @@ export function InviteDialog({
                 autoComplete="off"
               />
             </Field>
-            <Field id="invite-email" label="Adresse électronique">
+            <Field id="invite-email" label={messages.email}>
               <Input
                 id="invite-email"
                 name="email"
@@ -122,11 +121,11 @@ export function InviteDialog({
               />
             </Field>
             {roles.length > 1 ? (
-              <Field id="invite-role" label="Rôle">
+              <Field id="invite-role" label={messages.role}>
                 <Select id="invite-role" name="role" defaultValue={roles[0]}>
                   {roles.map((role) => (
                     <option key={role} value={role}>
-                      {ROLE_LABELS[role]}
+                      {t.common.roles[role]}
                     </option>
                   ))}
                 </Select>
@@ -148,10 +147,10 @@ export function InviteDialog({
               size="sm"
               onClick={() => setOpen(false)}
             >
-              Annuler
+              {t.common.actions.cancel}
             </Button>
             <Button type="submit" size="sm" loading={pending}>
-              Envoyer l’invitation
+              {messages.submit}
             </Button>
           </DialogFooter>
         </form>

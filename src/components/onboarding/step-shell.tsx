@@ -5,6 +5,7 @@ import Link from "next/link";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
+import { useMessages } from "@/i18n/client";
 import type { OnboardingStep } from "@/lib/onboarding/steps";
 
 /**
@@ -22,14 +23,15 @@ import type { OnboardingStep } from "@/lib/onboarding/steps";
  *
  * @param step         Étape courante.
  * @param previousSlug Étape précédente, si elle existe.
- * @param submitLabel  Libellé du bouton d'avancement.
+ * @param submitLabel  Libellé du bouton d'avancement ; « Continuer » par
+ *                     défaut, dans la langue de l'utilisateur.
  * @param onSubmit     Déclenché à la validation du formulaire.
  * @param onSkip       Proposé pour une étape facultative.
  */
 export function StepShell({
   step,
   previousSlug,
-  submitLabel = "Continuer",
+  submitLabel,
   submitting = false,
   onSubmit,
   onSkip,
@@ -43,6 +45,7 @@ export function StepShell({
   onSkip?: () => void;
   children: React.ReactNode;
 }) {
+  const t = useMessages();
   return (
     <form
       onSubmit={onSubmit}
@@ -58,7 +61,7 @@ export function StepShell({
           <Button variant="ghost" size="sm" asChild>
             <Link href={`/bienvenue/${previousSlug}`}>
               <ArrowLeft />
-              Retour
+              {t.common.actions.back}
             </Link>
           </Button>
         ) : (
@@ -68,11 +71,11 @@ export function StepShell({
         <div className="ml-auto flex items-center gap-2">
           {step.optional && onSkip && (
             <Button variant="ghost" size="sm" type="button" onClick={onSkip}>
-              Passer cette étape
+              {t.onboarding.skip}
             </Button>
           )}
           <Button type="submit" size="lg" loading={submitting} className="h-10">
-            {submitLabel}
+            {submitLabel ?? t.onboarding.continue}
             <ArrowRight />
           </Button>
         </div>

@@ -13,6 +13,7 @@ import {
 } from "@/lib/actions/result";
 import { type Member, toMember } from "@/lib/data/organization";
 import { isDemoMode } from "@/lib/demo/mode";
+import { getMessages } from "@/i18n/server";
 import type { UserRole } from "@/lib/session/types";
 
 /**
@@ -23,12 +24,37 @@ import type { UserRole } from "@/lib/session/types";
  * ou masque n'y change rien.
  */
 
-/** Champs du formulaire d'invitation, validés avant tout appel. */
+/**
+ * Champs du formulaire d'invitation, validés avant tout appel.
+ *
+ * Sans messages : ceux de zod sont en anglais et techniques. Le premier
+ * champ en défaut est traduit par `invitationError`.
+ */
 const invitationSchema = z.object({
-  email: z.string().trim().email("Adresse invalide"),
-  fullName: z.string().trim().min(1, "Le nom est requis").max(200),
+  email: z.string().trim().email(),
+  fullName: z.string().trim().min(1).max(200),
   role: z.enum(["clinic_staff", "radiologist"]),
 });
+
+/**
+ * Message d'un champ d'invitation refusé, dans la langue de l'utilisateur.
+ *
+ * @param issue Premier défaut relevé par zod.
+ */
+async function invitationError(issue: z.ZodIssue): Promise<string> {
+  const { t } = await getMessages();
+  const messages = t.clinic.team;
+  switch (issue.path[0]) {
+    case "email":
+      return messages.invalidEmail;
+    case "fullName":
+      return issue.code === "too_big"
+        ? messages.nameTooLong
+        : messages.nameRequired;
+    default:
+      return t.common.errors.invalidRequest;
+  }
+}
 
 /** Données d'une invitation, telles que le formulaire les envoie. */
 export interface InvitationInput {
@@ -49,9 +75,16 @@ export async function inviteMember(
 ): Promise<ActionResult<Member>> {
   const parsed = invitationSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message, status: 422 };
+    return {
+      ok: false,
+      error: await invitationError(parsed.error.issues[0]),
+      status: 422,
+    };
   }
-  if (isDemoMode()) return demoUnavailable("L’invitation");
+  if (isDemoMode()) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.clinic.team.inviteDemoAction);
+  }
 
   const result = await run(async () => {
     const row = await apiSend(
@@ -79,7 +112,10 @@ export async function inviteMember(
 export async function removeMember(
   membershipId: string,
 ): Promise<ActionResult> {
-  if (isDemoMode()) return demoUnavailable("Le retrait d’un membre");
+  if (isDemoMode()) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.clinic.team.removeDemoAction);
+  }
   const invalid = await rejectInvalidIds(membershipId);
   if (invalid) return invalid;
   const result = await run(async () => {
@@ -102,7 +138,10 @@ export async function removeMember(
 export async function setOpenToPool(
   openToPool: boolean,
 ): Promise<ActionResult> {
-  if (isDemoMode()) return demoUnavailable("Ce réglage");
+  if (isDemoMode()) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.clinic.team.poolDemoAction);
+  }
   const result = await run(async () => {
     await apiSend(
       "/organization",

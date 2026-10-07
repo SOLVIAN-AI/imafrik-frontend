@@ -10,8 +10,9 @@ import {
   UrgentMarker,
 } from "@/components/domain/study-status";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useLocale, useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
-import { formatPatientName } from "@/lib/format";
+import { formatCount, formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
@@ -41,17 +42,15 @@ export function StudyList({
   filtered?: boolean;
 }) {
   const router = useRouter();
+  const t = useMessages().clinic.studies;
+  const locale = useLocale();
 
   if (studies.length === 0) {
     return (
       <EmptyState
         icon={filtered ? SearchX : Inbox}
-        title={filtered ? "Aucun résultat" : "Aucun examen envoyé"}
-        detail={
-          filtered
-            ? "Modifiez la recherche pour élargir la liste."
-            : "Les examens transmis par votre passerelle ou déposés depuis le navigateur apparaissent ici."
-        }
+        title={filtered ? t.noResult : t.empty}
+        detail={filtered ? t.noResultDetail : t.emptyDetail}
       />
     );
   }
@@ -89,7 +88,7 @@ export function StudyList({
                 {study.reportedAt && (
                   <p className="mt-1 inline-flex items-center gap-1.5 text-2xs font-medium text-done">
                     <FileCheck className="size-3.5" aria-hidden />
-                    Compte-rendu disponible
+                    {t.reportAvailable}
                   </p>
                 )}
               </div>
@@ -110,22 +109,22 @@ export function StudyList({
           <thead className="sticky top-0 z-10">
             <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
               <th scope="col" className="w-[30%]">
-                <span className="label-eyebrow">Patient</span>
+                <span className="label-eyebrow">{t.columns.patient}</span>
               </th>
               <th scope="col" className="w-[18%]">
-                <span className="label-eyebrow">Examen</span>
+                <span className="label-eyebrow">{t.columns.study}</span>
               </th>
               <th scope="col" className="w-[16%]">
-                <span className="label-eyebrow">Statut</span>
+                <span className="label-eyebrow">{t.columns.status}</span>
               </th>
               <th scope="col" className="w-[10%] text-right">
-                <span className="label-eyebrow">Coupes</span>
+                <span className="label-eyebrow">{t.columns.slices}</span>
               </th>
               <th scope="col" className="w-[10%] text-right">
-                <span className="label-eyebrow">Envoyé</span>
+                <span className="label-eyebrow">{t.columns.sent}</span>
               </th>
               <th scope="col" className="w-[16%] text-right">
-                <span className="label-eyebrow">Compte-rendu</span>
+                <span className="label-eyebrow">{t.columns.report}</span>
               </th>
             </tr>
           </thead>
@@ -175,7 +174,7 @@ export function StudyList({
                 </td>
 
                 <td className="text-right text-secondary tabular-nums">
-                  {study.instanceCount.toLocaleString("fr-FR")}
+                  {formatCount(study.instanceCount, locale)}
                 </td>
 
                 <td className="text-right tabular-nums">
@@ -189,10 +188,10 @@ export function StudyList({
                   {study.reportedAt ? (
                     <span className="inline-flex items-center gap-1.5 text-2xs font-medium text-done">
                       <FileCheck className="size-3.5" aria-hidden />
-                      Disponible
+                      {t.available}
                     </span>
                   ) : (
-                    <span className="text-2xs text-tertiary">En attente</span>
+                    <span className="text-2xs text-tertiary">{t.pending}</span>
                   )}
                 </td>
               </tr>

@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useMessages } from "@/i18n/client";
 import { inviteMember, removeMember } from "@/lib/actions/organization";
 
 /**
@@ -53,19 +54,16 @@ export function MemberActions({
   membershipId: string;
   fullName: string;
 }) {
+  const t = useMessages().clinic.team;
   const [pending, startTransition] = React.useTransition();
 
   const remove = () => {
-    if (
-      !window.confirm(
-        `Retirer ${fullName} de l’équipe ? Son accès est coupé immédiatement.`,
-      )
-    ) {
+    if (!window.confirm(t.removeConfirm(fullName))) {
       return;
     }
     startTransition(async () => {
       const result = await removeMember(membershipId);
-      if (result.ok) toast.success(`${fullName} a été retiré(e) de l’équipe.`);
+      if (result.ok) toast.success(t.removed(fullName));
       else toast.error(result.error);
     });
   };
@@ -77,14 +75,14 @@ export function MemberActions({
           variant="ghost"
           size="icon"
           loading={pending}
-          aria-label={`Actions pour ${fullName}`}
+          aria-label={t.actionsFor(fullName)}
         >
           <MoreHorizontal />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem className="text-urgent" onSelect={remove}>
-          Retirer de l’équipe
+          {t.remove}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

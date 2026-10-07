@@ -6,6 +6,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { useMessages } from "@/i18n/client";
 import { getReportPdfLink } from "@/lib/actions/reading";
 
 /**
@@ -27,6 +28,7 @@ export function DownloadPdfButton({
   size?: "sm" | "md";
 }) {
   const router = useRouter();
+  const t = useMessages();
   const [pending, startTransition] = React.useTransition();
 
   return (
@@ -48,7 +50,7 @@ export function DownloadPdfButton({
       }
     >
       <Download />
-      Télécharger le PDF
+      {t.clinic.reports.downloadPdf}
     </Button>
   );
 }

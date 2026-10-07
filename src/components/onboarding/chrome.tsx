@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Wordmark } from "@/components/brand/brand";
 import { Stepper } from "@/components/onboarding/stepper";
 import { useSession } from "@/components/providers/session-provider";
+import { useMessages } from "@/i18n/client";
 import { stepsFor } from "@/lib/onboarding/steps";
 
 /**
@@ -27,7 +28,8 @@ import { stepsFor } from "@/lib/onboarding/steps";
 export function OnboardingChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { active } = useSession();
-  const steps = stepsFor(active.role);
+  const t = useMessages();
+  const steps = stepsFor(active.role, t.onboarding);
 
   const currentIndex = Math.max(
     0,
@@ -59,7 +61,7 @@ export function OnboardingChrome({ children }: { children: React.ReactNode }) {
           className="-mr-2 ml-auto flex min-h-9 min-w-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs text-tertiary transition-colors hover:text-accent"
         >
           <CircleHelp className="size-3.5" aria-hidden />
-          <span className="hidden sm:inline">Besoin d’aide ?</span>
+          <span className="hidden sm:inline">{t.onboarding.help}</span>
         </Link>
       </header>
 

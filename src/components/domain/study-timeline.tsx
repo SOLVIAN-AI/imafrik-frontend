@@ -1,40 +1,12 @@
+"use client";
+
 import { Check, Circle } from "lucide-react";
 
 import { type StudyStatus } from "@/components/domain/study-status";
 import { DateTime } from "@/components/domain/date-time";
+import { useMessages } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { STUDY_STATUSES } from "@/lib/study-status";
-
-/**
- * Ce que chaque étape signifie **pour la clinique**.
- *
- * Le vocabulaire change de côté : `in_progress` se dit « en cours de
- * lecture » à un établissement qui attend, et « en cours » à un
- * radiologue qui rédige. Même donnée, deux points de vue — et c'est le
- * point de vue de celui qui lit l'écran qui doit gagner.
- */
-const STEP_LABELS: Record<StudyStatus, { title: string; detail: string }> = {
-  received: {
-    title: "Examen reçu",
-    detail: "Les images sont arrivées sur la plateforme.",
-  },
-  assigned: {
-    title: "Attribué à un radiologue",
-    detail: "Un médecin a pris l’examen en charge.",
-  },
-  in_progress: {
-    title: "Lecture en cours",
-    detail: "Le compte-rendu est en cours de rédaction.",
-  },
-  reported: {
-    title: "Compte-rendu signé",
-    detail: "Le document est disponible au téléchargement.",
-  },
-  delivered: {
-    title: "Compte-rendu remis",
-    detail: "L’établissement a récupéré le document.",
-  },
-};
 
 /**
  * Avancement d'un examen.
@@ -48,6 +20,11 @@ const STEP_LABELS: Record<StudyStatus, { title: string; detail: string }> = {
  * l'impression que le parcours s'arrête là où il en est, et priverait
  * l'utilisateur de ce qui l'intéresse : ce qui reste à venir.
  *
+ * Le vocabulaire est celui de la clinique (`clinic.timeline`) :
+ * `in_progress` se dit « lecture en cours » à un établissement qui attend,
+ * et « en cours » à un radiologue qui rédige. Même donnée, deux points de
+ * vue ; c'est celui de qui lit l'écran qui doit gagner.
+ *
  * @param status Étape atteinte.
  * @param dates  Horodatages connus, par étape. Les étapes non encore
  *               franchies n'en ont pas.
@@ -59,6 +36,7 @@ export function StudyTimeline({
   status: StudyStatus;
   dates: Partial<Record<StudyStatus, Date>>;
 }) {
+  const labels = useMessages().clinic.timeline;
   const currentIndex = STUDY_STATUSES.indexOf(status);
 
   return (
@@ -114,10 +92,10 @@ export function StudyTimeline({
                   !done && !current && "text-tertiary",
                 )}
               >
-                {STEP_LABELS[step].title}
+                {labels[step].title}
               </p>
               <p className="mt-0.5 text-xs text-tertiary">
-                {date ? <DateTime date={date} /> : STEP_LABELS[step].detail}
+                {date ? <DateTime date={date} /> : labels[step].detail}
               </p>
             </div>
           </li>

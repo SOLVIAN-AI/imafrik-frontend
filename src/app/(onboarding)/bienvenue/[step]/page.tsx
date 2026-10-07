@@ -11,6 +11,7 @@ import {
 } from "@/components/onboarding/onboarding-steps";
 import { getOrganization } from "@/lib/data/organization";
 import { getProfile } from "@/lib/data/profile";
+import { getMessages } from "@/i18n/server";
 import { stepsFor } from "@/lib/onboarding/steps";
 import { requireSession } from "@/lib/session/server";
 
@@ -42,7 +43,8 @@ export default async function OnboardingStepPage({
   const session = await requireSession();
   const { step: slug } = await params;
 
-  const steps = stepsFor(session.active.role);
+  const { t } = await getMessages();
+  const steps = stepsFor(session.active.role, t.onboarding);
   const index = steps.findIndex((candidate) => candidate.slug === slug);
   const Component = STEP_COMPONENTS[slug];
   if (index === -1 || !Component) notFound();

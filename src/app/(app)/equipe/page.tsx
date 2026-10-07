@@ -8,9 +8,11 @@ import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { listMembers } from "@/lib/data/organization";
 import { formatDate, formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
-import { ROLE_LABELS } from "@/lib/session/types";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Équipe" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.clinic.team.title };
+}
 
 /** Initiales d'un nom, pour la pastille. */
 function initials(name: string): string {
@@ -37,12 +39,14 @@ function initials(name: string): string {
 export default async function TeamPage() {
   const session = await requireSession(["clinic_staff"]);
   const members = await listMembers();
+  const { t, locale } = await getMessages();
+  const messages = t.clinic.team;
 
   return (
     <>
       <PageHeader
-        title="Équipe"
-        description={`${members.length} membre${members.length > 1 ? "s" : ""} · ${session.active.organizationName}`}
+        title={messages.title}
+        description={`${messages.count(members.length)} · ${session.active.organizationName}`}
         actions={
           <InviteMemberButton
             organizationName={session.active.organizationName}
@@ -70,7 +74,7 @@ export default async function TeamPage() {
                     {formatPersonName(member.title, member.fullName)}
                     {member.isMe && (
                       <span className="ml-2 text-2xs text-tertiary">
-                        (vous)
+                        {messages.you}
                       </span>
                     )}
                   </p>
@@ -80,16 +84,18 @@ export default async function TeamPage() {
                   {/* Téléphone : rôle et date passent sous le nom, qui
                       sinon se réduisait à son initiale. */}
                   <p className="mt-0.5 truncate text-2xs text-tertiary sm:hidden">
-                    {ROLE_LABELS[member.role]} depuis le{" "}
-                    {formatDate(member.joinedAt)}
+                    {messages.roleSince(
+                      t.common.roles[member.role],
+                      formatDate(member.joinedAt, locale),
+                    )}
                   </p>
                 </div>
 
                 <span className="hidden shrink-0 text-xs text-secondary sm:inline">
-                  {ROLE_LABELS[member.role]}
+                  {t.common.roles[member.role]}
                 </span>
                 <span className="hidden w-36 shrink-0 text-right text-2xs text-tertiary md:inline">
-                  Depuis le {formatDate(member.joinedAt)}
+                  {messages.since(formatDate(member.joinedAt, locale))}
                 </span>
 
                 <div className="w-8 shrink-0">

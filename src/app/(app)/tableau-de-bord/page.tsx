@@ -4,8 +4,11 @@ import { ClinicDashboardView } from "@/components/domain/clinic-dashboard-view";
 import { getMetrics } from "@/lib/data/metrics";
 import { listStudies } from "@/lib/data/studies";
 import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Tableau de bord" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.clinic.dashboard.title };
+}
 
 /**
  * Tableau de bord de la clinique.

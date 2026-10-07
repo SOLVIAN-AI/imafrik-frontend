@@ -18,7 +18,10 @@ import { getReportForStudy } from "@/lib/data/reports";
 import { getStudy, type Study } from "@/lib/data/studies";
 import { requireSession } from "@/lib/session/server";
 import { DateTime } from "@/components/domain/date-time";
-import { formatPatientName, formatPersonName } from "@/lib/format";
+import { formatCount, formatPatientName, formatPersonName } from "@/lib/format";
+import { getMessages } from "@/i18n/server";
+import type { AppMessages } from "@/i18n";
+import type { Locale } from "@/lib/i18n/locale";
 
 /**
  * Fiche d'un examen.
@@ -37,6 +40,8 @@ export default async function StudySheetPage({
 }: PageProps<"/examens/[studyId]">) {
   const session = await requireSession(["clinic_staff", "radiologist"]);
   const { studyId } = await params;
+  const { t, locale } = await getMessages();
+  const messages = t.clinic.study;
 
   // Les deux lectures sont indépendantes : les enchaîner ferait attendre
   // l'écran pour rien.
@@ -64,7 +69,7 @@ export default async function StudySheetPage({
               <Button size="sm" asChild>
                 <Link href={`/lecture/${study.id}`} prefetch={false}>
                   <PenTool />
-                  Lire et rédiger
+                  {messages.readAndWrite}
                 </Link>
               </Button>
             ) : signed ? (
@@ -79,15 +84,20 @@ export default async function StudySheetPage({
           sur un téléphone. */}
       <div className="grid min-h-0 flex-1 grid-cols-1 content-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
-          <ImagesPanel study={study} demo={session.isDemo} />
+          <ImagesPanel
+            study={study}
+            demo={session.isDemo}
+            messages={messages}
+            locale={locale}
+          />
 
           <Panel className="flex flex-col overflow-hidden">
-            <PanelTitle>Compte-rendu</PanelTitle>
+            <PanelTitle>{messages.report}</PanelTitle>
             {signed ? (
               <>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border-subtle px-4 py-2.5 text-2xs text-tertiary">
                   <span>
-                    Signé par{" "}
+                    {messages.signedBy}{" "}
                     <span className="text-secondary">
                       {formatPersonName(
                         signed.signerTitle,
@@ -101,7 +111,7 @@ export default async function StudySheetPage({
                     className="-my-1.5 ml-auto flex items-center gap-1.5 py-1.5 text-accent hover:underline"
                   >
                     <FileText className="size-3.5" aria-hidden />
-                    Document complet
+                    {messages.fullDocument}
                   </Link>
                 </div>
                 <div className="p-4">
@@ -111,8 +121,8 @@ export default async function StudySheetPage({
             ) : (
               <p className="px-4 py-10 text-center text-xs text-tertiary">
                 {study.status === "in_progress"
-                  ? "Le compte-rendu est en cours de rédaction."
-                  : "Le compte-rendu sera disponible dès qu’un radiologue aura signé."}
+                  ? messages.reportInProgress
+                  : messages.reportPending}
               </p>
             )}
           </Panel>
@@ -128,7 +138,7 @@ export default async function StudySheetPage({
 
         <div className="flex min-w-0 flex-col gap-4">
           <Panel className="flex flex-col overflow-hidden">
-            <PanelTitle>Avancement</PanelTitle>
+            <PanelTitle>{messages.progress}</PanelTitle>
             <div className="p-4">
               <StudyTimeline
                 status={study.status}
@@ -141,24 +151,33 @@ export default async function StudySheetPage({
           </Panel>
 
           <Panel className="flex flex-col overflow-hidden">
-            <PanelTitle>Informations</PanelTitle>
+            <PanelTitle>{messages.information}</PanelTitle>
             <dl className="divide-y divide-border-subtle text-xs">
-              <Field label="Établissement" value={study.clinic} />
-              <Field label="Renseignement" value={study.clinicalInfo ?? "—"} />
+              <Field label={messages.facility} value={study.clinic} />
               <Field
-                label="Séries"
-                value={`${study.seriesCount} · ${study.instanceCount.toLocaleString("fr-FR")} coupes`}
+                label={messages.clinicalInfo}
+                value={study.clinicalInfo ?? "—"}
               />
-              <Field label="Reçu le">
+              <Field
+                label={messages.series}
+                value={`${study.seriesCount} · ${messages.slices(study.instanceCount, formatCount(study.instanceCount, locale))}`}
+              />
+              <Field label={messages.receivedAt}>
                 <DateTime date={study.receivedAt} />
               </Field>
               <Field
-                label="Radiologue"
+                label={messages.radiologist}
                 value={
-                  study.reportedBy ?? study.assignedToName ?? "Non attribué"
+                  study.reportedBy ??
+                  study.assignedToName ??
+                  messages.unassigned
                 }
               />
-              <Field label="UID d’étude" value={study.studyInstanceUid} mono />
+              <Field
+                label={messages.studyUid}
+                value={study.studyInstanceUid}
+                mono
+              />
             </dl>
           </Panel>
         </div>
@@ -177,15 +196,33 @@ export default async function StudySheetPage({
  *
  * En démonstration, l'aperçu est la coupe simulée de l'écran de lecture,
  * signalée comme telle.
+ *
+ * @param study    Examen affiché.
+ * @param demo     Mode démonstration : l'aperçu est simulé.
+ * @param messages Textes de la fiche, dans la langue de l'utilisateur.
+ * @param locale   Langue de l'utilisateur, pour le format des nombres.
  */
-function ImagesPanel({ study, demo }: { study: Study; demo: boolean }) {
+function ImagesPanel({
+  study,
+  demo,
+  messages,
+  locale,
+}: {
+  study: Study;
+  demo: boolean;
+  messages: AppMessages["clinic"]["study"];
+  locale: Locale;
+}) {
   return (
     <Panel className="flex flex-col overflow-hidden">
       <PanelTitle>
-        Images
+        {messages.images}
         <span className="ml-auto hidden truncate font-normal text-tertiary normal-case sm:inline">
-          {study.seriesCount} série{study.seriesCount > 1 ? "s" : ""} ·{" "}
-          {study.instanceCount.toLocaleString("fr-FR")} coupes
+          {messages.seriesCount(study.seriesCount)} ·{" "}
+          {messages.slices(
+            study.instanceCount,
+            formatCount(study.instanceCount, locale),
+          )}
         </span>
         {/* Dans l'en-tête, pas sur l'image : posé sur l'aperçu, le bouton
             recouvrait les surimpressions des coins. */}
@@ -197,7 +234,7 @@ function ImagesPanel({ study, demo }: { study: Study; demo: boolean }) {
         >
           <Link href={`/lecture/${study.id}`} prefetch={false}>
             <Maximize2 />
-            Ouvrir les images
+            {messages.openImages}
           </Link>
         </Button>
       </PanelTitle>
@@ -207,9 +244,7 @@ function ImagesPanel({ study, demo }: { study: Study; demo: boolean }) {
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
             <ImageOff className="size-5 text-ink-600" aria-hidden />
-            <p className="text-xs text-ink-500">
-              Les images s’ouvrent dans le viewer, avec un accès tracé.
-            </p>
+            <p className="text-xs text-ink-500">{messages.viewerNote}</p>
           </div>
         )}
       </div>

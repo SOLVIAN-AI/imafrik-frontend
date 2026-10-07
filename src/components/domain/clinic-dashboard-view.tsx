@@ -15,9 +15,12 @@ import { StudyStatusChip } from "@/components/domain/study-status";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
+import { useLocale, useMessages } from "@/i18n/client";
+import type { AppMessages } from "@/i18n";
 import type { Metrics } from "@/lib/data/metrics";
 import type { Study } from "@/lib/data/studies";
 import { formatDuration, formatPatientName } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,36 +29,44 @@ import { cn } from "@/lib/utils";
  * Elles ne comptent pas la même chose que celles du radiologue. Une
  * clinique se demande ce qu'elle a envoyé, ce qui revient, et si le délai
  * habituel est tenu. Toutes viennent du service ; aucune n'est estimée ici.
+ *
+ * @param metrics  Indicateurs calculés par le service.
+ * @param messages Libellés des mesures, dans la langue de l'utilisateur.
+ * @param locale   Langue de l'utilisateur, pour le format des durées.
  */
-function buildMetrics(metrics: Metrics): Metric[] {
+function buildMetrics(
+  metrics: Metrics,
+  messages: AppMessages["clinic"]["dashboard"]["metrics"],
+  locale: Locale,
+): Metric[] {
   const inReading = metrics.byStatus.assigned + metrics.byStatus.in_progress;
   return [
     {
-      label: "Envoyés sur 30 jours",
+      label: messages.sent,
       value: String(metrics.receivedLast30Days),
       icon: METRIC_ICONS.sent,
       tone: "neutral",
     },
     {
-      label: "En cours de lecture",
+      label: messages.inReading,
       value: String(inReading),
       icon: METRIC_ICONS.writing,
       tone: "progress",
     },
     {
-      label: "Comptes-rendus prêts",
+      label: messages.reportsReady,
       value: String(metrics.reportsToDownload),
-      hint: metrics.reportsToDownload > 0 ? "à télécharger" : undefined,
+      hint: metrics.reportsToDownload > 0 ? messages.toDownload : undefined,
       icon: METRIC_ICONS.ready,
       tone: metrics.reportsToDownload > 0 ? "accent" : "neutral",
     },
     {
-      label: "Délai médian sur 30 jours",
+      label: messages.medianTurnaround,
       value:
         metrics.medianTurnaroundMinutes === null
           ? "—"
-          : formatDuration(metrics.medianTurnaroundMinutes),
-      hint: "de la réception à la signature",
+          : formatDuration(metrics.medianTurnaroundMinutes, locale),
+      hint: messages.turnaroundHint,
       icon: METRIC_ICONS.wait,
       tone: "done",
     },
@@ -79,11 +90,14 @@ export function ClinicDashboardView({
   metrics: Metrics;
 }) {
   const { active } = useSession();
+  const t = useMessages();
+  const locale = useLocale();
+  const messages = t.clinic.dashboard;
 
   return (
     <>
       <PageHeader
-        title="Tableau de bord"
+        title={messages.title}
         description={[active.organizationName, active.city]
           .filter(Boolean)
           .join(" · ")}
@@ -91,14 +105,14 @@ export function ClinicDashboardView({
           <Button size="sm" asChild>
             <Link href="/envoyer">
               <Upload />
-              Envoyer un examen
+              {messages.send}
             </Link>
           </Button>
         }
       />
 
       <MetricGrid
-        metrics={buildMetrics(metrics)}
+        metrics={buildMetrics(metrics, messages.metrics, locale)}
         className="px-4 pb-4 sm:px-6"
       />
 
@@ -109,12 +123,12 @@ export function ClinicDashboardView({
         {/* Ce qui appelle une action occupe la place principale. */}
         <Panel className="flex flex-col overflow-hidden lg:col-span-2">
           <SectionTitle
-            title="Comptes-rendus à télécharger"
-            action={{ label: "Tout voir", href: "/comptes-rendus" }}
+            title={messages.readyTitle}
+            action={{ label: t.common.actions.seeAll, href: "/comptes-rendus" }}
           />
 
           {ready.length === 0 ? (
-            <EmptyRow>Aucun compte-rendu en attente de récupération.</EmptyRow>
+            <EmptyRow>{messages.readyEmpty}</EmptyRow>
           ) : (
             <ul className="divide-y divide-border-subtle">
               {ready.map((study) => (
@@ -131,8 +145,8 @@ export function ClinicDashboardView({
                     </p>
                     <p className="truncate text-2xs text-tertiary">
                       {study.modality}
-                      {study.bodyPart && ` ${study.bodyPart}`}, signé par{" "}
-                      {study.reportedBy ?? "—"}
+                      {study.bodyPart && ` ${study.bodyPart}`},{" "}
+                      {messages.signedBy(study.reportedBy ?? "—")}
                       {study.reportedAt && (
                         <>
                           {" · "}
@@ -151,12 +165,12 @@ export function ClinicDashboardView({
         {/* Ce qui n'appelle que de la patience tient dans une colonne. */}
         <Panel className="flex flex-col overflow-hidden">
           <SectionTitle
-            title="Derniers examens envoyés"
-            action={{ label: "Tout voir", href: "/examens" }}
+            title={messages.recentTitle}
+            action={{ label: t.common.actions.seeAll, href: "/examens" }}
           />
 
           {recent.length === 0 ? (
-            <EmptyRow>Aucun examen envoyé pour le moment.</EmptyRow>
+            <EmptyRow>{messages.recentEmpty}</EmptyRow>
           ) : (
             <ul className="divide-y divide-border-subtle">
               {recent.map((study) => (

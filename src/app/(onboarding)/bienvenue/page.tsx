@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { getMessages } from "@/i18n/server";
 import { stepsFor } from "@/lib/onboarding/steps";
 import { requireSession } from "@/lib/session/server";
 
@@ -16,5 +17,6 @@ import { requireSession } from "@/lib/session/server";
  */
 export default async function OnboardingEntryPage() {
   const session = await requireSession();
-  redirect(`/bienvenue/${stepsFor(session.active.role)[0].slug}`);
+  const { t } = await getMessages();
+  redirect(`/bienvenue/${stepsFor(session.active.role, t.onboarding)[0].slug}`);
 }

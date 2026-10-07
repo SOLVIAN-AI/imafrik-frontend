@@ -5,6 +5,7 @@ import { API_URL } from "@/lib/api/config";
 import { uploadTokenSchema } from "@/lib/api/contracts";
 import { type ActionResult, demoUnavailable, run } from "@/lib/actions/result";
 import { isDemoMode } from "@/lib/demo/mode";
+import { getMessages } from "@/i18n/server";
 
 /** Ce dont le navigateur a besoin pour déposer des fichiers. */
 export interface UploadGrant {
@@ -26,7 +27,10 @@ export interface UploadGrant {
  * fait le pont, limité au dépôt, à cette clinique et à trente minutes.
  */
 export async function getUploadGrant(): Promise<ActionResult<UploadGrant>> {
-  if (isDemoMode() || !API_URL) return demoUnavailable("Le dépôt d’examens");
+  if (isDemoMode() || !API_URL) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.clinic.uploader.demoAction);
+  }
   return run(async () => {
     const grant = await apiSend(
       "/uploads/token",
