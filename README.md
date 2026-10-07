@@ -1,4 +1,4 @@
-# IMAFRIK — frontend
+# IMAFRIK : frontend
 
 Interface de la plateforme de téléradiologie. Next.js 16, React 19,
 TypeScript, Tailwind 4. Déployé sur Vercel.
@@ -42,7 +42,7 @@ pour exploiter la plage dynamique de son écran. Une interface claire à
 côté d'une image en niveaux de gris dégrade réellement sa perception : la
 pupille s'adapte au blanc du châssis et l'image perd son contraste
 apparent. Le thème clair existe pour le personnel des cliniques, en
-bureau éclairé — pas comme préférence esthétique.
+bureau éclairé, pas comme préférence esthétique.
 
 **Rien de saturé près de l'image.** Par contraste simultané, une teinte
 vive adjacente à un gris en décale la perception. Le châssis reste neutre
@@ -50,7 +50,7 @@ avec une légère dominante froide, celle d'un moniteur diagnostique
 calibré. L'accent ne colore jamais une surface : il ne marque que
 l'interactif.
 
-**La couleur porte du sens.** Un statut, une teinte, sans recouvrement —
+**La couleur porte du sens.** Un statut, une teinte, sans recouvrement ;
 et le rouge ne dit qu'une chose : urgent. Un bouton de suppression ne
 mérite pas le même signal qu'un examen vital.
 
@@ -68,7 +68,7 @@ Les échelles de gris restent donc perceptuellement régulières.
 ## Conventions
 
 **Les composants consomment des rôles, jamais des couleurs brutes.**
-`bg-surface-raised`, `text-secondary`, `text-urgent` — jamais
+`bg-surface-raised`, `text-secondary`, `text-urgent`, jamais
 `bg-ink-900`. Un composant qui code une teinte en dur ne fonctionne que
 dans un thème.
 
@@ -83,7 +83,7 @@ clavier qu'à la souris, et l'anneau de focus n'est jamais supprimé.
 
 **Deux signaux, jamais un seul.** Les statuts combinent couleur, pastille
 et texte. Une pastille qui ne reposerait que sur la couleur serait
-illisible pour un daltonien — environ un homme sur douze.
+illisible pour un daltonien (environ un homme sur douze).
 
 ## Structure
 

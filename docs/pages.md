@@ -23,7 +23,7 @@ Chaque écran porte une **phase** :
 
 Une seule application Next.js, un seul domaine, une seule
 authentification. Ce que voit l'utilisateur dépend de son **rôle dans
-l'organisation active** — pas d'un sous-domaine ni d'un déploiement
+l'organisation active**, pas d'un sous-domaine ni d'un déploiement
 séparé.
 
 Trois raisons :
@@ -55,7 +55,7 @@ src/app/
 
 ---
 
-## 2. Vitrine publique — `(marketing)`
+## 2. Vitrine publique : `(marketing)`
 
 Aucun compte requis. C'est ce que voit une clinique de Lomé qui découvre
 le produit, et c'est là que se joue la crédibilité d'un service qui
@@ -78,12 +78,12 @@ manipule des données de santé.
 
 > La vitrine vit dans la même application que le produit. Elle partage le
 > système de design, se déploie d'un coup et évite un second dépôt à
-> maintenir. Le coût — un déploiement du produit pour changer un
-> paragraphe d'accueil — est négligeable sur Vercel.
+> maintenir. Le coût (un déploiement du produit pour changer un
+> paragraphe d'accueil) est négligeable sur Vercel.
 
 ---
 
-## 3. Authentification — `(auth)`
+## 3. Authentification : `(auth)`
 
 | Route | Écran | Phase |
 | --- | --- | --- |
@@ -91,7 +91,7 @@ manipule des données de santé.
 | `/mot-de-passe-oublie` | Demande de lien de réinitialisation. | V1 |
 | `/nouveau-mot-de-passe` | Saisie du nouveau mot de passe, après le lien reçu. | V1 |
 | `/rejoindre` | **Candidature d'un radiologue.** Pas une inscription : un dossier, soumis à validation. Voir la décision n° 1. | V2 |
-| `/double-authentification` | **Second facteur** : enrôlement d'une application TOTP (QR code, clé de secours) ou saisie du code. Obligatoire pour radiologues et administration — imposé au jeton, voir AD-8 du dépôt backend. | V1 — fait |
+| `/double-authentification` | **Second facteur** : enrôlement d'une application TOTP (QR code, clé de secours) ou saisie du code. Obligatoire pour radiologues et administration : imposé au jeton (voir AD-8 du dépôt backend). | V1, fait |
 
 | `/en-attente` | Compte valide rattaché à aucune organisation active : candidature en cours d'examen ou organisation suspendue. | V1 |
 
@@ -104,7 +104,7 @@ les jetons de visualisation puis ferme la session.
 
 ---
 
-## 4. Mise en service — `(onboarding)`
+## 4. Mise en service : `(onboarding)`
 
 Une seule coquille, des étapes matérialisées par des segments d'URL :
 l'utilisateur peut revenir en arrière, fermer l'onglet et reprendre au
@@ -116,7 +116,7 @@ travail au premier rechargement.
 | Route | Étape | Phase |
 | --- | --- | --- |
 | `/bienvenue/etablissement` | Raison sociale, adresse, contact médical responsable. | V1 |
-| `/bienvenue/connexion-pacs` | Paramètres d'envoi DICOM : AET, adresse, port, avec les valeurs à recopier dans la console du PACS. L'étape la plus délicate — elle se fait souvent au téléphone avec le technicien. | V1 |
+| `/bienvenue/connexion-pacs` | Paramètres d'envoi DICOM : AET, adresse, port, avec les valeurs à recopier dans la console du PACS. L'étape la plus délicate : elle se fait souvent au téléphone avec le technicien. | V1 |
 | `/bienvenue/premier-envoi` | Attente et confirmation du premier examen reçu. Rien ne rassure autant qu'une image qui arrive. | V1 |
 | `/bienvenue/equipe` | Invitation des collègues. | V2 |
 | `/bienvenue/termine` | Récapitulatif et entrée dans le portail. | V1 |
@@ -135,7 +135,7 @@ travail au premier rechargement.
 
 ---
 
-## 5. Portail clinique — `(app)`
+## 5. Portail clinique : `(app)`
 
 Ce que doit avoir sous la main quelqu'un qui envoie des examens et
 attend des comptes-rendus.
@@ -144,7 +144,7 @@ attend des comptes-rendus.
 | --- | --- | --- |
 | `/tableau-de-bord` | Envoyés aujourd'hui, en cours de lecture, prêts à récupérer, délai moyen. La question du matin. | V1 |
 | `/examens` | Tous les examens envoyés, avec leur état d'avancement. | V1 |
-| `/examens/[id]` | Fiche d'un examen : images en consultation, état, compte-rendu dès qu'il est signé, téléchargement du PDF. Écran partagé — le radiologue y accède aussi, et y trouve le bouton qui ouvre la lecture. | V1 |
+| `/examens/[id]` | Fiche d'un examen : images en consultation, état, compte-rendu dès qu'il est signé, téléchargement du PDF. Écran partagé : le radiologue y accède aussi, et y trouve le bouton qui ouvre la lecture. | V1 |
 | `/envoyer` | Envoi manuel de fichiers DICOM depuis le navigateur, et rappel des paramètres d'envoi automatique. Voir la décision n° 2. | V1 |
 | `/comptes-rendus` | Comptes-rendus reçus, recherche par patient ou par date. | V1 |
 | `/equipe` | Membres, rôles, invitations. | V2 |
@@ -156,7 +156,7 @@ attend des comptes-rendus.
 
 ---
 
-## 6. Portail radiologue — `(app)` et `(reading)`
+## 6. Portail radiologue : `(app)` et `(reading)`
 
 | Route | Écran | Phase |
 | --- | --- | --- |
@@ -174,7 +174,7 @@ attend des comptes-rendus.
 
 ---
 
-## 7. Back-office IMAFRIK — `(admin)`
+## 7. Back-office IMAFRIK : `(admin)`
 
 Réservé à l'équipe IMAFRIK : la tour de contrôle. Aucune donnée de
 patient dans les vues de pilotage (AD-13 du dépôt backend).
@@ -193,7 +193,7 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | `/admin/systeme` | Dépendances, PACS, version, filets de sécurité (sauvegardes, exercices, réconciliation, conservation). | Fait |
 | `/admin/audit` | Journal d'audit, filtré par action, paginé par curseur. | Fait |
 | `/admin/reglages` | Délais promis, bandeau de maintenance. | Fait |
-| `/admin/contrats` | Qui sert qui (`service_contracts`). | V2 — en SQL pour l'instant |
+| `/admin/contrats` | Qui sert qui (`service_contracts`). | V2 (en SQL pour l'instant) |
 
 **13 écrans.**
 
@@ -205,7 +205,7 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | --- | --- | --- |
 | `not-found.tsx` | Page inconnue. | V1 |
 | `error.tsx` | Erreur inattendue, avec un moyen de repartir. | V1 |
-| `forbidden.tsx` | Accès refusé — cas fréquent ici : un examen appartenant à une autre organisation. Le message doit dire quoi faire, pas seulement refuser. | V1 |
+| `forbidden.tsx` | Accès refusé, cas fréquent ici : un examen appartenant à une autre organisation. Le message doit dire quoi faire, pas seulement refuser. | V1 |
 
 **3 écrans.**
 
@@ -226,22 +226,22 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 
 ### Fait
 
-- **Vitrine** — accueil, sécurité, contact, vérification publique d'un
+- **Vitrine** : accueil, sécurité, contact, vérification publique d'un
   compte-rendu, mentions légales, protection des données, conditions
   d'utilisation.
-- **Authentification** — connexion, mot de passe oublié, nouveau mot de
+- **Authentification** : connexion, mot de passe oublié, nouveau mot de
   passe, invitation. Session Supabase en rendu serveur, cookies
   `httpOnly`, intergiciel de protection, retour des liens par courriel.
-- **Mise en service** — les deux parcours complets, état dans l'URL,
+- **Mise en service** : les deux parcours complets, état dans l'URL,
   brouillon persisté, validation par section.
-- **Portail clinique** — tableau de bord, envoi (dépôt manuel et
+- **Portail clinique** : tableau de bord, envoi (dépôt manuel et
   paramètres PACS), suivi des examens, fiche d'examen, comptes-rendus,
   équipe, paramètres.
-- **Portail radiologue** — file de travail, écran de lecture, mes
+- **Portail radiologue** : file de travail, écran de lecture, mes
   examens, comptes-rendus, compte-rendu signé, modèles, paramètres.
-- **Back-office** — organisations, examens toutes organisations
+- **Back-office** : organisations, examens toutes organisations
   confondues.
-- **Système** — 404, 403, erreur.
+- **Système** : 404, 403, erreur.
 
 ### Reste à faire
 
@@ -258,13 +258,13 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 
 À ne pas compter, et surtout à ne pas transformer en page :
 
-- **Les modales** — signature d'un compte-rendu, invitation d'un membre,
+- **Les modales** : signature d'un compte-rendu, invitation d'un membre,
   confirmation de suppression. Elles gardent le contexte visible.
-- **Les panneaux latéraux** — aperçu d'un examen depuis la liste, détail
+- **Les panneaux latéraux** : aperçu d'un examen depuis la liste, détail
   d'une facture.
-- **La palette de commandes** (⌘K) — recherche et navigation, présente
+- **La palette de commandes** (⌘K) : recherche et navigation, présente
   partout.
-- **Les gestionnaires de route** — `/auth/callback` : il redirige, il
+- **Les gestionnaires de route** (`/auth/callback`) : il redirige, il
   n'affiche rien. Le PDF d'un compte-rendu est servi par un lien signé
   de courte durée, obtenu par une action serveur.
 
@@ -297,14 +297,14 @@ ici pour être tranchées explicitement.
 
 ## 12. Ordre de construction proposé
 
-1. **Les deux portails** — clinique et radiologue, avec des données de
+1. **Les deux portails** : clinique et radiologue, avec des données de
    démonstration. C'est là que se juge le produit.
-2. **La mise en service** — les deux parcours, qui décident de la
+2. **La mise en service** : les deux parcours, qui décident de la
    première impression.
-3. **L'authentification** — Supabase en rendu serveur, cookies
+3. **L'authentification** : Supabase en rendu serveur, cookies
    `httpOnly`, protection des routes.
-4. **Le branchement de l'API** — client généré depuis `openapi.json`,
+4. **Le branchement de l'API** : client généré depuis `openapi.json`,
    remplacement du jeu de démonstration.
-5. **La vitrine et les pages légales** — indispensables le jour de la
+5. **La vitrine et les pages légales** : indispensables le jour de la
    mise en ligne, sans valeur avant.
-6. **Le back-office** — le jour où le SQL manuel devient un risque.
+6. **Le back-office** : le jour où le SQL manuel devient un risque.
