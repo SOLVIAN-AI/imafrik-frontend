@@ -1,5 +1,7 @@
 import "server-only";
 
+import { z } from "zod";
+
 import { ApiError } from "@/lib/api/client";
 
 /**
@@ -52,4 +54,30 @@ export function demoUnavailable<T>(what: string): ActionResult<T> {
     error: `${what} n’est pas disponible en démonstration : aucun service n’est branché.`,
     status: 503,
   };
+}
+
+/** Identifiant de ressource : un UUID, comme en base. */
+const resourceId = z.string().uuid();
+
+/**
+ * Refuse un identifiant mal formé avant tout appel au service.
+ *
+ * Une action serveur est un point d'entrée public : ses arguments
+ * viennent du navigateur, quel que soit le typage TypeScript. Le service
+ * revérifie tout, et `encodeURIComponent` empêche déjà de sortir du
+ * chemin — ce contrôle évite d'émettre une requête qu'il refuserait de
+ * toute façon, et garde ses journaux propres.
+ *
+ * À placer **après** la branche de démonstration : les identifiants du
+ * jeu de démonstration ne sont pas des UUID, et rien n'y est à protéger.
+ *
+ * @param ids Identifiants reçus.
+ * @returns Un refus si l'un d'eux n'est pas un UUID, sinon `null`.
+ */
+export function rejectInvalidIds(
+  ...ids: unknown[]
+): { ok: false; error: string; status: number } | null {
+  return ids.every((id) => resourceId.safeParse(id).success)
+    ? null
+    : { ok: false, error: "Identifiant invalide.", status: 422 };
 }

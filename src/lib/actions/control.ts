@@ -10,7 +10,12 @@ import {
   mfaResetSchema,
   platformSettingsSchema,
 } from "@/lib/api/contracts";
-import { type ActionResult, demoUnavailable, run } from "@/lib/actions/result";
+import {
+  type ActionResult,
+  demoUnavailable,
+  run,
+  rejectInvalidIds,
+} from "@/lib/actions/result";
 import { isDemoMode } from "@/lib/demo/mode";
 
 /**
@@ -107,6 +112,8 @@ export async function grantMembership(
   if (isDemoMode()) return demoUnavailable("Le rattachement");
 
   const { profileId, organizationId, role } = parsed.data;
+  const invalid = rejectInvalidIds(profileId);
+  if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(
       `/admin/users/${encodeURIComponent(profileId)}/memberships`,
@@ -139,6 +146,8 @@ export async function trackContactRequest(
   if (isDemoMode()) return demoUnavailable("Le suivi des demandes");
 
   const { requestId, status, notes } = parsed.data;
+  const invalid = rejectInvalidIds(requestId);
+  if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(
       `/admin/contact-requests/${encodeURIComponent(requestId)}`,
@@ -166,10 +175,9 @@ export async function trackContactRequest(
 export async function resetUserMfa(
   profileId: string,
 ): Promise<ActionResult<number>> {
-  if (!profileId) {
-    return { ok: false, error: "Compte invalide", status: 422 };
-  }
   if (isDemoMode()) return demoUnavailable("La réinitialisation");
+  const invalid = rejectInvalidIds(profileId);
+  if (invalid) return invalid;
   const result = await run(async () => {
     const body = await apiSend(
       `/admin/users/${encodeURIComponent(profileId)}/mfa-reset`,
@@ -210,6 +218,8 @@ export async function setClinicRetention(
     return { ok: false, error: parsed.error.issues[0].message, status: 422 };
   }
   if (isDemoMode()) return demoUnavailable("La durée de conservation");
+  const invalid = rejectInvalidIds(parsed.data.clinicId);
+  if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(
       `/admin/clinics/${encodeURIComponent(parsed.data.clinicId)}/retention`,

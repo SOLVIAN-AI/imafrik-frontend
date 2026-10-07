@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import type { ReportSections } from "@/components/editor/report-editor";
+import { REPORT_SECTIONS } from "@/components/editor/sections";
 import { apiGet, apiSend } from "@/lib/api/client";
 import {
   addendumSchema,
@@ -10,7 +11,12 @@ import {
   reportSchema,
   studySchema,
 } from "@/lib/api/contracts";
-import { type ActionResult, demoUnavailable, run } from "@/lib/actions/result";
+import {
+  type ActionResult,
+  demoUnavailable,
+  rejectInvalidIds,
+  run,
+} from "@/lib/actions/result";
 import { isDemoMode } from "@/lib/demo/mode";
 
 /**
@@ -54,6 +60,8 @@ export async function claimStudy(
       data: { studyId, reportId: `draft-${studyId}`, version: 1 },
     };
   }
+  const invalid = rejectInvalidIds(studyId);
+  if (invalid) return invalid;
   const result = await run(async () => {
     const id = encodeURIComponent(studyId);
     await apiSend(`/studies/${id}/claim`, "POST", undefined, studySchema);
@@ -78,6 +86,8 @@ export async function claimStudy(
  */
 export async function releaseStudy(studyId: string): Promise<ActionResult> {
   if (isDemoMode()) return demoUnavailable("Rendre un examen");
+  const invalid = rejectInvalidIds(studyId);
+  if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(
       `/studies/${encodeURIComponent(studyId)}/release`,
@@ -90,6 +100,28 @@ export async function releaseStudy(studyId: string): Promise<ActionResult> {
   revalidatePath("/worklist");
   revalidatePath("/mes-examens");
   return result;
+}
+
+/** Taille maximale d'une section, en caractères de HTML. */
+const SECTION_MAX_LENGTH = 200_000;
+
+/**
+ * Vrai si le brouillon reçu a la forme attendue : les sections connues,
+ * chacune du texte de taille raisonnable, et rien d'autre.
+ *
+ * Le service valide aussi ; ce contrôle évite de lui relayer n'importe
+ * quel objet venu du navigateur.
+ */
+function isSectionsPayload(value: unknown): value is ReportSections {
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return false;
+  const known = new Set<string>(REPORT_SECTIONS.map((section) => section.key));
+  return Object.entries(value).every(
+    ([key, html]) =>
+      known.has(key) &&
+      typeof html === "string" &&
+      html.length <= SECTION_MAX_LENGTH,
+  );
 }
 
 /**
@@ -110,6 +142,11 @@ export async function saveReportDraft(
   expectedVersion: number,
 ): Promise<ActionResult<{ version: number }>> {
   if (isDemoMode()) return { ok: true, data: { version: expectedVersion + 1 } };
+  const invalid = rejectInvalidIds(reportId);
+  if (invalid) return invalid;
+  if (!Number.isInteger(expectedVersion) || !isSectionsPayload(sections)) {
+    return { ok: false, error: "Brouillon invalide.", status: 422 };
+  }
   return run(async () => {
     const saved = await apiSend(
       `/reports/${encodeURIComponent(reportId)}`,
@@ -130,6 +167,8 @@ export async function saveReportDraft(
  */
 export async function signReport(reportId: string): Promise<ActionResult> {
   if (isDemoMode()) return demoUnavailable("La signature");
+  const invalid = rejectInvalidIds(reportId);
+  if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(
       `/reports/${encodeURIComponent(reportId)}/sign`,
@@ -156,6 +195,8 @@ export async function getReportPdfLink(
   reportId: string,
 ): Promise<ActionResult<string>> {
   if (isDemoMode()) return demoUnavailable("Le téléchargement du PDF");
+  const invalid = rejectInvalidIds(reportId);
+  if (invalid) return invalid;
   const result = await run(async () => {
     const link = await apiGet(
       `/reports/${encodeURIComponent(reportId)}/pdf`,
@@ -186,6 +227,8 @@ export async function addAddendum(
   reportId: string,
   body: string,
 ): Promise<ActionResult> {
+  if (typeof body !== "string")
+    return { ok: false, error: "L’addendum est vide.", status: 422 };
   const text = body.trim();
   if (!text) return { ok: false, error: "L’addendum est vide.", status: 422 };
   if (text.length > ADDENDUM_MAX_LENGTH) {
@@ -196,6 +239,8 @@ export async function addAddendum(
     };
   }
   if (isDemoMode()) return demoUnavailable("L’ajout d’un addendum");
+  const invalid = rejectInvalidIds(reportId);
+  if (invalid) return invalid;
 
   const result = await run(async () => {
     await apiSend(

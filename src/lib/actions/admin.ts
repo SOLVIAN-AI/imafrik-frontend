@@ -5,7 +5,12 @@ import { z } from "zod";
 
 import { apiSend } from "@/lib/api/client";
 import { adminOrganizationSchema, memberSchema } from "@/lib/api/contracts";
-import { type ActionResult, demoUnavailable, run } from "@/lib/actions/result";
+import {
+  type ActionResult,
+  demoUnavailable,
+  rejectInvalidIds,
+  run,
+} from "@/lib/actions/result";
 import { isDemoMode } from "@/lib/demo/mode";
 
 /**
@@ -24,6 +29,10 @@ export async function setOrganizationActive(
   active: boolean,
 ): Promise<ActionResult> {
   if (isDemoMode()) return demoUnavailable("La suspension");
+  const invalid = rejectInvalidIds(organizationId);
+  if (invalid) return invalid;
+  if (typeof active !== "boolean")
+    return { ok: false, error: "État invalide.", status: 422 };
   const result = await run(async () => {
     await apiSend(
       `/admin/organizations/${encodeURIComponent(organizationId)}`,

@@ -6,7 +6,12 @@ import { z } from "zod";
 import type { ReportSections } from "@/components/editor/report-editor";
 import { apiSend } from "@/lib/api/client";
 import { templateSchema } from "@/lib/api/contracts";
-import { type ActionResult, demoUnavailable, run } from "@/lib/actions/result";
+import {
+  type ActionResult,
+  demoUnavailable,
+  run,
+  rejectInvalidIds,
+} from "@/lib/actions/result";
 import { isDemoMode } from "@/lib/demo/mode";
 
 /**
@@ -65,6 +70,8 @@ export async function deleteTemplate(
   templateId: string,
 ): Promise<ActionResult> {
   if (isDemoMode()) return demoUnavailable("La suppression d’un modèle");
+  const invalid = rejectInvalidIds(templateId);
+  if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(`/templates/${encodeURIComponent(templateId)}`, "DELETE");
     return undefined;

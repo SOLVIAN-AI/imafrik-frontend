@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { components } from "@/lib/api/schema";
+import { isSafeBrowserUrl } from "@/lib/security/urls";
 
 /**
  * Le contrat avec l'API, vérifié deux fois.
@@ -36,6 +37,12 @@ type Matches<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 
 const uuid = z.string().uuid();
 const isoDate = z.string();
+
+/** Adresse que le navigateur ouvrira : `https`, jamais `javascript:` — voir `lib/security/urls.ts`. */
+const browserUrl = z
+  .string()
+  .url()
+  .refine(isSafeBrowserUrl, "Adresse non sûre renvoyée par le service");
 
 export const studyStatusSchema = z.enum([
   "received",
@@ -119,7 +126,7 @@ const _report: Matches<z.input<typeof reportSchema>, Schemas["Report"]> = true;
 
 export const viewerTokenSchema = z.object({
   token: z.string(),
-  viewer_url: z.string().url(),
+  viewer_url: browserUrl,
   expires_in: z.number().int(),
 });
 const _viewer: Matches<
@@ -128,7 +135,7 @@ const _viewer: Matches<
 > = true;
 
 export const pdfLinkSchema = z.object({
-  url: z.string().url(),
+  url: browserUrl,
   expires_in: z.number().int(),
 });
 const _pdf: Matches<z.input<typeof pdfLinkSchema>, Schemas["PdfLink"]> = true;

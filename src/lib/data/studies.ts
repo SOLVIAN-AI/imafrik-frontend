@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/contracts";
 import { isDemoMode } from "@/lib/demo/mode";
 import { DEMO_STUDIES, DEMO_USER_ID } from "@/lib/demo/studies";
+import { isConfiguredViewer } from "@/lib/security/urls";
 import { getSession } from "@/lib/session/server";
 
 /**
@@ -199,7 +200,15 @@ export async function getViewerUrl(studyId: string): Promise<string | null> {
         method: "POST",
       },
     );
-    return viewerTokenSchema.parse(await response.json()).viewer_url;
+    const url = viewerTokenSchema.parse(await response.json()).viewer_url;
+    if (!isConfiguredViewer(url, process.env.NEXT_PUBLIC_VIEWER_URL)) {
+      // Le jeton ne part pas vers une origine que la CSP refuserait.
+      console.error(
+        "Viewer renvoyé par le service hors de l'origine configurée",
+      );
+      return null;
+    }
+    return url;
   } catch (error) {
     // 409 : images archivées au terme de la conservation contractuelle —
     // un état connu, affiché comme tel, pas une panne à journaliser.

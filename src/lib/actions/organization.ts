@@ -5,7 +5,12 @@ import { z } from "zod";
 
 import { apiSend } from "@/lib/api/client";
 import { memberSchema, organizationSchema } from "@/lib/api/contracts";
-import { type ActionResult, demoUnavailable, run } from "@/lib/actions/result";
+import {
+  type ActionResult,
+  demoUnavailable,
+  run,
+  rejectInvalidIds,
+} from "@/lib/actions/result";
 import { type Member, toMember } from "@/lib/data/organization";
 import { isDemoMode } from "@/lib/demo/mode";
 import type { UserRole } from "@/lib/session/types";
@@ -75,6 +80,8 @@ export async function removeMember(
   membershipId: string,
 ): Promise<ActionResult> {
   if (isDemoMode()) return demoUnavailable("Le retrait d’un membre");
+  const invalid = rejectInvalidIds(membershipId);
+  if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(
       `/organization/members/${encodeURIComponent(membershipId)}`,
