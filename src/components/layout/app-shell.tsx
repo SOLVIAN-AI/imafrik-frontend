@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
 import { Sidebar } from "@/components/layout/sidebar";
+import { InactivityLock } from "@/components/session/inactivity-lock";
 import { Topbar } from "@/components/layout/topbar";
 import { useSession } from "@/components/providers/session-provider";
 import { homeFor, isRouteAllowed, type NavCounts } from "@/lib/navigation";
@@ -138,6 +139,7 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   useRoleRouting();
+  const { isDemo } = useSession();
 
   return (
     <div className="flex h-dvh overflow-hidden bg-surface-base">
@@ -147,6 +149,8 @@ export function AppShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar counts={counts} />
         {banner && <MaintenanceBanner message={banner} />}
+        {/* Démonstration : aucune session réelle à fermer. */}
+        {!isDemo && <InactivityLock />}
         <main className="flex min-h-0 flex-1 flex-col">{children}</main>
       </div>
     </div>

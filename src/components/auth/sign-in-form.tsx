@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, ArrowRight, Eye, EyeOff, Lock } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
@@ -50,6 +50,11 @@ export function SignInForm({
       : motif === "lien-invalide"
         ? "Ce lien n’est pas valide. Demandez-en un nouveau."
         : null);
+  // Pas une erreur : une information, présentée comme telle.
+  const notice =
+    motif === "inactivite" && !state.error
+      ? "Session fermée après une période d’inactivité, pour protéger les examens. Vos comptes-rendus sont enregistrés."
+      : null;
 
   return (
     <div className="w-full max-w-sm animate-[rise-in_400ms_var(--ease-out-quart)]">
@@ -116,6 +121,16 @@ export function SignInForm({
             </button>
           </div>
         </Field>
+
+        {notice && (
+          <p
+            role="status"
+            className="flex items-start gap-2 rounded-lg bg-accent-muted px-3 py-2.5 text-xs"
+          >
+            <Lock className="mt-px size-3.5 shrink-0 text-accent" aria-hidden />
+            {notice}
+          </p>
+        )}
 
         {error && (
           <p
