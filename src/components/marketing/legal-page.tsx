@@ -51,6 +51,9 @@ export function LegalPage({
           "[&_li]:list-disc",
           "[&_strong]:font-medium [&_strong]:text-primary",
           "[&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2",
+          // Jamais de césure dans un lien : « contact@ima-frik.tech »,
+          // recopié tel quel, n'arriverait nulle part.
+          "[&_a]:[hyphens:none]",
         ].join(" ")}
       >
         {children}

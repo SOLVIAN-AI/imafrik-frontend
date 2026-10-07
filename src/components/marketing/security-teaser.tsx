@@ -22,7 +22,7 @@ const GUARANTEES = [
     icon: FileLock2,
     title: "Rien en clair sur Internet",
     detail:
-      "Les images sortent chiffrées de la passerelle et le restent au stockage. Aucun port d’imagerie n’est exposé sur Internet.",
+      "Les images voyagent chiffrées de la passerelle jusqu’à nos serveurs, dans un réseau privé, et le restent au stockage.",
   },
   {
     icon: KeyRound,
@@ -40,7 +40,7 @@ const GUARANTEES = [
     icon: ServerCog,
     title: "Hébergement européen",
     detail:
-      "Stockage dans l’Union européenne. Durée de conservation et suppression fixées au contrat.",
+      "Stockage dans l’Union européenne. Durée de conservation fixée au contrat, export complet sur simple demande.",
   },
 ] as const;
 

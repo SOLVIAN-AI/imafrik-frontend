@@ -1,4 +1,11 @@
 import { LegalPage, legalMetadata } from "@/components/marketing/legal-page";
+import {
+  AUTHORITIES,
+  LEGAL_UPDATED_AT,
+  PUBLISHER,
+  RETENTION,
+  SUBPROCESSORS,
+} from "@/lib/legal";
 
 export const metadata = legalMetadata(
   "Protection des données",
@@ -19,16 +26,18 @@ export const metadata = legalMetadata(
  */
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Protection des données" updatedAt="18 août 2026">
+    <LegalPage title="Protection des données" updatedAt={LEGAL_UPDATED_AT}>
       <p>
         Ce document décrit la manière dont IMAFRIK traite les données
-        personnelles. Il distingue deux situations aux régimes différents.
+        personnelles. Il distingue trois situations aux régimes différents : les
+        professionnels qui utilisent le service, les patients dont les examens
+        sont transmis, et les personnes qui nous écrivent depuis le site.
       </p>
 
       <h2>1. Données des professionnels utilisateurs</h2>
       <p>
         Pour ces données,{" "}
-        <strong>SOLVIAN AI LLC est responsable de traitement</strong>.
+        <strong>{PUBLISHER.name} est responsable de traitement</strong>.
       </p>
       <h3>Données traitées</h3>
       <ul>
@@ -37,6 +46,10 @@ export default function PrivacyPage() {
         <li>Données de compte : mot de passe chiffré, organisation, rôle</li>
         <li>
           Données d’usage : journal des connexions et des accès aux examens
+        </li>
+        <li>
+          Facteur de double authentification : obligatoire pour les radiologues
+          et l’équipe IMAFRIK, facultatif pour les établissements
         </li>
       </ul>
       <h3>Finalités et base légale</h3>
@@ -49,12 +62,13 @@ export default function PrivacyPage() {
         <li>Facturer et rémunérer les actes : exécution du contrat</li>
       </ul>
       <h3>Durée de conservation</h3>
-      <p>
-        Les données de compte sont conservées pendant la durée de la relation
-        contractuelle, puis [durée] à des fins de preuve. Les journaux d’accès
-        sont conservés [durée], durée qui ne peut être inférieure à celle
-        qu’impose la réglementation applicable aux données de santé.
-      </p>
+      <ul>
+        <li>Données de compte : {RETENTION.accounts.toLowerCase()}</li>
+        <li>
+          Journal des accès aux examens : {RETENTION.accessLogs.toLowerCase()}
+        </li>
+        <li>Journaux techniques : {RETENTION.technicalLogs.toLowerCase()}</li>
+      </ul>
 
       <h2>2. Données de santé des patients</h2>
       <p>
@@ -78,36 +92,67 @@ export default function PrivacyPage() {
           statistique nominative, ni transmission à un tiers non prévu au
           contrat
         </li>
+        <li>Durée : {RETENTION.examinations.toLowerCase()}</li>
         <li>
-          Durée : fixée par l’établissement au contrat ; suppression du stockage
-          actif et des sauvegardes selon le calendrier convenu
+          Restitution : sur simple demande, l’établissement reçoit l’export de
+          ses examens — images DICOM, comptes-rendus signés en PDF, manifeste
+          d’empreintes
         </li>
       </ul>
+
+      <h2>3. Demandes reçues par le site</h2>
+      <p>
+        Pour les coordonnées laissées dans le formulaire de contact,{" "}
+        <strong>{PUBLISHER.name} est responsable de traitement</strong>. Elles
+        servent uniquement à répondre à la demande et à présenter le service
+        (intérêt légitime), ne sont transmises à personne, et sont conservées{" "}
+        {RETENTION.prospects.toLowerCase()}
+      </p>
 
       <h2>Destinataires</h2>
       <p>
         Les examens ne sont accessibles qu’aux membres de l’établissement
         émetteur et aux radiologues liés à celui-ci par un contrat de service en
         cours. Le cloisonnement est appliqué par la base de données à chaque
-        requête. Les sous-traitants ultérieurs — hébergement applicatif,
-        stockage des images, service d’authentification — sont listés dans
-        l’annexe de traitement des données et sont eux-mêmes soumis à des
-        obligations équivalentes.
+        requête.
       </p>
+
+      <h2 id="sous-traitants">Sous-traitants ultérieurs</h2>
+      <p>
+        Ils sont tenus, par contrat, à des obligations de sécurité et de
+        confidentialité équivalentes aux nôtres. Tout changement est notifié aux
+        établissements avant de prendre effet.
+      </p>
+      <ul>
+        {SUBPROCESSORS.map((processor) => (
+          <li key={processor.name}>
+            <strong>{processor.name}</strong> — {processor.role}. Localisation :{" "}
+            {processor.location}.
+          </li>
+        ))}
+      </ul>
 
       <h2>Transferts hors de l’Union européenne</h2>
       <p>
-        Les images et l’index sont hébergés dans l’Union européenne. [Préciser
-        le cas échéant les transferts et les garanties applicables.]
+        Images, comptes-rendus, base de données et sauvegardes sont hébergés
+        dans l’Union européenne ; la localisation du stockage et des rapports
+        d’erreur est contrôlée à chaque déploiement. Le seul traitement
+        susceptible d’avoir lieu hors de l’Union est la coordination du réseau
+        privé (Tailscale) : il porte sur les adresses techniques des
+        passerelles, jamais sur le contenu des examens, qui circule chiffré de
+        bout en bout. Il est encadré par les clauses contractuelles types de la
+        Commission européenne.
       </p>
 
       <h2>Sécurité</h2>
       <p>
         Chiffrement en transit et au repos, cloisonnement par organisation
-        appliqué en base, authentification nominative, journalisation
-        inaltérable depuis l’application, sauvegardes chiffrées. Le détail des
-        mesures figure sur la page <a href="/securite">Sécurité</a> et, sous
-        forme contractuelle, dans l’annexe de traitement des données.
+        appliqué en base, authentification nominative avec double
+        authentification, fermeture des sessions inactives, journalisation
+        inaltérable depuis l’application, sauvegardes chiffrées et restaurées à
+        titre d’exercice chaque semaine. Le détail des mesures figure sur la
+        page <a href="/securite">Sécurité</a> et, sous forme contractuelle, dans
+        l’annexe de traitement des données.
       </p>
 
       <h2>Vos droits</h2>
@@ -115,8 +160,8 @@ export default function PrivacyPage() {
         Les professionnels utilisateurs disposent des droits d’accès, de
         rectification, d’effacement, de limitation et d’opposition sur leurs
         propres données, exerçables à{" "}
-        <a href="mailto:donnees@imafrik.tech">donnees@imafrik.tech</a>. Les
-        patients exercent leurs droits{" "}
+        <a href={`mailto:${PUBLISHER.dataContact}`}>{PUBLISHER.dataContact}</a>.
+        Les patients exercent leurs droits{" "}
         <strong>auprès de l’établissement</strong> qui a réalisé l’examen :
         c’est lui qui est responsable du traitement. IMAFRIK lui apporte son
         concours dans les délais prévus au contrat.
@@ -125,7 +170,7 @@ export default function PrivacyPage() {
       <h2>Réclamation</h2>
       <p>
         Toute personne peut introduire une réclamation auprès de l’autorité de
-        protection des données compétente : [autorité et coordonnées].
+        protection des données compétente : {AUTHORITIES}.
       </p>
     </LegalPage>
   );

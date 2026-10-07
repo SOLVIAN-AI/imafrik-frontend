@@ -1,4 +1,5 @@
 import { LegalPage, legalMetadata } from "@/components/marketing/legal-page";
+import { LEGAL_UPDATED_AT, PUBLISHER } from "@/lib/legal";
 
 export const metadata = legalMetadata(
   "Conditions d’utilisation",
@@ -17,7 +18,7 @@ export const metadata = legalMetadata(
  */
 export default function TermsPage() {
   return (
-    <LegalPage title="Conditions d’utilisation" updatedAt="18 août 2026">
+    <LegalPage title="Conditions d’utilisation" updatedAt={LEGAL_UPDATED_AT}>
       <h2>1. Objet</h2>
       <p>
         Les présentes conditions régissent l’accès au service IMAFRIK et son
@@ -101,17 +102,20 @@ export default function TermsPage() {
 
       <h2>8. Résiliation et réversibilité</h2>
       <p>
-        Les conditions de résiliation figurent au contrat. À son terme,
-        l’établissement peut demander l’export de ses examens et de ses
-        comptes-rendus aux formats DICOM et PDF. Les données sont ensuite
-        supprimées selon le calendrier convenu.
+        Les conditions de résiliation figurent au contrat. À tout moment, et en
+        particulier à son terme, l’établissement peut demander l’export de ses
+        examens et de ses comptes-rendus : images DICOM, comptes-rendus signés
+        en PDF et manifeste d’empreintes permettant d’en vérifier l’intégrité.
+        La suite — conservation ou suppression — suit les durées fixées au
+        contrat.
       </p>
 
       <h2>9. Droit applicable</h2>
       <p>
-        Les présentes conditions sont soumises au droit [droit applicable]. Tout
-        litige relève de la compétence [juridiction compétente], après recherche
-        d’une solution amiable.
+        {PUBLISHER.governingLaw
+          ? `Les présentes conditions sont soumises au ${PUBLISHER.governingLaw}. `
+          : "Le droit applicable et la juridiction compétente sont ceux que désigne le contrat de service. "}
+        Tout litige est d’abord soumis à la recherche d’une solution amiable.
       </p>
     </LegalPage>
   );

@@ -23,13 +23,13 @@ const CHAPTERS = [
     icon: FileLock2,
     title: "En transit",
     detail:
-      "Les envois DICOM et toutes les requêtes du portail passent par des canaux chiffrés. Aucun examen ne circule en clair, y compris entre nos propres services.",
+      "Entre la clinique et la plateforme, les examens voyagent dans un réseau privé chiffré ; le portail ne répond qu’en HTTPS. Entre nos services, les échanges restent à l’intérieur du serveur, et tout ce qui en sort — base de données, stockage — est chiffré. Aucun examen ne traverse Internet en clair.",
   },
   {
     icon: KeyRound,
     title: "Au repos",
     detail:
-      "Les images sont chiffrées côté serveur dans un stockage objet dédié, distinct de la base de données. Un accès à l’un ne donne pas accès à l’autre.",
+      "Images et comptes-rendus sont chiffrés au repos dans un stockage objet dédié, distinct de la base de données ; les sauvegardes sont chiffrées avant de quitter le serveur. Un accès à l’un ne donne pas accès à l’autre.",
   },
   {
     icon: Users,
@@ -41,25 +41,25 @@ const CHAPTERS = [
     icon: ScrollText,
     title: "Traçabilité",
     detail:
-      "Ouverture d’un examen, consultation d’images, rédaction, signature, téléchargement : chaque geste est horodaté et rattaché à une personne nommée, dans un journal que personne ne peut modifier depuis l’application.",
+      "Prise en charge d’un examen, consultation de ses images, signature, addendum, chaque téléchargement du compte-rendu : chaque geste est horodaté et rattaché à une personne nommée, dans un journal que personne ne peut modifier depuis l’application.",
   },
   {
     icon: Building2,
     title: "Hébergement",
     detail:
-      "Images et index hébergés dans l’Union européenne. La localisation figure au contrat et ne change pas sans avenant.",
+      "Images, comptes-rendus, base de données et sauvegardes hébergés dans l’Union européenne ; le déploiement contrôle la localisation du stockage. Elle figure au contrat et ne change pas sans avenant.",
   },
   {
     icon: History,
     title: "Conservation",
     detail:
-      "La durée de conservation est fixée au contrat. À son terme, les examens sont supprimés du stockage actif et des sauvegardes selon un calendrier écrit.",
+      "La durée de conservation des images est fixée au contrat, établissement par établissement. À son terme, elles quittent nos serveurs — chaque purge est tracée — et les sauvegardes chiffrées qui les contenaient expirent au plus tard douze mois après.",
   },
   {
     icon: RefreshCcw,
     title: "Réversibilité",
     detail:
-      "L’établissement peut demander à tout moment l’export de ses examens et de ses comptes-rendus, au format DICOM et PDF. Ses données lui appartiennent.",
+      "Sur simple demande, à tout moment, l’établissement reçoit l’export de ses examens et de ses comptes-rendus : images DICOM, PDF signés, et un manifeste d’empreintes pour en vérifier l’intégrité. Ses données lui appartiennent.",
   },
   {
     icon: ShieldAlert,

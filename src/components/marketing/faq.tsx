@@ -19,7 +19,7 @@ const QUESTIONS = [
   {
     question: "Quel ordinateur faut-il pour la passerelle ?",
     answer:
-      "Un poste courant suffit : Windows, macOS ou Linux, quelques gigaoctets de disque libre. Une seule exigence, mais elle est ferme : il doit rester allumé, sinon les examens ne partent pas. Un poste dédié vaut mieux qu’un poste partagé qu’on éteint le soir. Nous chiffrons son disque à l’installation.",
+      "Un poste bureautique sous Windows 10 ou plus récent, avec une centaine de gigaoctets libres : la passerelle garde une copie des examens sur place. Une seule exigence, mais elle est ferme : il doit rester allumé, sinon les examens ne partent pas. Un poste dédié vaut mieux qu’un poste partagé qu’on éteint le soir. Nous recommandons d’activer le chiffrement de son disque (BitLocker), et vous y aidons à l’installation.",
   },
   {
     question: "Que se passe-t-il si Internet ou le courant est coupé ?",
@@ -34,7 +34,7 @@ const QUESTIONS = [
   {
     question: "Où sont stockées les images de nos patients ?",
     answer:
-      "Sur la passerelle de votre établissement, et sur nos serveurs dans l’Union européenne, chiffrées. Elles restent la propriété de l’établissement, qui peut en demander l’export ou la suppression. La durée de conservation est fixée au contrat.",
+      "Sur la passerelle de votre établissement, et sur nos serveurs dans l’Union européenne, chiffrées. Elles restent la propriété de l’établissement, qui en reçoit l’export complet sur simple demande. Leur durée de conservation sur nos serveurs est fixée au contrat.",
   },
   {
     question: "Combien de temps prend la mise en service ?",
