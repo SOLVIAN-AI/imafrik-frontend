@@ -48,10 +48,3 @@ export interface Session {
    */
   isDemo: boolean;
 }
-
-/** Libellés des rôles, du point de vue de l'utilisateur. */
-export const ROLE_LABELS: Record<UserRole, string> = {
-  platform_admin: "Administrateur IMAFRIK",
-  radiologist: "Radiologue",
-  clinic_staff: "Clinique",
-};

@@ -5,12 +5,8 @@ import { headers } from "next/headers";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 
-import {
-  DEFAULT_LOCALE,
-  isLocale,
-  LOCALE_HEADER,
-  type Locale,
-} from "@/lib/i18n/locale";
+import { DEFAULT_LOCALE, isLocale, LOCALE_HEADER } from "@/lib/i18n/locale";
+import { messagesFor } from "@/i18n";
 import "./globals.css";
 
 // L'italique est chargé explicitement : sans lui, l'emphase de l'éditeur
@@ -29,17 +25,12 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-/** Description par défaut des pages, dans la langue de la requête. */
-const DESCRIPTION: Record<Locale, string> = {
-  fr: "Plateforme de téléradiologie",
-  en: "Teleradiology platform",
-};
-
 export async function generateMetadata(): Promise<Metadata> {
   const locale = (await headers()).get(LOCALE_HEADER);
   return {
     ...BASE_METADATA,
-    description: DESCRIPTION[isLocale(locale) ? locale : DEFAULT_LOCALE],
+    description: messagesFor(isLocale(locale) ? locale : DEFAULT_LOCALE).common
+      .appDescription,
   };
 }
 

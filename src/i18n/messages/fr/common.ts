@@ -7,6 +7,8 @@
  * écrite, pas reconstituée en ajoutant un « s ».
  */
 export const common = {
+  /** Description par défaut des pages, pour les moteurs et les aperçus. */
+  appDescription: "Plateforme de téléradiologie",
   actions: {
     save: "Enregistrer",
     saving: "Enregistrement…",

@@ -21,8 +21,8 @@ export function formatPatientName(dicomName: string): string {
  *
  * La locale est imposée plutôt que déduite du navigateur : une date rendue
  * différemment par le serveur et par le client provoquerait une
- * divergence d'hydratation. L'application est en français ; le site public
- * passe sa langue.
+ * divergence d'hydratation : la langue est celle de l'utilisateur, passée
+ * par l'appelant.
  *
  * @param date   Date à formater.
  * @param locale Langue, français par défaut.
@@ -40,17 +40,27 @@ export function formatDate(date: Date, locale: Locale = "fr"): string {
 /**
  * Date et heure, format court, en temps universel.
  *
+ * En anglais, le mois est abrégé en lettres plutôt qu'en chiffres :
+ * « 18/08/2026 » se lit le 8 du 18e mois pour un lecteur américain, et
+ * « 06/10 » le 10 juin. Une date d'examen ne doit pas pouvoir se lire de
+ * deux façons.
+ *
  * @param date   Date à formater.
  * @param locale Langue, français par défaut.
- * @returns Par exemple « 18/08/2026 à 14:32 », ou « 18/08/2026 at 14:32 ».
+ * @returns Par exemple « 18/08/2026 à 14:32 », ou « 18 Aug 2026 at 14:32 ».
  */
 export function formatDateTime(date: Date, locale: Locale = "fr"): string {
-  const formatted = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
-    dateStyle: "short",
+  const day = new Intl.DateTimeFormat(
+    INTL_LOCALE[locale],
+    locale === "en"
+      ? { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }
+      : { dateStyle: "short", timeZone: "UTC" },
+  ).format(date);
+  const time = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     timeStyle: "short",
     timeZone: "UTC",
   }).format(date);
-  return formatted.replace(/,? /, locale === "en" ? " at " : " à ");
+  return `${day} ${locale === "en" ? "at" : "à"} ${time}`;
 }
 
 /**

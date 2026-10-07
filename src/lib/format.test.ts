@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatCount,
+  formatDateTime,
   formatDayShort,
   formatDuration,
   formatMinutes,
@@ -81,5 +82,17 @@ describe("formats de la tour de contrôle", () => {
 
   it("lit un jour en UTC, quel que soit le fuseau du serveur", () => {
     expect(formatDayShort(new Date("2026-10-07T00:00:00Z"))).toBe("7 oct.");
+  });
+});
+
+describe("formatDateTime", () => {
+  const moment = new Date("2026-10-06T14:32:00Z");
+
+  it("garde le format numérique en français", () => {
+    expect(formatDateTime(moment, "fr")).toBe("06/10/2026 à 14:32");
+  });
+
+  it("écrit le mois en lettres en anglais, pour une date sans ambiguïté", () => {
+    expect(formatDateTime(moment, "en")).toBe("6 Oct 2026 at 14:32");
   });
 });

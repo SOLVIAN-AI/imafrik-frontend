@@ -1,6 +1,7 @@
 "use client";
 
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useLocale } from "@/i18n/client";
 import { formatDate, formatDateTime } from "@/lib/format";
 
 /**
@@ -23,6 +24,8 @@ import { formatDate, formatDateTime } from "@/lib/format";
  * L'attribut `dateTime` porte l'horodatage machine, lisible par les
  * technologies d'assistance, et suit la même règle pour la même raison.
  *
+ * La date s'écrit dans la langue de l'utilisateur.
+ *
  * @param date  Date à afficher.
  * @param withTime Ajoute l'heure. Faux pour une date seule.
  */
@@ -36,12 +39,13 @@ export function DateTime({
   className?: string;
 }) {
   const hydrated = useHydrated();
+  const locale = useLocale();
 
   if (!hydrated) return <time className={className} />;
 
   return (
     <time dateTime={date.toISOString()} className={className}>
-      {withTime ? formatDateTime(date) : formatDate(date)}
+      {withTime ? formatDateTime(date, locale) : formatDate(date, locale)}
     </time>
   );
 }

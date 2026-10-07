@@ -36,12 +36,17 @@ const EXCLUDED = [
   /^lib\/api\/schema\.d\.ts$/,
   // Données de démonstration : patients, comptes-rendus, modèles.
   /^lib\/demo\/(studies|reports)\.ts$/,
+  // Organisations, personnes et demandes de contact fictives de la tour de
+  // contrôle : ses textes d’interface, eux, viennent des dictionnaires.
+  /^lib\/demo\/control\.ts$/,
   // Personnes et organisations de la session de démonstration.
   /^lib\/session\/demo\.ts$/,
   // Le manifeste d'application installable n'existe qu'en une langue : le
   // français, celle du marché principal.
   /^app\/manifest\.ts$/,
   /^lib\/data\/templates\.ts$/,
+  // Phrases types du menu « / » : du texte de compte-rendu, pas l'interface.
+  /^lib\/data\/report-phrases\.ts$/,
   // Écrans d'entrée, servis par `src/content/auth.ts`.
   /^app\/\(auth\)\/connexion\//,
   /^app\/\(auth\)\/mot-de-passe-oublie\//,
