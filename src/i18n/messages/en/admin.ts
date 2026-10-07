@@ -96,6 +96,7 @@ export const admin: AppMessages["admin"] = {
     day: "Day",
     weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     hour: (hour: number) => `${String(hour).padStart(2, "0")}:00`,
+    hourTick: (hour: number) => String(hour).padStart(2, "0"),
     point: (label: string, serie: string, value: string) =>
       `${label} · ${serie}: ${value}`,
     heatmapCell: (day: string, hour: string, count: number) =>

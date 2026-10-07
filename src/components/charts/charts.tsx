@@ -438,7 +438,7 @@ export function Heatmap({
             className="text-center text-2xs text-tertiary tabular-nums"
             aria-hidden
           >
-            {hour % 3 === 0 ? t.hour(hour) : ""}
+            {hour % 3 === 0 ? t.hourTick(hour) : ""}
           </span>
         ))}
         {cells.map((row, day) => (

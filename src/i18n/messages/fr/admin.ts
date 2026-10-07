@@ -112,6 +112,8 @@ export const admin = {
     day: "Jour",
     weekdays: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
     hour: (hour: number) => `${hour}h`,
+    /** Graduation de l'axe des heures, dans une colonne étroite. */
+    hourTick: (hour: number) => `${hour}h`,
     /** Infobulle d'une barre : période, série, valeur. */
     point: (label: string, serie: string, value: string) =>
       `${label} · ${serie} : ${value}`,
