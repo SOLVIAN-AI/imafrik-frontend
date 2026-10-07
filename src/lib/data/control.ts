@@ -601,6 +601,13 @@ export interface ClinicDetail {
   openToPool: boolean;
   received30d: number;
   lastReceivedAt: Date | null;
+  /**
+   * Conservation des images après remise du compte-rendu, en jours, fixée
+   * par contrat ; `null` : conservées pour la durée du contrat.
+   */
+  imageRetentionDays: number | null;
+  /** Examens dont les images ont été purgées du PACS central. */
+  imagesPurged: number;
   onboarding: OnboardingStep[];
 }
 
@@ -630,6 +637,8 @@ export async function getClinic(id: string): Promise<ClinicDetail | null> {
     openToPool: raw.open_to_pool,
     received30d: raw.received_30d,
     lastReceivedAt: toDate(raw.last_received_at),
+    imageRetentionDays: raw.image_retention_days,
+    imagesPurged: raw.images_purged,
     onboarding: raw.onboarding.map((step) => ({
       key: step.key,
       label: step.label,

@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { StudyStatus } from "@/components/domain/study-status";
-import { apiFetch, apiGet } from "@/lib/api/client";
+import { ApiError, apiFetch, apiGet } from "@/lib/api/client";
 import {
   studyPageSchema,
   studySchema,
@@ -201,7 +201,10 @@ export async function getViewerUrl(studyId: string): Promise<string | null> {
     );
     return viewerTokenSchema.parse(await response.json()).viewer_url;
   } catch (error) {
-    console.error("Jeton de visualisation indisponible", error);
+    // 409 : images archivées au terme de la conservation contractuelle —
+    // un état connu, affiché comme tel, pas une panne à journaliser.
+    if (!(error instanceof ApiError && error.status === 409))
+      console.error("Jeton de visualisation indisponible", error);
     return null;
   }
 }

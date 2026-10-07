@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { ControlBody, Figure, Section } from "@/components/admin/control-ui";
 import { FlowList, SegmentLegend } from "@/components/admin/flow-list";
 import { RelativeTime } from "@/components/admin/relative-time";
+import { RetentionForm } from "@/components/admin/retention-form";
 import { Legend, Ring, StackedBars } from "@/components/charts/charts";
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader } from "@/components/layout/app-shell";
@@ -81,12 +82,29 @@ export default async function ClinicPage({
 
       <ControlBody>
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
-          <Section
-            title="Mise en service"
-            description={`${done} étape${done > 1 ? "s" : ""} sur ${clinic.onboarding.length}`}
-          >
-            <Onboarding steps={clinic.onboarding} />
-          </Section>
+          <div className="flex min-w-0 flex-col gap-4">
+            <Section
+              title="Mise en service"
+              description={`${done} étape${done > 1 ? "s" : ""} sur ${clinic.onboarding.length}`}
+            >
+              <Onboarding steps={clinic.onboarding} />
+            </Section>
+            <Section
+              title="Conservation des images"
+              description={
+                clinic.imageRetentionDays === null
+                  ? "Durée du contrat"
+                  : `${clinic.imageRetentionDays} jours après remise`
+              }
+            >
+              <RetentionForm
+                clinicId={clinic.id}
+                clinicName={clinic.name}
+                days={clinic.imageRetentionDays}
+                purged={clinic.imagesPurged}
+              />
+            </Section>
+          </div>
 
           <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
             <section

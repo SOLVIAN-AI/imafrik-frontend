@@ -172,7 +172,7 @@ export async function apiGet<S extends z.ZodTypeAny>(
  */
 export async function apiSend<S extends z.ZodTypeAny>(
   path: string,
-  method: "POST" | "PATCH" | "DELETE",
+  method: "POST" | "PUT" | "PATCH" | "DELETE",
   body?: unknown,
   schema?: S,
 ): Promise<z.output<S>> {

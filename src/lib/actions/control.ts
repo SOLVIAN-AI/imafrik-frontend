@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { apiSend } from "@/lib/api/client";
 import {
+  clinicDetailSchema,
   contactTrackingSchema,
   mfaResetSchema,
   platformSettingsSchema,
@@ -179,5 +180,45 @@ export async function resetUserMfa(
     return body.removed_factors;
   });
   revalidatePath("/admin/utilisateurs");
+  return result;
+}
+
+const retentionSchema = z.object({
+  clinicId: z.string().min(1),
+  days: z
+    .number({ invalid_type_error: "Durée invalide" })
+    .int("Durée : un nombre entier de jours")
+    .min(30, "Durée : 30 jours au moins")
+    .max(7300, "Durée : 20 ans au plus")
+    .nullable(),
+});
+
+/**
+ * Applique la durée de conservation des images prévue au contrat d'une
+ * clinique ; `null` revient à la conservation pour la durée du contrat.
+ *
+ * Au-delà, la tâche quotidienne du service purge du PACS central les
+ * images des examens remis — la fiche et le compte-rendu restent. Le
+ * changement est tracé dans le journal d'audit.
+ */
+export async function setClinicRetention(
+  clinicId: string,
+  days: number | null,
+): Promise<ActionResult> {
+  const parsed = retentionSchema.safeParse({ clinicId, days });
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0].message, status: 422 };
+  }
+  if (isDemoMode()) return demoUnavailable("La durée de conservation");
+  const result = await run(async () => {
+    await apiSend(
+      `/admin/clinics/${encodeURIComponent(parsed.data.clinicId)}/retention`,
+      "PUT",
+      { image_retention_days: parsed.data.days },
+      clinicDetailSchema,
+    );
+    return undefined;
+  });
+  revalidatePath(`/admin/organisations/${clinicId}`);
   return result;
 }

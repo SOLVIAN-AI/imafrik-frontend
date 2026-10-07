@@ -1,7 +1,8 @@
 "use client";
 
-import { ImageOff, Maximize2 } from "lucide-react";
+import { Archive, ImageOff, Maximize2 } from "lucide-react";
 
+import { DateTime } from "@/components/domain/date-time";
 import { SimulatedScan } from "@/components/editor/simulated-scan";
 import { Button } from "@/components/ui/button";
 import type { Study } from "@/lib/data/studies";
@@ -62,7 +63,7 @@ export function ViewerPane({
         ) : demo ? (
           <SimulatedScan study={study} />
         ) : (
-          <ViewerUnavailable />
+          <ViewerUnavailable purgedAt={study.imagesPurgedAt ?? null} />
         )}
       </div>
 
@@ -113,7 +114,22 @@ export function ViewerPane({
  * qui se contente de dire que quelque chose a échoué laisse l'utilisateur
  * sans recours — et, dans un service, il appellera le support.
  */
-function ViewerUnavailable() {
+function ViewerUnavailable({ purgedAt }: { purgedAt: Date | null }) {
+  // Conservation contractuelle échue : un motif connu, pas une panne.
+  if (purgedAt) {
+    return (
+      <div className="flex max-w-xs flex-col items-center gap-2 text-center">
+        <Archive className="size-5 text-ink-600" aria-hidden />
+        <p className="text-sm font-medium text-ink-300">Images archivées</p>
+        <p className="text-xs leading-relaxed text-ink-500">
+          La durée de conservation prévue au contrat de la clinique est échue
+          depuis le <DateTime date={purgedAt} withTime={false} /> : les images
+          ont quitté la plateforme. Le compte-rendu reste consultable, et les
+          originaux sont conservés par la clinique.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="flex max-w-xs flex-col items-center gap-2 text-center">
       <ImageOff className="size-5 text-ink-600" aria-hidden />
