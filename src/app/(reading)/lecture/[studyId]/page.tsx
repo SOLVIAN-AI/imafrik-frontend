@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 
-import { EMPTY_REPORT_SECTIONS } from "@/components/editor/report-editor";
-import {
-  ReportWorkspace,
-  type WorkspaceMode,
-} from "@/components/editor/report-workspace";
+import type { WorkspaceMode } from "@/components/editor/report-workspace";
+import { ReportWorkspace } from "@/components/editor/report-workspace";
+import { EMPTY_REPORT_SECTIONS } from "@/components/editor/sections";
+import type { AppMessages } from "@/i18n";
+import { getMessages } from "@/i18n/server";
 import { getReportForStudy, type Report } from "@/lib/data/reports";
 import {
   getStudy,
@@ -24,11 +24,14 @@ import type { Session } from "@/lib/session/types";
  *
  * Le service revérifie tout à chaque écriture : ce calcul ne décide que
  * des boutons affichés.
+ *
+ * @param t Textes de l'application, pour l'avis de consultation.
  */
 function workspaceMode(
   session: Session,
   study: Study,
   report: Report | null,
+  t: AppMessages,
 ): WorkspaceMode {
   if (session.active.role !== "radiologist") return { kind: "readonly" };
   if (report?.status === "signed") return { kind: "readonly" };
@@ -50,8 +53,8 @@ function workspaceMode(
   return {
     kind: "readonly",
     notice: study.assignedToName
-      ? `Examen pris en charge par ${study.assignedToName}.`
-      : "Examen pris en charge par un autre radiologue.",
+      ? t.reading.page.claimedBy(study.assignedToName)
+      : t.reading.page.claimedByOther,
   };
 }
 
@@ -95,7 +98,8 @@ export default async function ReadingPage({
   const { studyId } = await params;
 
   const radiologist = session.active.role === "radiologist";
-  const [study, report, viewerUrl, nextStudyId] = await Promise.all([
+  const [{ t }, study, report, viewerUrl, nextStudyId] = await Promise.all([
+    getMessages(),
     getStudy(studyId),
     getReportForStudy(studyId),
     getViewerUrl(studyId),
@@ -103,7 +107,7 @@ export default async function ReadingPage({
   ]);
   if (!study) notFound();
 
-  const mode = workspaceMode(session, study, report);
+  const mode = workspaceMode(session, study, report, t);
   // Les modèles ne servent qu'à l'auteur ; inutile de les charger sinon.
   const templates =
     mode.kind === "author" ? await listTemplates(study.modality) : [];

@@ -13,38 +13,18 @@
  * d'interface : on rappelle la question posée, on dit comment on a
  * regardé, on compare à l'antérieur, on décrit, puis on conclut. Les
  * clés correspondent exactement au champ `sections` du schéma.
+ *
+ * Les intitulés et les textes de substitution vivent dans les textes de
+ * l'application (`reading.sections`) : les intitulés s'affichent dans la
+ * langue du compte-rendu, les textes de substitution dans celle de
+ * l'utilisateur.
  */
 export const REPORT_SECTIONS = [
-  {
-    key: "indication",
-    title: "Indication clinique",
-    placeholder: "Motif de l’examen, renseignement clinique transmis…",
-    required: true,
-  },
-  {
-    key: "technique",
-    title: "Technique",
-    placeholder: "Protocole d’acquisition, injection, reconstructions…",
-    required: false,
-  },
-  {
-    key: "comparatif",
-    title: "Comparatif",
-    placeholder: "Examens antérieurs disponibles, ou absence de comparatif…",
-    required: false,
-  },
-  {
-    key: "resultats",
-    title: "Résultats",
-    placeholder: "Description par organe…",
-    required: true,
-  },
-  {
-    key: "conclusion",
-    title: "Conclusion",
-    placeholder: "Synthèse diagnostique.",
-    required: true,
-  },
+  { key: "indication", required: true },
+  { key: "technique", required: false },
+  { key: "comparatif", required: false },
+  { key: "resultats", required: true },
+  { key: "conclusion", required: true },
 ] as const;
 
 export type SectionKey = (typeof REPORT_SECTIONS)[number]["key"];
@@ -83,12 +63,15 @@ export function isSectionEmpty(html: string | undefined): boolean {
  * serveur, parce qu'un contrôle d'interface n'est pas une garantie.
  *
  * @param sections Contenu courant du compte-rendu.
- * @returns Les intitulés manquants, dans l'ordre du document.
+ * @returns Les clés des sections manquantes, dans l'ordre du document ;
+ *          l'écran les nomme dans la langue du compte-rendu.
  */
-export function missingRequiredSections(sections: ReportSections): string[] {
+export function missingRequiredSections(
+  sections: ReportSections,
+): SectionKey[] {
   return REPORT_SECTIONS.filter(
     (section) => section.required && isSectionEmpty(sections[section.key]),
-  ).map((section) => section.title);
+  ).map((section) => section.key);
 }
 
 /** Nombre de mots d'un fragment HTML — pour le compteur du document. */

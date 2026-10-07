@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
+import { useMessages } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import {
   filtersToQuery,
@@ -38,6 +39,8 @@ export function WorklistFilterBar({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const t = useMessages();
+  const labels = t.worklist.filters;
   const [pending, startTransition] = React.useTransition();
 
   const href = (next: WorklistFilters) => {
@@ -64,7 +67,7 @@ export function WorklistFilterBar({
       )}
     >
       {showModalities && (
-        <nav aria-label="Modalités" className="flex flex-wrap gap-1.5">
+        <nav aria-label={labels.modalities} className="flex flex-wrap gap-1.5">
           {options.modalities.map((option) => {
             const active = filters.modalities.includes(option.value);
             return (
@@ -97,7 +100,7 @@ export function WorklistFilterBar({
 
       {showClinics && (
         <label className="relative flex items-center">
-          <span className="sr-only">Clinique</span>
+          <span className="sr-only">{labels.clinic}</span>
           <select
             value={filters.clinicId ?? ""}
             onChange={(event) =>
@@ -119,7 +122,7 @@ export function WorklistFilterBar({
                 : "border-border-subtle text-secondary",
             )}
           >
-            <option value="">Toutes les cliniques</option>
+            <option value="">{labels.allClinics}</option>
             {options.clinics.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label} ({option.count})
@@ -142,7 +145,7 @@ export function WorklistFilterBar({
           className="inline-flex h-7 items-center gap-1 rounded-full px-2 text-xs text-tertiary hover:text-primary focus-visible:outline-2 focus-visible:outline-accent"
         >
           <X className="size-3" aria-hidden />
-          Retirer les filtres
+          {t.common.actions.clearFilters}
         </Link>
       )}
     </div>

@@ -5,6 +5,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { useMessages } from "@/i18n/client";
 import { deleteTemplate } from "@/lib/actions/templates";
 
 /** Supprime un modèle de l'organisation, après confirmation. */
@@ -15,6 +16,7 @@ export function DeleteTemplateButton({
   templateId: string;
   name: string;
 }) {
+  const t = useMessages();
   const [pending, startTransition] = React.useTransition();
   return (
     <Button
@@ -22,21 +24,16 @@ export function DeleteTemplateButton({
       size="sm"
       loading={pending}
       onClick={() => {
-        if (
-          !window.confirm(
-            `Supprimer le modèle « ${name} » pour toute l’organisation ?`,
-          )
-        )
-          return;
+        if (!window.confirm(t.reading.templates.deleteConfirm(name))) return;
         startTransition(async () => {
           const result = await deleteTemplate(templateId);
-          if (result.ok) toast.success("Modèle supprimé.");
+          if (result.ok) toast.success(t.reading.templates.deleted);
           else toast.error(result.error);
         });
       }}
     >
       <Trash2 />
-      Supprimer
+      {t.common.actions.delete}
     </Button>
   );
 }

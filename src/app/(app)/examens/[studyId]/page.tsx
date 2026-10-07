@@ -115,7 +115,10 @@ export default async function StudySheetPage({
                   </Link>
                 </div>
                 <div className="p-4">
-                  <ReportDocument sections={signed.sections} />
+                  <ReportDocument
+                    sections={signed.sections}
+                    language={study.reportLanguage}
+                  />
                 </div>
               </>
             ) : (

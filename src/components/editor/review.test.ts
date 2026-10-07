@@ -3,8 +3,14 @@ import { describe, expect, it } from "vitest";
 import {
   EMPTY_REPORT_SECTIONS,
   type ReportSections,
-} from "@/components/editor/report-editor";
-import { plainText, reviewReport, sidesIn } from "@/components/editor/review";
+} from "@/components/editor/sections";
+import {
+  describeFinding,
+  plainText,
+  reviewReport,
+  sidesIn,
+} from "@/components/editor/review";
+import { messagesFor } from "@/i18n";
 
 const report = (sections: Partial<ReportSections>): ReportSections => ({
   ...EMPTY_REPORT_SECTIONS,
@@ -118,5 +124,62 @@ describe("plainText", () => {
     expect(plainText("<p>A&nbsp;&amp; <strong>B</strong></p><p>C</p>")).toBe(
       "A & B\nC\n",
     );
+  });
+});
+
+describe("describeFinding", () => {
+  it("écrit le message dans la langue de l'écran, la détection restant celle du texte", () => {
+    const findings = reviewReport(
+      report({
+        indication: "<p>Douleur du genou droit.</p>",
+        resultats: "<p>Épanchement du genou gauche mesurant 12.</p>",
+      }),
+    );
+    const fr = messagesFor("fr").reading.review;
+    const en = messagesFor("en").reading.review;
+    expect(describeFinding(findings[0], fr)).toBe(
+      "L’indication porte sur le côté droit, les résultats ne décrivent que le côté gauche.",
+    );
+    expect(describeFinding(findings[0], en)).toBe(
+      "The clinical indication concerns the right side, but the findings describe only the left side.",
+    );
+    expect(describeFinding(findings[1], en)).toBe(
+      "Measurement without a unit: “mesurant 12”.",
+    );
+  });
+});
+
+describe("reviewReport : compte-rendu en anglais", () => {
+  it("reconnaît les côtés et le bilatéral anglais", () => {
+    expect([...sidesIn("Right knee")]).toEqual(["droit"]);
+    expect(sidesIn("bilateral pleural effusion").size).toBe(2);
+    expect(sidesIn("changes on both sides").size).toBe(2);
+  });
+
+  it("signale un côté demandé et l'autre décrit", () => {
+    expect(
+      kinds({
+        indication: "<p>Right knee pain.</p>",
+        resultats: "<p>Left knee joint effusion.</p>",
+      }),
+    ).toEqual([["laterality", "resultats"]]);
+  });
+
+  it("trouve une mesure sans unité, pas une mesure correcte", () => {
+    expect(
+      kinds({ resultats: "<p>Nodule measuring 12. Cyst of 8 mm.</p>" }),
+    ).toEqual([["unit", "resultats"]]);
+    expect(
+      kinds({ resultats: "<p>Lesion measuring approximately 14 mm.</p>" }),
+    ).toEqual([]);
+  });
+
+  it("trouve un mot répété, sauf les répétitions anglaises légitimes", () => {
+    expect(kinds({ resultats: "<p>No sign of the the lesion.</p>" })).toEqual([
+      ["repeat", "resultats"],
+    ]);
+    expect(
+      kinds({ resultats: "<p>The lesion that that study showed.</p>" }),
+    ).toEqual([]);
   });
 });

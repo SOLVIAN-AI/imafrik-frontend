@@ -6,6 +6,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { useMessages } from "@/i18n/client";
 import { setListSearch } from "@/lib/actions/search";
 import {
   LIST_SEARCH_MAX_LENGTH,
@@ -47,6 +48,8 @@ export function ListToolbar({
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const t = useMessages();
+  const labels = t.worklist.toolbar;
   const [pending, startTransition] = React.useTransition();
   const urgentOnly = params.get("urgent") === "1";
 
@@ -80,7 +83,7 @@ export function ListToolbar({
         }}
       >
         <label className="relative flex items-center">
-          <span className="sr-only">Rechercher un patient ou une modalité</span>
+          <span className="sr-only">{labels.searchLabel}</span>
           <Search
             className="pointer-events-none absolute left-2.5 size-3.5 text-tertiary"
             aria-hidden
@@ -96,7 +99,7 @@ export function ListToolbar({
             // L'historique de saisie du navigateur garderait, lui aussi,
             // les noms cherchés.
             autoComplete="off"
-            placeholder="Patient, identifiant, modalité…"
+            placeholder={labels.searchPlaceholder}
             className={cn(
               "h-9 w-full rounded-lg border border-border-subtle bg-surface-base/60 pr-2.5 pl-8 sm:h-8 sm:w-56",
               "text-xs placeholder:text-tertiary",
@@ -118,8 +121,8 @@ export function ListToolbar({
           }
         >
           <Siren />
-          <span className="sm:hidden">Urgences</span>
-          <span className="hidden sm:inline">Urgences seulement</span>
+          <span className="sm:hidden">{labels.urgentShort}</span>
+          <span className="hidden sm:inline">{labels.urgentOnly}</span>
         </Button>
       )}
 
@@ -128,10 +131,10 @@ export function ListToolbar({
         size="sm"
         loading={pending}
         onClick={() => startTransition(() => router.refresh())}
-        aria-label="Actualiser"
+        aria-label={t.common.actions.refresh}
       >
         <RefreshCw />
-        <span className="hidden sm:inline">Actualiser</span>
+        <span className="hidden sm:inline">{t.common.actions.refresh}</span>
       </Button>
     </div>
   );

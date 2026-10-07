@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 
+import { getMessages } from "@/i18n/server";
 import { MyStudiesView } from "@/components/domain/my-studies-view";
 import { listStudies } from "@/lib/data/studies";
 import { requireSession } from "@/lib/session/server";
 
-export const metadata: Metadata = { title: "Mes examens" };
+/** Titre de l'onglet, dans la langue de l'utilisateur. */
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.myStudies };
+}
 
 /**
  * Les examens pris en charge par le radiologue.

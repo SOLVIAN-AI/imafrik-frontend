@@ -1,4 +1,4 @@
-import type { ReportSections } from "@/components/editor/report-editor";
+import type { ReportSections } from "@/components/editor/sections";
 import type { Study } from "@/lib/data/studies";
 
 /**

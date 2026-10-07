@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { getMessages } from "@/i18n/server";
 import { WorklistView } from "@/components/domain/worklist-view";
 import { listStudyPage, STUDY_PAGE_LIMIT } from "@/lib/data/studies";
 import { readListSearch } from "@/lib/search/server";
@@ -11,7 +12,10 @@ import {
   splitWorklist,
 } from "@/lib/worklist";
 
-export const metadata: Metadata = { title: "À lire" };
+/** Titre de l'onglet, dans la langue de l'utilisateur. */
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.worklist };
+}
 
 /**
  * File de lecture du radiologue.

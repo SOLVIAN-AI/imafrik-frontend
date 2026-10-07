@@ -14,9 +14,12 @@ import {
 import { ReadingTable } from "@/components/domain/reading-table";
 import { WorklistFilterBar } from "@/components/domain/worklist-filters";
 import { useAutoRefresh } from "@/hooks/use-auto-refresh";
+import { useLocale, useMessages } from "@/i18n/client";
+import type { AppMessages } from "@/i18n";
 import { useNow } from "@/hooks/use-now";
 import type { Study } from "@/lib/data/studies";
 import { formatPatientName } from "@/lib/format";
+import { INTL_LOCALE, type Locale } from "@/lib/i18n/locale";
 import {
   deadlineOf,
   formatDuration,
@@ -37,13 +40,19 @@ const MAX_ARRIVAL_TOASTS = 2;
  * est libre, ce qui est urgent, ce qui est en retard, et l'échéance la
  * plus proche. Les examens d'un confrère n'y comptent pas.
  */
-function buildMetrics(sections: WorklistSections, now: number): Metric[] {
+function buildMetrics(
+  sections: WorklistSections,
+  now: number,
+  t: AppMessages,
+  locale: Locale,
+): Metric[] {
+  const labels = t.worklist.metrics;
   const actionable = [...sections.mine, ...sections.open];
   const urgent = sections.open.filter((study) => study.urgent);
   // `now` vaut 0 au rendu serveur : aucune échéance n'y est calculable
   // sans diverger de l'hydratation. Voir `useNow`.
   const deadlines =
-    now > 0 ? actionable.map((study) => deadlineOf(study, now)) : [];
+    now > 0 ? actionable.map((study) => deadlineOf(study, now, locale)) : [];
   const overdue = deadlines.filter((d) => d.tone === "overdue").length;
   const next = deadlines
     .filter((d) => d.tone !== "overdue")
@@ -51,32 +60,32 @@ function buildMetrics(sections: WorklistSections, now: number): Metric[] {
 
   return [
     {
-      label: "À prendre",
+      label: labels.toTake,
       value: String(sections.open.length),
       hint:
         sections.mine.length > 0
-          ? `et ${sections.mine.length} chez vous`
+          ? labels.mineHint(sections.mine.length)
           : undefined,
       icon: METRIC_ICONS.inbox,
       tone: "accent",
     },
     {
-      label: "Urgences libres",
+      label: labels.urgentOpen,
       value: String(urgent.length),
-      hint: urgent.length > 0 ? "à prendre d’abord" : undefined,
+      hint: urgent.length > 0 ? labels.urgentHint : undefined,
       icon: METRIC_ICONS.urgent,
       tone: urgent.length > 0 ? "urgent" : "neutral",
     },
     {
-      label: "En retard",
+      label: labels.overdue,
       value: now > 0 ? String(overdue) : "—",
-      hint: overdue > 0 ? "délai dépassé" : undefined,
+      hint: overdue > 0 ? labels.overdueHint : undefined,
       icon: METRIC_ICONS.wait,
       tone: overdue > 0 ? "urgent" : "neutral",
     },
     {
-      label: "Prochaine échéance",
-      value: next ? formatDuration(next.remainingMs) : "—",
+      label: labels.nextDeadline,
+      value: next ? formatDuration(next.remainingMs, locale) : "—",
       icon: METRIC_ICONS.deadline,
       tone: next?.tone === "soon" ? "progress" : "neutral",
     },
@@ -87,14 +96,22 @@ function buildMetrics(sections: WorklistSections, now: number): Metric[] {
  * Décrit le périmètre de la file : les établissements dont elle contient
  * des examens.
  */
-function describeScope(studies: Study[]): string {
+function describeScope(
+  studies: Study[],
+  t: AppMessages,
+  locale: Locale,
+): string {
+  const scope = t.worklist.scope;
+  const intl = INTL_LOCALE[locale];
   const clinics = [...new Set(studies.map((study) => study.clinic))].sort(
-    (a, b) => a.localeCompare(b, "fr"),
+    (a, b) => a.localeCompare(b, intl),
   );
-  if (clinics.length === 0) return "File de travail du groupe";
+  if (clinics.length === 0) return scope.empty;
   if (clinics.length <= 3)
-    return `File de travail du groupe : ${new Intl.ListFormat("fr", { type: "conjunction" }).format(clinics)}`;
-  return `File de travail du groupe : ${clinics.length} établissements`;
+    return scope.clinics(
+      new Intl.ListFormat(intl, { type: "conjunction" }).format(clinics),
+    );
+  return scope.count(clinics.length);
 }
 
 /**
@@ -107,31 +124,34 @@ function describeScope(studies: Study[]): string {
  */
 function useUrgentArrivals(open: Study[]) {
   const router = useRouter();
+  const t = useMessages();
   const seen = React.useRef<ReadonlySet<string> | null>(null);
 
   React.useEffect(() => {
     const { arrivals, seen: next } = newUrgentArrivals(seen.current, open);
     seen.current = next;
     if (arrivals.length > MAX_ARRIVAL_TOASTS) {
-      toast.warning(`${arrivals.length} nouvelles urgences dans la file`, {
+      toast.warning(t.worklist.arrivals.many(arrivals.length), {
         duration: 15_000,
       });
       return;
     }
     for (const study of arrivals) {
       toast.warning(
-        `Nouvelle urgence : ${study.modality}${study.bodyPart ? ` ${study.bodyPart}` : ""}, ${study.clinic}`,
+        t.worklist.arrivals.one(
+          `${study.modality}${study.bodyPart ? ` ${study.bodyPart}` : ""}, ${study.clinic}`,
+        ),
         {
           description: formatPatientName(study.patientName),
           duration: 15_000,
           action: {
-            label: "Ouvrir",
+            label: t.common.actions.open,
             onClick: () => router.push(`/lecture/${study.id}`),
           },
         },
       );
     }
-  }, [open, router]);
+  }, [open, router, t]);
 
   const urgentCount = open.filter((study) => study.urgent).length;
   React.useEffect(() => {
@@ -171,6 +191,9 @@ export function WorklistView({
   truncated: boolean;
 }) {
   const now = useNow();
+  const t = useMessages();
+  const locale = useLocale();
+  const labels = t.worklist;
   useAutoRefresh(REFRESH_MS);
   useUrgentArrivals(sections.open);
 
@@ -187,20 +210,18 @@ export function WorklistView({
     // restent en place.
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden">
       <PageHeader
-        title="À lire"
-        description={describeScope(all)}
+        title={t.nav.items.worklist}
+        description={describeScope(all, t, locale)}
         actions={<ListToolbar scope="worklist" search={search} urgentFilter />}
       />
       <MetricGrid
-        metrics={buildMetrics(sections, now)}
+        metrics={buildMetrics(sections, now, t, locale)}
         className="px-4 pb-4 sm:px-6"
       />
       <WorklistFilterBar filters={filters} options={options} />
       {truncated && (
         <p className="px-4 pb-3 text-xs text-progress sm:px-6">
-          La file compte plus d’examens que l’écran n’en affiche : seuls les
-          plus proches de leur échéance sont listés. Affinez avec la recherche
-          ou les filtres.
+          {labels.truncated}
         </p>
       )}
       {/* Compressible à partir de 1024 px seulement : sur téléphone, la
@@ -211,22 +232,19 @@ export function WorklistView({
             groups={[
               {
                 key: "mine",
-                title: "Pris en charge par vous",
-                hint: "à terminer",
+                ...labels.groups.mine,
                 studies: sections.mine,
                 follow: "status",
               },
               {
                 key: "open",
-                title: "À prendre",
-                hint: "par ordre d’échéance",
+                ...labels.groups.open,
                 studies: sections.open,
                 follow: "none",
               },
               {
                 key: "colleagues",
-                title: "Chez un confrère",
-                hint: "consultation seulement",
+                ...labels.groups.colleagues,
                 studies: sections.colleagues,
                 collapsible: true,
                 muted: true,
@@ -234,15 +252,8 @@ export function WorklistView({
               },
             ]}
             hrefFor={(study) => `/lecture/${study.id}`}
-            refreshNote={`La file se met à jour toute seule toutes les ${REFRESH_MS / 1000} secondes.`}
-            empty={
-              filtered
-                ? {
-                    title: "Aucun résultat",
-                    detail: "Modifiez la recherche ou retirez les filtres.",
-                  }
-                : undefined
-            }
+            refreshNote={labels.refreshNote(REFRESH_MS / 1000)}
+            empty={filtered ? labels.noResults : undefined}
           />
         </Panel>
       </div>

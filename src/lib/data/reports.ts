@@ -3,7 +3,7 @@ import "server-only";
 import {
   EMPTY_REPORT_SECTIONS,
   type ReportSections,
-} from "@/components/editor/report-editor";
+} from "@/components/editor/sections";
 import { apiGet } from "@/lib/api/client";
 import {
   reportSchema,

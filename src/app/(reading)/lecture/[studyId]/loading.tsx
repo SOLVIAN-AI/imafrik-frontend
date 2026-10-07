@@ -1,6 +1,7 @@
 import { Loader2 } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { getMessages } from "@/i18n/server";
 
 /**
  * Ouverture d'un examen.
@@ -10,12 +11,13 @@ import { Skeleton } from "@/components/ui/skeleton";
  * l'examen et son jeton de visualisation. Le radiologue voit que son clic
  * a porté, et l'écran ne se recompose pas à l'arrivée des données.
  */
-export default function Loading() {
+export default async function Loading() {
+  const { t } = await getMessages();
   return (
     <div
       className="flex min-h-0 flex-1 flex-col"
       role="status"
-      aria-label="Ouverture de l’examen"
+      aria-label={t.reading.page.loading}
     >
       <div className="flex h-13 shrink-0 items-center gap-3 border-b border-border-subtle px-4">
         <Skeleton className="size-8 rounded-md" />

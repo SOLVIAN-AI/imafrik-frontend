@@ -23,6 +23,32 @@ describe("filterSlashItems", () => {
     ]);
   });
 
+  it("cherche dans les intitulés de la langue de l'écran, phrases types comprises", () => {
+    expect(
+      filterSlashItems("measurement table", "en").map((item) => item.id),
+    ).toEqual(["table"]);
+    expect(filterSlashItems("pleu", "en").map((item) => item.id)).toEqual([
+      "pleura",
+    ]);
+  });
+
+  it("insère les phrases dans la langue du compte-rendu, pas de l'écran", () => {
+    const [english] = filterSlashItems("pleura", "fr", "en");
+    expect(english.title).toBe("No pleural or pericardial effusion.");
+    // L'intitulé du groupe, lui, reste dans la langue de l'écran.
+    expect(english.groupLabel).toBe("Phrases types");
+    const [french] = filterSlashItems("plevre", "en", "fr");
+    expect(french.title).toBe("Absence d’épanchement pleural ou péricardique.");
+  });
+
+  it("propose les mêmes phrases dans les deux langues", () => {
+    const ids = (language: "fr" | "en") =>
+      filterSlashItems("", "fr", language)
+        .filter((item) => item.group === "phrases")
+        .map((item) => item.id);
+    expect(ids("en")).toEqual(ids("fr"));
+  });
+
   it("exige chaque mot tapé", () => {
     expect(filterSlashItems("tableau mesures").map((item) => item.id)).toEqual([
       "table",

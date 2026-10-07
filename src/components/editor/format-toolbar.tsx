@@ -37,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useMessages } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 /**
@@ -148,35 +149,36 @@ const MenuTrigger = React.forwardRef<
   );
 });
 
-/** Alignements proposés, avec leur icône. */
+/** Alignements proposés, avec leur icône ; libellés dans `reading.toolbar.align`. */
 const ALIGNMENTS = [
-  { value: "left", label: "Aligner à gauche", icon: AlignLeft },
-  { value: "center", label: "Centrer", icon: AlignCenter },
-  { value: "right", label: "Aligner à droite", icon: AlignRight },
-  { value: "justify", label: "Justifier", icon: AlignJustify },
+  { value: "left", icon: AlignLeft },
+  { value: "center", icon: AlignCenter },
+  { value: "right", icon: AlignRight },
+  { value: "justify", icon: AlignJustify },
 ] as const;
 
 /**
  * Caractères qu'un compte-rendu demande et qu'un clavier français
- * n'offre pas — ou à grand-peine.
+ * n'offre pas — ou à grand-peine. Leurs noms, lus au survol et par les
+ * lecteurs d'écran, sont dans `reading.toolbar.symbolNames`.
  */
 const SYMBOLS = [
-  ["±", "plus ou moins"],
-  ["×", "multiplié par (dimensions)"],
-  ["°", "degré"],
-  ["µ", "micro"],
-  ["²", "au carré"],
-  ["³", "au cube"],
-  ["≤", "inférieur ou égal"],
-  ["≥", "supérieur ou égal"],
-  ["<", "inférieur"],
-  [">", "supérieur"],
-  ["≈", "environ"],
-  ["→", "évolue vers"],
-  ["↑", "augmentation"],
-  ["↓", "diminution"],
-  ["Ø", "diamètre"],
-  ["‰", "pour mille"],
+  "±",
+  "×",
+  "°",
+  "µ",
+  "²",
+  "³",
+  "≤",
+  "≥",
+  "<",
+  ">",
+  "≈",
+  "→",
+  "↑",
+  "↓",
+  "Ø",
+  "‰",
 ] as const;
 
 /**
@@ -207,6 +209,7 @@ export function FormatToolbar({
   children?: React.ReactNode;
 }) {
   const shortcut = useShortcutLabel();
+  const labels = useMessages().reading.toolbar;
   const state = useEditorState({
     editor,
     selector: ({ editor: current }) => {
@@ -252,18 +255,18 @@ export function FormatToolbar({
         "bg-surface-raised/60 backdrop-blur-sm",
       )}
       role="toolbar"
-      aria-label="Mise en forme"
+      aria-label={labels.label}
     >
       <ToolButton
         icon={Undo2}
-        label="Annuler"
+        label={labels.undo}
         shortcut={shortcut("Z")}
         disabled={disabled || !state.canUndo}
         onClick={() => chain().undo().run()}
       />
       <ToolButton
         icon={Redo2}
-        label="Rétablir"
+        label={labels.redo}
         shortcut={shortcut("⇧Z")}
         disabled={disabled || !state.canRedo}
         onClick={() => chain().redo().run()}
@@ -273,7 +276,7 @@ export function FormatToolbar({
 
       <ToolButton
         icon={Heading3}
-        label="Sous-titre"
+        label={labels.subtitle}
         shortcut={shortcut("Alt+3")}
         active={state?.heading}
         disabled={disabled}
@@ -284,7 +287,7 @@ export function FormatToolbar({
 
       <ToolButton
         icon={Bold}
-        label="Gras"
+        label={labels.bold}
         shortcut={shortcut("B")}
         active={state?.bold}
         disabled={disabled}
@@ -292,7 +295,7 @@ export function FormatToolbar({
       />
       <ToolButton
         icon={Italic}
-        label="Italique"
+        label={labels.italic}
         shortcut={shortcut("I")}
         active={state?.italic}
         disabled={disabled}
@@ -300,7 +303,7 @@ export function FormatToolbar({
       />
       <ToolButton
         icon={UnderlineIcon}
-        label="Souligné"
+        label={labels.underline}
         shortcut={shortcut("U")}
         active={state?.underline}
         disabled={disabled}
@@ -308,7 +311,7 @@ export function FormatToolbar({
       />
       <ToolButton
         icon={Strikethrough}
-        label="Barré"
+        label={labels.strike}
         shortcut={shortcut("⇧S")}
         active={state?.strike}
         disabled={disabled}
@@ -316,7 +319,7 @@ export function FormatToolbar({
       />
       <ToolButton
         icon={Highlighter}
-        label="Surligner"
+        label={labels.highlight}
         shortcut={shortcut("⇧H")}
         active={state?.highlight}
         disabled={disabled}
@@ -327,7 +330,7 @@ export function FormatToolbar({
 
       <ToolButton
         icon={SuperscriptIcon}
-        label="Exposant (cm², mm³)"
+        label={labels.superscript}
         shortcut={shortcut(".")}
         active={state?.superscript}
         disabled={disabled}
@@ -335,7 +338,7 @@ export function FormatToolbar({
       />
       <ToolButton
         icon={SubscriptIcon}
-        label="Indice"
+        label={labels.subscript}
         shortcut={shortcut(",")}
         active={state?.subscript}
         disabled={disabled}
@@ -346,7 +349,7 @@ export function FormatToolbar({
 
       <ToolButton
         icon={List}
-        label="Liste à puces"
+        label={labels.bulletList}
         shortcut={shortcut("⇧8")}
         active={state?.bulletList}
         disabled={disabled}
@@ -354,7 +357,7 @@ export function FormatToolbar({
       />
       <ToolButton
         icon={ListOrdered}
-        label="Liste numérotée"
+        label={labels.orderedList}
         shortcut={shortcut("⇧7")}
         active={state?.orderedList}
         disabled={disabled}
@@ -362,14 +365,14 @@ export function FormatToolbar({
       />
       <ToolButton
         icon={IndentDecrease}
-        label="Diminuer le retrait"
+        label={labels.outdent}
         shortcut="⇧Tab"
         disabled={disabled || !state.canLift}
         onClick={() => chain().liftListItem("listItem").run()}
       />
       <ToolButton
         icon={IndentIncrease}
-        label="Augmenter le retrait"
+        label={labels.indent}
         shortcut="Tab"
         disabled={disabled || !state.canSink}
         onClick={() => chain().sinkListItem("listItem").run()}
@@ -381,7 +384,7 @@ export function FormatToolbar({
         <DropdownMenuTrigger asChild>
           <MenuTrigger
             icon={AlignIcon}
-            label="Alignement"
+            label={labels.alignment}
             disabled={disabled}
           />
         </DropdownMenuTrigger>
@@ -396,7 +399,7 @@ export function FormatToolbar({
               className={cn(state?.align === entry.value && "text-accent")}
             >
               <entry.icon className="size-3.5" aria-hidden />
-              {entry.label}
+              {labels.align[entry.value]}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
@@ -406,7 +409,7 @@ export function FormatToolbar({
         <DropdownMenuTrigger asChild>
           <MenuTrigger
             icon={Table}
-            label="Tableau"
+            label={labels.table}
             active={state?.table}
             disabled={disabled}
           />
@@ -418,53 +421,51 @@ export function FormatToolbar({
         >
           {state?.table ? (
             <>
-              <DropdownMenuLabel>Tableau</DropdownMenuLabel>
+              <DropdownMenuLabel>{labels.table}</DropdownMenuLabel>
               <DropdownMenuItem onSelect={() => chain().addRowAfter().run()}>
-                Ajouter une ligne dessous
+                {labels.addRow}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => chain().addColumnAfter().run()}>
-                Ajouter une colonne à droite
+                {labels.addColumn}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => chain().toggleHeaderRow().run()}
               >
-                Ligne d’en-tête
+                {labels.headerRow}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => chain().deleteRow().run()}>
-                Supprimer la ligne
+                {labels.deleteRow}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => chain().deleteColumn().run()}>
-                Supprimer la colonne
+                {labels.deleteColumn}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-urgent"
                 onSelect={() => chain().deleteTable().run()}
               >
-                Supprimer le tableau
+                {labels.deleteTable}
               </DropdownMenuItem>
             </>
           ) : (
             <>
-              <DropdownMenuLabel>Insérer un tableau</DropdownMenuLabel>
-              {[
-                [2, 2, "2 × 2 : valeur et mesure"],
-                [3, 3, "3 × 3 : lésions et dimensions"],
-                [4, 3, "4 × 3 : suivi comparatif"],
-              ].map(([rows, cols, label]) => (
+              <DropdownMenuLabel>{labels.insertTable}</DropdownMenuLabel>
+              {(
+                [
+                  [2, 2, "values"],
+                  [3, 3, "lesions"],
+                  [4, 3, "followUp"],
+                ] as const
+              ).map(([rows, cols, preset]) => (
                 <DropdownMenuItem
-                  key={String(label)}
+                  key={preset}
                   onSelect={() =>
                     chain()
-                      .insertTable({
-                        rows: Number(rows),
-                        cols: Number(cols),
-                        withHeaderRow: true,
-                      })
+                      .insertTable({ rows, cols, withHeaderRow: true })
                       .run()
                   }
                 >
-                  {label}
+                  {labels.tablePresets[preset]}
                 </DropdownMenuItem>
               ))}
             </>
@@ -476,7 +477,7 @@ export function FormatToolbar({
         <DropdownMenuTrigger asChild>
           <MenuTrigger
             icon={Omega}
-            label="Caractères spéciaux"
+            label={labels.symbols}
             disabled={disabled}
           />
         </DropdownMenuTrigger>
@@ -485,13 +486,13 @@ export function FormatToolbar({
           className="w-56 p-2"
           onCloseAutoFocus={(event) => event.preventDefault()}
         >
-          <DropdownMenuLabel>Insérer un signe</DropdownMenuLabel>
+          <DropdownMenuLabel>{labels.insertSymbol}</DropdownMenuLabel>
           <div className="grid grid-cols-4 gap-1">
-            {SYMBOLS.map(([symbol, label]) => (
+            {SYMBOLS.map((symbol) => (
               <DropdownMenuItem
                 key={symbol}
-                title={label}
-                aria-label={label}
+                title={labels.symbolNames[symbol]}
+                aria-label={labels.symbolNames[symbol]}
                 onSelect={() => chain().insertContent(symbol).run()}
                 className="flex h-10 items-center justify-center text-base"
               >
@@ -504,7 +505,7 @@ export function FormatToolbar({
 
       <ToolButton
         icon={RemoveFormatting}
-        label="Effacer la mise en forme"
+        label={labels.clearFormatting}
         disabled={disabled}
         onClick={() => chain().unsetAllMarks().clearNodes().run()}
       />

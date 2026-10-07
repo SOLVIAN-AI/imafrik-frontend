@@ -1,5 +1,5 @@
-import type { ReportSections } from "@/components/editor/report-editor";
-import { EMPTY_REPORT_SECTIONS } from "@/components/editor/report-editor";
+import type { ReportSections } from "@/components/editor/sections";
+import { EMPTY_REPORT_SECTIONS } from "@/components/editor/sections";
 import { DEMO_RADIOLOGISTS, DEMO_STUDIES } from "@/lib/demo/studies";
 
 /**

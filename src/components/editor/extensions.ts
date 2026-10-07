@@ -11,6 +11,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { SectionNavigation } from "@/components/editor/navigation";
 import { SearchHighlight } from "@/components/editor/search";
 import { SlashCommands } from "@/components/editor/slash-commands";
+import type { Locale } from "@/lib/i18n/locale";
 
 /**
  * Remplacements typographiques à la frappe.
@@ -64,13 +65,20 @@ const MedicalTypography = Extension.create({
  * @param options.commands    Menu « / » et navigation au clavier entre
  *                            sections (`navigation.ts`) — seulement pour
  *                            un éditeur modifiable.
+ * @param options.locale      Langue de l'utilisateur, celle du menu « / ».
+ * @param options.reportLanguage Langue du compte-rendu, celle des phrases
+ *                            types insérées ; celle de l'écran à défaut.
  */
 export function sectionExtensions({
   placeholder = "",
   commands = false,
+  locale = "fr",
+  reportLanguage = locale,
 }: {
   placeholder?: string;
   commands?: boolean;
+  locale?: Locale;
+  reportLanguage?: Locale;
 } = {}) {
   return [
     StarterKit.configure({
@@ -95,7 +103,7 @@ export function sectionExtensions({
     // Surlignage de la recherche : de simples décorations, invisibles du
     // document enregistré — sans effet tant qu'on ne cherche rien.
     SearchHighlight,
-    ...(commands ? [SlashCommands] : []),
+    ...(commands ? [SlashCommands.configure({ locale, reportLanguage })] : []),
     ...(commands ? [SectionNavigation] : []),
   ];
 }

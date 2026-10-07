@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Field, Input } from "@/components/ui/input";
+import { useMessages } from "@/i18n/client";
 import { createTemplate } from "@/lib/actions/templates";
 import type { ReportTemplate } from "@/lib/data/templates";
 
@@ -51,6 +52,7 @@ export function TemplatePicker({
   sections: ReportSections;
   onApply: (next: ReportSections) => void;
 }) {
+  const labels = useMessages().reading.templates;
   if (templates.length === 0) return null;
 
   const apply = (template: ReportTemplate) => {
@@ -66,11 +68,7 @@ export function TemplatePicker({
       }
     }
     onApply(next);
-    toast.success(
-      filled > 0
-        ? `Modèle appliqué : ${filled} section${filled > 1 ? "s" : ""} complétée${filled > 1 ? "s" : ""}.`
-        : "Toutes les sections étaient déjà rédigées : rien n’a été remplacé.",
-    );
+    toast.success(filled > 0 ? labels.applied(filled) : labels.nothingApplied);
   };
 
   return (
@@ -78,11 +76,11 @@ export function TemplatePicker({
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm">
           <FileStack />
-          Modèle
+          {labels.picker}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel>Compléter les sections vides</DropdownMenuLabel>
+        <DropdownMenuLabel>{labels.pickerLabel}</DropdownMenuLabel>
         {templates.map((template) => (
           <DropdownMenuItem key={template.id} onSelect={() => apply(template)}>
             <span className="min-w-0 flex-1 truncate">{template.name}</span>
@@ -109,6 +107,8 @@ export function SaveAsTemplate({
   modality: string;
   bodyPart: string | null;
 }) {
+  const t = useMessages();
+  const labels = t.reading.templates;
   const [open, setOpen] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 
@@ -117,7 +117,7 @@ export function SaveAsTemplate({
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm">
           <BookmarkPlus />
-          Enregistrer comme modèle
+          {labels.saveAs}
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -138,31 +138,27 @@ export function SaveAsTemplate({
                 toast.error(result.error);
                 return;
               }
-              toast.success("Modèle enregistré.");
+              toast.success(labels.saved);
               setOpen(false);
             });
           }}
         >
           <DialogHeader>
-            <DialogTitle>Enregistrer comme modèle</DialogTitle>
-            <DialogDescription>
-              Le texte actuel des cinq sections devient un modèle, proposé à vos
-              collègues pour les examens de même modalité. Retirez d’abord tout
-              ce qui est propre à ce patient.
-            </DialogDescription>
+            <DialogTitle>{labels.saveAs}</DialogTitle>
+            <DialogDescription>{labels.saveAsDescription}</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 px-5 pb-5">
-            <Field id="template-name" label="Nom du modèle">
+            <Field id="template-name" label={labels.name}>
               <Input
                 id="template-name"
                 name="name"
                 required
                 maxLength={200}
-                placeholder="TDM thoracique normale"
+                placeholder={labels.namePlaceholder}
               />
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field id="template-modality" label="Modalité">
+              <Field id="template-modality" label={labels.modality}>
                 <Input
                   id="template-modality"
                   name="modality"
@@ -170,7 +166,7 @@ export function SaveAsTemplate({
                   maxLength={16}
                 />
               </Field>
-              <Field id="template-body" label="Région">
+              <Field id="template-body" label={labels.region}>
                 <Input
                   id="template-body"
                   name="bodyPart"
@@ -187,10 +183,10 @@ export function SaveAsTemplate({
               size="sm"
               onClick={() => setOpen(false)}
             >
-              Annuler
+              {t.common.actions.cancel}
             </Button>
             <Button type="submit" size="sm" loading={pending}>
-              Enregistrer
+              {t.common.actions.save}
             </Button>
           </DialogFooter>
         </form>

@@ -17,8 +17,10 @@ import {
 } from "@/components/domain/study-status";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useNow } from "@/hooks/use-now";
+import { useLocale, useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
 import { formatPatientName } from "@/lib/format";
+import { INTL_LOCALE } from "@/lib/i18n/locale";
 import { hasModifier, isTyping } from "@/lib/keyboard";
 import { cn } from "@/lib/utils";
 import {
@@ -61,16 +63,18 @@ const DEADLINE_STYLES: Record<DeadlineTone, string> = {
  */
 function DeadlineBadge({ study, muted }: { study: Study; muted?: boolean }) {
   const now = useNow();
+  const t = useMessages();
+  const locale = useLocale();
   if (now === 0) return <span className="inline-block h-5 w-24" aria-hidden />;
-  const deadline = deadlineOf(study, now);
-  const at = study.dueAt.toLocaleTimeString("fr-FR", {
+  const deadline = deadlineOf(study, now, locale);
+  const at = study.dueAt.toLocaleTimeString(INTL_LOCALE[locale], {
     hour: "2-digit",
     minute: "2-digit",
   });
   return (
     <time
       dateTime={study.dueAt.toISOString()}
-      title={`Échéance à ${at}`}
+      title={t.worklist.deadline.dueAt(at)}
       className={cn(
         "inline-flex h-5 items-center rounded-md px-1.5 text-xs whitespace-nowrap tabular-nums",
         muted ? "text-tertiary" : DEADLINE_STYLES[deadline.tone],
@@ -83,25 +87,25 @@ function DeadlineBadge({ study, muted }: { study: Study; muted?: boolean }) {
 
 /** Indicateur des renseignements cliniques, lisibles au survol et par les lecteurs d'écran. */
 function ClinicalInfo({ text }: { text: string | null }) {
+  const t = useMessages();
   if (!text) return null;
+  const label = t.worklist.table.clinicalInfo(text);
   return (
-    <span
-      className="inline-flex shrink-0 text-tertiary"
-      title={`Renseignements cliniques : ${text}`}
-    >
+    <span className="inline-flex shrink-0 text-tertiary" title={label}>
       <ClipboardList className="size-3.5" aria-hidden />
-      <span className="sr-only">Renseignements cliniques : {text}</span>
+      <span className="sr-only">{label}</span>
     </span>
   );
 }
 
 /** Contenu de la colonne de suivi. */
 function Follow({ study, follow }: { study: Study; follow: FollowColumn }) {
+  const t = useMessages();
   if (follow === "status") return <StudyStatusChip status={study.status} />;
   if (follow === "reader")
     return (
       <span className="truncate text-secondary">
-        {study.assignedToName ?? "Un confrère"}
+        {study.assignedToName ?? t.worklist.table.colleague}
       </span>
     );
   return null;
@@ -109,7 +113,8 @@ function Follow({ study, follow }: { study: Study; follow: FollowColumn }) {
 
 /** Sexe, âge et identifiant, sur la seconde ligne du patient. */
 function PatientLine({ study }: { study: Study }) {
-  const demographics = shortDemographics(study);
+  const locale = useLocale();
+  const demographics = shortDemographics(study, locale);
   return (
     <span className="truncate text-2xs text-tertiary">
       {demographics && <span>{demographics} · </span>}
@@ -245,6 +250,8 @@ export function ReadingTable({
   refreshNote?: string;
 }) {
   const router = useRouter();
+  const t = useMessages();
+  const labels = t.worklist.table;
   const container = React.useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = React.useState<ReadonlySet<string>>(
     () => new Set(),
@@ -256,7 +263,7 @@ export function ReadingTable({
     return (
       <EmptyState
         icon={empty ? SearchX : CheckCircle2}
-        {...(empty ?? DEFAULT_EMPTY)}
+        {...(empty ?? labels.empty)}
       />
     );
   }
@@ -343,19 +350,19 @@ export function ReadingTable({
           <thead className="sticky top-0 z-20">
             <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
               <th scope="col" className="w-34">
-                <span className="label-eyebrow">Échéance</span>
+                <span className="label-eyebrow">{labels.columns.deadline}</span>
               </th>
               <th scope="col" className="w-[28%]">
-                <span className="label-eyebrow">Patient</span>
+                <span className="label-eyebrow">{labels.columns.patient}</span>
               </th>
               <th scope="col">
-                <span className="label-eyebrow">Examen</span>
+                <span className="label-eyebrow">{labels.columns.study}</span>
               </th>
               <th scope="col" className="w-30">
-                <span className="label-eyebrow">Suivi</span>
+                <span className="label-eyebrow">{labels.columns.follow}</span>
               </th>
               <th scope="col" className="w-20 text-right">
-                <span className="label-eyebrow">Reçu</span>
+                <span className="label-eyebrow">{labels.columns.received}</span>
               </th>
             </tr>
           </thead>
@@ -458,24 +465,12 @@ export function ReadingTable({
       >
         <span className="hidden lg:inline">
           <kbd className="font-sans">j</kbd> /{" "}
-          <kbd className="font-sans">k</kbd> ou flèches pour parcourir la file,{" "}
-          <kbd className="font-sans">Entrée</kbd> pour ouvrir l’examen.{" "}
+          <kbd className="font-sans">k</kbd> {labels.keyboard.browse}{" "}
+          <kbd className="font-sans">{labels.keyboard.enter}</kbd>{" "}
+          {labels.keyboard.open}{" "}
         </span>
         {refreshNote}
       </p>
     </div>
   );
 }
-
-/**
- * État vide.
- *
- * Il dit ce qui se passe, pas seulement qu'il ne se passe rien. Une file
- * vide est une bonne nouvelle dans ce métier : l'écran doit le refléter
- * plutôt que ressembler à une erreur de chargement.
- */
-const DEFAULT_EMPTY = {
-  title: "File à jour",
-  detail:
-    "Aucun examen n’attend de lecture. Les nouveaux examens apparaissent ici dès leur réception.",
-};

@@ -1,6 +1,7 @@
 "use client";
 
 import { useNow } from "@/hooks/use-now";
+import { useLocale } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { messagesFor } from "@/i18n";
 import type { Locale } from "@/lib/i18n/locale";
@@ -15,9 +16,10 @@ export const STALE_AFTER_HOURS = 4;
  * écoulé : un examen reçu il y a trois heures appelle une action, une date
  * absolue oblige à faire le calcul soi-même.
  *
- * @param date Date de réception.
- * @param now  Instant de référence, injectable pour les tests.
- * @returns Une durée compacte : « 12 min », « 3 h », « 2 j ».
+ * @param date   Date de réception.
+ * @param now    Instant de référence, injectable pour les tests.
+ * @param locale Langue, français par défaut.
+ * @returns Une durée compacte : « 12 min », « 3 h », « 2 j » (« 2 d »).
  */
 export function formatAge(
   date: Date,
@@ -74,6 +76,7 @@ export function StudyAge({
   className?: string;
 }) {
   const now = useNow();
+  const locale = useLocale();
   if (!now) return <time className={className} />;
 
   const hours = (now - date.getTime()) / 3_600_000;
@@ -84,7 +87,7 @@ export function StudyAge({
       dateTime={date.toISOString()}
       className={cn(stale ? "text-progress" : "text-tertiary", className)}
     >
-      {formatAge(date, new Date(now))}
+      {formatAge(date, new Date(now), locale)}
     </time>
   );
 }

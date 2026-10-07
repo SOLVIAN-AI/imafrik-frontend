@@ -8,6 +8,7 @@ import { DateTime } from "@/components/domain/date-time";
 import { Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Field, Textarea } from "@/components/ui/input";
+import { useMessages } from "@/i18n/client";
 import { addAddendum } from "@/lib/actions/reading";
 import type { Addendum } from "@/lib/data/reports";
 
@@ -35,12 +36,13 @@ export function AddendaPanel({
   addenda: Addendum[];
   canAdd: boolean;
 }) {
+  const labels = useMessages().reading.addenda;
   if (addenda.length === 0 && !canAdd) return null;
 
   return (
     <Panel className="mt-4 flex flex-col overflow-hidden">
       <h2 className="label-eyebrow flex h-11 items-center border-b border-border-subtle px-4">
-        Addenda
+        {labels.title}
       </h2>
 
       {addenda.length > 0 ? (
@@ -54,7 +56,7 @@ export function AddendaPanel({
                     .join(" ")}
                 </span>
                 {addendum.authorLicense &&
-                  ` · Ordre n° ${addendum.authorLicense}`}{" "}
+                  ` · ${labels.license(addendum.authorLicense)}`}{" "}
                 · <DateTime date={addendum.createdAt} />
               </p>
               <p className="mt-1.5 text-sm whitespace-pre-wrap">
@@ -64,9 +66,7 @@ export function AddendaPanel({
           ))}
         </ol>
       ) : (
-        <p className="px-4 py-3 text-xs text-tertiary">
-          Aucune correction depuis la signature.
-        </p>
+        <p className="px-4 py-3 text-xs text-tertiary">{labels.none}</p>
       )}
 
       {canAdd && <AddendumForm reportId={reportId} />}
@@ -76,18 +76,13 @@ export function AddendaPanel({
 
 /** Formulaire d'ajout. L'envoi est irréversible, comme la signature. */
 function AddendumForm({ reportId }: { reportId: string }) {
+  const labels = useMessages().reading.addenda;
   const [body, setBody] = React.useState("");
   const [pending, startTransition] = React.useTransition();
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (
-      !window.confirm(
-        "Ajouter cet addendum ? Il sera signé à votre nom, visible de la clinique, et ne pourra plus être modifié.",
-      )
-    ) {
-      return;
-    }
+    if (!window.confirm(labels.confirm)) return;
     startTransition(async () => {
       const result = await addAddendum(reportId, body);
       if (!result.ok) {
@@ -95,7 +90,7 @@ function AddendumForm({ reportId }: { reportId: string }) {
         return;
       }
       setBody("");
-      toast.success("Addendum ajouté et transmis.");
+      toast.success(labels.added);
     });
   };
 
@@ -104,14 +99,14 @@ function AddendumForm({ reportId }: { reportId: string }) {
       onSubmit={submit}
       className="flex flex-col gap-3 border-t border-border-subtle p-4"
     >
-      <Field id="addendum" label="Nouvel addendum">
+      <Field id="addendum" label={labels.label}>
         <Textarea
           id="addendum"
           value={body}
           onChange={(event) => setBody(event.target.value)}
           rows={4}
           maxLength={10_000}
-          placeholder="Correction ou complément au compte-rendu signé…"
+          placeholder={labels.placeholder}
         />
       </Field>
       <div className="flex justify-end">
@@ -122,7 +117,7 @@ function AddendumForm({ reportId }: { reportId: string }) {
           disabled={!body.trim()}
         >
           <FilePlus2 />
-          Signer l’addendum
+          {labels.submit}
         </Button>
       </div>
     </form>

@@ -2,8 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
-import type { ReportSections } from "@/components/editor/report-editor";
-import { REPORT_SECTIONS } from "@/components/editor/sections";
+import {
+  REPORT_SECTIONS,
+  type ReportSections,
+} from "@/components/editor/sections";
+import { getMessages } from "@/i18n/server";
 import { apiGet, apiSend } from "@/lib/api/client";
 import {
   addendumSchema,
@@ -85,7 +88,10 @@ export async function claimStudy(
  * suivant ne pourrait ni le reprendre ni en ouvrir un autre.
  */
 export async function releaseStudy(studyId: string): Promise<ActionResult> {
-  if (isDemoMode()) return demoUnavailable("Rendre un examen");
+  if (isDemoMode()) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.reading.actions.releaseDemoAction);
+  }
   const invalid = await rejectInvalidIds(studyId);
   if (invalid) return invalid;
   const result = await run(async () => {
@@ -145,7 +151,8 @@ export async function saveReportDraft(
   const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
   if (!Number.isInteger(expectedVersion) || !isSectionsPayload(sections)) {
-    return { ok: false, error: "Brouillon invalide.", status: 422 };
+    const { t } = await getMessages();
+    return { ok: false, error: t.reading.actions.invalidDraft, status: 422 };
   }
   return run(async () => {
     const saved = await apiSend(
@@ -166,7 +173,10 @@ export async function saveReportDraft(
  * déclencheur verrouille ensuite le document en base.
  */
 export async function signReport(reportId: string): Promise<ActionResult> {
-  if (isDemoMode()) return demoUnavailable("La signature");
+  if (isDemoMode()) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.reading.actions.signDemoAction);
+  }
   const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
   const result = await run(async () => {
@@ -194,7 +204,10 @@ export async function signReport(reportId: string): Promise<ActionResult> {
 export async function getReportPdfLink(
   reportId: string,
 ): Promise<ActionResult<string>> {
-  if (isDemoMode()) return demoUnavailable("Le téléchargement du PDF");
+  if (isDemoMode()) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.reading.actions.pdfDemoAction);
+  }
   const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
   const result = await run(async () => {
@@ -227,18 +240,21 @@ export async function addAddendum(
   reportId: string,
   body: string,
 ): Promise<ActionResult> {
-  if (typeof body !== "string")
-    return { ok: false, error: "L’addendum est vide.", status: 422 };
-  const text = body.trim();
-  if (!text) return { ok: false, error: "L’addendum est vide.", status: 422 };
+  const { t } = await getMessages();
+  const text = typeof body === "string" ? body.trim() : "";
+  if (!text) {
+    return { ok: false, error: t.reading.actions.addendumEmpty, status: 422 };
+  }
   if (text.length > ADDENDUM_MAX_LENGTH) {
     return {
       ok: false,
-      error: "L’addendum dépasse 10 000 caractères.",
+      error: t.reading.actions.addendumTooLong,
       status: 422,
     };
   }
-  if (isDemoMode()) return demoUnavailable("L’ajout d’un addendum");
+  if (isDemoMode()) {
+    return await demoUnavailable(t.reading.actions.addendumDemoAction);
+  }
   const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
 

@@ -18,6 +18,7 @@ import {
   type SearchQuery,
   setSearch,
 } from "@/components/editor/search";
+import { useMessages } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 /** Une occurrence, rattachée à sa section. */
@@ -56,6 +57,7 @@ export function FindBar({
   onToggleReplace: () => void;
   onClose: () => void;
 }) {
+  const labels = useMessages().reading.find;
   const [text, setText] = React.useState("");
   const [replacement, setReplacement] = React.useState("");
   const [caseSensitive, setCaseSensitive] = React.useState(false);
@@ -159,13 +161,13 @@ export function FindBar({
   return (
     <div
       role="search"
-      aria-label="Rechercher dans le compte-rendu"
+      aria-label={labels.label}
       onKeyDown={onKeyDown}
       className="flex shrink-0 flex-col gap-2 border-b border-border-subtle bg-surface-raised px-3 py-2 sm:px-5"
     >
       <div className="flex flex-wrap items-center gap-1.5">
         <label className="relative flex min-w-0 flex-[1_1_12rem] items-center">
-          <span className="sr-only">Rechercher</span>
+          <span className="sr-only">{labels.label}</span>
           <Search
             className="pointer-events-none absolute left-2.5 size-3.5 text-tertiary"
             aria-hidden
@@ -183,7 +185,7 @@ export function FindBar({
                 go(event.shiftKey ? -1 : 1);
               }
             }}
-            placeholder="Rechercher dans le compte-rendu"
+            placeholder={labels.placeholder}
             className="h-8 w-full rounded-md border border-border-default bg-surface-base pr-20 pl-8 text-sm placeholder:text-tertiary focus:border-accent focus:outline-none"
           />
           <span
@@ -196,27 +198,27 @@ export function FindBar({
             {text
               ? matches.length
                 ? `${current + 1} / ${matches.length}`
-                : "Aucun résultat"
+                : labels.noResult
               : ""}
           </span>
         </label>
         <div className="flex items-center gap-0.5">
           <BarButton
-            label="Occurrence précédente (Maj+Entrée)"
+            label={labels.previous}
             onClick={() => go(-1)}
             disabled={!matches.length}
           >
             <ChevronUp />
           </BarButton>
           <BarButton
-            label="Occurrence suivante (Entrée)"
+            label={labels.next}
             onClick={() => go(1)}
             disabled={!matches.length}
           >
             <ChevronDown />
           </BarButton>
           <BarButton
-            label="Respecter la casse"
+            label={labels.matchCase}
             pressed={caseSensitive}
             onClick={() => {
               setCaseSensitive((value) => !value);
@@ -226,13 +228,13 @@ export function FindBar({
             <CaseSensitive />
           </BarButton>
           <BarButton
-            label="Remplacer"
+            label={labels.replace}
             pressed={withReplace}
             onClick={onToggleReplace}
           >
             <Replace />
           </BarButton>
-          <BarButton label="Fermer (Échap)" onClick={onClose}>
+          <BarButton label={labels.close} onClick={onClose}>
             <X />
           </BarButton>
         </div>
@@ -241,7 +243,7 @@ export function FindBar({
       {withReplace && (
         <div className="flex flex-wrap items-center gap-1.5">
           <label className="min-w-0 flex-[1_1_12rem]">
-            <span className="sr-only">Remplacer par</span>
+            <span className="sr-only">{labels.replaceWith}</span>
             <input
               value={replacement}
               onChange={(event) => setReplacement(event.target.value)}
@@ -251,7 +253,7 @@ export function FindBar({
                   replaceOne();
                 }
               }}
-              placeholder="Remplacer par"
+              placeholder={labels.replaceWith}
               className="h-8 w-full rounded-md border border-border-default bg-surface-base px-2.5 text-sm placeholder:text-tertiary focus:border-accent focus:outline-none"
             />
           </label>
@@ -262,7 +264,7 @@ export function FindBar({
               disabled={!active}
               className="h-8 rounded-md border border-border-default px-2.5 text-xs font-medium transition-colors hover:bg-surface-hover disabled:opacity-40"
             >
-              Remplacer
+              {labels.replace}
             </button>
             <button
               type="button"
@@ -270,7 +272,7 @@ export function FindBar({
               disabled={!matches.length}
               className="h-8 rounded-md border border-border-default px-2.5 text-xs font-medium transition-colors hover:bg-surface-hover disabled:opacity-40"
             >
-              Tout remplacer
+              {labels.replaceAll}
               {matches.length > 0 && (
                 <span className="ml-1 text-tertiary tabular-nums">
                   ({matches.length})

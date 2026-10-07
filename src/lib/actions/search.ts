@@ -13,6 +13,7 @@ import {
   normalizeListSearch,
 } from "@/lib/search/list-search";
 import { getSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
 /** Un examen trouvé, réduit à ce que la palette affiche. */
 export interface StudyHit {
@@ -74,10 +75,15 @@ export async function setListSearch(
   scope: string,
   raw: string,
 ): Promise<ActionResult> {
-  if (!isListSearchScope(scope) || typeof raw !== "string")
-    return { ok: false, error: "Recherche invalide.", status: 400 };
+  if (!isListSearchScope(scope) || typeof raw !== "string") {
+    const { t } = await getMessages();
+    return { ok: false, error: t.worklist.toolbar.invalidSearch, status: 400 };
+  }
   const session = await getSession();
-  if (!session) return { ok: false, error: "Session expirée.", status: 401 };
+  if (!session) {
+    const { t } = await getMessages();
+    return { ok: false, error: t.common.errors.sessionExpired, status: 401 };
+  }
 
   const store = await cookies();
   const name = listSearchCookie(scope);

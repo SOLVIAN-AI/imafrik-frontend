@@ -7,18 +7,9 @@ import { DeleteTemplateButton } from "@/components/domain/delete-template-button
 import { ReportDocument } from "@/components/editor/report-document";
 import { Panel } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useMessages } from "@/i18n/client";
 import type { ReportTemplate } from "@/lib/data/templates";
 import { cn } from "@/lib/utils";
-
-/** Libellé d'une modalité, pour le filtre. */
-const MODALITY_LABELS: Record<string, string> = {
-  CT: "Scanner",
-  MR: "IRM",
-  CR: "Radiographie",
-  DX: "Radiographie",
-  US: "Échographie",
-  MG: "Mammographie",
-};
 
 /** Normalise pour une recherche insensible à la casse et aux accents. */
 function normalize(text: string): string {
@@ -49,6 +40,9 @@ export function TemplatesBrowser({
 }: {
   templates: ReportTemplate[];
 }) {
+  const labels = useMessages().reading.templates;
+  // Nom courant d'une modalité, à défaut son code DICOM.
+  const modalityName = (code: string) => labels.modalityNames[code] ?? code;
   const [query, setQuery] = React.useState("");
   const [modality, setModality] = React.useState<string | null>(null);
   const [selectedId, setSelectedId] = React.useState(templates[0]?.id);
@@ -87,7 +81,7 @@ export function TemplatesBrowser({
       <Panel className="flex min-h-0 flex-col overflow-hidden lg:max-h-full">
         <div className="flex flex-col gap-2.5 border-b border-border-subtle p-3">
           <label className="relative block">
-            <span className="sr-only">Rechercher un modèle</span>
+            <span className="sr-only">{labels.search}</span>
             <Search
               className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-tertiary"
               aria-hidden
@@ -96,7 +90,7 @@ export function TemplatesBrowser({
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Nom, région…"
+              placeholder={labels.searchPlaceholder}
               className={cn(
                 "h-8 w-full rounded-md border border-border-default bg-surface-base pr-2.5 pl-8 text-sm",
                 "placeholder:text-tertiary focus-visible:border-accent",
@@ -107,7 +101,7 @@ export function TemplatesBrowser({
             <div
               className="flex flex-wrap gap-1"
               role="group"
-              aria-label="Modalité"
+              aria-label={labels.modality}
             >
               {[null, ...modalities].map((value) => (
                 <button
@@ -122,7 +116,7 @@ export function TemplatesBrowser({
                       : "text-tertiary hover:bg-surface-hover hover:text-secondary",
                   )}
                 >
-                  {value ? (MODALITY_LABELS[value] ?? value) : "Toutes"}
+                  {value ? modalityName(value) : labels.allModalities}
                 </button>
               ))}
             </div>
@@ -132,8 +126,8 @@ export function TemplatesBrowser({
         {visible.length === 0 ? (
           <EmptyState
             icon={SearchX}
-            title="Aucun modèle"
-            detail="Aucun modèle ne correspond à cette recherche."
+            title={labels.emptyTitle}
+            detail={labels.noMatch}
             className="py-10"
           />
         ) : (
@@ -168,8 +162,8 @@ export function TemplatesBrowser({
                         {template.name}
                       </span>
                       <span className="block truncate text-2xs text-tertiary">
-                        {template.bodyPart ?? "Toutes régions"} ·{" "}
-                        {template.shared ? "IMAFRIK" : "Organisation"}
+                        {template.bodyPart ?? labels.allRegions} ·{" "}
+                        {template.shared ? "IMAFRIK" : labels.organisation}
                       </span>
                     </span>
                   </button>
@@ -189,15 +183,15 @@ export function TemplatesBrowser({
               </h2>
               <p className="mt-0.5 text-2xs text-tertiary">
                 {selected.modality
-                  ? (MODALITY_LABELS[selected.modality] ?? selected.modality)
-                  : "Toutes modalités"}
+                  ? modalityName(selected.modality)
+                  : labels.anyModality}
                 {selected.bodyPart && ` · ${selected.bodyPart}`}
               </p>
             </div>
             {selected.shared ? (
               <span className="flex items-center gap-1.5 rounded-full bg-surface-active px-2.5 py-1 text-2xs text-tertiary">
                 <Lock className="size-3" aria-hidden />
-                Fourni par IMAFRIK
+                {labels.providedByImafrik}
               </span>
             ) : (
               <DeleteTemplateButton
@@ -216,7 +210,7 @@ export function TemplatesBrowser({
         </Panel>
       ) : (
         <Panel>
-          <EmptyState icon={FileStack} title="Aucun modèle sélectionné" />
+          <EmptyState icon={FileStack} title={labels.noneSelected} />
         </Panel>
       )}
     </div>

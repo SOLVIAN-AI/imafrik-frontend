@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import type { ReportSections } from "@/components/editor/report-editor";
+import type { ReportSections } from "@/components/editor/sections";
+import { getMessages } from "@/i18n/server";
 import { apiSend } from "@/lib/api/client";
 import { templateSchema } from "@/lib/api/contracts";
 import {
@@ -24,7 +25,7 @@ import { isDemoMode } from "@/lib/demo/mode";
  */
 
 const createSchema = z.object({
-  name: z.string().trim().min(1, "Donnez un nom au modèle").max(200),
+  name: z.string().trim().min(1).max(200),
   modality: z.string().trim().max(16),
   bodyPart: z.string().trim().max(100),
 });
@@ -43,9 +44,20 @@ export async function createTemplate(
   sections: ReportSections,
 ): Promise<ActionResult> {
   const parsed = createSchema.safeParse(input);
-  if (!parsed.success)
-    return { ok: false, error: parsed.error.issues[0].message, status: 422 };
-  if (isDemoMode()) return demoUnavailable("La création d’un modèle");
+  if (!parsed.success) {
+    const { t } = await getMessages();
+    // Seul le nom peut manquer à un formulaire rempli à l'écran ; le
+    // reste trahit une requête forgée.
+    const error =
+      parsed.error.issues[0]?.path[0] === "name"
+        ? t.reading.templates.nameRequired
+        : t.common.errors.invalidRequest;
+    return { ok: false, error, status: 422 };
+  }
+  if (isDemoMode()) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.reading.templates.createDemoAction);
+  }
 
   const result = await run(async () => {
     await apiSend(
@@ -69,7 +81,10 @@ export async function createTemplate(
 export async function deleteTemplate(
   templateId: string,
 ): Promise<ActionResult> {
-  if (isDemoMode()) return demoUnavailable("La suppression d’un modèle");
+  if (isDemoMode()) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.reading.templates.deleteDemoAction);
+  }
   const invalid = await rejectInvalidIds(templateId);
   if (invalid) return invalid;
   const result = await run(async () => {

@@ -6,8 +6,12 @@ import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { listTemplates } from "@/lib/data/templates";
 import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Modèles" };
+/** Titre de l'onglet, dans la langue de l'utilisateur. */
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.templates };
+}
 
 /**
  * Modèles de comptes-rendus.
@@ -28,13 +32,17 @@ export const metadata: Metadata = { title: "Modèles" };
  */
 export default async function TemplatesPage() {
   await requireSession(["radiologist"]);
-  const templates = await listTemplates();
+  const [{ t }, templates] = await Promise.all([
+    getMessages(),
+    listTemplates(),
+  ]);
+  const labels = t.reading.templates;
 
   return (
     <>
       <PageHeader
-        title="Modèles"
-        description="À appliquer depuis l’écran de lecture ; à créer depuis un compte-rendu en cours"
+        title={t.nav.items.templates}
+        description={labels.description}
       />
 
       {templates.length === 0 ? (
@@ -42,8 +50,8 @@ export default async function TemplatesPage() {
           <Panel>
             <EmptyState
               icon={FileStack}
-              title="Aucun modèle"
-              detail="Dans l’écran de lecture, « Enregistrer comme modèle » transforme le texte en cours en modèle pour toute l’organisation."
+              title={labels.emptyTitle}
+              detail={labels.emptyDetail}
             />
           </Panel>
         </div>

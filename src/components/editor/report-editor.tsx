@@ -46,6 +46,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { AutosaveState } from "@/hooks/use-autosave";
+import { messagesFor } from "@/i18n";
+import { useLocale, useMessages } from "@/i18n/client";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
 export {
@@ -74,6 +77,7 @@ function Section({
   title,
   placeholder,
   required,
+  language,
   value,
   readOnly,
   onFocus,
@@ -82,9 +86,13 @@ function Section({
   onLeave,
 }: {
   id: string;
+  /** Intitulé, dans la langue du compte-rendu. */
   title: string;
+  /** Texte de substitution, dans la langue de l'utilisateur. */
   placeholder: string;
   required: boolean;
+  /** Langue du compte-rendu : celle du correcteur du navigateur. */
+  language: Locale;
   value: string;
   readOnly: boolean;
   onFocus: (editor: Editor) => void;
@@ -94,8 +102,15 @@ function Section({
   /** Le curseur quitte la section par un bord — voir `navigation.ts`. */
   onLeave: (direction: Direction, reason: LeaveReason) => boolean;
 }) {
+  const t = useMessages();
+  const locale = useLocale();
   const editor = useEditor({
-    extensions: sectionExtensions({ placeholder, commands: !readOnly }),
+    extensions: sectionExtensions({
+      placeholder,
+      commands: !readOnly,
+      locale,
+      reportLanguage: language,
+    }),
     content: value,
     editable: !readOnly,
     // Le rendu initial se fait côté client : Tiptap manipule le DOM, et
@@ -113,10 +128,11 @@ function Section({
           "[&_p.is-editor-empty:first-child::before]:text-tertiary",
           "[&_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]",
         ),
-        // Correcteur du navigateur, en français : une faute d'orthographe
-        // dans un document signé engage aussi son signataire.
+        // Correcteur du navigateur, dans la langue du compte-rendu : une
+        // faute d'orthographe dans un document signé engage aussi son
+        // signataire.
         spellcheck: "true",
-        lang: "fr",
+        lang: language,
         "aria-label": title,
       },
     },
@@ -159,8 +175,8 @@ function Section({
         {required && empty && (
           <span
             className="size-1 rounded-full bg-urgent"
-            title="Section obligatoire pour signer"
-            aria-label="Section obligatoire, actuellement vide"
+            title={t.reading.editor.requiredTitle}
+            aria-label={t.reading.editor.requiredLabel}
           />
         )}
       </h3>
@@ -171,18 +187,19 @@ function Section({
 
 /** Témoin de sauvegarde, discret mais toujours présent. */
 function SaveIndicator({ state }: { state: SaveState }) {
+  const t = useMessages();
   const content = {
     idle: null,
     saving: (
       <>
         <Loader2 className="size-3 animate-spin" aria-hidden />
-        Enregistrement…
+        {t.common.actions.saving}
       </>
     ),
     saved: (
       <>
         <Check className="size-3 text-done" aria-hidden />
-        Enregistré
+        {t.common.actions.saved}
       </>
     ),
     // Vrai désormais : la copie de secours est écrite dans le navigateur
@@ -191,13 +208,13 @@ function SaveIndicator({ state }: { state: SaveState }) {
     offline: (
       <>
         <CloudOff className="size-3 text-progress" aria-hidden />
-        Hors ligne : copie gardée sur ce poste
+        {t.reading.editor.offline}
       </>
     ),
     conflict: (
       <>
         <AlertTriangle className="size-3 text-urgent" aria-hidden />
-        Modifié dans un autre onglet : rechargez la page
+        {t.reading.editor.conflict}
       </>
     ),
   }[state];
@@ -227,17 +244,21 @@ function SaveIndicator({ state }: { state: SaveState }) {
  */
 function Outline({
   sections,
+  titles,
   idPrefix,
 }: {
   sections: ReportSections;
+  /** Intitulés des sections, dans la langue du compte-rendu. */
+  titles: Record<SectionKey, string>;
   idPrefix: string;
 }) {
+  const labels = useMessages().reading.editor.outline;
   // `relative` : les mentions `sr-only` des pastilles sont positionnées en
   // absolu ; sans ancêtre positionné, elles échappaient au défilement de
   // la barre et faisaient déborder toute la page.
   return (
     <nav
-      aria-label="Sections du compte-rendu"
+      aria-label={labels.label}
       className="relative flex shrink-0 gap-1.5 overflow-x-auto border-b border-border-subtle bg-surface-base px-3 py-2 sm:px-5"
     >
       {REPORT_SECTIONS.map((section) => {
@@ -274,13 +295,13 @@ function Outline({
                 aria-hidden
               />
             )}
-            {section.title}
+            {titles[section.key]}
             <span className="sr-only">
               {filled
-                ? ", rédigée"
+                ? labels.filled
                 : blocking
-                  ? ", obligatoire et vide"
-                  : ", facultative et vide"}
+                  ? labels.requiredEmpty
+                  : labels.optionalEmpty}
             </span>
           </a>
         );
@@ -349,10 +370,16 @@ function EditorAction({
  * signer), compteur de mots, aide des raccourcis, et un mode plein écran
  * pour rédiger sans le volet d'images.
  *
+ * **Deux langues.** Les intitulés des sections sont un aperçu du document
+ * imprimé : ils suivent la langue du compte-rendu (`language`, celle du
+ * contrat de la clinique). Tout le reste, textes de substitution, outils
+ * et messages, suit la langue de l'utilisateur.
+ *
  * @example
  * ```tsx
  * <ReportEditor
  *   sections={sections}
+ *   language="en"
  *   saveState={saveState}
  *   onChange={(key, html) => patch({ [key]: html })}
  * />
@@ -363,6 +390,7 @@ export function ReportEditor({
   revision = 0,
   saveState = "idle",
   readOnly = false,
+  language,
   onChange,
   footer,
 }: {
@@ -379,12 +407,22 @@ export function ReportEditor({
   saveState?: SaveState;
   /** Un compte-rendu signé est verrouillé, en base comme à l'écran. */
   readOnly?: boolean;
+  /**
+   * Langue du compte-rendu, celle des intitulés imprimés. Par défaut,
+   * celle de l'utilisateur.
+   */
+  language?: Locale;
   onChange?: (key: SectionKey, html: string) => void;
   footer?: React.ReactNode;
 }) {
   // La barre de mise en forme agit sur la section qui a le focus. On
   // retient donc l'éditeur actif plutôt que d'en dupliquer une par
   // section, ce qui encombrerait le document.
+  const t = useMessages();
+  const locale = useLocale();
+  const reportLanguage = language ?? locale;
+  const titles = messagesFor(reportLanguage).reading.sections.titles;
+  const labels = t.reading.editor;
   const [focused, setActive] = React.useState<Editor | null>(null);
   // Un éditeur recréé — voir `revision` — laisse l'ancien détruit : la
   // barre ne doit pas agir dessus.
@@ -528,11 +566,11 @@ export function ReportEditor({
           <SaveIndicator state={saveState} />
           {footer}
           <span className="hidden px-1.5 text-2xs text-tertiary tabular-nums xl:inline">
-            {words} mot{words > 1 ? "s" : ""}
+            {labels.words(words)}
           </span>
           <EditorAction
             icon={Search}
-            label="Rechercher et remplacer (Ctrl+F)"
+            label={labels.find}
             pressed={find !== null}
             onClick={() =>
               setFind((open) => (open ? null : { replace: false }))
@@ -540,24 +578,18 @@ export function ReportEditor({
           />
           <EditorAction
             icon={ClipboardCheck}
-            label={
-              findings.length
-                ? `Relecture : ${findings.length} point${findings.length > 1 ? "s" : ""} à vérifier`
-                : "Relecture : rien à signaler"
-            }
+            label={labels.reviewButton(findings.length)}
             badge={findings.length}
             onClick={() => setReviewOpen(true)}
           />
           <EditorAction
             icon={Keyboard}
-            label="Raccourcis clavier"
+            label={labels.shortcuts}
             onClick={() => setHelpOpen(true)}
           />
           <EditorAction
             icon={focusMode ? Minimize2 : Maximize2}
-            label={
-              focusMode ? "Quitter le plein écran" : "Rédiger en plein écran"
-            }
+            label={focusMode ? labels.focusExit : labels.focusEnter}
             pressed={focusMode}
             onClick={() => setFocusMode((value) => !value)}
           />
@@ -577,7 +609,9 @@ export function ReportEditor({
           }}
         />
       )}
-      {!readOnly && <Outline sections={sections} idPrefix={idPrefix} />}
+      {!readOnly && (
+        <Outline sections={sections} titles={titles} idPrefix={idPrefix} />
+      )}
 
       <div className="min-h-0 flex-1 overflow-auto px-3 py-4 sm:px-5 sm:py-6">
         {/* La « feuille » : une surface élevée, centrée, détachée de son
@@ -588,9 +622,10 @@ export function ReportEditor({
             <Section
               key={`${section.key}:${revision}`}
               id={`${idPrefix}-${section.key}`}
-              title={section.title}
-              placeholder={section.placeholder}
+              title={titles[section.key]}
+              placeholder={t.reading.sections.placeholders[section.key]}
               required={section.required}
+              language={reportLanguage}
               value={sections[section.key] ?? ""}
               readOnly={readOnly}
               onFocus={setActive}
@@ -602,17 +637,15 @@ export function ReportEditor({
         </div>
         {!readOnly && (
           <p className="mx-auto mt-3 max-w-3xl px-1 text-2xs text-tertiary">
-            Tapez{" "}
+            {labels.hint.type}{" "}
             <kbd className="rounded border border-border-subtle px-1 font-sans">
               /
             </kbd>{" "}
-            en début de ligne pour insérer une phrase type, un sous-titre ou un
-            tableau de mesures ;{" "}
+            {labels.hint.slash}{" "}
             <kbd className="rounded border border-border-subtle px-1 font-sans">
               Tab
             </kbd>{" "}
-            pour passer au champ à compléter suivant, puis à la section
-            suivante.
+            {labels.hint.tab}
           </p>
         )}
       </div>
@@ -622,16 +655,17 @@ export function ReportEditor({
       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Relecture</DialogTitle>
+            <DialogTitle>{labels.review.title}</DialogTitle>
             <DialogDescription>
               {findings.length
-                ? "Points à vérifier avant de signer. Ce sont des signalements, pas des erreurs certaines : vous restez seul juge de votre texte."
-                : "Rien à signaler : latéralité cohérente, aucun champ de modèle oublié, mesures avec leur unité."}
+                ? labels.review.withFindings
+                : labels.review.clean}
             </DialogDescription>
           </DialogHeader>
           {findings.length > 0 && (
             <ReviewList
               findings={findings}
+              sectionTitles={titles}
               onGo={goToSection}
               className="max-h-[60vh] overflow-auto px-3 pb-4"
             />

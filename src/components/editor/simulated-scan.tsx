@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { useLocale, useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
 import { formatDemographics, formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,8 @@ export function SimulatedScan({
     1,
     Math.round(study.instanceCount / Math.max(1, study.seriesCount)),
   );
+  const labels = useMessages().reading.scan;
+  const locale = useLocale();
   const [slice, setSlice] = React.useState(() => Math.ceil(total / 2));
   const ref = React.useRef<HTMLDivElement>(null);
   // Identifiants propres à l'instance : des `id` fixes entreraient en
@@ -74,6 +77,7 @@ export function SimulatedScan({
     study.patientSex,
     study.patientBirthDate,
     study.receivedAt,
+    locale,
   );
 
   return (
@@ -84,7 +88,7 @@ export function SimulatedScan({
         interactive && "cursor-ns-resize",
       )}
       role="img"
-      aria-label={`Coupe simulée ${slice} sur ${total} (démonstration)`}
+      aria-label={labels.label(slice, total)}
     >
       <svg
         viewBox="0 0 512 512"
@@ -234,20 +238,20 @@ export function SimulatedScan({
         </span>
       </Overlay>
       <Overlay className="bottom-3 left-3">
-        <span>Série 2 · Axial</span>
+        <span>{labels.series}</span>
         <span className="tabular-nums">
           Im {slice} / {total}
         </span>
       </Overlay>
       <Overlay className="right-3 bottom-3 items-end text-right">
-        <span>F 400 · N 40</span>
-        <span>Ép. 1,0 mm</span>
+        <span>{labels.window}</span>
+        <span>{labels.thickness}</span>
       </Overlay>
       <span className="absolute top-1/2 left-3 -translate-y-1/2 font-mono text-[11px] text-ink-400">
-        D
+        {labels.right}
       </span>
       <span className="absolute top-1/2 right-3 -translate-y-1/2 font-mono text-[11px] text-ink-400">
-        G
+        {labels.left}
       </span>
     </div>
   );

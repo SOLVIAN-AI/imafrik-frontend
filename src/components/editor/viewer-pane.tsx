@@ -5,7 +5,9 @@ import { Archive, ImageOff, Maximize2 } from "lucide-react";
 import { DateTime } from "@/components/domain/date-time";
 import { SimulatedScan } from "@/components/editor/simulated-scan";
 import { Button } from "@/components/ui/button";
+import { useLocale, useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
+import { formatCount } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
@@ -45,6 +47,8 @@ export function ViewerPane({
   /** Démonstration : aucun PACS n'existe, l'absence d'images est normale. */
   demo?: boolean;
 }) {
+  const labels = useMessages().reading.viewer;
+  const locale = useLocale();
   return (
     <div className="flex h-full min-h-0 flex-col bg-ink-950">
       {/* Le noir absolu n'est pas décoratif : c'est le fond de référence
@@ -54,7 +58,7 @@ export function ViewerPane({
         {viewerUrl ? (
           <iframe
             src={viewerUrl}
-            title={`Images de l’examen ${study.studyInstanceUid}`}
+            title={labels.frameTitle(study.studyInstanceUid)}
             className="size-full border-0"
             allow="fullscreen"
             sandbox="allow-scripts allow-same-origin allow-downloads"
@@ -81,12 +85,12 @@ export function ViewerPane({
           ·
         </span>
         <span className="hidden shrink-0 tabular-nums sm:inline">
-          {study.seriesCount} série{study.seriesCount > 1 ? "s" : ""} ·{" "}
-          {study.instanceCount.toLocaleString("fr-FR")} coupes
+          {labels.series(study.seriesCount)} ·{" "}
+          {labels.images(formatCount(study.instanceCount, locale))}
         </span>
         {demo && (
           <span className="ml-auto shrink-0 truncate rounded-full border border-progress/30 px-2 py-0.5 font-medium text-progress">
-            Images simulées
+            {labels.simulated}
           </span>
         )}
         <Button
@@ -94,13 +98,13 @@ export function ViewerPane({
           size="sm"
           className={cn("shrink-0", !demo && "ml-auto")}
           disabled={!viewerUrl}
-          aria-label="Ouvrir les images en plein écran"
+          aria-label={labels.openFullscreen}
           onClick={() =>
             viewerUrl && window.open(viewerUrl, "_blank", "noopener")
           }
         >
           <Maximize2 />
-          <span className="hidden sm:inline">Plein écran</span>
+          <span className="hidden sm:inline">{labels.fullscreen}</span>
         </Button>
       </div>
     </div>
@@ -115,17 +119,18 @@ export function ViewerPane({
  * sans recours — et, dans un service, il appellera le support.
  */
 function ViewerUnavailable({ purgedAt }: { purgedAt: Date | null }) {
+  const labels = useMessages().reading.viewer;
   // Conservation contractuelle échue : un motif connu, pas une panne.
   if (purgedAt) {
     return (
       <div className="flex max-w-xs flex-col items-center gap-2 text-center">
         <Archive className="size-5 text-ink-600" aria-hidden />
-        <p className="text-sm font-medium text-ink-300">Images archivées</p>
+        <p className="text-sm font-medium text-ink-300">
+          {labels.archivedTitle}
+        </p>
         <p className="text-xs leading-relaxed text-ink-500">
-          La durée de conservation prévue au contrat de la clinique est échue
-          depuis le <DateTime date={purgedAt} withTime={false} /> : les images
-          ont quitté la plateforme. Le compte-rendu reste consultable, et les
-          originaux sont conservés par la clinique.
+          {labels.archivedBefore} <DateTime date={purgedAt} withTime={false} />
+          {labels.archivedAfter}
         </p>
       </div>
     );
@@ -133,11 +138,11 @@ function ViewerUnavailable({ purgedAt }: { purgedAt: Date | null }) {
   return (
     <div className="flex max-w-xs flex-col items-center gap-2 text-center">
       <ImageOff className="size-5 text-ink-600" aria-hidden />
-      <p className="text-sm font-medium text-ink-300">Images indisponibles</p>
+      <p className="text-sm font-medium text-ink-300">
+        {labels.unavailableTitle}
+      </p>
       <p className="text-xs leading-relaxed text-ink-500">
-        Le jeton de visualisation n’a pas pu être obtenu. Actualisez la page ;
-        si le problème persiste, l’examen est peut-être encore en cours de
-        transfert depuis la clinique.
+        {labels.unavailableDetail}
       </p>
     </div>
   );

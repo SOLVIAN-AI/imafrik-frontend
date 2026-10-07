@@ -6,6 +6,7 @@ import {
   ClipboardList,
   CornerDownLeft,
   Hand,
+  Languages,
   Lock,
   PenTool,
   Undo2,
@@ -42,6 +43,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { type SaveOutcome, useAutosave } from "@/hooks/use-autosave";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useLocale, useMessages } from "@/i18n/client";
 import {
   claimStudy,
   releaseStudy,
@@ -58,6 +60,7 @@ import {
   writeReportBackup,
 } from "@/lib/editor/backup";
 import { formatDemographics, formatPatientName } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/locale";
 import { homeFor } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
@@ -142,6 +145,37 @@ export type WorkspaceMode =
   | { kind: "readonly"; notice?: string };
 
 /**
+ * Langue du compte-rendu, signalée quand elle diffère de celle de l'écran.
+ *
+ * La clinique reçoit ses comptes-rendus dans la langue fixée à son
+ * contrat ; le radiologue doit le savoir avant d'écrire la première
+ * ligne, pas le découvrir sur le PDF. Discrète, dans le style des autres
+ * pastilles de la barre : c'est une information, pas une alerte. Rien
+ * n'est affiché quand les deux langues coïncident.
+ *
+ * @param language Langue du compte-rendu.
+ */
+function ReportLanguageChip({ language }: { language: Locale }) {
+  const t = useMessages();
+  const locale = useLocale();
+  if (language === locale) return null;
+  const labels = t.reading.reportLanguage;
+  return (
+    <span
+      title={labels.tooltip[language]}
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1 rounded-full bg-surface-active px-2 py-0.5",
+        "text-2xs font-medium whitespace-nowrap text-secondary",
+      )}
+    >
+      <Languages className="size-3" aria-hidden />
+      {labels.chip[language]}
+      <span className="sr-only">. {labels.tooltip[language]}</span>
+    </span>
+  );
+}
+
+/**
  * Barre de contexte de l'écran de lecture.
  *
  * Elle répond en permanence à la seule question qui compte quand on
@@ -159,6 +193,8 @@ function StudyBar({
   actions: React.ReactNode;
 }) {
   const { active } = useSession();
+  const t = useMessages();
+  const locale = useLocale();
   // L'âge est celui du jour de l'examen : c'est lui qui compte pour
   // l'interprétation, et il ne dépend pas de l'horloge du poste — le
   // rendu serveur et le rendu client donnent donc le même texte.
@@ -166,6 +202,7 @@ function StudyBar({
     study.patientSex,
     study.patientBirthDate,
     study.receivedAt,
+    locale,
   );
 
   return (
@@ -179,7 +216,12 @@ function StudyBar({
     >
       {/* Le retour dépend du portail : la file de lecture pour un
           radiologue, le suivi des examens pour une clinique. */}
-      <Button variant="ghost" size="icon" aria-label="Retour" asChild>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label={t.common.actions.back}
+        asChild
+      >
         <Link href={homeFor(active.role)}>
           <ArrowLeft />
         </Link>
@@ -191,6 +233,7 @@ function StudyBar({
             {formatPatientName(study.patientName)}
           </h1>
           {study.urgent && <UrgentMarker />}
+          <ReportLanguageChip language={study.reportLanguage} />
         </div>
         <p className="truncate text-2xs text-tertiary">
           {demographics && (
@@ -207,7 +250,7 @@ function StudyBar({
         {signed && (
           <span className="hidden items-center gap-1.5 text-2xs text-done sm:flex">
             <Lock className="size-3" aria-hidden />
-            Signé
+            {t.reading.workspace.signed}
           </span>
         )}
       </div>
@@ -265,6 +308,7 @@ export function ReportWorkspace({
 }) {
   const router = useRouter();
   const { isDemo, active } = useSession();
+  const labels = useMessages().reading.workspace;
   const [sections, setSections] = React.useState<ReportSections>(initial);
   // Révision du contenu : incrémentée à chaque texte posé d'ailleurs que
   // par la frappe — voir `replaceSections`.
@@ -374,25 +418,22 @@ export function ReportWorkspace({
         clearReportBackup(author.reportId);
         return;
       }
-      toast.info(
-        "Du texte n’a pas pu être envoyé lors d’une coupure. Il est gardé sur ce poste.",
-        {
-          duration: Number.POSITIVE_INFINITY,
-          action: {
-            label: "Reprendre",
-            onClick: () => replaceSections(backup.sections),
-          },
-          cancel: {
-            label: "Écarter",
-            onClick: () => clearReportBackup(author.reportId),
-          },
+      toast.info(labels.backupFound, {
+        duration: Number.POSITIVE_INFINITY,
+        action: {
+          label: labels.backupRestore,
+          onClick: () => replaceSections(backup.sections),
         },
-      );
+        cancel: {
+          label: labels.backupDiscard,
+          onClick: () => clearReportBackup(author.reportId),
+        },
+      });
     })();
     return () => {
       cancelled = true;
     };
-  }, [author, backupKey, replaceSections]);
+  }, [author, backupKey, labels, replaceSections]);
 
   /**
    * Signe, après s'être assuré que le service a bien le texte affiché.
@@ -406,23 +447,23 @@ export function ReportWorkspace({
     if (!(await flush())) {
       throw new Error(
         state === "conflict"
-          ? "Ce compte-rendu a été modifié dans un autre onglet. Rechargez la page avant de signer."
-          : "Le texte n’a pas pu être enregistré. Vérifiez la connexion, puis signez de nouveau.",
+          ? labels.conflictBeforeSign
+          : labels.saveFailedBeforeSign,
       );
     }
     const result = await signReport(author.reportId);
     if (!result.ok) throw new Error(result.error);
     setSigned(true);
-    toast.success("Compte-rendu signé et transmis à la clinique.", {
+    toast.success(labels.signedToast, {
       action: nextStudyId
         ? {
-            label: "Examen suivant",
+            label: labels.nextStudy,
             onClick: () => router.push(`/lecture/${nextStudyId}`),
           }
         : undefined,
     });
     router.refresh();
-  }, [author, flush, nextStudyId, router, state]);
+  }, [author, flush, labels, nextStudyId, router, state]);
 
   const claim = () =>
     startTransition(async () => {
@@ -436,12 +477,7 @@ export function ReportWorkspace({
     });
 
   const release = () => {
-    if (
-      !window.confirm(
-        "Rendre cet examen au pool ? Le brouillon commencé sera effacé.",
-      )
-    )
-      return;
+    if (!window.confirm(labels.releaseConfirm)) return;
     startTransition(async () => {
       const result = await releaseStudy(study.id);
       if (!result.ok) {
@@ -458,7 +494,7 @@ export function ReportWorkspace({
     nextStudyId && active.role === "radiologist" ? (
       <Button size="sm" variant="secondary" asChild>
         <Link href={`/lecture/${nextStudyId}`} prefetch={false}>
-          Examen suivant
+          {labels.nextStudy}
           <ArrowRight />
         </Link>
       </Button>
@@ -480,17 +516,17 @@ export function ReportWorkspace({
       />
       <Button variant="ghost" size="sm" onClick={release} loading={pending}>
         <Undo2 />
-        Rendre au pool
+        {labels.release}
       </Button>
       <Button size="sm" onClick={() => setConfirming(true)}>
         <PenTool />
-        Signer
+        {labels.sign}
       </Button>
     </>
   ) : mode.kind === "claimable" ? (
     <Button size="sm" onClick={claim} loading={pending}>
       <Hand />
-      Prendre en charge
+      {labels.claim}
     </Button>
   ) : (
     next
@@ -501,20 +537,12 @@ export function ReportWorkspace({
   );
   const report = (
     <div className="flex h-full min-h-0 flex-col">
-      {signed && (
-        <Banner tone="done">
-          Compte-rendu signé et transmis : il n’est plus modifiable.
-        </Banner>
-      )}
+      {signed && <Banner tone="done">{labels.signedBanner}</Banner>}
       {!signed && mode.kind === "readonly" && mode.notice && (
         <Banner tone="neutral">{mode.notice}</Banner>
       )}
       {!signed && mode.kind === "claimable" && (
-        <Banner tone="neutral">
-          Prenez l’examen en charge pour commencer le compte-rendu. Il vous sera
-          réservé jusqu’à la signature, ou jusqu’à ce que vous le rendiez au
-          pool.
-        </Banner>
+        <Banner tone="neutral">{labels.claimBanner}</Banner>
       )}
       <ClinicalContext
         info={study.clinicalInfo}
@@ -533,6 +561,7 @@ export function ReportWorkspace({
         revision={revision}
         saveState={state}
         readOnly={locked}
+        language={study.reportLanguage}
         onChange={update}
       />
     </div>
@@ -580,6 +609,7 @@ export function ReportWorkspace({
           sections={sections}
           patientLabel={formatPatientName(study.patientName)}
           signerName={signerName}
+          language={study.reportLanguage}
           onConfirm={sign}
         />
       )}
@@ -654,6 +684,7 @@ function ClinicalContext({
   info: string | null;
   onUse?: () => void;
 }) {
+  const labels = useMessages().reading.workspace;
   if (!info) return null;
   return (
     <div className="flex shrink-0 items-start gap-3 border-b border-border-subtle bg-surface-sunken/50 px-4 py-2.5">
@@ -662,7 +693,7 @@ function ClinicalContext({
         aria-hidden
       />
       <div className="min-w-0 flex-1">
-        <p className="label-eyebrow">Renseignement clinique</p>
+        <p className="label-eyebrow">{labels.clinicalInfo}</p>
         <p className="mt-0.5 text-xs leading-relaxed text-secondary">{info}</p>
       </div>
       {onUse && (
@@ -671,10 +702,10 @@ function ClinicalContext({
           size="sm"
           className="shrink-0"
           onClick={onUse}
-          title="Recopier dans l’indication clinique"
+          title={labels.copyToIndication}
         >
           <CornerDownLeft />
-          Indication
+          {labels.indication}
         </Button>
       )}
     </div>
@@ -696,17 +727,18 @@ function NarrowLayout({
   viewer: React.ReactNode;
   report: React.ReactNode;
 }) {
+  const labels = useMessages().reading.workspace.panes;
   const [tab, setTab] = React.useState<"images" | "report">("images");
   const tabs = [
-    { id: "images", label: "Images" },
-    { id: "report", label: "Compte-rendu" },
+    { id: "images", label: labels.images },
+    { id: "report", label: labels.report },
   ] as const;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div
         role="tablist"
-        aria-label="Volet affiché"
+        aria-label={labels.label}
         className="flex shrink-0 gap-1 border-b border-border-subtle bg-surface-raised/40 p-1.5"
       >
         {tabs.map((entry) => (

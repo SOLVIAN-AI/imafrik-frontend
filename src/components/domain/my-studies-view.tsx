@@ -2,6 +2,7 @@
 
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { ReadingTable } from "@/components/domain/reading-table";
+import { useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
 
 /**
@@ -12,12 +13,13 @@ import type { Study } from "@/lib/data/studies";
  * obligerait à réapprendre où regarder.
  */
 export function MyStudiesView({ studies }: { studies: Study[] }) {
+  const t = useMessages();
   return (
     // Même défilement que la file : la page sur téléphone, le tableau au-delà.
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden">
       <PageHeader
-        title="Mes examens"
-        description="Examens que vous avez pris en charge et qui restent à rendre"
+        title={t.nav.items.myStudies}
+        description={t.worklist.myStudies.description}
       />
 
       {/* Compressible à partir de 1024 px seulement : sur téléphone, la
@@ -27,10 +29,7 @@ export function MyStudiesView({ studies }: { studies: Study[] }) {
           <ReadingTable
             groups={[{ key: "mine", studies, follow: "status" }]}
             hrefFor={(study) => `/lecture/${study.id}`}
-            empty={{
-              title: "Aucun examen en cours",
-              detail: "Prenez un examen en charge depuis la file « À lire ».",
-            }}
+            empty={t.worklist.myStudies.empty}
           />
         </Panel>
       </div>

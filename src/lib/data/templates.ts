@@ -1,7 +1,7 @@
 import "server-only";
 
-import type { ReportSections } from "@/components/editor/report-editor";
-import { EMPTY_REPORT_SECTIONS } from "@/components/editor/report-editor";
+import type { ReportSections } from "@/components/editor/sections";
+import { EMPTY_REPORT_SECTIONS } from "@/components/editor/sections";
 import { apiGet } from "@/lib/api/client";
 import { templateSchema } from "@/lib/api/contracts";
 import { isDemoMode } from "@/lib/demo/mode";

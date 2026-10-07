@@ -13,8 +13,10 @@
  * proche, et un examen en retard passe devant tout le reste.
  */
 
+import { messagesFor } from "@/i18n";
 import type { Study } from "@/lib/data/studies";
 import { formatPatientAge } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/locale";
 
 const MINUTE = 60_000;
 
@@ -26,7 +28,7 @@ export type DeadlineTone = "overdue" | "soon" | "ok";
 /** Échéance d'un examen, prête à afficher. */
 export interface Deadline {
   tone: DeadlineTone;
-  /** Par exemple « reste 12 min » ou « dépassé de 3 h ». */
+  /** Par exemple « reste 12 min » ou « dépassé de 3 h », dans la langue demandée. */
   label: string;
   /** Millisecondes restantes, négatives une fois l'échéance dépassée. */
   remainingMs: number;
@@ -36,10 +38,13 @@ export interface Deadline {
  * Durée lisible, arrondie à ce qui sert : la minute sous l'heure, le
  * quart d'heure sous la journée, l'heure au-delà.
  *
- * @param ms Durée en millisecondes, positive.
- * @returns Par exemple « 12 min », « 2 h 15 », « 3 h », « 1 j 4 h ».
+ * @param ms     Durée en millisecondes, positive.
+ * @param locale Langue, français par défaut.
+ * @returns Par exemple « 12 min », « 2 h 15 », « 3 h », « 1 j 4 h »
+ *          (« 1 d 4 h » en anglais).
  */
-export function formatDuration(ms: number): string {
+export function formatDuration(ms: number, locale: Locale = "fr"): string {
+  const day = messagesFor(locale).common.units.day;
   const minutes = Math.max(0, Math.round(ms / MINUTE));
   if (minutes < 60) return `${minutes} min`;
   if (minutes < 24 * 60) {
@@ -53,7 +58,7 @@ export function formatDuration(ms: number): string {
   const hours = Math.round(minutes / 60);
   const days = Math.floor(hours / 24);
   const rest = hours % 24;
-  return rest === 0 ? `${days} j` : `${days} j ${rest} h`;
+  return rest === 0 ? `${days} ${day}` : `${days} ${day} ${rest} h`;
 }
 
 /**
@@ -64,18 +69,21 @@ export function formatDuration(ms: number): string {
  * vient à quinze minutes du terme ; sur une routine de deux heures, à
  * trente.
  *
- * @param study Examen, avec sa réception et son échéance.
- * @param now   Instant de référence, en millisecondes.
+ * @param study  Examen, avec sa réception et son échéance.
+ * @param now    Instant de référence, en millisecondes.
+ * @param locale Langue du libellé, français par défaut.
  */
 export function deadlineOf(
   study: Pick<Study, "receivedAt" | "dueAt">,
   now: number,
+  locale: Locale = "fr",
 ): Deadline {
+  const labels = messagesFor(locale).worklist.deadline;
   const remainingMs = study.dueAt.getTime() - now;
   if (remainingMs < 0) {
     return {
       tone: "overdue",
-      label: `dépassé de ${formatDuration(-remainingMs)}`,
+      label: labels.overdue(formatDuration(-remainingMs, locale)),
       remainingMs,
     };
   }
@@ -83,7 +91,7 @@ export function deadlineOf(
   const threshold = Math.max(15 * MINUTE, windowMs / 4);
   return {
     tone: remainingMs <= threshold ? "soon" : "ok",
-    label: `reste ${formatDuration(remainingMs)}`,
+    label: labels.remaining(formatDuration(remainingMs, locale)),
     remainingMs,
   };
 }
@@ -280,34 +288,29 @@ export function filterOptions(studies: readonly Study[]): {
 
 // ─── Patient ──────────────────────────────────────────────────────────
 
-/** Initiale du sexe, en français : H, F ou A. */
-function sexInitial(sex: string | null): string | null {
-  switch (sex?.trim().toUpperCase()) {
-    case "M":
-      return "H";
-    case "F":
-      return "F";
-    case "O":
-      return "A";
-    default:
-      return null;
-  }
-}
-
 /**
  * Sexe et âge en abrégé, pour une ligne de file.
  *
  * L'âge est celui du jour de la réception : c'est celui qui compte pour
  * l'interprétation, et il ne change pas d'un jour à l'autre à l'écran.
  *
- * @returns Par exemple « F · 58 ans », ou `null` si rien n'a été transmis.
+ * @param study  Examen, avec le sexe et la date de naissance du patient.
+ * @param locale Langue, français par défaut.
+ * @returns Par exemple « F · 58 ans » (« F · 58 years »), ou `null` si
+ *          rien n'a été transmis.
  */
 export function shortDemographics(
   study: Pick<Study, "patientSex" | "patientBirthDate" | "receivedAt">,
+  locale: Locale = "fr",
 ): string | null {
+  const key = study.patientSex?.trim().toUpperCase();
+  const sex =
+    key === "M" || key === "F" || key === "O"
+      ? messagesFor(locale).common.sexShort[key]
+      : null;
   const parts = [
-    sexInitial(study.patientSex),
-    formatPatientAge(study.patientBirthDate, study.receivedAt),
+    sex,
+    formatPatientAge(study.patientBirthDate, study.receivedAt, locale),
   ].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ") : null;
 }

@@ -66,6 +66,11 @@ describe("formatDuration", () => {
     expect(formatDuration(48 * 60 * MINUTE)).toBe("2 j");
     expect(formatDuration(-5)).toBe("0 min");
   });
+
+  it("écrit l'unité du jour dans la langue demandée", () => {
+    expect(formatDuration(28 * 60 * MINUTE, "en")).toBe("1 d 4 h");
+    expect(formatDuration(48 * 60 * MINUTE, "en")).toBe("2 d");
+  });
 });
 
 describe("deadlineOf", () => {
@@ -73,6 +78,15 @@ describe("deadlineOf", () => {
     const deadline = deadlineOf(study("a", { ago: 300, sla: 120 }), NOW);
     expect(deadline.tone).toBe("overdue");
     expect(deadline.label).toBe("dépassé de 3 h");
+  });
+
+  it("libelle l'échéance dans la langue de l'utilisateur", () => {
+    expect(
+      deadlineOf(study("a", { ago: 300, sla: 120 }), NOW, "en").label,
+    ).toBe("overdue by 3 h");
+    expect(deadlineOf(study("a", { ago: 95, sla: 120 }), NOW, "en").label).toBe(
+      "25 min left",
+    );
   });
 
   it("prévient au dernier quart du délai, quinze minutes au moins", () => {
@@ -184,6 +198,12 @@ describe("shortDemographics", () => {
     ).toBe("F · 58 ans");
     expect(shortDemographics(study("a", { patientSex: "M" }))).toBe("H");
     expect(shortDemographics(study("a"))).toBeNull();
+    expect(
+      shortDemographics(
+        study("a", { patientSex: "M", patientBirthDate: "1968-03-14" }),
+        "en",
+      ),
+    ).toBe("M · 58 years");
   });
 });
 

@@ -84,7 +84,10 @@ export default async function ReportPage({
             )}
           </Panel>
 
-          <ReportDocument sections={report.sections} />
+          <ReportDocument
+            sections={report.sections}
+            language={study?.reportLanguage}
+          />
 
           <AddendaPanel
             reportId={report.id}

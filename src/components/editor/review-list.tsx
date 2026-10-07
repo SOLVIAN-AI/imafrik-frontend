@@ -8,21 +8,22 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { REPORT_SECTIONS, type SectionKey } from "@/components/editor/sections";
-import type { ReviewFinding, ReviewKind } from "@/components/editor/review";
+import type { SectionKey } from "@/components/editor/sections";
+import {
+  describeFinding,
+  type ReviewFinding,
+  type ReviewKind,
+} from "@/components/editor/review";
+import { useMessages } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
-/** Repère de chaque nature de point relevé. */
-const KINDS: Record<ReviewKind, { icon: LucideIcon; label: string }> = {
-  laterality: { icon: ArrowLeftRight, label: "Latéralité" },
-  placeholder: { icon: Brackets, label: "Modèle" },
-  unit: { icon: Ruler, label: "Unité" },
-  repeat: { icon: Repeat2, label: "Répétition" },
+/** Icône de chaque nature de point relevé. */
+const KIND_ICONS: Record<ReviewKind, LucideIcon> = {
+  laterality: ArrowLeftRight,
+  placeholder: Brackets,
+  unit: Ruler,
+  repeat: Repeat2,
 };
-
-const SECTION_TITLES = Object.fromEntries(
-  REPORT_SECTIONS.map((section) => [section.key, section.title]),
-) as Record<SectionKey, string>;
 
 /**
  * Points relevés par la relecture automatique.
@@ -31,23 +32,31 @@ const SECTION_TITLES = Object.fromEntries(
  * la section quand `onGo` est fourni. La latéralité, la plus grave, est
  * en tête — l'ordre vient de `reviewReport`.
  *
- * @param findings Points relevés.
- * @param onGo     Amène une section à l'écran.
+ * Les messages suivent la langue de l'utilisateur ; les sections sont
+ * nommées comme à l'écran, dans la langue du compte-rendu.
+ *
+ * @param findings      Points relevés.
+ * @param sectionTitles Intitulés des sections, dans la langue du
+ *                      compte-rendu.
+ * @param onGo          Amène une section à l'écran.
  */
 export function ReviewList({
   findings,
+  sectionTitles,
   onGo,
   className,
 }: {
   findings: ReviewFinding[];
+  sectionTitles: Record<SectionKey, string>;
   onGo?: (section: SectionKey) => void;
   className?: string;
 }) {
+  const t = useMessages();
+  const labels = t.reading.review;
   return (
     <ul className={cn("flex flex-col gap-1.5", className)}>
       {findings.map((finding, index) => {
-        const kind = KINDS[finding.kind];
-        const Icon = kind.icon;
+        const Icon = KIND_ICONS[finding.kind];
         const content = (
           <>
             <Icon
@@ -58,11 +67,13 @@ export function ReviewList({
               aria-hidden
             />
             <span className="min-w-0 flex-1">
-              <span className="block text-xs">{finding.message}</span>
+              <span className="block text-xs">
+                {describeFinding(finding, labels)}
+              </span>
               <span className="mt-0.5 block text-2xs text-tertiary">
-                {kind.label} · {SECTION_TITLES[finding.section]}
+                {labels.kinds[finding.kind]} · {sectionTitles[finding.section]}
                 {finding.excerpt && (
-                  <span className="italic"> — {finding.excerpt}</span>
+                  <span className="italic"> · {finding.excerpt}</span>
                 )}
               </span>
             </span>
