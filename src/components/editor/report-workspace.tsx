@@ -52,6 +52,8 @@ import type { Study } from "@/lib/data/studies";
 import type { ReportTemplate } from "@/lib/data/templates";
 import {
   clearReportBackup,
+  importBackupKey,
+  purgeStaleBackups,
   readReportBackup,
   writeReportBackup,
 } from "@/lib/editor/backup";
@@ -120,7 +122,9 @@ function usePersistedLayout() {
  * charge — le service le revérifie de toute façon à chaque écriture.
  *
  * - `author` — le radiologue a pris l'examen en charge : il rédige,
- *   signe, ou rend l'examen au pool.
+ *   signe, ou rend l'examen au pool. `backupKey` chiffre la copie de
+ *   secours locale de son brouillon (`lib/editor/backup-key.ts`) ;
+ *   `null`, aucune copie n'est écrite.
  * - `claimable` — un radiologue voit un examen libre : un bouton le prend
  *   en charge et ouvre son brouillon. Personne ne rédige sans l'avoir
  *   pris : deux radiologues ne peuvent pas écrire le même compte-rendu.
@@ -128,7 +132,12 @@ function usePersistedLayout() {
  *   compte-rendu signé.
  */
 export type WorkspaceMode =
-  | { kind: "author"; reportId: string; version: number }
+  | {
+      kind: "author";
+      reportId: string;
+      version: number;
+      backupKey: string | null;
+    }
   | { kind: "claimable" }
   | { kind: "readonly"; notice?: string };
 
@@ -257,6 +266,9 @@ export function ReportWorkspace({
   const router = useRouter();
   const { isDemo, active } = useSession();
   const [sections, setSections] = React.useState<ReportSections>(initial);
+  // Révision du contenu : incrémentée à chaque texte posé d'ailleurs que
+  // par la frappe — voir `replaceSections`.
+  const [revision, setRevision] = React.useState(0);
   const [signed, setSigned] = React.useState(initiallySigned);
   const [confirming, setConfirming] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
@@ -272,28 +284,66 @@ export function ReportWorkspace({
   // service refuse une écriture faite sur une version périmée.
   const version = React.useRef(author?.version ?? 0);
 
+  // Clé de la copie de secours, importée une fois et gardée en mémoire :
+  // l'écriture survient précisément quand le réseau est tombé.
+  const rawBackupKey = author?.backupKey ?? null;
+  const backupKey = React.useMemo(
+    () =>
+      rawBackupKey ? importBackupKey(rawBackupKey) : Promise.resolve(null),
+    [rawBackupKey],
+  );
+
   const save = React.useCallback(
     async (value: ReportSections): Promise<SaveOutcome> => {
       if (!author) return "saved";
+      // Réseau coupé : l'appel de l'action rejette au lieu de répondre. Les
+      // deux cas mènent à la copie de secours.
       const result = await saveReportDraft(
         author.reportId,
         value,
         version.current,
-      );
-      if (result.ok) {
+      ).catch(() => null);
+      if (result?.ok) {
         version.current = result.data.version;
         clearReportBackup(author.reportId);
         return "saved";
       }
-      if (result.status === 409) return "conflict";
-      writeReportBackup(author.reportId, {
-        sections: value,
-        baseVersion: version.current,
-        savedAt: new Date().toISOString(),
-      });
+      if (result?.status === 409) return "conflict";
+      const key = await backupKey;
+      if (key) {
+        await writeReportBackup(key, author.reportId, {
+          sections: value,
+          baseVersion: version.current,
+          savedAt: new Date().toISOString(),
+        });
+      }
       return "failed";
     },
-    [author],
+    [author, backupKey],
+  );
+
+  const update = React.useCallback((key: SectionKey, html: string) => {
+    setSections((current) => ({ ...current, [key]: html }));
+  }, []);
+
+  /**
+   * Remplace le texte par un contenu venu d'ailleurs que la frappe —
+   * modèle, copie de secours, renseignements cliniques.
+   *
+   * Un éditeur de section ne lit son contenu qu'à sa création. Changer
+   * l'état seul laissait l'ancien texte à l'écran pendant que
+   * l'enregistrement automatique envoyait le nouveau — et la frappe
+   * suivante l'écrasait. La révision recrée les éditeurs sur le contenu
+   * posé.
+   *
+   * @param update Nouvelles sections, ou fonction des sections courantes.
+   */
+  const replaceSections = React.useCallback(
+    (update: React.SetStateAction<ReportSections>) => {
+      setSections(update);
+      setRevision((current) => current + 1);
+    },
+    [],
   );
 
   const { state, flush } = useAutosave({
@@ -307,33 +357,42 @@ export function ReportWorkspace({
   // brouillon a avancé ailleurs depuis, et la copie périmée est écartée.
   // La reprise est un choix du radiologue, pas un remplacement silencieux
   // du texte qu'il a sous les yeux.
+  //
+  // Une copie que la clé du compte n'ouvre pas appartient à un autre
+  // compte : elle est laissée en place, sans rien en dire.
   React.useEffect(() => {
     if (!author) return;
-    const backup = readReportBackup(author.reportId);
-    if (!backup) return;
-    if (backup.baseVersion !== author.version) {
-      clearReportBackup(author.reportId);
-      return;
-    }
-    toast.info(
-      "Du texte n’a pas pu être envoyé lors d’une coupure. Il est gardé sur ce poste.",
-      {
-        duration: Number.POSITIVE_INFINITY,
-        action: {
-          label: "Reprendre",
-          onClick: () => setSections(backup.sections),
+    let cancelled = false;
+    void (async () => {
+      purgeStaleBackups();
+      const key = await backupKey;
+      if (!key || cancelled) return;
+      const read = await readReportBackup(key, author.reportId);
+      if (cancelled || read.status !== "found") return;
+      const backup = read.backup;
+      if (backup.baseVersion !== author.version) {
+        clearReportBackup(author.reportId);
+        return;
+      }
+      toast.info(
+        "Du texte n’a pas pu être envoyé lors d’une coupure. Il est gardé sur ce poste.",
+        {
+          duration: Number.POSITIVE_INFINITY,
+          action: {
+            label: "Reprendre",
+            onClick: () => replaceSections(backup.sections),
+          },
+          cancel: {
+            label: "Écarter",
+            onClick: () => clearReportBackup(author.reportId),
+          },
         },
-        cancel: {
-          label: "Écarter",
-          onClick: () => clearReportBackup(author.reportId),
-        },
-      },
-    );
-  }, [author]);
-
-  const update = React.useCallback((key: SectionKey, html: string) => {
-    setSections((current) => ({ ...current, [key]: html }));
-  }, []);
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [author, backupKey, replaceSections]);
 
   /**
    * Signe, après s'être assuré que le service a bien le texte affiché.
@@ -412,7 +471,7 @@ export function ReportWorkspace({
       <TemplatePicker
         templates={templates}
         sections={sections}
-        onApply={setSections}
+        onApply={replaceSections}
       />
       <SaveAsTemplate
         sections={sections}
@@ -462,15 +521,16 @@ export function ReportWorkspace({
         onUse={
           !locked && isBlank(sections.indication)
             ? () =>
-                update(
-                  "indication",
-                  `<p>${escapeHtml(study.clinicalInfo ?? "")}</p>`,
-                )
+                replaceSections((current) => ({
+                  ...current,
+                  indication: `<p>${escapeHtml(study.clinicalInfo ?? "")}</p>`,
+                }))
             : undefined
         }
       />
       <ReportEditor
         sections={sections}
+        revision={revision}
         saveState={state}
         readOnly={locked}
         onChange={update}

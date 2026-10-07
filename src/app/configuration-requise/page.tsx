@@ -40,7 +40,10 @@ export default function ConfigurationRequiredPage() {
           {missing.length > 0 && (
             <dl className="mt-6 divide-y divide-border-subtle overflow-hidden rounded-xl border border-border-subtle bg-surface-raised text-left">
               {missing.map((variable) => (
-                <div key={variable.name} className="px-4 py-3">
+                <div
+                  key={`${variable.name}:${variable.purpose}`}
+                  className="px-4 py-3"
+                >
                   <dt className="font-mono text-xs text-primary">
                     {variable.name}
                   </dt>

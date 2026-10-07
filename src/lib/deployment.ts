@@ -4,27 +4,73 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 /**
  * Indique si l'on tourne sur un déploiement de production.
  *
- * **Le contrôle porte sur `VERCEL_ENV`, pas sur `NODE_ENV`.** Toute
- * compilation Vercel — y compris celle d'un aperçu — s'exécute avec
- * `NODE_ENV=production` : s'y fier ferait échouer les aperçus, qui sont
- * précisément faits pour tourner sur le jeu de démonstration. Seul
- * `VERCEL_ENV` distingue une vraie mise en production.
+ * **Le contrôle ne porte pas sur `NODE_ENV`.** Toute compilation Vercel —
+ * y compris celle d'un aperçu — s'exécute avec `NODE_ENV=production` :
+ * s'y fier ferait échouer les aperçus, qui sont précisément faits pour
+ * tourner sur le jeu de démonstration. Deux signaux explicites :
  *
- * Hors Vercel, la variable est absente : un `next start` local reste
- * donc utilisable sans configuration.
+ * - `VERCEL_ENV=production`, posé par Vercel sur une mise en production ;
+ * - `IMAFRIK_ENV=production`, à poser soi-même sur tout autre hébergement
+ *   (`next start` sur un serveur, conteneur). Sans lui, un tel déploiement
+ *   privé de ses variables servirait le jeu de démonstration au lieu de
+ *   refuser.
+ *
+ * Sans l'un ni l'autre, un `next start` local reste utilisable sans
+ * configuration.
  */
 export function isProductionDeployment(): boolean {
-  return process.env.VERCEL_ENV === "production";
+  return (
+    process.env.VERCEL_ENV === "production" ||
+    process.env.IMAFRIK_ENV === "production"
+  );
+}
+
+/** Longueur minimale du secret des copies de secours. */
+export const REPORT_BACKUP_SECRET_MIN_LENGTH = 32;
+
+/**
+ * Vrai si le secret de chiffrement des copies de secours est utilisable.
+ *
+ * En deçà de 32 caractères, c'est une valeur d'exemple oubliée, pas un
+ * secret — `openssl rand -base64 48` en produit un.
+ */
+export function hasReportBackupSecret(): boolean {
+  return (
+    (process.env.REPORT_BACKUP_SECRET?.length ?? 0) >=
+    REPORT_BACKUP_SECRET_MIN_LENGTH
+  );
 }
 
 /** Vrai si la valeur est une adresse absolue exploitable. */
 function isAbsoluteUrl(value: string | undefined): boolean {
-  if (!value) return false;
+  return originOf(value) !== null;
+}
+
+/** Origine d'une adresse absolue, `null` si elle n'en est pas une. */
+function originOf(value: string | undefined): string | null {
+  if (!value) return null;
   try {
-    return Boolean(new URL(value).origin);
+    const origin = new URL(value).origin;
+    return origin === "null" ? null : origin;
   } catch {
-    return false;
+    return null;
   }
+}
+
+/**
+ * Vrai sauf si le viewer et le site partagent la même origine.
+ *
+ * Le viewer reçoit dans son adresse un jeton de visualisation, et
+ * exécute un code tiers (OHIF). Servi depuis l'origine du site, il en
+ * partagerait les cookies de session et le stockage : une faille du
+ * viewer deviendrait une faille de l'application. Les deux doivent vivre
+ * sur des origines distinctes — `viewer.imafrik.tech` et `imafrik.tech`.
+ * Une adresse absente ou invalide est signalée par sa propre entrée.
+ */
+function viewerIsolated(): boolean {
+  const viewer = originOf(process.env.NEXT_PUBLIC_VIEWER_URL);
+  const site = originOf(process.env.NEXT_PUBLIC_SITE_URL);
+  return viewer === null || site === null || viewer !== site;
 }
 
 /**
@@ -34,11 +80,12 @@ function isAbsoluteUrl(value: string | undefined): boolean {
  * seules clés Supabase authentifierait de vrais utilisateurs pour leur
  * présenter ensuite des patients inventés — le pire des deux mondes, et
  * une configuration à moitié faite qui passerait inaperçue jusqu'à ce que
- * quelqu'un cherche un examen qui n'existe pas. Les deux dernières
- * échouent plus discrètement encore : sans l'adresse du viewer, la
- * politique de sécurité du contenu interdit de l'encadrer, et l'écran de
- * lecture reste vide ; sans l'adresse du site, les liens des courriels
- * de réinitialisation pointent nulle part.
+ * quelqu'un cherche un examen qui n'existe pas. Les suivantes échouent
+ * plus discrètement encore : sans l'adresse du viewer, la politique de
+ * sécurité du contenu interdit de l'encadrer, et l'écran de lecture reste
+ * vide ; sans l'adresse du site, les liens des courriels de
+ * réinitialisation pointent nulle part ; sans le secret des copies de
+ * secours, un brouillon interrompu par une coupure n'est pas sauvegardé.
  */
 const REQUIRED_IN_PRODUCTION = [
   {
@@ -62,9 +109,21 @@ const REQUIRED_IN_PRODUCTION = [
     present: () => isAbsoluteUrl(process.env.NEXT_PUBLIC_VIEWER_URL),
   },
   {
+    name: "NEXT_PUBLIC_VIEWER_URL",
+    purpose:
+      "doit être servi depuis une autre origine que le site : il ne doit partager ni ses cookies ni son stockage",
+    present: viewerIsolated,
+  },
+  {
     name: "NEXT_PUBLIC_SITE_URL",
     purpose: "liens des courriels et lien de vérification des comptes-rendus",
     present: () => isAbsoluteUrl(process.env.NEXT_PUBLIC_SITE_URL),
+  },
+  {
+    name: "REPORT_BACKUP_SECRET",
+    purpose:
+      "chiffrement des copies de secours des brouillons sur le poste (32 caractères au moins)",
+    present: hasReportBackupSecret,
   },
 ] as const;
 

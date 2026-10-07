@@ -13,6 +13,7 @@ import {
   type Study,
 } from "@/lib/data/studies";
 import { listTemplates } from "@/lib/data/templates";
+import { reportBackupKey } from "@/lib/editor/backup-key";
 import { formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
 import type { Session } from "@/lib/session/types";
@@ -34,7 +35,12 @@ function workspaceMode(
 
   const mine = study.assignedTo === session.user.id;
   if (mine && report && report.authorId === session.user.id) {
-    return { kind: "author", reportId: report.id, version: report.version };
+    return {
+      kind: "author",
+      reportId: report.id,
+      version: report.version,
+      backupKey: reportBackupKey(session.user.id),
+    };
   }
   // Pris en charge sans brouillon ouvert, ou libre : un même geste — la
   // prise en charge est idempotente et ouvre le brouillon.

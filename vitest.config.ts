@@ -22,5 +22,11 @@ export default defineConfig({
   test: {
     include: ["src/**/*.test.ts"],
     environment: "node",
+    // Node ≥ 25 expose son propre `localStorage` global, inutilisable sans
+    // fichier de stockage, qui masque celui de happy-dom dans les tests
+    // qui en dépendent. Accepté depuis Node 22.4.
+    poolOptions: {
+      forks: { execArgv: ["--no-experimental-webstorage"] },
+    },
   },
 });
