@@ -256,7 +256,7 @@ export const en: MarketingCopy = {
       {
         question: "Is the platform available in English?",
         answer:
-          "This website is. The clinic and radiologist portals, and the reports themselves, are in French today; English versions are planned. If your facility works in English, let us know when you get in touch and we will discuss the timeline with you.",
+          "Yes. The clinic and radiologist portals are fully available in English: each user chooses their language in their settings, and account emails are sent in English too. Reports, including the signed PDF and its verification page, are issued in the language agreed with your facility, French or English.",
       },
     ],
   },

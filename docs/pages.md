@@ -53,6 +53,36 @@ src/app/
 └── (admin)/         back-office IMAFRIK
 ```
 
+### Application bilingue
+
+Chaque écran de l'application existe en français et en anglais. Deux
+langues distinctes cohabitent :
+
+- **La langue de l'utilisateur** (`profiles.locale`), choisie dans
+  Paramètres ou par la palette de commandes : celle des écrans, des
+  messages du service (`Accept-Language`) et des courriels de son compte.
+  La connexion la reporte dans le cookie `imafrik-langue`, que lit le
+  rendu serveur.
+- **La langue des comptes-rendus d'une clinique**
+  (`organizations.report_language`), fixée au contrat par l'équipe
+  IMAFRIK (fiche de la clinique, ou `make clinic … LANGUE=en`) : celle du
+  PDF signé, de sa page de vérification, des titres de section dans
+  l'éditeur et des phrases types du menu « / ». Quand elle diffère de
+  celle de l'écran, l'écran de lecture le signale.
+
+Les textes vivent dans `src/i18n/messages/{fr,en}/`, un fichier par
+zone. Le français est la référence : le type `AppMessages` en est déduit,
+et une clé manquante en anglais est une erreur de compilation. Un
+composant serveur lit `getMessages()`, un composant client
+`useMessages()` ; les formats (dates, nombres, durées) prennent la
+langue. Une date anglaise écrit son mois en lettres : `06/10/2026` se lit
+le 10 juin aux États-Unis.
+
+Le test `src/i18n/no-hardcoded-text.test.ts` refuse toute phrase
+française écrite en dur hors des dictionnaires ; les données de
+démonstration (patients, comptes-rendus, organisations fictives) en sont
+exclues, ce sont des données.
+
 ---
 
 ## 2. Vitrine publique : `(marketing)`
@@ -114,11 +144,11 @@ son adresse dans sa langue :
   dans cette langue et portent elles aussi le sélecteur. Le changement de
   langue recharge la page entière (`?langue=en`, que le proxy retire
   après avoir posé le cookie), en conservant la destination demandée.
-- **L'application reste en français**, ainsi que les écrans qui suivent
-  la connexion (double authentification, nouveau mot de passe) et les
-  courriels d'authentification. La FAQ anglaise le dit. Chaque disposition
-  déclare sa langue (`HtmlLang`), pour que `<html lang>` reste juste après
-  une navigation interne d'une langue à l'autre.
+- **L'application suit la langue de l'utilisateur**, choisie dans
+  Paramètres et enregistrée sur son compte (`profiles.locale`) : voir
+  « Application bilingue » ci-dessous. Chaque disposition déclare sa
+  langue (`HtmlLang`), pour que `<html lang>` reste juste après une
+  navigation interne d'une langue à l'autre.
 
 > La vitrine vit dans la même application que le produit. Elle partage le
 > système de design, se déploie d'un coup et évite un second dépôt à
