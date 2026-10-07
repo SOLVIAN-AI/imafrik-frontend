@@ -6,6 +6,7 @@ import { z } from "zod";
 import { apiSend } from "@/lib/api/client";
 import {
   contactTrackingSchema,
+  mfaResetSchema,
   platformSettingsSchema,
 } from "@/lib/api/contracts";
 import { type ActionResult, demoUnavailable, run } from "@/lib/actions/result";
@@ -148,5 +149,35 @@ export async function trackContactRequest(
   });
   revalidatePath("/admin/demandes");
   revalidatePath("/admin");
+  return result;
+}
+
+/**
+ * Réinitialise la double authentification d'un compte — téléphone perdu
+ * ou changé.
+ *
+ * L'exigence demeure : à sa connexion suivante, la personne enrôle un
+ * nouveau facteur avant de revoir le moindre examen. Le service trace le
+ * geste dans le journal d'audit.
+ *
+ * @returns Le nombre de facteurs supprimés.
+ */
+export async function resetUserMfa(
+  profileId: string,
+): Promise<ActionResult<number>> {
+  if (!profileId) {
+    return { ok: false, error: "Compte invalide", status: 422 };
+  }
+  if (isDemoMode()) return demoUnavailable("La réinitialisation");
+  const result = await run(async () => {
+    const body = await apiSend(
+      `/admin/users/${encodeURIComponent(profileId)}/mfa-reset`,
+      "POST",
+      undefined,
+      mfaResetSchema,
+    );
+    return body.removed_factors;
+  });
+  revalidatePath("/admin/utilisateurs");
   return result;
 }

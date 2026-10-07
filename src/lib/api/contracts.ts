@@ -586,6 +586,14 @@ const _contactTracking: Matches<
   Schemas["ContactRequestTracking"]
 > = true;
 
+export const mfaResetSchema = z.object({
+  removed_factors: z.number().int(),
+});
+const _mfaReset: Matches<
+  z.input<typeof mfaResetSchema>,
+  Schemas["MfaReset"]
+> = true;
+
 /**
  * Les vérifications de type ci-dessus n'ont aucun effet à l'exécution ;
  * cette référence évite seulement qu'un outil les signale comme mortes.
@@ -624,6 +632,7 @@ export const CONTRACT_CHECKS = [
   _adminUser,
   _clinicDetail,
   _contactTracking,
+  _mfaReset,
 ] as const;
 
 export type ApiStudy = z.output<typeof studySchema>;

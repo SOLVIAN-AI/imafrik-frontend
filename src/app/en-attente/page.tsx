@@ -26,6 +26,7 @@ export const metadata: Metadata = {
 export default async function PendingAccountPage() {
   const state = await getAuthState();
   if (state === "anonymous") redirect("/connexion");
+  if (state === "mfa-required") redirect("/double-authentification");
   if (state !== "no-membership") redirect(homeFor(state.active.role));
 
   return (

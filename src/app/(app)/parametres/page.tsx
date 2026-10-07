@@ -6,9 +6,13 @@ import {
   PoolForm,
   ProfileForm,
 } from "@/components/settings/settings-forms";
+import { MfaCard } from "@/components/settings/mfa-card";
 import { getOrganization } from "@/lib/data/organization";
 import { getProfile } from "@/lib/data/profile";
+import { isDemoMode } from "@/lib/demo/mode";
+import { roleRequiresMfa } from "@/lib/session/mfa";
 import { requireSession } from "@/lib/session/server";
+import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABELS } from "@/lib/session/types";
 
 export const metadata: Metadata = { title: "Paramètres" };
@@ -27,9 +31,10 @@ export const metadata: Metadata = { title: "Paramètres" };
 export default async function SettingsPage() {
   const session = await requireSession();
   const isClinic = session.active.role === "clinic_staff";
-  const [profile, organization] = await Promise.all([
+  const [profile, organization, mfaEnrolled] = await Promise.all([
     getProfile(),
     isClinic ? getOrganization() : Promise.resolve(null),
+    hasVerifiedFactor(session.active.role),
   ]);
 
   return (
@@ -47,8 +52,25 @@ export default async function SettingsPage() {
           />
           {organization && <PoolForm openToPool={organization.openToPool} />}
           <PasswordForm />
+          <MfaCard
+            enrolled={mfaEnrolled}
+            required={roleRequiresMfa(session.active.role)}
+          />
         </div>
       </div>
     </>
   );
+}
+
+/**
+ * Un facteur vérifié existe-t-il pour l'utilisateur ? En démonstration,
+ * on suppose que les rôles qui l'exigent l'ont configuré.
+ */
+async function hasVerifiedFactor(
+  role: Parameters<typeof roleRequiresMfa>[0],
+): Promise<boolean> {
+  if (isDemoMode()) return roleRequiresMfa(role);
+  const supabase = await createClient();
+  const { data } = await supabase.auth.mfa.listFactors();
+  return Boolean(data?.totp.some((factor) => factor.status === "verified"));
 }

@@ -356,6 +356,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/users/{profile_id}/mfa-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Réinitialiser la double authentification d'un compte
+         * @description Supprime les facteurs d'un compte — téléphone perdu ou changé.
+         *
+         *     L'exigence ne disparaît pas : un radiologue ou un administrateur
+         *     devra enrôler un nouveau facteur avant de revoir le moindre examen.
+         *     Le geste est tracé, avec son auteur : c'est la seule porte de secours
+         *     du second facteur, elle doit laisser une trace.
+         *
+         *     Raises:
+         *         NotFound: Compte introuvable.
+         *         AuthServiceUnavailable: Service d'authentification injoignable
+         *             ou non configuré.
+         */
+        post: operations["reset_user_mfa_admin_users__profile_id__mfa_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/contact": {
         parameters: {
             query?: never;
@@ -2204,6 +2234,14 @@ export interface components {
             urgent_open: number;
         };
         /**
+         * MfaReset
+         * @description Résultat d'une réinitialisation de double authentification.
+         */
+        MfaReset: {
+            /** Removed Factors */
+            removed_factors: number;
+        };
+        /**
          * ModalityActivity
          * @description Activité d'une modalité sur la période.
          */
@@ -3646,6 +3684,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserMembership"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_user_mfa_admin_users__profile_id__mfa_reset_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MfaReset"];
                 };
             };
             /** @description Validation Error */

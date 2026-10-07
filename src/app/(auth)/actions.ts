@@ -52,6 +52,14 @@ export async function signIn(
   const state = await getAuthState();
   if (state === "anonymous")
     return { error: "Adresse ou mot de passe incorrect." };
+  // Second facteur à enrôler ou vérifier : l'écran dédié, en gardant la
+  // destination demandée pour y revenir ensuite.
+  if (state === "mfa-required")
+    redirect(
+      suite
+        ? `/double-authentification?suite=${encodeURIComponent(suite)}`
+        : "/double-authentification",
+    );
   // Compte valide sans organisation active : écran dédié, qui l'explique.
   if (state === "no-membership") redirect("/en-attente");
 

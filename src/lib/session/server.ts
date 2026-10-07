@@ -7,6 +7,7 @@ import { cache } from "react";
 import { isDemoMode } from "@/lib/demo/mode";
 import { homeFor, isRouteAllowed } from "@/lib/navigation";
 import { demoSession } from "@/lib/session/demo";
+import { needsSecondFactor } from "@/lib/session/mfa";
 import type { Membership, Session, UserRole } from "@/lib/session/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,6 +38,9 @@ interface MembershipRow {
  * Trois cas, que l'interface traite différemment :
  *
  * - `"anonymous"` — personne n'est connecté : direction la connexion ;
+ * - `"mfa-required"` — un compte qui doit encore enrôler ou vérifier son
+ *   second facteur : radiologue, administrateur, ou quiconque l'a
+ *   activé. Son jeton n'ouvre aucune donnée tant qu'il ne l'a pas fait ;
  * - `"no-membership"` — un compte valide, rattaché à aucune organisation
  *   active : c'est un radiologue dont le dossier attend sa validation, ou
  *   le membre d'une organisation suspendue. Il n'ouvre aucun portail, mais
@@ -44,7 +48,8 @@ interface MembershipRow {
  *   produisait une boucle, la connexion le renvoyant aussitôt ailleurs ;
  * - une {@link Session} — tout le reste.
  */
-export type AuthState = "anonymous" | "no-membership" | Session;
+export type AuthState =
+  "anonymous" | "mfa-required" | "no-membership" | Session;
 
 /**
  * État d'authentification, résolu une fois par requête.
@@ -102,6 +107,18 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
       (membership) => membership.id === profile?.active_membership_id,
     ) ?? memberships[0];
 
+  // Niveau d'assurance lu dans le jeton de session, déjà vérifié par
+  // `getUser()` ci-dessus. Même règle que le hook qui l'a émis.
+  const { data: level } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (
+    needsSecondFactor(active.role, {
+      current: level?.currentLevel ?? null,
+      next: level?.nextLevel ?? null,
+    })
+  )
+    return "mfa-required";
+
   return {
     user: {
       id: user.id,
@@ -130,6 +147,7 @@ export async function getSession(): Promise<Session | null> {
  * Session exigée par un écran : redirige sinon.
  *
  * - personne de connecté → `/connexion` ;
+ * - second facteur à enrôler ou vérifier → `/double-authentification` ;
  * - compte sans organisation → `/en-attente` ;
  * - rôles autorisés précisés et rôle actif absent de la liste → l'accueil
  *   de son propre portail.
@@ -147,6 +165,7 @@ export async function requireSession(
 ): Promise<Session> {
   const state = await getAuthState();
   if (state === "anonymous") redirect("/connexion");
+  if (state === "mfa-required") redirect("/double-authentification");
   if (state === "no-membership") redirect("/en-attente");
   if (roles && !roles.includes(state.active.role))
     redirect(homeFor(state.active.role));

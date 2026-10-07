@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 import { ControlBody, Section, Segmented } from "@/components/admin/control-ui";
 import { GrantDialog } from "@/components/admin/grant-dialog";
+import { MfaResetButton } from "@/components/admin/mfa-reset-button";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { SearchBox } from "@/components/admin/search-box";
 import { DateTime } from "@/components/domain/date-time";
@@ -170,7 +171,12 @@ function UserRow({
             organizations={organizations}
           />
         ) : (
-          <MfaState user={user} />
+          <div className="flex items-center gap-1">
+            <MfaState user={user} />
+            {user.mfaEnabled && (
+              <MfaResetButton profileId={user.id} fullName={user.fullName} />
+            )}
+          </div>
         )}
       </div>
 

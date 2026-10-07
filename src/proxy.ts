@@ -21,13 +21,18 @@ import { supabaseEnv } from "@/lib/supabase/env";
  * 3. **Rafraîchir la session** : un composant serveur rendu ne peut plus
  *    écrire de cookie, et un jeton Supabase expire au bout d'une heure.
  * 4. **Trier les accès** : un visiteur anonyme ne dépasse pas les pages
- *    publiques, et un utilisateur connecté ne dépasse pas son portail.
+ *    publiques, un compte dont le second facteur n'est pas vérifié ne
+ *    dépasse pas l'écran de double authentification, et un utilisateur
+ *    connecté ne dépasse pas son portail.
  *
  * Le tri par rôle repose sur les claims du jeton, vérifiés localement
  * (`getClaims`). C'est une première barrière, rapide ; chaque disposition
  * le refait sur la session relue en base, et les données restent de toute
  * façon protégées par le service et RLS.
  */
+/** Écran d'enrôlement et de vérification du second facteur. */
+const MFA_SCREEN = "/double-authentification";
+
 export async function proxy(request: NextRequest) {
   const nonce = createNonce();
   // Derrière Vercel, la requête arrive en HTTP interne : le protocole vu
@@ -121,6 +126,13 @@ export async function proxy(request: NextRequest) {
     return authScreen ? withCsp(response) : redirectTo("/connexion", true);
   }
 
+  // Second facteur à enrôler ou vérifier : le jeton n'ouvre aucune
+  // donnée (hook Supabase) ; un seul écran, celui qui permet d'en sortir.
+  const mfaScreen = pathname === MFA_SCREEN;
+  if (claims.mfa_required === true) {
+    return mfaScreen ? withCsp(response) : redirectTo(MFA_SCREEN, true);
+  }
+
   // Connecté, mais rattaché à aucune organisation active : un seul écran.
   if (!role) {
     return pathname === "/en-attente"
@@ -128,7 +140,11 @@ export async function proxy(request: NextRequest) {
       : redirectTo("/en-attente");
   }
 
-  if (authScreen || pathname === "/en-attente")
+  // L'écran du second facteur reste ouvert à qui veut l'activer de
+  // lui-même (`?activer=1`, depuis les paramètres).
+  const activation =
+    mfaScreen && request.nextUrl.searchParams.get("activer") === "1";
+  if (authScreen || (mfaScreen && !activation) || pathname === "/en-attente")
     return redirectTo(homeFor(role));
   if (!isRouteAllowed(role, pathname)) return redirectTo(homeFor(role));
 
