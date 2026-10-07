@@ -429,6 +429,30 @@
     box-shadow: inset 2px 0 0 0 var(--urgent);
   }
 
+  /* Éditeur de compte-rendu — décorations, jamais enregistrées.
+
+     Occurrences de la recherche : un fond ambre discret ; l'occurrence
+     active, pleine, comme dans tout traitement de texte. */
+  .search-match {
+    border-radius: 2px;
+    background-color: color-mix(in oklch, var(--progress) 28%, transparent);
+  }
+  .search-match-active {
+    background-color: var(--progress);
+    color: var(--surface-base);
+  }
+
+  /* Champ à compléter d'un modèle : « [taille] » se lit comme un champ,
+     pointillé, à remplir — on le voit avant de l'imprimer. */
+  .report-field {
+    border-radius: 3px;
+    padding-inline: 1px;
+    color: var(--accent);
+    background-color: color-mix(in oklch, var(--accent) 12%, transparent);
+    outline: 1px dashed color-mix(in oklch, var(--accent) 55%, transparent);
+    outline-offset: -1px;
+  }
+
   /* Prose justifiée, avec césure.
 
      Le justifié seul est un piège sur le web : sans césure, le

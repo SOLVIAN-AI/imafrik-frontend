@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
+import { adjacentField, selectField } from "@/components/editor/navigation";
 import { cn } from "@/lib/utils";
 
 /** Une entrée du menu « / ». */
@@ -36,7 +37,12 @@ export interface SlashItem {
   run: (editor: Editor, range: Range) => void;
 }
 
-/** Insère une phrase type, suivie d'une espace, à la place du « /… » tapé. */
+/**
+ * Insère une phrase type, suivie d'une espace, à la place du « /… » tapé.
+ *
+ * Une phrase à champs — « mesurant [taille] mm » — sélectionne aussitôt
+ * son premier champ : on tape la valeur, Tab mène au suivant.
+ */
 function phrase(id: string, text: string, keywords = ""): SlashItem {
   return {
     id,
@@ -44,8 +50,11 @@ function phrase(id: string, text: string, keywords = ""): SlashItem {
     title: text,
     keywords,
     icon: MessageSquareQuote,
-    run: (editor, range) =>
-      editor.chain().focus().deleteRange(range).insertContent(`${text} `).run(),
+    run: (editor, range) => {
+      editor.chain().focus().deleteRange(range).insertContent(`${text} `).run();
+      const field = adjacentField(editor, "next", range.from);
+      if (field) selectField(editor, field);
+    },
   };
 }
 
@@ -153,6 +162,26 @@ export const SLASH_ITEMS: SlashItem[] = [
     "abdomen ascite liquide",
   ),
   phrase("bones", "Structures osseuses sans lésion suspecte.", "os squelette"),
+  phrase(
+    "comparison-dated",
+    "Comparaison avec l’examen du [date] : [évolution].",
+    "comparatif anterieur evolution date",
+  ),
+  phrase(
+    "lesion-measure",
+    "Lésion [nature] de [taille] x [taille] mm, [localisation].",
+    "mesure lesion taille masse",
+  ),
+  phrase(
+    "nodule",
+    "Nodule [solide] du [lobe], mesurant [taille] mm.",
+    "poumon nodule thorax mesure",
+  ),
+  phrase(
+    "fracture",
+    "Fracture [type] de [segment osseux] [côté], [déplacement].",
+    "os fracture trauma",
+  ),
   phrase(
     "correlation",
     "Confrontation clinico-biologique recommandée.",

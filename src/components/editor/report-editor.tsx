@@ -4,11 +4,13 @@ import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import {
   AlertTriangle,
   Check,
+  ClipboardCheck,
   CloudOff,
   Keyboard,
   Loader2,
   Maximize2,
   Minimize2,
+  Search,
 } from "lucide-react";
 import * as React from "react";
 
@@ -16,107 +18,48 @@ import {
   DOCUMENT_TEXT_CLASSES,
   sectionExtensions,
 } from "@/components/editor/extensions";
+import { FindBar } from "@/components/editor/find-bar";
+import {
+  countWords,
+  isSectionEmpty,
+  REPORT_SECTIONS,
+  type ReportSections,
+  type SectionKey,
+} from "@/components/editor/sections";
 import { FormatToolbar } from "@/components/editor/format-toolbar";
+import {
+  adjacentField,
+  bindSectionLeave,
+  type Direction,
+  focusNow,
+  type LeaveReason,
+  selectField,
+} from "@/components/editor/navigation";
+import { reviewReport } from "@/components/editor/review";
+import { ReviewList } from "@/components/editor/review-list";
 import { ShortcutsDialog } from "@/components/editor/shortcuts-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { AutosaveState } from "@/hooks/use-autosave";
 import { cn } from "@/lib/utils";
 
-/**
- * Sections d'un compte-rendu, dans l'ordre où elles sont dictées.
- *
- * Cet ordre est celui de la pratique radiologique, pas un choix
- * d'interface : on rappelle la question posée, on dit comment on a
- * regardé, on compare à l'antérieur, on décrit, puis on conclut. Les
- * clés correspondent exactement au champ `sections` du schéma.
- */
-export const REPORT_SECTIONS = [
-  {
-    key: "indication",
-    title: "Indication clinique",
-    placeholder: "Motif de l’examen, renseignement clinique transmis…",
-    required: true,
-  },
-  {
-    key: "technique",
-    title: "Technique",
-    placeholder: "Protocole d’acquisition, injection, reconstructions…",
-    required: false,
-  },
-  {
-    key: "comparatif",
-    title: "Comparatif",
-    placeholder: "Examens antérieurs disponibles, ou absence de comparatif…",
-    required: false,
-  },
-  {
-    key: "resultats",
-    title: "Résultats",
-    placeholder: "Description par organe…",
-    required: true,
-  },
-  {
-    key: "conclusion",
-    title: "Conclusion",
-    placeholder: "Synthèse diagnostique.",
-    required: true,
-  },
-] as const;
-
-export type SectionKey = (typeof REPORT_SECTIONS)[number]["key"];
-export type ReportSections = Record<SectionKey, string>;
-
-/** Un compte-rendu vierge : toutes les sections présentes, toutes vides. */
-export const EMPTY_REPORT_SECTIONS: ReportSections = Object.fromEntries(
-  REPORT_SECTIONS.map((section) => [section.key, ""]),
-) as ReportSections;
-
-/**
- * Indique si une section est vide de tout texte.
- *
- * L'éditeur ne rend jamais une chaîne vide : une section dans laquelle on
- * a seulement cliqué vaut `<p></p>`. Comparer à `""` laisserait donc
- * signer un compte-rendu sans conclusion.
- *
- * @param html Contenu HTML de la section.
- * @returns `true` s'il ne reste aucun caractère une fois le balisage ôté.
- */
-export function isSectionEmpty(html: string | undefined): boolean {
-  if (!html) return true;
-  return (
-    html
-      .replace(/<[^>]*>/g, "")
-      .replace(/&nbsp;/g, " ")
-      .trim().length === 0
-  );
-}
-
-/**
- * Liste les sections obligatoires encore vides.
- *
- * Signer engage la responsabilité du radiologue : le contrôle est fait
- * ici, à l'écran, pour qu'il soit expliqué avant l'envoi — et refait côté
- * serveur, parce qu'un contrôle d'interface n'est pas une garantie.
- *
- * @param sections Contenu courant du compte-rendu.
- * @returns Les intitulés manquants, dans l'ordre du document.
- */
-export function missingRequiredSections(sections: ReportSections): string[] {
-  return REPORT_SECTIONS.filter(
-    (section) => section.required && isSectionEmpty(sections[section.key]),
-  ).map((section) => section.title);
-}
+export {
+  countWords,
+  EMPTY_REPORT_SECTIONS,
+  isSectionEmpty,
+  missingRequiredSections,
+  REPORT_SECTIONS,
+  type ReportSections,
+  type SectionKey,
+} from "@/components/editor/sections";
 
 /** État de la sauvegarde automatique — voir `useAutosave`. */
 export type SaveState = AutosaveState;
-
-/** Nombre de mots d'un fragment HTML — pour le compteur du document. */
-export function countWords(html: string): number {
-  const text = html
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .trim();
-  return text ? text.split(/\s+/).length : 0;
-}
 
 /**
  * Une section du compte-rendu.
@@ -135,6 +78,8 @@ function Section({
   readOnly,
   onFocus,
   onChange,
+  onReady,
+  onLeave,
 }: {
   id: string;
   title: string;
@@ -144,6 +89,10 @@ function Section({
   readOnly: boolean;
   onFocus: (editor: Editor) => void;
   onChange: (html: string) => void;
+  /** Reçoit l'éditeur une fois créé, `null` à sa destruction. */
+  onReady: (editor: Editor | null) => void;
+  /** Le curseur quitte la section par un bord — voir `navigation.ts`. */
+  onLeave: (direction: Direction, reason: LeaveReason) => boolean;
 }) {
   const editor = useEditor({
     extensions: sectionExtensions({ placeholder, commands: !readOnly }),
@@ -185,6 +134,18 @@ function Section({
     // l'utilisateur et déclencherait un enregistrement fantôme.
     editor.setEditable(!readOnly, false);
   }, [editor, readOnly]);
+
+  React.useEffect(() => {
+    if (!editor) return;
+    onReady(editor);
+    return () => onReady(null);
+  }, [editor, onReady]);
+
+  React.useEffect(() => {
+    if (!editor) return;
+    bindSectionLeave(editor, onLeave);
+    return () => bindSectionLeave(editor, null);
+  }, [editor, onLeave]);
 
   const empty = editor?.isEmpty ?? true;
 
@@ -334,11 +295,14 @@ function EditorAction({
   label,
   onClick,
   pressed,
+  badge = 0,
 }: {
   icon: typeof Keyboard;
   label: string;
   onClick: () => void;
   pressed?: boolean;
+  /** Pastille de compte — masquée à zéro. */
+  badge?: number;
 }) {
   return (
     <button
@@ -347,9 +311,20 @@ function EditorAction({
       aria-label={label}
       aria-pressed={pressed}
       title={label}
-      className="flex size-8 shrink-0 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-hover hover:text-primary"
+      className={cn(
+        "relative flex size-8 shrink-0 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-hover hover:text-primary",
+        pressed && "bg-accent-muted text-accent",
+      )}
     >
       <Icon className="size-4" aria-hidden />
+      {badge > 0 && (
+        <span
+          className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-progress px-1 text-[0.625rem] font-semibold text-surface-base tabular-nums"
+          aria-hidden
+        >
+          {badge}
+        </span>
+      )}
     </button>
   );
 }
@@ -403,7 +378,109 @@ export function ReportEditor({
   const [active, setActive] = React.useState<Editor | null>(null);
   const [focusMode, setFocusMode] = React.useState(false);
   const [helpOpen, setHelpOpen] = React.useState(false);
+  const [reviewOpen, setReviewOpen] = React.useState(false);
+  // `null` : barre fermée ; sinon, ouverte avec ou sans remplacement.
+  const [find, setFind] = React.useState<null | { replace: boolean }>(null);
   const idPrefix = React.useId().replace(/:/g, "");
+
+  // Les éditeurs des sections, pour la recherche et la navigation au
+  // clavier d'une section à l'autre.
+  const editorsRef = React.useRef(new Map<SectionKey, Editor>());
+  const readyHandlers = React.useMemo(
+    () =>
+      Object.fromEntries(
+        REPORT_SECTIONS.map((section) => [
+          section.key,
+          (editor: Editor | null) => {
+            if (editor) editorsRef.current.set(section.key, editor);
+            else editorsRef.current.delete(section.key);
+          },
+        ]),
+      ) as Record<SectionKey, (editor: Editor | null) => void>,
+    [],
+  );
+  const orderedEditors = React.useCallback(
+    () =>
+      REPORT_SECTIONS.map((section) =>
+        editorsRef.current.get(section.key),
+      ).filter((editor): editor is Editor => Boolean(editor)),
+    [],
+  );
+
+  /**
+   * Passe à la section voisine. Par Tab, on s'arrête sur son premier
+   * champ à compléter s'il y en a un — sur le dernier en remontant —,
+   * sinon en fin de texte, prêt à écrire. Par les flèches, on arrive au
+   * bord voisin, comme dans une page continue.
+   */
+  const leaveHandlers = React.useMemo(
+    () =>
+      Object.fromEntries(
+        REPORT_SECTIONS.map((section, index) => [
+          section.key,
+          (direction: Direction, reason: LeaveReason) => {
+            const target =
+              REPORT_SECTIONS[direction === "next" ? index + 1 : index - 1];
+            const editor = target && editorsRef.current.get(target.key);
+            if (!editor) return false;
+            focusNow(editor);
+            if (reason === "tab") {
+              const field = adjacentField(
+                editor,
+                direction,
+                direction === "next" ? 0 : editor.state.doc.content.size,
+              );
+              if (field) selectField(editor, field);
+              else editor.chain().focus("end").scrollIntoView().run();
+            } else {
+              editor
+                .chain()
+                .focus(direction === "next" ? "start" : "end")
+                .scrollIntoView()
+                .run();
+            }
+            return true;
+          },
+        ]),
+      ) as Record<
+        SectionKey,
+        (direction: Direction, reason: LeaveReason) => boolean
+      >,
+    [],
+  );
+
+  const findings = React.useMemo(() => reviewReport(sections), [sections]);
+
+  /** Amène une section à l'écran et y place le curseur. */
+  const goToSection = React.useCallback(
+    (key: SectionKey) => {
+      setReviewOpen(false);
+      document
+        .getElementById(`${idPrefix}-${key}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      editorsRef.current.get(key)?.commands.focus("end");
+    },
+    [idPrefix],
+  );
+
+  // Ctrl/⌘ F : rechercher ; Ctrl+H : remplacer. Interceptés seulement
+  // quand le focus est dans le compte-rendu — ailleurs, la recherche du
+  // navigateur garde son rôle.
+  const onKeyDownCapture = (event: React.KeyboardEvent) => {
+    // Sans Maj : Ctrl+Maj+H surligne, il ne doit pas ouvrir le remplacement.
+    if (
+      readOnly ||
+      !(event.metaKey || event.ctrlKey) ||
+      event.altKey ||
+      event.shiftKey
+    )
+      return;
+    const key = event.key.toLowerCase();
+    if (key === "f" || (key === "h" && event.ctrlKey && !event.metaKey)) {
+      event.preventDefault();
+      setFind({ replace: key === "h" });
+    }
+  };
 
   const words = REPORT_SECTIONS.reduce(
     (total, section) => total + countWords(sections[section.key] ?? ""),
@@ -426,6 +503,7 @@ export function ReportEditor({
 
   return (
     <div
+      onKeyDownCapture={onKeyDownCapture}
       className={cn(
         "flex min-h-0 flex-1 flex-col bg-surface-base",
         // Plein écran : le document seul, au-dessus de tout le reste.
@@ -440,6 +518,24 @@ export function ReportEditor({
             {words} mot{words > 1 ? "s" : ""}
           </span>
           <EditorAction
+            icon={Search}
+            label="Rechercher et remplacer (Ctrl+F)"
+            pressed={find !== null}
+            onClick={() =>
+              setFind((open) => (open ? null : { replace: false }))
+            }
+          />
+          <EditorAction
+            icon={ClipboardCheck}
+            label={
+              findings.length
+                ? `Relecture : ${findings.length} point${findings.length > 1 ? "s" : ""} à vérifier`
+                : "Relecture : rien à signaler"
+            }
+            badge={findings.length}
+            onClick={() => setReviewOpen(true)}
+          />
+          <EditorAction
             icon={Keyboard}
             label="Raccourcis clavier"
             onClick={() => setHelpOpen(true)}
@@ -453,6 +549,20 @@ export function ReportEditor({
             onClick={() => setFocusMode((value) => !value)}
           />
         </FormatToolbar>
+      )}
+      {!readOnly && find && (
+        <FindBar
+          editors={orderedEditors}
+          withReplace={find.replace}
+          onToggleReplace={() =>
+            setFind((open) => open && { replace: !open.replace })
+          }
+          onClose={() => {
+            setFind(null);
+            // Retour au texte, là où l'on rédigeait.
+            active?.commands.focus();
+          }}
+        />
       )}
       {!readOnly && <Outline sections={sections} idPrefix={idPrefix} />}
 
@@ -472,6 +582,8 @@ export function ReportEditor({
               readOnly={readOnly}
               onFocus={setActive}
               onChange={(html) => onChange?.(section.key, html)}
+              onReady={readyHandlers[section.key]}
+              onLeave={leaveHandlers[section.key]}
             />
           ))}
         </div>
@@ -482,12 +594,37 @@ export function ReportEditor({
               /
             </kbd>{" "}
             en début de ligne pour insérer une phrase type, un sous-titre ou un
-            tableau de mesures.
+            tableau de mesures ;{" "}
+            <kbd className="rounded border border-border-subtle px-1 font-sans">
+              Tab
+            </kbd>{" "}
+            pour passer au champ à compléter suivant, puis à la section
+            suivante.
           </p>
         )}
       </div>
 
       <ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />
+
+      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Relecture</DialogTitle>
+            <DialogDescription>
+              {findings.length
+                ? "Points à vérifier avant de signer. Ce sont des signalements, pas des erreurs certaines : vous restez seul juge de votre texte."
+                : "Rien à signaler : latéralité cohérente, aucun champ de modèle oublié, mesures avec leur unité."}
+            </DialogDescription>
+          </DialogHeader>
+          {findings.length > 0 && (
+            <ReviewList
+              findings={findings}
+              onGo={goToSection}
+              className="max-h-[60vh] overflow-auto px-3 pb-4"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

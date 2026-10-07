@@ -33,6 +33,23 @@ export interface ReportTemplate {
 /** Modèles de démonstration, un par modalité courante. */
 const DEMO_TEMPLATES: ReportTemplate[] = [
   {
+    // Modèle à champs : Tab parcourt [taille], [segment]… dans l'ordre.
+    id: "t-us-abdomen",
+    name: "Échographie abdominale — avec mesures",
+    modality: "US",
+    bodyPart: "Abdomen",
+    shared: true,
+    sections: {
+      ...EMPTY_REPORT_SECTIONS,
+      technique:
+        "<p>Échographie abdominale par voie sous-costale et intercostale.</p>",
+      comparatif: "<p>Comparaison avec l’examen du [date].</p>",
+      resultats:
+        "<p>Foie de [taille] cm sur la ligne médio-claviculaire, d’échostructure [homogène]. Vésicule biliaire [alithiasique], paroi fine. Voies biliaires non dilatées.</p><p>Rein droit de [taille] mm, rein gauche de [taille] mm, sans dilatation des cavités. Rate de [taille] mm.</p>",
+      conclusion: "<p>[Conclusion].</p>",
+    },
+  },
+  {
     id: "t-ct-thorax",
     name: "TDM thoracique — normal",
     modality: "CT",

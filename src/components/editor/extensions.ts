@@ -8,6 +8,8 @@ import TextAlign from "@tiptap/extension-text-align";
 import { Extension, textInputRule } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
+import { SectionNavigation } from "@/components/editor/navigation";
+import { SearchHighlight } from "@/components/editor/search";
 import { SlashCommands } from "@/components/editor/slash-commands";
 
 /**
@@ -47,7 +49,8 @@ const MedicalTypography = Extension.create({
  * - structure : sous-titres (un seul niveau — « Foie », « Reins »),
  *   listes à puces et numérotées, tableaux de mesures ;
  * - alignement des paragraphes et sous-titres ;
- * - annuler / rétablir, compteur, remplacements typographiques.
+ * - annuler / rétablir, compteur, remplacements typographiques,
+ *   surlignage de la recherche (voir `search.ts`).
  *
  * Restent exclus, à dessein : polices, tailles et couleurs libres, liens,
  * images, code, citations. Ils produiraient des documents hétérogènes là
@@ -58,13 +61,17 @@ const MedicalTypography = Extension.create({
  * déjà, et le déclarer deux fois déstabilise l'éditeur.
  *
  * @param options.placeholder Texte de substitution de la section.
- * @param options.commands    Menu « / » — seulement pour un éditeur
- *                            modifiable.
+ * @param options.commands    Menu « / » et navigation au clavier entre
+ *                            sections (`navigation.ts`) — seulement pour
+ *                            un éditeur modifiable.
  */
 export function sectionExtensions({
   placeholder = "",
   commands = false,
-}: { placeholder?: string; commands?: boolean } = {}) {
+}: {
+  placeholder?: string;
+  commands?: boolean;
+} = {}) {
   return [
     StarterKit.configure({
       heading: { levels: [3] },
@@ -85,7 +92,11 @@ export function sectionExtensions({
     MedicalTypography,
     Placeholder.configure({ placeholder }),
     CharacterCount,
+    // Surlignage de la recherche : de simples décorations, invisibles du
+    // document enregistré — sans effet tant qu'on ne cherche rien.
+    SearchHighlight,
     ...(commands ? [SlashCommands] : []),
+    ...(commands ? [SectionNavigation] : []),
   ];
 }
 

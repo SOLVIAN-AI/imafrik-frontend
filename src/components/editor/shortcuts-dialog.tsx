@@ -38,6 +38,10 @@ const GROUPS = [
     title: "Rédaction",
     entries: [
       ["Phrases types, tableau…", "/"],
+      ["Champ à compléter suivant / précédent", "Tab · ⇧ Tab"],
+      ["Section suivante / précédente", "↓ · ↑ en bord de section"],
+      ["Rechercher", "Mod F"],
+      ["Rechercher et remplacer", "Ctrl H"],
       ["Annuler / rétablir", "Mod Z · Mod ⇧ Z"],
       ["Quitter le plein écran", "Échap"],
     ],
