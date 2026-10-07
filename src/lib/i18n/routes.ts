@@ -10,7 +10,7 @@
  * Module pur : ni rendu ni requête.
  */
 
-import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
+import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n/locale";
 
 /** Préfixe des adresses anglaises. */
 const EN_PREFIX = "/en";
@@ -87,12 +87,16 @@ export function localizePath(href: string, locale: Locale): string {
  * Adresse équivalente dans l'autre langue, pour le sélecteur.
  *
  * Une adresse sans équivalent mène à l'accueil de la langue voulue,
- * plutôt qu'à une page d'erreur.
+ * plutôt qu'à une page d'erreur. Un écran partagé (connexion) garde son
+ * adresse : le paramètre `langue` fait poser le cookie par le proxy, qui
+ * redirige ensuite vers l'adresse sans paramètre.
  *
  * @param pathname Chemin courant.
  * @param target   Langue voulue.
  */
 export function translatePath(pathname: string, target: Locale): string {
+  if (isBilingualScreen(pathname))
+    return `${pathname}?${LANGUAGE_PARAM}=${target}`;
   const current = localeOfPath(pathname);
   if (current === target) return pathname;
   const found = findPage(pathname, current);
@@ -127,3 +131,62 @@ export const INDEXABLE_PAGES: readonly { path: string; priority: number }[] = [
   { path: "/mentions-legales", priority: 0.2 },
   { path: "/cgu", priority: 0.2 },
 ];
+
+/**
+ * Cookie de la langue choisie sur le site public.
+ *
+ * Posé à chaque visite d'une page publique, il fait suivre la même langue
+ * aux écrans qui font le pont entre le site et l'application : un visiteur
+ * du site anglais qui clique sur « Sign in » arrive sur une connexion en
+ * anglais. Il ne contient qu'un code de langue, rien de personnel.
+ */
+export const LANGUAGE_COOKIE = "imafrik-langue";
+
+/** Durée de vie du cookie de langue, en secondes : un an. */
+export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
+
+/** Paramètre d'adresse par lequel le sélecteur change la langue d'un écran partagé. */
+export const LANGUAGE_PARAM = "langue";
+
+/**
+ * Écrans de l'application qui suivent la langue choisie sur le site.
+ *
+ * Seulement ceux qu'on atteint depuis le site, avant toute session : la
+ * connexion et la demande de réinitialisation. Les écrans suivants
+ * (double authentification, nouveau mot de passe, application) sont en
+ * français ; leur cadre aussi, pour ne jamais afficher une page à moitié
+ * traduite.
+ */
+export const BILINGUAL_SCREENS: readonly string[] = [
+  "/connexion",
+  "/mot-de-passe-oublie",
+];
+
+/** Vrai si le chemin est une page du site public, dans l'une ou l'autre langue. */
+export function isPublicSitePath(pathname: string): boolean {
+  return LOCALES.some((locale) => findPage(pathname, locale) !== null);
+}
+
+/** Vrai si le chemin est un écran partagé qui suit la langue choisie. */
+export function isBilingualScreen(pathname: string): boolean {
+  return BILINGUAL_SCREENS.includes(pathname);
+}
+
+/**
+ * Langue d'une page.
+ *
+ * - le site public : la langue de son adresse ;
+ * - les écrans partagés : la langue choisie (cookie), le français à défaut ;
+ * - tout le reste, l'application : le français.
+ *
+ * @param pathname Chemin demandé.
+ * @param chosen   Valeur du cookie de langue, si présent.
+ */
+export function resolveLocale(
+  pathname: string,
+  chosen: string | undefined,
+): Locale {
+  if (localeOfPath(pathname) === "en") return "en";
+  if (isBilingualScreen(pathname) && chosen === "en") return "en";
+  return DEFAULT_LOCALE;
+}

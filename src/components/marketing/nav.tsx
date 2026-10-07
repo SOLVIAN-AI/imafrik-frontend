@@ -66,7 +66,9 @@ export function MarketingNav({ locale }: { locale: Locale }) {
             asChild
             className="hidden sm:inline-flex"
           >
-            <Link href="/connexion">{t.signIn}</Link>
+            <Link href="/connexion" prefetch={false}>
+              {t.signIn}
+            </Link>
           </Button>
           <Button size="sm" asChild>
             <Link href={localizePath("/contact", locale)}>
@@ -105,6 +107,7 @@ export function MarketingNav({ locale }: { locale: Locale }) {
           ))}
           <Link
             href="/connexion"
+            prefetch={false}
             onClick={() => setOpen(false)}
             className="rounded-md px-2 py-2 text-sm text-secondary transition-colors hover:bg-surface-hover hover:text-primary sm:hidden"
           >

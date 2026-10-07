@@ -69,6 +69,29 @@ export const fr: MarketingCopy = {
     publisher: "IMAFRIK est un service édité par SOLVIAN AI LLC, Lomé, Togo.",
     hosting: "Images hébergées dans l’Union européenne, chiffrées au repos.",
   },
+  appPreview: {
+    windowLabel: "file de lecture",
+    metrics: {
+      toRead: "À lire",
+      urgent: "Urgences",
+      turnaround: "Délai moyen",
+      turnaroundShort: "Délai",
+    },
+    turnaroundValue: "1 h 50",
+    states: {
+      toRead: "À lire",
+      inProgress: "En cours",
+      reported: "Rendu",
+      assigned: "Attribué",
+    },
+    exams: [
+      "CT · Thorax",
+      "MR · Crâne",
+      "CR · Thorax",
+      "CT · Abdomen",
+      "US · Pelvis",
+    ],
+  },
   hero: {
     badge: "Téléradiologie pour l’Afrique",
     title: {

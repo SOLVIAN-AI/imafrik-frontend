@@ -39,6 +39,9 @@ export function MarketingFooter({ locale }: { locale: Locale }) {
                 <li key={link.label}>
                   <Link
                     href={localizePath(link.href, locale)}
+                    // La connexion suit la langue choisie : elle n'est pas
+                    // préchargée, pour être rendue avec la langue à jour.
+                    prefetch={link.href === "/connexion" ? false : undefined}
                     className="text-xs text-secondary transition-colors hover:text-accent"
                   >
                     {link.label}

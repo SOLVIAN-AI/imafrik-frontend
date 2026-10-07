@@ -2,8 +2,16 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { mustRefuseToServe } from "@/lib/deployment";
-import { LOCALE_HEADER } from "@/lib/i18n/locale";
-import { localeOfPath } from "@/lib/i18n/routes";
+import { isLocale, LOCALE_HEADER, type Locale } from "@/lib/i18n/locale";
+import {
+  isBilingualScreen,
+  isPublicSitePath,
+  LANGUAGE_COOKIE,
+  LANGUAGE_COOKIE_MAX_AGE,
+  LANGUAGE_PARAM,
+  localeOfPath,
+  resolveLocale,
+} from "@/lib/i18n/routes";
 import { isDemoMode } from "@/lib/demo/mode";
 import { homeFor, isPublicRoute, isRouteAllowed } from "@/lib/navigation";
 import { contentSecurityPolicy, createNonce } from "@/lib/security/csp";
@@ -35,6 +43,26 @@ import { supabaseEnv } from "@/lib/supabase/env";
 /** Écran d'enrôlement et de vérification du second facteur. */
 const MFA_SCREEN = "/double-authentification";
 
+/**
+ * Mémorise la langue choisie sur le site public.
+ *
+ * `httpOnly` : seul le serveur la lit. Elle ne contient qu'un code de
+ * langue, mais aucun script n'a de raison d'y accéder.
+ */
+function rememberLocale(
+  response: NextResponse,
+  locale: Locale,
+  secure: boolean,
+): void {
+  response.cookies.set(LANGUAGE_COOKIE, locale, {
+    path: "/",
+    maxAge: LANGUAGE_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    httpOnly: true,
+    secure,
+  });
+}
+
 export async function proxy(request: NextRequest) {
   const nonce = createNonce();
   // Derrière Vercel, la requête arrive en HTTP interne : le protocole vu
@@ -49,15 +77,37 @@ export async function proxy(request: NextRequest) {
   // x-nonce pour le transmettre à next-themes.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
-  // Langue de la page, déduite de l'adresse : la disposition racine en
-  // tire `<html lang>`.
-  requestHeaders.set(LOCALE_HEADER, localeOfPath(request.nextUrl.pathname));
   requestHeaders.set("Content-Security-Policy", csp);
+
+  // Langue de la page : celle de l'adresse sur le site public, celle
+  // choisie sur le site pour la connexion, le français ailleurs. La
+  // disposition racine en tire `<html lang>`, les écrans leurs textes.
+  const { pathname: requestPath } = request.nextUrl;
+  const chosen = request.cookies.get(LANGUAGE_COOKIE)?.value;
+  requestHeaders.set(LOCALE_HEADER, resolveLocale(requestPath, chosen));
+  // Une page du site public mémorise sa langue, pour les écrans partagés.
+  const siteLocale = isPublicSitePath(requestPath)
+    ? localeOfPath(requestPath)
+    : null;
 
   const withCsp = (response: NextResponse) => {
     response.headers.set("Content-Security-Policy", csp);
+    if (siteLocale && siteLocale !== chosen)
+      rememberLocale(response, siteLocale, secure);
     return response;
   };
+
+  // Sélecteur de langue d'un écran partagé (`/connexion?langue=en`) : la
+  // langue est mémorisée, puis l'adresse nettoyée du paramètre, les
+  // autres (destination demandée) conservés.
+  const requested = request.nextUrl.searchParams.get(LANGUAGE_PARAM);
+  if (requested !== null && isBilingualScreen(requestPath)) {
+    const clean = request.nextUrl.clone();
+    clean.searchParams.delete(LANGUAGE_PARAM);
+    const redirect = NextResponse.redirect(clean);
+    if (isLocale(requested)) rememberLocale(redirect, requested, secure);
+    return withCsp(redirect);
+  }
   const next = () =>
     NextResponse.next({ request: { headers: requestHeaders } });
 

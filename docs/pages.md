@@ -108,8 +108,17 @@ son adresse dans sa langue :
   deux.
 - **La version française fait foi** pour les documents juridiques ; la
   traduction le rappelle en tête de page.
-- **L'application reste en français.** La FAQ anglaise le dit, et les
-  liens « Sign in » mènent à la connexion française.
+- **La connexion suit la langue choisie.** Chaque page du site mémorise
+  sa langue dans un cookie (`imafrik-langue`, un code de langue et rien
+  d'autre) ; la connexion et la demande de réinitialisation s'affichent
+  dans cette langue et portent elles aussi le sélecteur. Le changement de
+  langue recharge la page entière (`?langue=en`, que le proxy retire
+  après avoir posé le cookie), en conservant la destination demandée.
+- **L'application reste en français**, ainsi que les écrans qui suivent
+  la connexion (double authentification, nouveau mot de passe) et les
+  courriels d'authentification. La FAQ anglaise le dit. Chaque disposition
+  déclare sa langue (`HtmlLang`), pour que `<html lang>` reste juste après
+  une navigation interne d'une langue à l'autre.
 
 > La vitrine vit dans la même application que le produit. Elle partage le
 > système de design, se déploie d'un coup et évite un second dépôt à

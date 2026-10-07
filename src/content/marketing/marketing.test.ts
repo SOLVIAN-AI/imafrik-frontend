@@ -27,6 +27,7 @@ describe("textes du site public", () => {
       expect(t.howItWorks.steps).toHaveLength(3);
       expect(t.securityTeaser.guarantees).toHaveLength(4);
       expect(t.securityPage.chapters).toHaveLength(8);
+      expect(t.appPreview.exams).toHaveLength(5);
       expect(t.hero.commitments).toHaveLength(fr.hero.commitments.length);
       expect(t.contactPage.volumes).toHaveLength(fr.contactPage.volumes.length);
       expect(t.contactPage.modalityOptions).toHaveLength(

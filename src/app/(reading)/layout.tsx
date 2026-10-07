@@ -1,3 +1,4 @@
+import { HtmlLang } from "@/components/i18n/html-lang";
 import { MaintenanceBanner } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { InactivityLock } from "@/components/session/inactivity-lock";
@@ -36,6 +37,7 @@ export default async function ReadingLayout({
 
   return (
     <SessionProvider session={session}>
+      <HtmlLang lang="fr" />
       <div className="flex h-dvh flex-col overflow-hidden bg-surface-base">
         {/* Écran de lecture compris : c'est là qu'on laisse un examen
             ouvert en partant. */}

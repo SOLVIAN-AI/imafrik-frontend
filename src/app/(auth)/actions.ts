@@ -2,7 +2,9 @@
 
 import { redirect } from "next/navigation";
 
+import { authCopy } from "@/content/auth";
 import { isDemoMode } from "@/lib/demo/mode";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locale";
 import { homeFor } from "@/lib/navigation";
 import { safeRedirect } from "@/lib/security/redirect";
 import { getAuthState } from "@/lib/session/server";
@@ -35,9 +37,13 @@ export async function signIn(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const suite = safeRedirect(String(formData.get("suite") ?? ""));
+  // Langue de l'écran de connexion, pour la langue des messages.
+  const locale = formData.get("locale");
+  const errors = authCopy(isLocale(locale) ? locale : DEFAULT_LOCALE).signIn
+    .errors;
 
   if (!email.includes("@") || password.length === 0) {
-    return { error: "Renseignez votre adresse et votre mot de passe." };
+    return { error: errors.missing };
   }
 
   if (!isDemoMode()) {
@@ -46,12 +52,11 @@ export async function signIn(
       email,
       password,
     });
-    if (error) return { error: "Adresse ou mot de passe incorrect." };
+    if (error) return { error: errors.invalid };
   }
 
   const state = await getAuthState();
-  if (state === "anonymous")
-    return { error: "Adresse ou mot de passe incorrect." };
+  if (state === "anonymous") return { error: errors.invalid };
   // Second facteur à enrôler ou vérifier : l'écran dédié, en gardant la
   // destination demandée pour y revenir ensuite.
   if (state === "mfa-required")

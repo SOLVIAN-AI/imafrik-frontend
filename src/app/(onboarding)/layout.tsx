@@ -1,3 +1,4 @@
+import { HtmlLang } from "@/components/i18n/html-lang";
 import { OnboardingChrome } from "@/components/onboarding/chrome";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { requireSession } from "@/lib/session/server";
@@ -15,6 +16,7 @@ export default async function OnboardingLayout({ children }: LayoutProps<"/">) {
 
   return (
     <SessionProvider session={session}>
+      <HtmlLang lang="fr" />
       <OnboardingChrome>{children}</OnboardingChrome>
     </SessionProvider>
   );

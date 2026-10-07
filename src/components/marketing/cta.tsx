@@ -52,7 +52,9 @@ export function FinalCta({ locale }: { locale: Locale }) {
               </Link>
             </Button>
             <Button variant="ghost" size="lg" asChild>
-              <Link href="/connexion">{t.secondary}</Link>
+              <Link href="/connexion" prefetch={false}>
+                {t.secondary}
+              </Link>
             </Button>
           </div>
         </div>

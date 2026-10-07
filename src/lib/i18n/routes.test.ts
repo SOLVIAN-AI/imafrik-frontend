@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isPublicSitePath,
   languageAlternates,
   localeOfPath,
   localizePath,
+  resolveLocale,
   translatePath,
 } from "@/lib/i18n/routes";
 
@@ -46,5 +48,31 @@ describe("adresses du site public", () => {
       en: "/en/terms",
       "x-default": "/cgu",
     });
+  });
+});
+
+describe("langue des écrans partagés", () => {
+  it("suit la langue choisie sur la connexion seulement", () => {
+    expect(resolveLocale("/connexion", "en")).toBe("en");
+    expect(resolveLocale("/mot-de-passe-oublie", "en")).toBe("en");
+    expect(resolveLocale("/connexion", undefined)).toBe("fr");
+    expect(resolveLocale("/connexion", "de")).toBe("fr");
+    // L'application et les écrans qui suivent la connexion restent en français.
+    expect(resolveLocale("/double-authentification", "en")).toBe("fr");
+    expect(resolveLocale("/worklist", "en")).toBe("fr");
+    expect(resolveLocale("/en/security", undefined)).toBe("en");
+    expect(resolveLocale("/securite", "en")).toBe("fr");
+  });
+
+  it("reconnaît les pages du site public", () => {
+    expect(isPublicSitePath("/")).toBe(true);
+    expect(isPublicSitePath("/en/privacy")).toBe(true);
+    expect(isPublicSitePath("/verifier/ABC")).toBe(true);
+    expect(isPublicSitePath("/connexion")).toBe(false);
+    expect(isPublicSitePath("/worklist")).toBe(false);
+  });
+
+  it("change la langue d'un écran partagé sans changer son adresse", () => {
+    expect(translatePath("/connexion", "en")).toBe("/connexion?langue=en");
   });
 });

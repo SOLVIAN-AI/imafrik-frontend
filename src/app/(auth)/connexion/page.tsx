@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 
 import { SignInForm } from "@/components/auth/sign-in-form";
+import { authCopy } from "@/content/auth";
+import { requestLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: "Connexion" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: authCopy(await requestLocale()).signIn.metaTitle };
+}
 
 /**
  * Connexion.
@@ -27,6 +31,7 @@ export default async function SignInPage({
 
   return (
     <SignInForm
+      locale={await requestLocale()}
       suite={typeof suite === "string" ? suite : ""}
       motif={typeof motif === "string" ? motif : undefined}
     />

@@ -104,7 +104,7 @@ export function Hero({ locale }: { locale: Locale }) {
           </div>
         </div>
 
-        <AppPreview className="mt-16" />
+        <AppPreview locale={locale} className="mt-16" />
       </div>
     </section>
   );

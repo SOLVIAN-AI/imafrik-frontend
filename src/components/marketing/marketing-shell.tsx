@@ -1,3 +1,4 @@
+import { HtmlLang } from "@/components/i18n/html-lang";
 import { MarketingFooter } from "@/components/marketing/footer";
 import { MarketingNav } from "@/components/marketing/nav";
 import type { Locale } from "@/lib/i18n/locale";
@@ -26,6 +27,7 @@ export function MarketingShell({
 }) {
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip bg-surface-base">
+      <HtmlLang lang={locale} />
       <MarketingNav locale={locale} />
       <main className="flex-1">{children}</main>
       <MarketingFooter locale={locale} />

@@ -57,6 +57,26 @@ export interface MarketingCopy {
     publisher: string;
     hosting: string;
   };
+  /** Illustration de l'application, sur l'accueil. */
+  appPreview: {
+    windowLabel: string;
+    metrics: {
+      toRead: string;
+      urgent: string;
+      turnaround: string;
+      turnaroundShort: string;
+    };
+    /** Valeur affichée du délai moyen. */
+    turnaroundValue: string;
+    states: {
+      toRead: string;
+      inProgress: string;
+      reported: string;
+      assigned: string;
+    };
+    /** Examen de chaque ligne, dans l'ordre des lignes (5). */
+    exams: string[];
+  };
   hero: {
     badge: string;
     title: HighlightedTitle;

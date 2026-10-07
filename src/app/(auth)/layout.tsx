@@ -1,32 +1,12 @@
 import { Clock3, Lock, Stethoscope } from "lucide-react";
 
 import { Wordmark } from "@/components/brand/brand";
+import { HtmlLang } from "@/components/i18n/html-lang";
+import { authCopy } from "@/content/auth";
+import { requestLocale } from "@/lib/i18n/server";
 
-/**
- * Ce que la plateforme promet, en trois lignes.
- *
- * Trois, pas six : une page de connexion n'est pas une page de vente.
- * Ces arguments s'adressent à quelqu'un qui a déjà choisi et qui revient
- * — ils rassurent, ils ne convainquent pas.
- */
-const PROOF_POINTS = [
-  {
-    icon: Clock3,
-    title: "Des délais tenus par contrat",
-    detail: "Deux heures en routine, trente minutes pour une urgence.",
-  },
-  {
-    icon: Stethoscope,
-    title: "Une signature nommée",
-    detail:
-      "Chaque compte-rendu porte le nom et le numéro d’ordre de son auteur.",
-  },
-  {
-    icon: Lock,
-    title: "Images chiffrées, accès tracés",
-    detail: "Chaque consultation d’examen est enregistrée et attribuable.",
-  },
-];
+/** Icône de chaque argument, dans l'ordre des textes. */
+const PROOF_ICONS = [Clock3, Stethoscope, Lock] as const;
 
 /**
  * Disposition des écrans d'authentification.
@@ -44,10 +24,20 @@ const PROOF_POINTS = [
  *
  * Sous 1024 px, le panneau de marque disparaît et le formulaire prend
  * toute la place : sur un téléphone, on vient se connecter, pas lire.
+ *
+ * Trois arguments, pas six : une page de connexion n'est pas une page de
+ * vente. Ils s'adressent à quelqu'un qui a déjà choisi et qui revient ;
+ * ils rassurent, ils ne convainquent pas.
+ *
+ * La langue est celle de la requête : celle choisie sur le site pour la
+ * connexion, le français pour les écrans qui suivent.
  */
-export default function AuthLayout({ children }: LayoutProps<"/">) {
+export default async function AuthLayout({ children }: LayoutProps<"/">) {
+  const locale = await requestLocale();
+  const t = authCopy(locale).brand;
   return (
     <div className="flex min-h-dvh bg-surface-base">
+      <HtmlLang lang={locale} />
       <aside className="relative hidden w-[54%] shrink-0 overflow-hidden bg-surface-sunken lg:flex lg:flex-col">
         {/* Deux halos décalés plutôt qu'un seul centré : le fond paraît
             éclairé par une source hors cadre, ce qu'un dégradé
@@ -80,40 +70,40 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
 
           <div className="max-w-lg">
             <h1 className="text-4xl font-semibold xl:text-5xl">
-              La téléradiologie,
+              {t.titleBefore}
               <br />
-              <span className="text-brand-gradient">sans le délai.</span>
+              <span className="text-brand-gradient">{t.titleHighlight}</span>
             </h1>
             <p className="mt-5 text-base leading-relaxed text-secondary">
-              Vos examens sont lus par des radiologues disponibles, où qu’ils
-              soient. Votre patient reste dans votre établissement.
+              {t.lead}
             </p>
 
             <ul className="mt-10 flex flex-col gap-5">
-              {PROOF_POINTS.map((point) => (
-                <li key={point.title} className="flex gap-3.5">
-                  <span
-                    className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent-muted ring-1 ring-accent/25 ring-inset"
-                    aria-hidden
-                  >
-                    <point.icon className="size-4 text-accent" />
-                  </span>
-                  <span>
-                    <span className="block text-sm font-medium">
-                      {point.title}
+              {t.proofPoints.map((point, index) => {
+                const Icon = PROOF_ICONS[index];
+                return (
+                  <li key={point.title} className="flex gap-3.5">
+                    <span
+                      className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent-muted ring-1 ring-accent/25 ring-inset"
+                      aria-hidden
+                    >
+                      <Icon className="size-4 text-accent" />
                     </span>
-                    <span className="mt-0.5 block text-xs text-tertiary">
-                      {point.detail}
+                    <span>
+                      <span className="block text-sm font-medium">
+                        {point.title}
+                      </span>
+                      <span className="mt-0.5 block text-xs text-tertiary">
+                        {point.detail}
+                      </span>
                     </span>
-                  </span>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
-          <p className="text-2xs text-tertiary">
-            IMAFRIK est un service édité par SOLVIAN AI LLC, Lomé, Togo.
-          </p>
+          <p className="text-2xs text-tertiary">{t.publisher}</p>
         </div>
       </aside>
 

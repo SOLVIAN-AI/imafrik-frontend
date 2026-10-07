@@ -1,3 +1,4 @@
+import { HtmlLang } from "@/components/i18n/html-lang";
 import { AppShell } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { getPlatformSettings } from "@/lib/data/control";
@@ -56,6 +57,9 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
 
   return (
     <SessionProvider session={session}>
+      {/* L'application est en français, quelle que soit la langue du site
+          d'où l'on vient. */}
+      <HtmlLang lang="fr" />
       <AppShell counts={counts} banner={settings?.maintenanceMessage ?? null}>
         {children}
       </AppShell>
