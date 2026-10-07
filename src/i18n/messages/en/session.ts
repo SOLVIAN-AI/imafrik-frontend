@@ -42,7 +42,7 @@ export const session: AppMessages["session"] = {
   },
   newPassword: {
     title: "New password",
-    description: "Your sessions on other devices will be signed out.",
+    description: "You will be signed out on all your other devices.",
     password: "New password",
     confirmation: "Confirm password",
     mismatch: "The two entries do not match.",
@@ -79,7 +79,7 @@ export const session: AppMessages["session"] = {
   configuration: {
     metaTitle: "Configuration required",
     title: "This deployment is not configured",
-    lead: "The service is refusing to serve pages rather than show demonstration data at a production address.",
+    lead: "Rather than show demo data at a production address, the service is refusing to serve any pages.",
     footer:
       "Add them to the deployment’s environment variables, then redeploy.",
     purposes: {

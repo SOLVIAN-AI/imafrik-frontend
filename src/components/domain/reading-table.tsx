@@ -358,7 +358,9 @@ export function ReadingTable({
               <th scope="col">
                 <span className="label-eyebrow">{labels.columns.study}</span>
               </th>
-              <th scope="col" className="w-30">
+              {/* Assez large pour le statut le plus long des deux langues
+                  (« In progress ») : une pastille tronquée ne se lit plus. */}
+              <th scope="col" className="w-36">
                 <span className="label-eyebrow">{labels.columns.follow}</span>
               </th>
               <th scope="col" className="w-20 text-right">

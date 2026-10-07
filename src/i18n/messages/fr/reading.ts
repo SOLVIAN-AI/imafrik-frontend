@@ -327,7 +327,9 @@ export const reading = {
     frameTitle: (uid: string) => `Images de l’examen ${uid}`,
     series: (count: number) =>
       count > 1 ? `${count} séries` : `${count} série`,
-    images: (count: string) => `${count} coupes`,
+    /** Nombre de coupes : le nombre, et sa forme écrite. 0 et 1 au singulier. */
+    images: (count: number, formatted: string) =>
+      `${formatted} ${count < 2 ? "coupe" : "coupes"}`,
     simulated: "Images simulées",
     openFullscreen: "Ouvrir les images en plein écran",
     fullscreen: "Plein écran",

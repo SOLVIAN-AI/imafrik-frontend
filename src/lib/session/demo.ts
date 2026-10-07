@@ -19,6 +19,7 @@ export const DEMO_MEMBERSHIPS: Membership[] = [
     organizationKind: "radiology_group",
     role: "radiologist",
     city: "Lomé",
+    reportLanguage: "fr",
   },
   {
     id: "m-admin",
@@ -27,6 +28,7 @@ export const DEMO_MEMBERSHIPS: Membership[] = [
     organizationKind: "radiology_group",
     role: "platform_admin",
     city: "Lomé",
+    reportLanguage: "fr",
   },
   {
     id: "m-clinic",
@@ -35,6 +37,7 @@ export const DEMO_MEMBERSHIPS: Membership[] = [
     organizationKind: "clinic",
     role: "clinic_staff",
     city: "Lomé",
+    reportLanguage: "fr",
   },
 ];
 

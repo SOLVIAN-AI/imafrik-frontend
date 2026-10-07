@@ -115,10 +115,14 @@ export const clinic = {
       "Si votre établissement est équipé de la passerelle IMAFRIK, vos consoles n’ont rien à faire de plus : chaque examen part automatiquement, chiffré, une minute après la dernière image.",
     lastReceived: "Dernier examen reçu : ",
     noneYet: "aucun pour l’instant",
-    /** Encadrent le nom du script de vérification. */
+    /**
+     * Encadrent le nom du script de vérification. Le guide est nommé
+     * comme dans le paquet de la clinique, qui suit la langue de ses
+     * comptes-rendus (`LISEZ-MOI.txt` ou `README.txt`).
+     */
     troubleshootBefore: "Un examen envoyé qui n’apparaît pas ? Lancez",
-    troubleshootAfter:
-      "sur le poste de la passerelle, puis consultez le guide remis à l’installation (LISEZ-MOI).",
+    troubleshootAfter: (guide: string) =>
+      `sur le poste de la passerelle, puis consultez le guide remis à l’installation (${guide}).`,
   },
   /** Dépôt d'examens depuis le navigateur. */
   uploader: {

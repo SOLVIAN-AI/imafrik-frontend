@@ -86,7 +86,10 @@ export function ViewerPane({
         </span>
         <span className="hidden shrink-0 tabular-nums sm:inline">
           {labels.series(study.seriesCount)} ·{" "}
-          {labels.images(formatCount(study.instanceCount, locale))}
+          {labels.images(
+            study.instanceCount,
+            formatCount(study.instanceCount, locale),
+          )}
         </span>
         {demo && (
           <span className="ml-auto shrink-0 truncate rounded-full border border-progress/30 px-2 py-0.5 font-medium text-progress">

@@ -22,7 +22,7 @@ export const settings: AppMessages["settings"] = {
   language: {
     title: "Language",
     description:
-      "Used for your screens, messages from the service and the emails you receive.",
+      "Used for your screens, the service’s messages and the emails you receive.",
     saved: "Language saved.",
     unknown: "Unknown language.",
     reportsNote:
@@ -31,7 +31,7 @@ export const settings: AppMessages["settings"] = {
   pool: {
     title: "Who reads your examinations",
     description:
-      "The setting applies immediately; an examination already taken on does not change hands.",
+      "The setting applies immediately; an examination already taken on by a radiologist stays with them.",
     poolTitle: "All radiologists on the platform",
     poolDetail:
       "Your examinations join the shared worklist. The first available radiologist takes them on.",
@@ -44,7 +44,7 @@ export const settings: AppMessages["settings"] = {
   },
   password: {
     title: "Password",
-    description: "Your sessions open on other devices will be signed out.",
+    description: "You will be signed out on all your other devices.",
     submit: "Change password",
     newPassword: "New password",
     confirmation: "Confirm password",
@@ -72,7 +72,7 @@ export const settings: AppMessages["settings"] = {
     activeDetail:
       "Lost or changed your phone? Contact the IMAFRIK team, who will reset your access after verifying your identity.",
     inactiveDetail:
-      "A stolen password is no longer enough to open your account. Once enabled, it is requested every time you sign in.",
+      "A stolen password is no longer enough to open your account. Once it is enabled, a code is requested every time you sign in.",
     enable: "Enable",
   },
 };

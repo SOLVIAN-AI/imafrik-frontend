@@ -36,7 +36,7 @@ export const nav: AppMessages["nav"] = {
   myOrganisations: "My organisations",
   myProfile: "My profile",
   signOut: "Sign out",
-  countWithUrgent: (count: number) => `${count}, including emergencies`,
+  countWithUrgent: (count: number) => `${count}, including urgent examinations`,
   openNavigation: "Open navigation",
   closeNavigation: "Close navigation",
   home: "IMAFRIK home",

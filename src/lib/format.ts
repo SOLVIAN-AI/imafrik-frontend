@@ -17,6 +17,18 @@ export function formatPatientName(dicomName: string): string {
 }
 
 /**
+ * Mois abrégé à l'anglaise : « Sep », pas « Sept ».
+ *
+ * Les données de localisation britanniques abrègent septembre en
+ * « Sept », à part des onze autres mois ; l'usage éditorial anglais, comme
+ * l'abréviation de trois lettres partout ailleurs dans l'interface, veut
+ * « Sep ».
+ */
+function englishMonth(text: string, locale: Locale): string {
+  return locale === "en" ? text.replace(/\bSept\b/, "Sep") : text;
+}
+
+/**
  * Date longue.
  *
  * La locale est imposée plutôt que déduite du navigateur : une date rendue
@@ -50,12 +62,15 @@ export function formatDate(date: Date, locale: Locale = "fr"): string {
  * @returns Par exemple « 18/08/2026 à 14:32 », ou « 18 Aug 2026 at 14:32 ».
  */
 export function formatDateTime(date: Date, locale: Locale = "fr"): string {
-  const day = new Intl.DateTimeFormat(
-    INTL_LOCALE[locale],
-    locale === "en"
-      ? { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }
-      : { dateStyle: "short", timeZone: "UTC" },
-  ).format(date);
+  const day = englishMonth(
+    new Intl.DateTimeFormat(
+      INTL_LOCALE[locale],
+      locale === "en"
+        ? { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }
+        : { dateStyle: "short", timeZone: "UTC" },
+    ).format(date),
+    locale,
+  );
   const time = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     timeStyle: "short",
     timeZone: "UTC",
@@ -241,13 +256,17 @@ export function formatCount(value: number, locale: Locale = "fr"): string {
 /**
  * Jour court, pour une étiquette d'axe.
  *
- * @param date Jour, lu en UTC.
- * @returns Par exemple « 7 oct. ».
+ * @param date   Jour, lu en UTC.
+ * @param locale Langue, français par défaut.
+ * @returns Par exemple « 7 oct. », ou « 8 Sep ».
  */
 export function formatDayShort(date: Date, locale: Locale = "fr"): string {
-  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-  }).format(date);
+  return englishMonth(
+    new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+      day: "numeric",
+      month: "short",
+      timeZone: "UTC",
+    }).format(date),
+    locale,
+  );
 }

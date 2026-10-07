@@ -30,6 +30,12 @@ export default async function SendStudyPage() {
   const [latest] = await listStudies({ limit: 1 });
   const { t } = await getMessages();
   const messages = t.clinic.send;
+  // Le paquet de raccordement est dans la langue de la clinique, pas
+  // forcément celle de l'écran : on cite ses fichiers sous leur vrai nom.
+  const kit =
+    session.active.reportLanguage === "en"
+      ? { verify: "verify.bat", guide: "README.txt" }
+      : { verify: "verifier.bat", guide: "LISEZ-MOI.txt" };
 
   return (
     <>
@@ -68,8 +74,8 @@ export default async function SendStudyPage() {
             </p>
             <p className="text-tertiary">
               {messages.troubleshootBefore}{" "}
-              <span className="font-mono">verifier.bat</span>{" "}
-              {messages.troubleshootAfter}
+              <span className="font-mono">{kit.verify}</span>{" "}
+              {messages.troubleshootAfter(kit.guide)}
             </p>
           </div>
         </Panel>

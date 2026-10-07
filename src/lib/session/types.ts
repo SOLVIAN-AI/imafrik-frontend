@@ -23,6 +23,12 @@ export interface Membership {
   role: UserRole;
   /** Ville, affichée pour distinguer deux établissements homonymes. */
   city: string;
+  /**
+   * Langue des comptes-rendus de l'organisation
+   * (`organizations.report_language`) : pour une clinique, aussi celle de
+   * son paquet de raccordement, dont l'écran d'envoi cite les fichiers.
+   */
+  reportLanguage: Locale;
 }
 
 /** L'utilisateur connecté et ses appartenances. */

@@ -95,4 +95,10 @@ describe("formatDateTime", () => {
   it("écrit le mois en lettres en anglais, pour une date sans ambiguïté", () => {
     expect(formatDateTime(moment, "en")).toBe("6 Oct 2026 at 14:32");
   });
+
+  it("abrège septembre en « Sep », comme les autres mois", () => {
+    const september = new Date("2026-09-08T09:05:00Z");
+    expect(formatDateTime(september, "en")).toBe("8 Sep 2026 at 09:05");
+    expect(formatDayShort(september, "en")).toBe("8 Sep");
+  });
 });

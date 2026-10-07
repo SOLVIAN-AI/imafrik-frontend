@@ -5,7 +5,8 @@ export const worklist: AppMessages["worklist"] = {
   scope: {
     empty: "Group worklist",
     clinics: (list: string) => `Group worklist: ${list}`,
-    count: (count: number) => `Group worklist: ${count} facilities`,
+    count: (count: number) =>
+      `Group worklist: ${count} ${count === 1 ? "facility" : "facilities"}`,
   },
   metrics: {
     toTake: "To claim",

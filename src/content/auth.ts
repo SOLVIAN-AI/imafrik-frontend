@@ -122,7 +122,7 @@ const en: AuthCopy = {
       {
         title: "Turnaround times guaranteed by contract",
         detail:
-          "Two hours for routine examinations, thirty minutes for emergencies.",
+          "Two hours for routine examinations, thirty minutes for urgent ones.",
       },
       {
         title: "A named signature",
@@ -132,7 +132,7 @@ const en: AuthCopy = {
       {
         title: "Encrypted images, logged access",
         detail:
-          "Each time an examination is opened, the access is recorded and attributed.",
+          "Every time an examination is opened, the access is recorded and attributed to a named user.",
       },
     ],
     publisher: "IMAFRIK is a service published by SOLVIAN AI LLC, Lomé, Togo.",
@@ -172,7 +172,7 @@ const en: AuthCopy = {
     sentText:
       "If an account exists for {email}, a password reset link has just been sent to it. The link expires in one hour.",
     sentHint:
-      "Nothing after a few minutes? Check your spam folder, then try again.",
+      "Nothing received after a few minutes? Check your spam folder, then try again.",
   },
 };
 

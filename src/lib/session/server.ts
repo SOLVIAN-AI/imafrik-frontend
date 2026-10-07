@@ -30,6 +30,7 @@ interface MembershipRow {
     name: string;
     kind: Membership["organizationKind"];
     city: string | null;
+    report_language: string;
     is_active: boolean;
   } | null;
 }
@@ -89,7 +90,9 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
       .single(),
     supabase
       .from("memberships")
-      .select("id, role, organizations(id, name, kind, city, is_active)")
+      .select(
+        "id, role, organizations(id, name, kind, city, report_language, is_active)",
+      )
       .eq("profile_id", user.id)
       .overrideTypes<MembershipRow[]>(),
   ]);
@@ -104,6 +107,9 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
             organizationKind: row.organizations.kind,
             role: row.role,
             city: row.organizations.city ?? "",
+            reportLanguage: isLocale(row.organizations.report_language)
+              ? row.organizations.report_language
+              : DEFAULT_LOCALE,
           },
         ]
       : [],

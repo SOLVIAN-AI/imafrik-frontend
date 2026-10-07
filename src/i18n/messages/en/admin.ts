@@ -38,7 +38,7 @@ export const admin: AppMessages["admin"] = {
     },
     severityPrefix: (severity: string) => `${severity}: `,
     allClear:
-      "All systems nominal: turnaround on target, gateways active, backups up to date.",
+      "All systems normal: turnaround on target, gateways active, backups up to date.",
   },
 
   ops: {
@@ -55,9 +55,9 @@ export const admin: AppMessages["admin"] = {
       restore_drill:
         "A real restore of the latest backup into a disposable database, every week: a backup that has never been restored is not a backup.",
       reconciliation:
-        "Catches up on examinations the PACS received without the application being notified.",
+        "Recovers examinations that the PACS received without the application being notified.",
       host_watch:
-        "Disk, containers, HTTPS and DICOM certificates of the central server.",
+        "Checks the central server’s disk, containers, and HTTPS and DICOM certificates.",
       retention:
         "Applies the retention periods set by contract: images of delivered examinations, and contact requests older than three years. Every purge is logged.",
     },
@@ -83,8 +83,8 @@ export const admin: AppMessages["admin"] = {
     details: {
       arrival: "acquisition → last image received",
       transfer: "first → last image",
-      queue: "receipt → taken on",
-      reading: "taken on → signature",
+      queue: "receipt → claim",
+      reading: "claim → signature",
       delivery: "signature → download",
     },
     ongoingSuffix: " (in progress)",
@@ -197,7 +197,7 @@ export const admin: AppMessages["admin"] = {
     },
     byRadiologist: "By radiologist",
     byRadiologistDescription:
-      "Total turnaround (receipt → signature) and reading time (taken on → signature)",
+      "Total turnaround (receipt → signature) and reading time (claim → signature)",
     noReport: "No reports signed in this period.",
     signed: "signed",
     radiologistTimes: (total: string, reading: string) =>
@@ -215,7 +215,7 @@ export const admin: AppMessages["admin"] = {
     medianArrival: "Median transmission",
     arrivalHint: "acquisition → last image",
     inQueue: "In queue",
-    inQueueHint: "not yet taken on",
+    inQueueHint: "not yet claimed",
   },
 
   studies: {
@@ -226,7 +226,7 @@ export const admin: AppMessages["admin"] = {
       `${count} examination${count === 1 ? "" : "s"} across all organisations`,
     openUrgent: "Open urgent cases",
     stuck: (count: number) =>
-      `${count} urgent examination${count === 1 ? " is" : "s are"} waiting to be taken on.`,
+      `${count} urgent examination${count === 1 ? " is" : "s are"} waiting to be claimed.`,
     columns: {
       patient: "Patient",
       study: "Examination",
@@ -344,7 +344,7 @@ export const admin: AppMessages["admin"] = {
     accountCount: (count: number) =>
       `${count} account${count === 1 ? "" : "s"}`,
     withoutMfa: (count: number) =>
-      `${count} without two-factor authentication among sensitive roles`,
+      `${count} with a sensitive role and no two-factor authentication`,
     pendingFilter: "Pending",
     searchLabel: "Search accounts",
     searchPlaceholder: "Name or email…",
@@ -373,7 +373,7 @@ export const admin: AppMessages["admin"] = {
     trigger: "Attach",
     title: (name: string) => `Attach ${name}`,
     description:
-      "The account gains access to the organisation’s examinations on its next request. Check their file first: registration number, qualifications, identity.",
+      "The person gains access to the organisation’s examinations on their next request. Check their file first: registration number, qualifications and identity.",
     organisation: "Organisation",
     groupSuffix: " (group)",
     role: "Role",
@@ -386,7 +386,7 @@ export const admin: AppMessages["admin"] = {
     confirm: (name: string) =>
       `Reset two-factor authentication for ${name}?\n\n` +
       "First verify their identity through another channel, for example by calling them on a known number. " +
-      "At their next sign-in, they will enrol a new phone.",
+      "At their next sign-in, they will set up a new phone.",
     done: (name: string) => `Two-factor authentication reset for ${name}.`,
     title: "Phone lost or replaced",
     button: "Reset",
@@ -478,7 +478,7 @@ export const admin: AppMessages["admin"] = {
 
   audit: {
     description:
-      "Every sensitive action, timestamped and attributed, read-only",
+      "Every sensitive action, timestamped and attributed (read-only)",
     olderEntries: "Older entries",
     backToLatest: "Back to the most recent",
     emptyTitle: "No entries",
@@ -487,7 +487,7 @@ export const admin: AppMessages["admin"] = {
     system: "System",
     actions: {
       "study.viewed": "Examination viewed",
-      "study.claimed": "Examination taken on",
+      "study.claimed": "Examination claimed",
       "study.released": "Examination returned to the pool",
       "study.images_purged": "Images purged from the PACS",
       "report.signed": "Report signed",
@@ -509,7 +509,7 @@ export const admin: AppMessages["admin"] = {
 
   settings: {
     description:
-      "Apply to the whole platform from the next page load and are recorded in the audit log",
+      "Applied to the whole platform from the next page load and recorded in the audit log",
     platform: "Platform",
     lastChanged: "Last changed on",
     unreadable:
@@ -531,7 +531,7 @@ export const admin: AppMessages["admin"] = {
       },
       deploy: {
         task: "Deploy a release",
-        why: "Every deployment goes through CI, its tests and its approval.",
+        why: "Every deployment goes through CI, with its tests and approval step.",
       },
     },
     saved: "Settings saved.",
@@ -574,7 +574,7 @@ export const admin: AppMessages["admin"] = {
   demoActions: {
     settings: "Changing the settings",
     grant: "Attaching an account",
-    tracking: "Following up requests",
+    tracking: "Following up on requests",
     mfaReset: "Resetting two-factor authentication",
     retention: "Changing the retention period",
     reportLanguage: "Changing the report language",
@@ -615,7 +615,8 @@ export const admin: AppMessages["admin"] = {
     },
     serviceDetails: {
       storage: "R2 · reports",
-      network: (gateways: number) => `Tailscale · ${gateways} gateways`,
+      network: (gateways: number) =>
+        `Tailscale · ${gateways} ${gateways === 1 ? "gateway" : "gateways"}`,
     },
   },
 };

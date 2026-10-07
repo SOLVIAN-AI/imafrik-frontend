@@ -13,7 +13,7 @@ export const clinic: AppMessages["clinic"] = {
       inReading: "Being read",
       reportsReady: "Reports ready",
       toDownload: "to download",
-      medianTurnaround: "Median turnaround, 30 days",
+      medianTurnaround: "Median turnaround (30 days)",
       turnaroundHint: "from receipt to signature",
     },
     readyTitle: "Reports to download",
@@ -28,7 +28,7 @@ export const clinic: AppMessages["clinic"] = {
       count === 1 ? "1 examination" : `${count} examinations`,
     send: "Send",
     noResult: "No results",
-    noResultDetail: "Change your search to widen the list.",
+    noResultDetail: "Broaden your search to see more examinations.",
     empty: "No examinations sent",
     emptyDetail:
       "Examinations relayed by your gateway or uploaded from the browser appear here.",
@@ -75,7 +75,7 @@ export const clinic: AppMessages["clinic"] = {
     },
     assigned: {
       title: "Assigned to a radiologist",
-      detail: "A doctor has taken on the examination.",
+      detail: "A radiologist has taken on the examination.",
     },
     in_progress: {
       title: "Being read",
@@ -97,12 +97,12 @@ export const clinic: AppMessages["clinic"] = {
     browserUpload: "Upload from this browser",
     gateway: "Facility gateway",
     gatewayText:
-      "If your facility is equipped with the IMAFRIK gateway, your consoles need do nothing more: each examination is sent automatically, encrypted, one minute after the last image.",
+      "If your facility is equipped with the IMAFRIK gateway, your consoles need no further action: each examination is sent automatically, encrypted, one minute after its last image.",
     lastReceived: "Last examination received: ",
     noneYet: "none yet",
-    troubleshootBefore: "An examination you sent has not appeared? Run",
-    troubleshootAfter:
-      "on the gateway computer, then refer to the guide supplied at installation (LISEZ-MOI).",
+    troubleshootBefore: "Has an examination you sent not appeared? Run",
+    troubleshootAfter: (guide: string) =>
+      `on the gateway computer, then refer to the guide supplied at installation (${guide}).`,
   },
   uploader: {
     dropTitle: "Drop the examination files here",

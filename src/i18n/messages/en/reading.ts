@@ -109,7 +109,7 @@ export const reading: AppMessages["reading"] = {
     lateralityFindings: (asked: string, described: string) =>
       `The clinical indication concerns the ${asked} side, but the findings describe only the ${described} side.`,
     lateralityConclusion: (side: string, other: string) =>
-      `The conclusion mentions the ${side} side, which is absent from the clinical indication and the findings; they only refer to the ${other} side.`,
+      `The conclusion mentions the ${side} side, which appears in neither the clinical indication nor the findings; these refer only to the ${other} side.`,
     placeholder: (text: string) => `Template text not completed: “${text}”.`,
     unit: (text: string) => `Measurement without a unit: “${text}”.`,
     repeat: (text: string) => `Repeated word: “${text}”.`,
@@ -175,7 +175,7 @@ export const reading: AppMessages["reading"] = {
   shortcuts: {
     title: "Keyboard shortcuts",
     description:
-      "Those of common word processors, plus a few that are specific to reporting.",
+      "The usual word-processor shortcuts, plus a few specific to reporting.",
     groups: [
       {
         title: "Text",
@@ -285,7 +285,7 @@ export const reading: AppMessages["reading"] = {
         : `${count} required sections are empty`,
     review: (count: number) =>
       count === 1
-        ? "Review: one point to check"
+        ? "Review: 1 point to check"
         : `Review: ${count} points to check`,
     signAnyway: "If this is intended, you can sign as it stands.",
     stillDraft: "The report remains a draft.",
@@ -298,7 +298,8 @@ export const reading: AppMessages["reading"] = {
   viewer: {
     frameTitle: (uid: string) => `Images for examination ${uid}`,
     series: (count: number) => (count === 1 ? "1 series" : `${count} series`),
-    images: (count: string) => `${count} images`,
+    images: (count: number, formatted: string) =>
+      `${formatted} ${count === 1 ? "image" : "images"}`,
     simulated: "Simulated images",
     openFullscreen: "Open the images in full screen",
     fullscreen: "Full screen",
@@ -322,7 +323,7 @@ export const reading: AppMessages["reading"] = {
   },
   templates: {
     description:
-      "Apply them from the reading screen; create them from a report in progress",
+      "Apply them from the reading screen; create them from a report in progress.",
     emptyTitle: "No templates",
     emptyDetail:
       "On the reading screen, “Save as template” turns the current text into a template for the whole organisation.",
@@ -354,7 +355,7 @@ export const reading: AppMessages["reading"] = {
         ? "Template applied: 1 section completed."
         : `Template applied: ${count} sections completed.`,
     nothingApplied:
-      "All sections were already written: nothing has been replaced.",
+      "All sections already contain text: nothing has been replaced.",
     saveAs: "Save as template",
     saveAsDescription:
       "The current text of the five sections becomes a template, offered to your colleagues for examinations of the same modality. First remove anything specific to this patient.",
