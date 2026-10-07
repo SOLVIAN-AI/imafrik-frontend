@@ -28,6 +28,7 @@ import {
   type StudyHit,
 } from "@/lib/actions/search";
 import { formatPatientName } from "@/lib/format";
+import { isTyping } from "@/lib/keyboard";
 import { navigationFor } from "@/lib/navigation";
 import type { ListSearchScope } from "@/lib/search/list-search";
 import type { UserRole } from "@/lib/session/types";
@@ -83,15 +84,6 @@ interface Command {
   icon: LucideIcon;
   hit?: StudyHit;
   run: () => void;
-}
-
-/** Vrai si l'utilisateur est en train d'écrire — un raccourci ne doit pas lui voler la frappe. */
-function isTyping(target: EventTarget | null): boolean {
-  const element = target as HTMLElement | null;
-  return Boolean(
-    element?.isContentEditable ||
-    ["INPUT", "TEXTAREA", "SELECT"].includes(element?.tagName ?? ""),
-  );
 }
 
 /** Normalise pour une comparaison insensible à la casse et aux accents. */

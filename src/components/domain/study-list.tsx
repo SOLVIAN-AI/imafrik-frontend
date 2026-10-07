@@ -58,7 +58,7 @@ export function StudyList({
 
   return (
     <>
-      {/* Téléphone : une carte par examen — voir `WorklistTable`. */}
+      {/* Téléphone : une carte par examen, voir `ReadingTable`. */}
       <ul className="min-h-0 flex-1 divide-y divide-border-subtle overflow-auto lg:hidden">
         {studies.map((study) => (
           <li key={study.id}>

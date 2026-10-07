@@ -25,6 +25,7 @@ const study = {
   reported_at: null,
   reported_by_name: null,
   report_id: null,
+  due_at: "2026-08-24T12:00:00Z",
 };
 
 describe("contrat d'API", () => {

@@ -58,6 +58,12 @@ export interface Study {
   imagesPurgedAt?: Date | null;
   /** Signataire, figé à la signature. */
   reportedBy: string | null;
+  /**
+   * Échéance du compte-rendu : réception plus le délai promis pour sa
+   * priorité. Calculée par le service, seul à connaître les délais en
+   * vigueur.
+   */
+  dueAt: Date;
 }
 
 /** Traduit la forme de l'API vers celle de l'interface. */
@@ -87,6 +93,7 @@ function toStudy(row: ApiStudy): Study {
     imagesPurgedAt: row.images_purged_at
       ? new Date(row.images_purged_at)
       : null,
+    dueAt: new Date(row.due_at),
   };
 }
 
@@ -96,7 +103,18 @@ export interface StudyQuery {
   search?: string;
   /** Seulement les examens que l'utilisateur a pris en charge. */
   mine?: boolean;
+  /**
+   * `recent` (défaut) : urgences puis plus récents — écrans de suivi.
+   * `deadline` : échéance la plus proche d'abord — file de lecture.
+   */
+  order?: "recent" | "deadline";
   limit?: number;
+}
+
+/** Une page d'examens, et le nombre total de ceux qui correspondent. */
+export interface StudyPage {
+  studies: Study[];
+  total: number;
 }
 
 /**
@@ -111,17 +129,40 @@ export interface StudyQuery {
  * @param query Filtres facultatifs.
  */
 export async function listStudies(query: StudyQuery = {}): Promise<Study[]> {
-  if (isDemoMode()) return filterDemo(await demoScope(), query);
+  return (await listStudyPage(query)).studies;
+}
+
+/**
+ * Comme {@link listStudies}, avec le nombre total d'examens qui
+ * correspondent : un écran qui n'en reçoit qu'une partie doit pouvoir le
+ * dire, plutôt que de laisser croire que la liste est complète.
+ *
+ * @param query Filtres facultatifs.
+ */
+export async function listStudyPage(
+  query: StudyQuery = {},
+): Promise<StudyPage> {
+  if (isDemoMode()) {
+    const all = filterDemo(await demoScope(), { ...query, limit: undefined });
+    return {
+      studies: query.limit ? all.slice(0, query.limit) : all,
+      total: all.length,
+    };
+  }
 
   const params = new URLSearchParams();
   for (const status of query.status ?? []) params.append("status", status);
   if (query.search) params.set("q", query.search);
   if (query.mine) params.set("mine", "true");
-  params.set("limit", String(query.limit ?? 200));
+  if (query.order) params.set("order", query.order);
+  params.set("limit", String(query.limit ?? STUDY_PAGE_LIMIT));
 
   const page = await apiGet(`/studies?${params.toString()}`, studyPageSchema);
-  return page.items.map(toStudy);
+  return { studies: page.items.map(toStudy), total: page.total };
 }
+
+/** Taille de page maximale acceptée par le service. */
+export const STUDY_PAGE_LIMIT = 200;
 
 /**
  * Un examen précis.
@@ -172,6 +213,13 @@ function filterDemo(studies: Study[], query: StudyQuery): Study[] {
       `${study.patientName} ${study.patientId} ${study.modality}`
         .toLowerCase()
         .includes(needle),
+    );
+  }
+  if (query.order === "deadline") {
+    result = [...result].sort(
+      (a, b) =>
+        a.dueAt.getTime() - b.dueAt.getTime() ||
+        a.receivedAt.getTime() - b.receivedAt.getTime(),
     );
   }
   return query.limit ? result.slice(0, query.limit) : result;

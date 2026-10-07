@@ -1,45 +1,55 @@
 import type { Metadata } from "next";
 
 import { WorklistView } from "@/components/domain/worklist-view";
-import { listStudies } from "@/lib/data/studies";
+import { listStudyPage, STUDY_PAGE_LIMIT } from "@/lib/data/studies";
 import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
+import {
+  applyFilters,
+  filterOptions,
+  parseFilters,
+  splitWorklist,
+} from "@/lib/worklist";
 
 export const metadata: Metadata = { title: "À lire" };
 
 /**
- * File de travail commune.
+ * File de lecture du radiologue.
  *
  * **Lue côté serveur.** L'appel part avec le jeton de l'utilisateur, et
  * ce sont les politiques RLS qui décident des lignes renvoyées : un
  * radiologue voit les examens des établissements que son groupe sert, ou
- * de la clinique qui l'emploie. Filtrer côté client donnerait l'illusion
- * que c'est l'interface qui protège.
+ * de la clinique qui l'emploie.
  *
- * La file ne contient que ce qui reste à lire ; les examens rendus vivent
- * dans « Comptes-rendus ». La recherche, qui porte un nom de patient, est
- * relue d'un cookie lié au compte — jamais de l'adresse — et transmise au
- * service ; le filtre des urgences, porté par l'adresse, s'applique ici à
- * sa réponse.
+ * La file ne contient que ce qui reste à rendre, dans l'ordre des
+ * échéances promises (`order=deadline`). La recherche, qui porte un nom de
+ * patient, est relue d'un cookie lié au compte, jamais de l'adresse, et
+ * transmise au service. Les filtres de modalité, de clinique et
+ * d'urgence, portés par l'adresse, s'appliquent ici à sa réponse : les
+ * options proposées se comptent ainsi sur la file entière.
  */
 export default async function WorklistPage({
   searchParams,
 }: PageProps<"/worklist">) {
   const session = await requireSession(["radiologist"]);
-  const { urgent } = await searchParams;
+  const filters = parseFilters(await searchParams);
   const search = await readListSearch("worklist", session);
-  const urgentOnly = urgent === "1";
 
-  const studies = await listStudies({
+  const { studies, total } = await listStudyPage({
     status: ["received", "assigned", "in_progress"],
     search,
+    order: "deadline",
+    limit: STUDY_PAGE_LIMIT,
   });
 
   return (
     <WorklistView
-      studies={urgentOnly ? studies.filter((study) => study.urgent) : studies}
+      sections={splitWorklist(applyFilters(studies, filters), session.user.id)}
+      all={studies}
+      filters={filters}
+      options={filterOptions(studies)}
       search={search}
-      filtered={Boolean(search) || urgentOnly}
+      truncated={total > studies.length}
     />
   );
 }

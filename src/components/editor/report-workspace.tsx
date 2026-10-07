@@ -457,7 +457,7 @@ export function ReportWorkspace({
   const next =
     nextStudyId && active.role === "radiologist" ? (
       <Button size="sm" variant="secondary" asChild>
-        <Link href={`/lecture/${nextStudyId}`}>
+        <Link href={`/lecture/${nextStudyId}`} prefetch={false}>
           Examen suivant
           <ArrowRight />
         </Link>

@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   Clock,
   FileCheck,
+  Hourglass,
   Inbox,
   PenLine,
   Send,
@@ -164,16 +165,15 @@ export function MetricCard({ metric }: { metric: Metric }) {
             </span>
           )}
         </div>
-        {/* Deux lignes sur téléphone plutôt qu'un libellé tronqué : une
-            mesure dont on ne lit pas le nom ne sert à rien. */}
-        <p className="label-eyebrow mt-0.5 line-clamp-2 sm:truncate">
-          {metric.label}
-        </p>
+        {/* Deux lignes plutôt qu'un libellé tronqué, à toute largeur : une
+            mesure dont on ne lit pas le nom ne sert à rien, et quatre
+            cartes côte à côte à 1024 px n'ont pas la place d'une ligne. */}
+        <p className="label-eyebrow mt-0.5 line-clamp-2">{metric.label}</p>
         {/* La précision vient sous le libellé, pas à côté du chiffre : à
             côté, elle lui disputait la largeur et finissait tronquée. */}
         {metric.hint && (
           <p
-            className="line-clamp-2 text-2xs text-tertiary sm:truncate"
+            className="line-clamp-2 text-2xs text-tertiary"
             title={metric.hint}
           >
             {metric.hint}
@@ -190,6 +190,7 @@ export const METRIC_ICONS = {
   urgent: AlertTriangle,
   writing: PenLine,
   wait: Clock,
+  deadline: Hourglass,
   sent: Send,
   ready: FileCheck,
   done: CheckCircle2,

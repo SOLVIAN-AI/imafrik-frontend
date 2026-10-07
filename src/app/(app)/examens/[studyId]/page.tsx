@@ -62,7 +62,7 @@ export default async function StudySheetPage({
             <StudyStatusChip status={study.status} />
             {isRadiologist && !signed ? (
               <Button size="sm" asChild>
-                <Link href={`/lecture/${study.id}`}>
+                <Link href={`/lecture/${study.id}`} prefetch={false}>
                   <PenTool />
                   Lire et rédiger
                 </Link>
@@ -195,7 +195,7 @@ function ImagesPanel({ study, demo }: { study: Study; demo: boolean }) {
           className="ml-auto shrink-0 tracking-normal normal-case sm:ml-0"
           asChild
         >
-          <Link href={`/lecture/${study.id}`}>
+          <Link href={`/lecture/${study.id}`} prefetch={false}>
             <Maximize2 />
             Ouvrir les images
           </Link>

@@ -27,6 +27,12 @@ export const DEMO_CLINIC_IDS: Record<string, string> = {
 const MINUTE = 60_000;
 const now = Date.now();
 
+/**
+ * Délais promis de démonstration, en minutes : les valeurs par défaut des
+ * réglages de la plateforme (`platform_settings`).
+ */
+export const DEMO_SLA_MINUTES = { routine: 120, urgent: 30 } as const;
+
 /** Fabrique un UID d'étude plausible sous une racine d'exemple. */
 const uid = (suffix: string) => `1.2.826.0.1.3680043.8.498.${suffix}`;
 
@@ -104,6 +110,10 @@ function study(
         )
       : null,
     reportedBy: signed ? (reader?.name ?? null) : null,
+    dueAt: new Date(
+      receivedAt.getTime() +
+        DEMO_SLA_MINUTES[fields.urgent ? "urgent" : "routine"] * MINUTE,
+    ),
   };
 }
 

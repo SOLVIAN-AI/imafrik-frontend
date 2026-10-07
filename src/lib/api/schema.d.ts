@@ -1116,7 +1116,8 @@ export interface paths {
          *
          *     Le périmètre est décidé par RLS, pas par ce code : une clinique voit
          *     ses propres examens, un radiologue voit le pool des cliniques sous
-         *     contrat avec son groupe. Les urgences remontent en tête.
+         *     contrat avec son groupe. Chaque examen porte son échéance
+         *     (``due_at``), calculée d'après les délais promis en vigueur.
          *
          *     Args:
          *         principal: Appelant disposant d'une organisation active.
@@ -1124,6 +1125,7 @@ export interface paths {
          *             s'additionnent : ``?status=reported&status=delivered``.
          *         q: Recherche libre, insensible à la casse.
          *         mine: Restreint aux examens que l'appelant a pris en charge.
+         *         order: Ordre de tri — voir :data:`StudyOrder`.
          *         limit: Nombre maximal d'examens renvoyés.
          *         offset: Décalage, pour la pagination.
          *
@@ -2849,6 +2851,10 @@ export interface components {
          *         report_id: Compte-rendu de l'examen, s'il est visible de
          *             l'appelant — signé pour une clinique, brouillon compris pour
          *             le radiologue qui le rédige.
+         *         due_at: Échéance du compte-rendu : réception plus le délai promis
+         *             pour sa priorité (réglages de la plateforme). Calculée d'après
+         *             les délais en vigueur, comme le taux de respect de la tour de
+         *             contrôle.
          */
         Study: {
             /** Assigned To */
@@ -2861,6 +2867,11 @@ export interface components {
             clinic_name: string;
             /** Clinical Info */
             clinical_info: string | null;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
             /**
              * Id
              * Format: uuid
@@ -4566,6 +4577,8 @@ export interface operations {
                 q?: string | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
+                /** @description recent : urgences puis plus récents ; deadline : échéance */
+                order?: "recent" | "deadline";
                 limit?: number;
                 offset?: number;
             };

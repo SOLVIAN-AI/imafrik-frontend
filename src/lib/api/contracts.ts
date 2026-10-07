@@ -77,6 +77,7 @@ export const studySchema = z.object({
   // Absent d'une réponse antérieure à la conservation contractuelle.
   images_purged_at: isoDate.nullable().optional(),
   report_id: uuid.nullable(),
+  due_at: isoDate,
 });
 const _study: Matches<z.input<typeof studySchema>, Schemas["Study"]> = true;
 
