@@ -7,9 +7,13 @@ import { Toaster } from "@/components/ui/toaster";
 
 import "./globals.css";
 
+// L'italique est chargé explicitement : sans lui, l'emphase de l'éditeur
+// de comptes-rendus était un faux italique — le romain penché par le
+// navigateur, aux formes déformées.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
