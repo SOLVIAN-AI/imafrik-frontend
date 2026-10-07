@@ -3,6 +3,7 @@
 import { Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useMessages } from "@/i18n/client";
 import { toCsv } from "@/lib/csv";
 
 /**
@@ -26,6 +27,7 @@ export function CsvButton({
   rows: (string | number | null)[][];
   disabled?: boolean;
 }) {
+  const t = useMessages();
   const download = () => {
     const blob = new Blob([toCsv(headers, rows)], {
       type: "text/csv;charset=utf-8",
@@ -50,7 +52,7 @@ export function CsvButton({
       disabled={disabled}
     >
       <Download aria-hidden />
-      Exporter en CSV
+      {t.admin.shared.csvExport}
     </Button>
   );
 }

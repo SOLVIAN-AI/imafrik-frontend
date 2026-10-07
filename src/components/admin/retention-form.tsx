@@ -5,13 +5,14 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
+import { useMessages } from "@/i18n/client";
 import { setClinicRetention } from "@/lib/actions/control";
 
-/** Durées courantes, en jours, proposées en un clic. */
+/** Durées courantes, en jours, proposées en un clic, et leur libellé. */
 const PRESETS = [
-  { days: 90, label: "3 mois" },
-  { days: 365, label: "1 an" },
-  { days: 365 * 5, label: "5 ans" },
+  { days: 90, months: 3 },
+  { days: 365, years: 1 },
+  { days: 365 * 5, years: 5 },
 ] as const;
 
 /**
@@ -39,6 +40,8 @@ export function RetentionForm({
   days: number | null;
   purged: number;
 }) {
+  const t = useMessages();
+  const text = t.admin.retention;
   const [value, setValue] = React.useState(days === null ? "" : String(days));
   const [pending, startTransition] = React.useTransition();
   const next = value.trim() === "" ? null : Number(value);
@@ -47,22 +50,14 @@ export function RetentionForm({
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     if (next !== null && !Number.isInteger(next)) {
-      toast.error("Durée : un nombre entier de jours.");
+      toast.error(text.integerDays);
       return;
     }
     const shorter = next !== null && (days === null || next < days);
-    if (
-      shorter &&
-      !window.confirm(
-        `Purger les images des examens de ${clinicName} remis depuis plus de ${next} jours ?\n\n` +
-          "La purge commence au prochain passage quotidien et ne se défait pas. " +
-          "Les comptes-rendus restent ; la clinique garde ses originaux.",
-      )
-    )
-      return;
+    if (shorter && !window.confirm(text.confirmPurge(clinicName, next))) return;
     startTransition(async () => {
       const result = await setClinicRetention(clinicId, next);
-      if (result.ok) toast.success("Durée de conservation enregistrée.");
+      if (result.ok) toast.success(text.saved);
       else toast.error(result.error);
     });
   };
@@ -70,19 +65,12 @@ export function RetentionForm({
   return (
     <form onSubmit={save} className="flex flex-col gap-4">
       <p className="text-xs leading-relaxed text-tertiary">
-        Durée prévue au contrat, après la remise du compte-rendu. Au-delà, les
-        images quittent le PACS central ; la fiche de l’examen et le
-        compte-rendu signé restent, et la clinique garde ses originaux. Vide :
-        conservées pour toute la durée du contrat.
+        {text.explanation}
       </p>
       <Field
         id="retention-days"
-        label="Conservation des images (jours)"
-        hint={
-          purged > 0
-            ? `${purged} examen${purged > 1 ? "s" : ""} déjà purgé${purged > 1 ? "s" : ""}. Entre 30 et 7 300 jours.`
-            : "Entre 30 et 7 300 jours. Laissez vide pour conserver les images pendant toute la durée du contrat."
-        }
+        label={text.label}
+        hint={purged > 0 ? text.purgedHint(purged) : text.hint}
       >
         <Input
           id="retention-days"
@@ -93,7 +81,7 @@ export function RetentionForm({
           step={1}
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="Durée du contrat"
+          placeholder={text.contractTerm}
         />
       </Field>
       <div className="flex flex-wrap items-center gap-1.5">
@@ -104,7 +92,9 @@ export function RetentionForm({
             onClick={() => setValue(String(preset.days))}
             className="h-7 rounded-full border border-border-subtle px-2.5 text-2xs text-secondary transition-colors hover:bg-surface-hover"
           >
-            {preset.label}
+            {"months" in preset
+              ? t.common.units.months(preset.months)
+              : t.common.units.years(preset.years)}
           </button>
         ))}
         <button
@@ -112,7 +102,7 @@ export function RetentionForm({
           onClick={() => setValue("")}
           className="h-7 rounded-full border border-border-subtle px-2.5 text-2xs text-secondary transition-colors hover:bg-surface-hover"
         >
-          Durée du contrat
+          {text.contractTerm}
         </button>
         <Button
           type="submit"
@@ -122,7 +112,7 @@ export function RetentionForm({
           disabled={!dirty}
           className="ml-auto"
         >
-          Enregistrer
+          {t.common.actions.save}
         </Button>
       </div>
     </form>

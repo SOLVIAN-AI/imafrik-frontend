@@ -28,9 +28,14 @@ import {
   formatDuration,
   formatMinutes,
 } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/locale";
 import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
+import type { AppMessages } from "@/i18n";
 
-export const metadata: Metadata = { title: "Cockpit" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.cockpit };
+}
 
 /**
  * Cockpit de la tour de contrôle.
@@ -43,18 +48,21 @@ export const metadata: Metadata = { title: "Cockpit" };
  */
 export default async function CockpitPage() {
   await requireSession(["platform_admin"]);
+  const { t, locale } = await getMessages();
+  const text = t.admin.cockpit;
   const overview = await getOverview();
   const { network } = overview;
+  const series = volumeSeries(t);
 
   return (
     <>
       <PageHeader
-        title="Tour de contrôle"
-        description="État de la plateforme à l’instant : files, délais, réseau et exploitation."
+        title={text.title}
+        description={text.description}
         actions={
           <Button asChild variant="secondary" size="sm">
             <Link href="/admin/activite">
-              Analyses détaillées
+              {text.detailedAnalytics}
               <ArrowRight aria-hidden />
             </Link>
           </Button>
@@ -62,73 +70,75 @@ export default async function CockpitPage() {
       />
 
       <ControlBody>
-        <AlertList alerts={overview.alerts} />
+        <AlertList alerts={overview.alerts} locale={locale} />
 
-        <MetricGrid metrics={liveMetrics(overview)} />
+        <MetricGrid metrics={liveMetrics(overview, t, locale)} />
 
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
           <Section
-            title="Examens reçus"
-            description="Quatorze derniers jours, par priorité"
-            action={{ label: "Activité", href: "/admin/activite" }}
+            title={t.admin.shared.receivedStudies}
+            description={text.receivedDescription}
+            action={{ label: text.activity, href: "/admin/activite" }}
             className="lg:col-span-2"
           >
             <StackedBars
-              caption="Examens reçus par jour, sur quatorze jours"
+              caption={text.receivedCaption}
+              locale={locale}
               points={overview.received14d.map((day) => ({
-                label: formatDayShort(day.day),
+                label: formatDayShort(day.day, locale),
                 values: [day.routine, day.urgent],
               }))}
-              series={SERIES}
+              series={series}
             />
-            <Legend series={SERIES} className="mt-3" />
+            <Legend series={series} className="mt-3" />
           </Section>
 
-          <Section
-            title="Délais promis"
-            description="Examens signés sur trente jours"
-          >
+          <Section title={text.sla} description={text.slaDescription}>
             <div className="flex flex-col gap-5">
               <SlaRow
-                label="Urgences"
+                label={t.admin.shared.urgentPlural}
                 target={overview.targets.urgent}
                 sla={overview.sla30d.urgent}
+                t={t}
+                locale={locale}
               />
               <SlaRow
-                label="Routine"
+                label={t.admin.shared.routine}
                 target={overview.targets.routine}
                 sla={overview.sla30d.routine}
+                t={t}
+                locale={locale}
               />
             </div>
           </Section>
         </div>
 
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
-          <Section title="Réseau" flush>
+          <Section title={text.network} flush>
             <ul className="divide-y divide-border-subtle">
               <NetworkRow
                 icon={Building2}
-                label="Cliniques actives"
+                label={text.clinicsActive}
                 value={network.clinicsActive}
                 href="/admin/organisations"
               />
               <NetworkRow
                 icon={Wifi}
-                label="Passerelles raccordées"
+                label={text.clinicsConnected}
                 value={network.clinicsConnected}
-                hint={`sur ${network.clinicsActive}`}
+                hint={text.outOf(network.clinicsActive)}
                 warn={network.clinicsConnected < network.clinicsActive}
                 href="/admin/organisations"
               />
               <NetworkRow
                 icon={Stethoscope}
-                label="Radiologues actifs"
+                label={text.radiologistsActive}
                 value={network.radiologistsActive}
                 href="/admin/utilisateurs"
               />
               <NetworkRow
                 icon={Inbox}
-                label="Demandes à traiter"
+                label={text.newRequests}
                 value={network.newRequests}
                 warn={network.newRequests > 0}
                 href="/admin/demandes"
@@ -137,63 +147,78 @@ export default async function CockpitPage() {
           </Section>
 
           <Section
-            title="Exploitation"
-            description="Dernière exécution de chaque tâche"
-            action={{ label: "Système", href: "/admin/systeme" }}
+            title={text.operations}
+            description={text.operationsDescription}
+            action={{ label: text.system, href: "/admin/systeme" }}
             flush
             className="lg:col-span-2"
           >
-            <OpsList runs={overview.ops} dense />
+            <OpsList runs={overview.ops} locale={locale} dense />
           </Section>
         </div>
 
         <p className="text-center text-2xs text-tertiary">
-          Calculé le <DateTime date={overview.generatedAt} /> (UTC). Rechargez
-          la page pour actualiser.
+          {text.computedBefore} <DateTime date={overview.generatedAt} />{" "}
+          {text.computedAfter}
         </p>
       </ControlBody>
     </>
   );
 }
 
-const SERIES = [
-  { label: "Routine", tone: "accent" as const },
-  { label: "Urgence", tone: "urgent" as const },
+/** Séries de l'histogramme des volumes, de bas en haut. */
+const volumeSeries = (t: AppMessages) => [
+  { label: t.admin.shared.routine, tone: "accent" as const },
+  { label: t.admin.shared.urgent, tone: "urgent" as const },
 ];
 
-/** Bandeau du direct : ce qui attend, ce qui avance, ce qui sort. */
-function liveMetrics({ live }: ControlOverview): Metric[] {
+/**
+ * Bandeau du direct : ce qui attend, ce qui avance, ce qui sort.
+ *
+ * @param overview État de la plateforme.
+ * @param t        Textes de l'application.
+ * @param locale   Langue de l'utilisateur.
+ */
+function liveMetrics(
+  { live }: ControlOverview,
+  t: AppMessages,
+  locale: Locale,
+): Metric[] {
+  const text = t.admin.cockpit;
   const overdue = live.urgentOverdue + live.routineOverdue;
   return [
     {
-      label: "En attente de lecture",
-      value: formatCount(live.waiting),
+      label: text.waiting,
+      value: formatCount(live.waiting, locale),
       hint:
         live.oldestWaitingMinutes !== null
-          ? `dont ${live.urgentWaiting} urgence${live.urgentWaiting > 1 ? "s" : ""} ; le plus ancien attend depuis ${formatDuration(live.oldestWaitingMinutes)}`
-          : "file vide",
+          ? text.waitingHint(
+              live.urgentWaiting,
+              formatDuration(live.oldestWaitingMinutes, locale),
+            )
+          : text.emptyQueue,
       icon: METRIC_ICONS.inbox,
       tone: live.urgentWaiting > 0 ? "urgent" : "neutral",
     },
     {
-      label: "Hors délai",
-      value: formatCount(overdue),
-      hint: `${live.urgentOverdue} urgence${live.urgentOverdue > 1 ? "s" : ""} · ${live.routineOverdue} routine`,
+      label: text.overdue,
+      value: formatCount(overdue, locale),
+      hint: text.overdueHint(live.urgentOverdue, live.routineOverdue),
       icon: METRIC_ICONS.urgent,
       tone:
         live.urgentOverdue > 0 ? "urgent" : overdue > 0 ? "progress" : "done",
     },
     {
-      label: "En cours de lecture",
-      value: formatCount(live.inProgress),
-      hint: "pas encore signés",
+      label: text.inProgress,
+      value: formatCount(live.inProgress, locale),
+      hint: text.inProgressHint,
       icon: METRIC_ICONS.writing,
       tone: "progress",
     },
     {
-      label: "Signés aujourd’hui",
-      value: formatCount(live.signedToday),
-      hint: `${live.receivedToday} reçus · ${live.deliveredToday} remis`,
+      label: text.signedToday,
+      value: formatCount(live.signedToday, locale),
+      hint: text.signedTodayHint(live.receivedToday, live.deliveredToday),
       icon: METRIC_ICONS.done,
       tone: "done",
     },
@@ -205,16 +230,22 @@ function SlaRow({
   label,
   target,
   sla,
+  t,
+  locale,
 }: {
   label: string;
   target: number;
   sla: PrioritySla;
+  t: AppMessages;
+  locale: Locale;
 }) {
+  const text = t.admin.cockpit;
   return (
     <div className="flex items-center gap-4">
       <Ring
         value={sla.withinSla}
-        label={`${label} : part rendue dans le délai`}
+        label={text.slaRing(label)}
+        locale={locale}
         size={72}
         showLabel={false}
       />
@@ -222,19 +253,21 @@ function SlaRow({
         <dt className="col-span-2 font-medium">
           {label}{" "}
           <span className="font-normal text-tertiary">
-            (promis en {formatDuration(target)})
+            {text.promised(formatDuration(target, locale))}
           </span>
         </dt>
-        <dt className="text-tertiary">Médiane</dt>
+        <dt className="text-tertiary">{text.median}</dt>
         <dd className="text-right tabular-nums">
-          {formatMinutes(sla.medianMinutes)}
+          {formatMinutes(sla.medianMinutes, locale)}
         </dd>
-        <dt className="text-tertiary">9 sur 10 sous</dt>
+        <dt className="text-tertiary">{text.p90}</dt>
         <dd className="text-right tabular-nums">
-          {formatMinutes(sla.p90Minutes)}
+          {formatMinutes(sla.p90Minutes, locale)}
         </dd>
-        <dt className="text-tertiary">Signés</dt>
-        <dd className="text-right tabular-nums">{formatCount(sla.signed)}</dd>
+        <dt className="text-tertiary">{text.signed}</dt>
+        <dd className="text-right tabular-nums">
+          {formatCount(sla.signed, locale)}
+        </dd>
       </dl>
     </div>
   );

@@ -13,6 +13,8 @@ import type {
 } from "@/lib/api/contracts";
 import { quantile } from "@/lib/charts";
 import { DEMO_CLINIC_IDS, DEMO_RADIOLOGISTS } from "@/lib/demo/studies";
+import { messagesFor } from "@/i18n";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 
 /**
  * Réseau de démonstration de la tour de contrôle.
@@ -32,6 +34,12 @@ import { DEMO_CLINIC_IDS, DEMO_RADIOLOGISTS } from "@/lib/demo/studies";
  * Les données produites ont la forme exacte des réponses de l'API
  * (`ApiControlOverview`…) : elles passent ensuite par la même traduction
  * que les vraies, dans `lib/data/control.ts`.
+ *
+ * Les textes que le service rédigerait lui-même — alertes, résumés
+ * d'exploitation, étapes de mise en service — suivent la langue passée
+ * en paramètre, comme le service suit celle de l'utilisateur. Les
+ * données (noms d'organisations, de personnes, villes) restent telles
+ * quelles.
  */
 
 const MINUTE = 60_000;
@@ -140,7 +148,11 @@ export const DEMO_NETWORK: DemoClinic[] = [
 ];
 
 /** Le groupe de radiologie qui lit pour le pool. */
-export const DEMO_GROUP = { id: "org-radio", name: "IMAFRIK Radiologie" };
+export const DEMO_GROUP = {
+  id: "org-radio",
+  name: "IMAFRIK Radiologie",
+  city: "Lomé",
+};
 
 /** Radiologues du groupe, avec leur part de lectures et leur rythme. */
 const READERS = [
@@ -357,8 +369,14 @@ function throughput(flow: DemoFlow): number | null {
   return seconds > 1 ? flow.bytes / 1_048_576 / seconds : null;
 }
 
-/** Dernière exécution de chaque tâche d'exploitation. */
-function demoOps(now: number): ApiOpsRun[] {
+/**
+ * Dernière exécution de chaque tâche d'exploitation.
+ *
+ * @param now    Instant de référence.
+ * @param locale Langue des résumés.
+ */
+function demoOps(now: number, locale: Locale): ApiOpsRun[] {
+  const text = messagesFor(locale).admin.demo.ops;
   const at = (hoursAgo: number) => iso(now - hoursAgo * HOUR);
   return [
     {
@@ -366,49 +384,57 @@ function demoOps(now: number): ApiOpsRun[] {
       target: "supabase",
       ok: true,
       finished_at: at(5.2),
-      summary: "41,3 Mo chiffrés · 18 tables vérifiées",
+      summary: text.backupDatabase,
     },
     {
       kind: "backup",
       target: "orthanc-index",
       ok: true,
       finished_at: at(5.1),
-      summary: "3,8 Mo chiffrés",
+      summary: text.backupIndex,
     },
     {
       kind: "restore_drill",
       target: "supabase",
       ok: true,
       finished_at: at(77),
-      summary: "Restauration conforme : 18 tables, 0 écart",
+      summary: text.restoreDrill,
     },
     {
       kind: "reconciliation",
       target: null,
       ok: true,
       finished_at: at(0.08),
-      summary: "0 examen manquant",
+      summary: text.reconciliationClean,
     },
     {
       kind: "retention",
       target: null,
       ok: true,
       finished_at: at(3.4),
-      summary:
-        "3 examen(s) purgé(s) du PACS, 0 en échec, 0 demande(s) reçue(s) supprimée(s)",
+      summary: text.retention,
     },
     {
       kind: "host_watch",
       target: null,
       ok: false,
       finished_at: at(0.2),
-      summary: "Disque /var à 83 % (seuil d’alerte : 80 %)",
+      summary: text.hostWatchFailed,
     },
   ];
 }
 
-/** Cockpit : l'état de la plateforme à l'instant. */
-export function demoOverview(now = Date.now()): ApiControlOverview {
+/**
+ * Cockpit : l'état de la plateforme à l'instant.
+ *
+ * @param now    Instant de référence.
+ * @param locale Langue des messages d'alerte et des résumés.
+ */
+export function demoOverview(
+  now = Date.now(),
+  locale: Locale = DEFAULT_LOCALE,
+): ApiControlOverview {
+  const text = messagesFor(locale).admin.demo.alerts;
   const today = epochDay(now) * DAY;
   const flows = demoFlows(today - 29 * DAY, now);
   const open = flows.filter((flow) => flow.signedAt === null);
@@ -444,33 +470,33 @@ export function demoOverview(now = Date.now()): ApiControlOverview {
     alerts.push({
       code: "urgent_overdue",
       severity: "critical",
-      message: `${urgentOverdue} urgence${urgentOverdue > 1 ? "s attendent" : " attend"} depuis plus de ${DEMO_SLA.urgent} min`,
+      message: text.urgentOverdue(urgentOverdue, DEMO_SLA.urgent),
       href: "/admin/examens?urgent=1",
     });
   if (routineOverdue)
     alerts.push({
       code: "routine_overdue",
       severity: "warning",
-      message: `${routineOverdue} examen${routineOverdue > 1 ? "s dépassent" : " dépasse"} le délai de ${DEMO_SLA.routine / 60} h`,
+      message: text.routineOverdue(routineOverdue, DEMO_SLA.routine / 60),
       href: "/admin/flux",
     });
   if (silent)
     alerts.push({
       code: "clinic_silent",
       severity: "warning",
-      message: `${silent.name} n’a rien envoyé depuis ${silent.silentHours} h : passerelle à vérifier`,
+      message: text.clinicSilent(silent.name, silent.silentHours ?? 0),
       href: "/admin/organisations",
     });
   alerts.push({
     code: "host_watch_failed",
     severity: "warning",
-    message: "Surveillance de l’hôte en échec : disque /var à 83 %",
+    message: text.hostWatchFailed,
     href: "/admin/systeme",
   });
   alerts.push({
     code: "new_requests",
     severity: "info",
-    message: "2 demandes reçues par le site attendent une réponse",
+    message: text.newRequests(2),
     href: "/admin/demandes",
   });
 
@@ -507,7 +533,7 @@ export function demoOverview(now = Date.now()): ApiControlOverview {
     sla_urgent_minutes: DEMO_SLA.urgent,
     sla_routine_minutes: DEMO_SLA.routine,
     alerts,
-    ops: demoOps(now),
+    ops: demoOps(now, locale),
   };
 }
 
@@ -721,9 +747,18 @@ export function demoBilling(month: string, now = Date.now()): ApiBillingLine[] {
   );
 }
 
-/** État technique. */
-export function demoSystem(now = Date.now()): ApiSystemStatus {
-  const ops = demoOps(now);
+/**
+ * État technique.
+ *
+ * @param now    Instant de référence.
+ * @param locale Langue des résumés et des noms de dépendances.
+ */
+export function demoSystem(
+  now = Date.now(),
+  locale: Locale = DEFAULT_LOCALE,
+): ApiSystemStatus {
+  const text = messagesFor(locale).admin.demo;
+  const ops = demoOps(now, locale);
   const stored = demoFlows(now - 366 * DAY, now);
   const recent: ApiOpsRun[] = [
     ...ops,
@@ -732,32 +767,51 @@ export function demoSystem(now = Date.now()): ApiSystemStatus {
       target: null,
       ok: true,
       finished_at: iso(now - (index + 1) * 15 * MINUTE - 5 * MINUTE),
-      summary: index === 3 ? "1 examen rattrapé" : "0 examen manquant",
+      summary:
+        index === 3
+          ? text.ops.reconciliationCaught
+          : text.ops.reconciliationClean,
     })),
     {
       kind: "backup",
       target: "supabase",
       ok: true,
       finished_at: iso(now - 29.2 * HOUR),
-      summary: "41,1 Mo chiffrés · 18 tables vérifiées",
+      summary: text.ops.backupDatabasePrevious,
     },
     {
       kind: "host_watch",
       target: null,
       ok: true,
       finished_at: iso(now - 1.2 * HOUR),
-      summary: "Disque /var à 79 %",
+      summary: text.ops.hostWatchOk,
     },
   ];
   recent.sort((a, b) => b.finished_at.localeCompare(a.finished_at));
   return {
-    environment: "démonstration",
+    environment: text.environment,
     release: "2026.10.07-demo",
     services: [
-      { name: "Base de données", ok: true, detail: "Supabase · Postgres 17" },
-      { name: "PACS central", ok: true, detail: "Orthanc 1.13 · DICOM TLS" },
-      { name: "Stockage objet", ok: true, detail: "R2 · comptes-rendus" },
-      { name: "Réseau privé", ok: true, detail: "Tailscale · 5 passerelles" },
+      {
+        name: text.services.database,
+        ok: true,
+        detail: "Supabase · Postgres 17",
+      },
+      {
+        name: text.services.pacs,
+        ok: true,
+        detail: "Orthanc 1.13 · DICOM TLS",
+      },
+      {
+        name: text.services.storage,
+        ok: true,
+        detail: text.serviceDetails.storage,
+      },
+      {
+        name: text.services.network,
+        ok: true,
+        detail: text.serviceDetails.network(5),
+      },
     ],
     orthanc_version: "1.13.0",
     stored_studies: stored.length,
@@ -948,11 +1002,19 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
   ];
 }
 
-/** Mise en service d'une clinique, ou `null` si elle n'existe pas. */
+/**
+ * Mise en service d'une clinique, ou `null` si elle n'existe pas.
+ *
+ * @param id     Identifiant de la clinique.
+ * @param now    Instant de référence.
+ * @param locale Langue des libellés d'étapes, comme le service les rédige.
+ */
 export function demoClinic(
   id: string,
   now = Date.now(),
+  locale: Locale = DEFAULT_LOCALE,
 ): ApiClinicDetail | null {
+  const labels = messagesFor(locale).admin.clinic.steps;
   const clinic = DEMO_NETWORK.find((candidate) => candidate.id === id);
   if (!clinic) return null;
   const created = now - clinic.ageDays * DAY;
@@ -960,9 +1022,8 @@ export function demoClinic(
   const first = flows.at(-1) ?? null;
   const step = (
     key: ApiClinicDetail["onboarding"][number]["key"],
-    label: string,
     at: number | null,
-  ) => ({ key, label, done: at !== null, done_at: isoOrNull(at) });
+  ) => ({ key, label: labels[key], done: at !== null, done_at: isoOrNull(at) });
   const firstSigned = flows.filter((f) => f.signedAt !== null).at(-1);
   const firstDelivered = flows.filter((f) => f.deliveredAt !== null).at(-1);
   return {
@@ -980,20 +1041,12 @@ export function demoClinic(
     report_language: clinic.id === DEMO_NETWORK.at(-1)?.id ? "en" : "fr",
     last_received_at: first ? iso(flows[0].receivedAt) : null,
     onboarding: [
-      step("created", "Organisation créée", created),
-      step("connected", "Passerelle raccordée", created + 2 * HOUR),
-      step("team", "Équipe invitée", created + 5 * HOUR),
-      step("first_study", "Premier examen reçu", first?.receivedAt ?? null),
-      step(
-        "first_report",
-        "Premier compte-rendu signé",
-        firstSigned?.signedAt ?? null,
-      ),
-      step(
-        "first_delivery",
-        "Premier compte-rendu remis",
-        firstDelivered?.deliveredAt ?? null,
-      ),
+      step("created", created),
+      step("connected", created + 2 * HOUR),
+      step("team", created + 5 * HOUR),
+      step("first_study", first?.receivedAt ?? null),
+      step("first_report", firstSigned?.signedAt ?? null),
+      step("first_delivery", firstDelivered?.deliveredAt ?? null),
     ],
   };
 }

@@ -1,31 +1,39 @@
-/**
- * Actions du journal d'audit, en français.
- *
- * La liste reprend les actions écrites par le service et par les
- * fonctions de la base. Une action inconnue ici s'affiche telle quelle :
- * le journal ne doit rien masquer, même ce que l'interface ne sait pas
- * encore nommer.
- */
-export const AUDIT_ACTIONS: Record<string, string> = {
-  "study.viewed": "Examen consulté",
-  "study.claimed": "Examen pris en charge",
-  "study.released": "Examen rendu au pool",
-  "report.signed": "Compte-rendu signé",
-  "report.addendum": "Addendum ajouté",
-  "report.delivered": "Compte-rendu remis",
-  "membership.created": "Membre ajouté",
-  "membership.removed": "Membre retiré",
-  "organization.state_changed": "Organisation activée ou suspendue",
-  "organization.pool_changed": "Ouverture au pool modifiée",
-  "platform.settings_changed": "Réglages modifiés",
-  "contact_request.tracked": "Demande reçue suivie",
-};
+import type { AppMessages } from "@/i18n";
 
 /**
- * Libellé d'une action.
+ * Actions du journal d'audit.
+ *
+ * Leurs libellés vivent dans les textes de la tour de contrôle
+ * (`admin.audit.actions`), dans chaque langue. La liste reprend les
+ * actions écrites par le service et par les fonctions de la base. Une
+ * action inconnue s'affiche telle quelle : le journal ne doit rien
+ * masquer, même ce que l'interface ne sait pas encore nommer.
+ */
+
+/** Code d'une action connue, par exemple `report.signed`. */
+export type AuditAction = keyof AppMessages["admin"]["audit"]["actions"];
+
+/**
+ * L'action est-elle connue ?
+ *
+ * `Object.hasOwn` et non `in` : `?action=toString` ne doit pas passer.
+ *
+ * @param action Code reçu, par exemple d'un paramètre d'adresse.
+ * @param t      Textes de l'application.
+ */
+export function isAuditAction(
+  action: string,
+  t: AppMessages,
+): action is AuditAction {
+  return Object.hasOwn(t.admin.audit.actions, action);
+}
+
+/**
+ * Libellé d'une action, dans la langue des textes donnés.
  *
  * @param action Code de l'action, par exemple `report.signed`.
+ * @param t      Textes de l'application.
  */
-export function auditLabel(action: string): string {
-  return AUDIT_ACTIONS[action] ?? action;
+export function auditLabel(action: string, t: AppMessages): string {
+  return isAuditAction(action, t) ? t.admin.audit.actions[action] : action;
 }

@@ -10,9 +10,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { parseMonth, shiftMonth } from "@/lib/admin-params";
 import { type BillingLine, getBilling } from "@/lib/data/control";
 import { formatCount } from "@/lib/format";
+import { INTL_LOCALE, type Locale } from "@/lib/i18n/locale";
 import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Facturation" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.billing };
+}
 
 /**
  * Actes d'un mois, par clinique et par modalité.
@@ -28,6 +32,8 @@ export default async function BillingPage({
   searchParams,
 }: PageProps<"/admin/facturation">) {
   await requireSession(["platform_admin"]);
+  const { t, locale } = await getMessages();
+  const text = t.admin.billing;
   const params = await searchParams;
   const month = parseMonth(params.mois);
   const current = parseMonth(undefined);
@@ -39,30 +45,30 @@ export default async function BillingPage({
   return (
     <>
       <PageHeader
-        title="Facturation"
-        description={`${monthLabel(month)} : actes reçus, par clinique et par modalité`}
+        title={t.nav.items.billing}
+        description={text.description(monthLabel(month, locale))}
         actions={
           <>
             <nav
-              aria-label="Mois"
+              aria-label={text.month}
               className="flex items-center gap-1 rounded-lg border border-border-subtle bg-surface-sunken p-0.5"
             >
               <Button asChild variant="ghost" size="icon">
                 <Link
                   href={`/admin/facturation?mois=${shiftMonth(month, -1)}`}
-                  aria-label="Mois précédent"
+                  aria-label={text.previousMonth}
                 >
                   <ChevronLeft />
                 </Link>
               </Button>
               <span className="min-w-[8.5rem] text-center text-xs font-medium capitalize">
-                {monthLabel(month)}
+                {monthLabel(month, locale)}
               </span>
               {month < current ? (
                 <Button asChild variant="ghost" size="icon">
                   <Link
                     href={`/admin/facturation?mois=${shiftMonth(month, 1)}`}
-                    aria-label="Mois suivant"
+                    aria-label={text.nextMonth}
                   >
                     <ChevronRight />
                   </Link>
@@ -72,23 +78,15 @@ export default async function BillingPage({
                   variant="ghost"
                   size="icon"
                   disabled
-                  aria-label="Mois suivant"
+                  aria-label={text.nextMonth}
                 >
                   <ChevronRight />
                 </Button>
               )}
             </nav>
             <CsvButton
-              filename={`imafrik-actes-${month}.csv`}
-              headers={[
-                "Mois",
-                "Clinique",
-                "Modalité",
-                "Routine",
-                "Urgence",
-                "Total",
-                "Comptes-rendus signés",
-              ]}
+              filename={text.csvFilename(month)}
+              headers={text.csvHeaders}
               rows={lines.map((line) => [
                 month,
                 line.clinic,
@@ -106,37 +104,38 @@ export default async function BillingPage({
 
       <ControlBody>
         <section
-          aria-label="Totaux du mois"
+          aria-label={text.totals}
           className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-xl border border-border-subtle bg-surface-raised p-4 shadow-raised sm:grid-cols-4"
         >
-          <Figure label="Actes reçus" value={formatCount(totals.received)} />
           <Figure
-            label="Dont urgences"
-            value={formatCount(totals.urgent)}
-            hint="facturées au tarif d’urgence"
+            label={text.received}
+            value={formatCount(totals.received, locale)}
           />
           <Figure
-            label="Comptes-rendus signés"
-            value={formatCount(totals.reported)}
+            label={t.admin.shared.ofWhichUrgent}
+            value={formatCount(totals.urgent, locale)}
+            hint={text.urgentRate}
           />
           <Figure
-            label="Sans compte-rendu signé"
-            value={formatCount(unreported)}
+            label={t.admin.shared.signedReports}
+            value={formatCount(totals.reported, locale)}
+          />
+          <Figure
+            label={text.unreported}
+            value={formatCount(unreported, locale)}
             hint={
-              month === current
-                ? "le mois est en cours"
-                : "à vérifier avant facture"
+              month === current ? text.monthInProgress : text.checkBeforeInvoice
             }
             tone={unreported > 0 && month !== current ? "progress" : undefined}
           />
         </section>
 
         {clinics.length === 0 ? (
-          <Section title="Actes">
+          <Section title={text.procedures}>
             <EmptyState
               icon={Receipt}
-              title="Aucun acte ce mois-ci"
-              detail="Les examens reçus apparaissent ici, regroupés par clinique."
+              title={text.emptyTitle}
+              detail={text.emptyDetail}
             />
           </Section>
         ) : (
@@ -144,7 +143,11 @@ export default async function BillingPage({
             <Section
               key={clinic.id}
               title={clinic.name}
-              description={`${formatCount(clinic.totals.received)} actes · ${formatCount(clinic.totals.urgent)} urgences · ${formatCount(clinic.totals.reported)} comptes-rendus signés`}
+              description={text.clinicSummary(
+                formatCount(clinic.totals.received, locale),
+                formatCount(clinic.totals.urgent, locale),
+                formatCount(clinic.totals.reported, locale),
+              )}
               flush
             >
               <div className="overflow-x-auto">
@@ -152,19 +155,29 @@ export default async function BillingPage({
                   <thead>
                     <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:px-4 [&>th]:text-right [&>th]:font-medium [&>th:first-child]:text-left">
                       <th scope="col">
-                        <span className="label-eyebrow">Modalité</span>
+                        <span className="label-eyebrow">
+                          {text.columns.modality}
+                        </span>
                       </th>
                       <th scope="col">
-                        <span className="label-eyebrow">Routine</span>
+                        <span className="label-eyebrow">
+                          {text.columns.routine}
+                        </span>
                       </th>
                       <th scope="col">
-                        <span className="label-eyebrow">Urgence</span>
+                        <span className="label-eyebrow">
+                          {text.columns.urgent}
+                        </span>
                       </th>
                       <th scope="col">
-                        <span className="label-eyebrow">Total</span>
+                        <span className="label-eyebrow">
+                          {text.columns.total}
+                        </span>
                       </th>
                       <th scope="col">
-                        <span className="label-eyebrow">Signés</span>
+                        <span className="label-eyebrow">
+                          {text.columns.signed}
+                        </span>
                       </th>
                     </tr>
                   </thead>
@@ -175,24 +188,24 @@ export default async function BillingPage({
                         className="[&>td]:h-10 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4 [&>td]:text-right [&>td]:tabular-nums [&>td:first-child]:text-left"
                       >
                         <td className="font-medium">{line.modality}</td>
-                        <td>{formatCount(line.routine)}</td>
-                        <td>{formatCount(line.urgent)}</td>
+                        <td>{formatCount(line.routine, locale)}</td>
+                        <td>{formatCount(line.urgent, locale)}</td>
                         <td className="font-medium">
-                          {formatCount(line.routine + line.urgent)}
+                          {formatCount(line.routine + line.urgent, locale)}
                         </td>
                         <td className="text-secondary">
-                          {formatCount(line.reported)}
+                          {formatCount(line.reported, locale)}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr className="[&>td]:h-10 [&>td]:px-4 [&>td]:text-right [&>td]:font-semibold [&>td]:tabular-nums [&>td:first-child]:text-left">
-                      <td>Total</td>
-                      <td>{formatCount(clinic.totals.routine)}</td>
-                      <td>{formatCount(clinic.totals.urgent)}</td>
-                      <td>{formatCount(clinic.totals.received)}</td>
-                      <td>{formatCount(clinic.totals.reported)}</td>
+                      <td>{text.total}</td>
+                      <td>{formatCount(clinic.totals.routine, locale)}</td>
+                      <td>{formatCount(clinic.totals.urgent, locale)}</td>
+                      <td>{formatCount(clinic.totals.received, locale)}</td>
+                      <td>{formatCount(clinic.totals.reported, locale)}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -239,10 +252,15 @@ function groupByClinic(lines: BillingLine[]) {
   }));
 }
 
-/** « octobre 2026 ». */
-function monthLabel(month: string): string {
+/**
+ * Mois en toutes lettres : « octobre 2026 », « October 2026 ».
+ *
+ * @param month  Mois `AAAA-MM`.
+ * @param locale Langue de l'utilisateur.
+ */
+function monthLabel(month: string, locale: Locale): string {
   const [year, number] = month.split("-").map(Number);
-  return new Intl.DateTimeFormat("fr-FR", {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     month: "long",
     year: "numeric",
     timeZone: "UTC",

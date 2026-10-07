@@ -2,9 +2,11 @@ import "server-only";
 
 import { z } from "zod";
 
+import { getLocale } from "@/i18n/server";
 import { apiGet } from "@/lib/api/client";
 import {
   type ApiAlert,
+  type ApiClinicDetail,
   type ApiControlAnalytics,
   type ApiControlOverview,
   type ApiOpsRun,
@@ -30,6 +32,7 @@ import {
   demoUsers,
 } from "@/lib/demo/control";
 import { isDemoMode } from "@/lib/demo/mode";
+import type { Locale } from "@/lib/i18n/locale";
 import type { OrgKind, UserRole } from "@/lib/session/types";
 
 /**
@@ -42,6 +45,11 @@ import type { OrgKind, UserRole } from "@/lib/session/types";
  * `lib/demo/control.ts` passent par **la même traduction** que les
  * vraies : un écran ne peut pas fonctionner en démonstration et casser
  * en production.
+ *
+ * Les textes que le service rédige — messages d'alerte, résumés
+ * d'exploitation — arrivent dans la langue de l'utilisateur (le client
+ * de l'API transmet `Accept-Language`) ; le jeu de démonstration reçoit
+ * la même langue, explicitement.
  *
  * Aucune donnée de patient ne transite ici : la tour de contrôle mesure
  * des flux, pas des personnes.
@@ -154,7 +162,7 @@ const utcDay = (day: string) => new Date(`${day}T00:00:00Z`);
 /** Cockpit : volumes en cours, délais, alertes, exploitation. */
 export async function getOverview(): Promise<ControlOverview> {
   const raw = isDemoMode()
-    ? demoOverview()
+    ? demoOverview(Date.now(), await getLocale())
     : await apiGet("/admin/overview", controlOverviewSchema);
   return {
     generatedAt: new Date(raw.generated_at),
@@ -455,7 +463,7 @@ export interface SystemStatus {
 /** Dépendances, PACS, version déployée, exploitation. */
 export async function getSystem(): Promise<SystemStatus> {
   const raw = isDemoMode()
-    ? demoSystem()
+    ? demoSystem(Date.now(), await getLocale())
     : await apiGet("/admin/system", systemStatusSchema);
   return {
     environment: raw.environment,
@@ -584,10 +592,17 @@ export async function listUsers(
 
 // ─── Mise en service d'une clinique ──────────────────────────────────
 
-/** Une étape de la mise en service. */
+/** Clé d'une étape de la mise en service. */
+export type OnboardingStepKey = ApiClinicDetail["onboarding"][number]["key"];
+
+/**
+ * Une étape de la mise en service.
+ *
+ * Le libellé rédigé par le service n'est pas repris : l'écran nomme
+ * chaque étape par sa clé, dans la langue de l'utilisateur.
+ */
 export interface OnboardingStep {
-  key: string;
-  label: string;
+  key: OnboardingStepKey;
   done: boolean;
   doneAt: Date | null;
 }
@@ -608,6 +623,11 @@ export interface ClinicDetail {
   imageRetentionDays: number | null;
   /** Examens dont les images ont été purgées du PACS central. */
   imagesPurged: number;
+  /**
+   * Langue des comptes-rendus PDF, fixée par contrat : intitulés et
+   * mentions du document signé, page de vérification.
+   */
+  reportLanguage: Locale;
   onboarding: OnboardingStep[];
 }
 
@@ -622,7 +642,7 @@ export async function getClinic(id: string): Promise<ClinicDetail | null> {
   // identifiant mal formé est une clinique introuvable, pas un 422.
   if (!isDemoMode() && !z.string().uuid().safeParse(id).success) return null;
   const raw = isDemoMode()
-    ? demoClinic(id)
+    ? demoClinic(id, Date.now(), await getLocale())
     : await apiGet(
         `/admin/clinics/${encodeURIComponent(id)}`,
         clinicDetailSchema,
@@ -639,9 +659,9 @@ export async function getClinic(id: string): Promise<ClinicDetail | null> {
     lastReceivedAt: toDate(raw.last_received_at),
     imageRetentionDays: raw.image_retention_days,
     imagesPurged: raw.images_purged,
+    reportLanguage: raw.report_language,
     onboarding: raw.onboarding.map((step) => ({
       key: step.key,
-      label: step.label,
       done: step.done,
       doneAt: toDate(step.done_at),
     })),

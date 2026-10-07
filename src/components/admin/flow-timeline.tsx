@@ -1,6 +1,7 @@
 "use client";
 
 import { useNow } from "@/hooks/use-now";
+import { useLocale, useMessages } from "@/i18n/client";
 import { formatMinutes } from "@/lib/format";
 import { type FlowInstants, SEGMENT_STYLES, segments } from "@/lib/pipeline";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,8 @@ export function FlowTimeline({
   className?: string;
 }) {
   const now = useNow();
+  const locale = useLocale();
+  const t = useMessages().admin.stages;
   if (!now) return <div className={cn("h-8", className)} />;
 
   const parts = segments(flow, new Date(now));
@@ -29,7 +32,7 @@ export function FlowTimeline({
   const description = parts
     .map(
       (part) =>
-        `${SEGMENT_STYLES[part.key].label} ${formatMinutes(part.minutes)}${part.ongoing ? " (en cours)" : ""}`,
+        `${t.labels[part.key]} ${formatMinutes(part.minutes, locale)}${part.ongoing ? t.ongoingSuffix : ""}`,
     )
     .join(", ");
 
@@ -58,12 +61,12 @@ export function FlowTimeline({
         ))}
       </div>
       <p className="mt-1 truncate text-2xs text-tertiary tabular-nums">
-        {formatMinutes(total)}
+        {formatMinutes(total, locale)}
         {ongoing && (
           <>
             {" · "}
             <span className={ongoing.key === "queue" ? "text-progress" : ""}>
-              {SEGMENT_STYLES[ongoing.key].label.toLowerCase()} en cours
+              {t.ongoing(t.labels[ongoing.key])}
             </span>
           </>
         )}

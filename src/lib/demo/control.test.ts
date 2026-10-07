@@ -6,6 +6,7 @@ import {
   demoClinic,
   demoOverview,
   demoPipeline,
+  demoSystem,
 } from "@/lib/demo/control";
 
 /** Instant fixe : les tests ne dépendent pas de l'heure de leur exécution. */
@@ -103,5 +104,28 @@ describe("réseau de démonstration", () => {
     for (const line of lines) {
       expect(line.reported).toBeLessThanOrEqual(line.urgent + line.routine);
     }
+  });
+
+  it("rédige ses textes dans la langue demandée, sans toucher aux données", () => {
+    const fr = demoOverview(NOW, "fr");
+    const en = demoOverview(NOW, "en");
+    // Mêmes chiffres, mêmes alertes : seuls les messages changent.
+    expect(en.live).toEqual(fr.live);
+    expect(en.alerts.map((a) => a.code)).toEqual(fr.alerts.map((a) => a.code));
+    const silent = en.alerts.find((a) => a.code === "clinic_silent")!;
+    expect(silent.message).toContain("Clinique du Golfe");
+    expect(silent.message).toContain("has sent nothing");
+    expect(en.ops.find((r) => r.kind === "backup")!.summary).toContain(
+      "encrypted",
+    );
+    expect(demoSystem(NOW, "en").environment).toBe("demo");
+    const steps = demoClinic("org-esp", NOW, "en")!.onboarding;
+    expect(steps[0]).toMatchObject({
+      key: "created",
+      label: "Organisation created",
+    });
+    expect(demoClinic("org-esp", NOW)!.onboarding[0].label).toBe(
+      "Organisation créée",
+    );
   });
 });

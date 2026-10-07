@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
+import { useLocale, useMessages } from "@/i18n/client";
 import { updatePlatformSettings } from "@/lib/actions/control";
 import { formatDuration } from "@/lib/format";
 
@@ -29,6 +30,9 @@ export function SettingsForm({
   routine: number;
   maintenanceMessage: string | null;
 }) {
+  const t = useMessages();
+  const locale = useLocale();
+  const text = t.admin.settings;
   const [urgentMinutes, setUrgentMinutes] = React.useState(String(urgent));
   const [routineMinutes, setRoutineMinutes] = React.useState(String(routine));
   const [banner, setBanner] = React.useState(maintenanceMessage ?? "");
@@ -59,27 +63,25 @@ export function SettingsForm({
         setError(result.error);
         return;
       }
-      toast.success("Réglages enregistrés.");
+      toast.success(text.saved);
     });
   };
 
   const preview = (value: string) => {
     const minutes = Number(value);
     return Number.isInteger(minutes) && minutes > 0
-      ? ` Valeur saisie : ${formatDuration(minutes)}.`
+      ? text.typedValue(formatDuration(minutes, locale))
       : "";
   };
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6">
       <fieldset className="grid gap-4 sm:grid-cols-2">
-        <legend className="label-eyebrow mb-3">
-          Délais promis aux cliniques
-        </legend>
+        <legend className="label-eyebrow mb-3">{text.targets}</legend>
         <Field
           id="sla-urgent"
-          label="Urgence"
-          hint={`Entre 5 et 720 minutes.${preview(urgentMinutes)}`}
+          label={t.admin.shared.urgent}
+          hint={text.urgentHint(preview(urgentMinutes))}
         >
           <Input
             id="sla-urgent"
@@ -95,8 +97,8 @@ export function SettingsForm({
         </Field>
         <Field
           id="sla-routine"
-          label="Routine"
-          hint={`Entre 15 et 2 880 minutes.${preview(routineMinutes)}`}
+          label={t.admin.shared.routine}
+          hint={text.routineHint(preview(routineMinutes))}
         >
           <Input
             id="sla-routine"
@@ -113,11 +115,11 @@ export function SettingsForm({
       </fieldset>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="label-eyebrow mb-3">Bandeau de maintenance</legend>
+        <legend className="label-eyebrow mb-3">{text.banner}</legend>
         <Field
           id="banner"
-          label="Message affiché à tous les utilisateurs"
-          hint={`${banner.length} / ${BANNER_MAX} caractères. Laissez vide pour n’afficher aucun bandeau.`}
+          label={text.bannerLabel}
+          hint={text.bannerHint(banner.length, BANNER_MAX)}
         >
           <Textarea
             id="banner"
@@ -125,13 +127,13 @@ export function SettingsForm({
             maxLength={BANNER_MAX}
             value={banner}
             onChange={(event) => setBanner(event.target.value)}
-            placeholder="Ex. : Maintenance du PACS dimanche de 2 h à 3 h (heure de Lomé). Les envois reprendront automatiquement."
+            placeholder={text.bannerPlaceholder}
           />
         </Field>
         {banner.trim() && (
           <div
             className="flex items-start gap-2.5 rounded-lg border border-progress/30 bg-progress-muted px-3 py-2 text-xs"
-            aria-label="Aperçu du bandeau"
+            aria-label={text.bannerPreview}
           >
             <Megaphone
               className="mt-0.5 size-3.5 shrink-0 text-progress"
@@ -150,7 +152,7 @@ export function SettingsForm({
 
       <div className="flex justify-end">
         <Button type="submit" size="sm" loading={pending} disabled={!dirty}>
-          Enregistrer
+          {t.common.actions.save}
         </Button>
       </div>
     </form>

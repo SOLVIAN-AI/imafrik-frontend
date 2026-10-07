@@ -5,7 +5,6 @@ import {
   ControlBody,
   Figure,
   OPS_FRESHNESS,
-  OPS_LABELS,
   OpsList,
   Section,
 } from "@/components/admin/control-ui";
@@ -15,8 +14,11 @@ import { type OpsKind, type OpsRun, getSystem } from "@/lib/data/control";
 import { MISSING, formatBytes, formatCount } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Système" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.system };
+}
 
 /** Ordre d'affichage des tâches : de la plus grave à perdre à la plus fréquente. */
 const OPS_ORDER: OpsKind[] = [
@@ -26,20 +28,6 @@ const OPS_ORDER: OpsKind[] = [
   "retention",
   "host_watch",
 ];
-
-/** Ce que garantit chaque tâche, en une phrase. */
-const OPS_PURPOSE: Record<OpsKind, string> = {
-  backup:
-    "Copie chiffrée (age) de la base et de l’index du PACS vers R2, chaque nuit.",
-  restore_drill:
-    "Restauration réelle de la dernière sauvegarde dans une base jetable, chaque semaine : une sauvegarde jamais restaurée n’en est pas une.",
-  reconciliation:
-    "Rattrape les examens que le PACS a reçus sans que l’application en soit prévenue.",
-  host_watch:
-    "Disque, conteneurs, certificats HTTPS et DICOM du serveur central.",
-  retention:
-    "Applique les durées de conservation fixées par contrat : images des examens remis, demandes reçues de plus de trois ans. Chaque purge est tracée.",
-};
 
 /**
  * État technique de la plateforme.
@@ -53,6 +41,9 @@ const OPS_PURPOSE: Record<OpsKind, string> = {
  */
 export default async function SystemPage() {
   await requireSession(["platform_admin"]);
+  const { t, locale } = await getMessages();
+  const text = t.admin.system;
+  const ops = t.admin.ops;
   const system = await getSystem();
   const latest = latestByKind(system.ops);
   const allOk = system.services.every((service) => service.ok);
@@ -60,51 +51,54 @@ export default async function SystemPage() {
   return (
     <>
       <PageHeader
-        title="Système"
-        description={`Environnement ${system.environment} · version ${system.release ?? "inconnue"}`}
+        title={t.nav.items.system}
+        description={text.description(system.environment, system.release)}
       />
       <ControlBody>
         <section
-          aria-label="Synthèse"
+          aria-label={t.admin.shared.summary}
           className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-xl border border-border-subtle bg-surface-raised p-4 shadow-raised sm:grid-cols-4"
         >
           <Figure
-            label="Services"
-            value={allOk ? "Opérationnels" : "Dégradés"}
+            label={text.services}
+            value={allOk ? text.operational : text.degraded}
             tone={allOk ? "done" : "urgent"}
-            hint={`${system.services.filter((s) => s.ok).length} sur ${system.services.length} répondent`}
+            hint={text.responding(
+              system.services.filter((s) => s.ok).length,
+              system.services.length,
+            )}
           />
           <Figure
-            label="PACS central"
+            label={text.pacs}
             value={
               system.orthancVersion
                 ? `Orthanc ${system.orthancVersion}`
                 : MISSING
             }
-            hint="version du moteur"
+            hint={text.engineVersion}
           />
           <Figure
-            label="Examens conservés"
+            label={text.storedStudies}
             value={
               system.storedStudies === null
                 ? MISSING
-                : formatCount(system.storedStudies)
+                : formatCount(system.storedStudies, locale)
             }
-            hint="dans le PACS"
+            hint={text.inPacs}
           />
           <Figure
-            label="Volume d’images"
+            label={text.imageVolume}
             value={
               system.storedMegabytes === null
                 ? MISSING
-                : formatBytes(system.storedMegabytes * 1_048_576)
+                : formatBytes(system.storedMegabytes * 1_048_576, locale)
             }
-            hint="sur le disque du PACS"
+            hint={text.onPacsDisk}
           />
         </section>
 
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-          <Section title="Dépendances" flush>
+          <Section title={text.dependencies} flush>
             <ul className="divide-y divide-border-subtle">
               {system.services.map((service) => (
                 <li
@@ -114,12 +108,12 @@ export default async function SystemPage() {
                   {service.ok ? (
                     <CheckCircle2
                       className="size-4 shrink-0 text-done"
-                      aria-label="Répond"
+                      aria-label={text.up}
                     />
                   ) : (
                     <XCircle
                       className="size-4 shrink-0 text-urgent"
-                      aria-label="Ne répond pas"
+                      aria-label={text.down}
                     />
                   )}
                   <span className="text-sm font-medium">{service.name}</span>
@@ -140,8 +134,8 @@ export default async function SystemPage() {
           </Section>
 
           <Section
-            title="Filets de sécurité"
-            description="Dernière exécution de chaque tâche planifiée"
+            title={text.safetyNets}
+            description={text.safetyNetsDescription}
             flush
           >
             <ul className="divide-y divide-border-subtle">
@@ -167,7 +161,7 @@ export default async function SystemPage() {
                     />
                     <div className="min-w-0 flex-1">
                       <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
-                        <span className="font-medium">{OPS_LABELS[kind]}</span>
+                        <span className="font-medium">{ops.labels[kind]}</span>
                         <span className="text-2xs text-tertiary">
                           {run ? (
                             <RelativeTime
@@ -175,12 +169,12 @@ export default async function SystemPage() {
                               staleAfterHours={OPS_FRESHNESS[kind]}
                             />
                           ) : (
-                            "jamais exécutée"
+                            ops.neverRun
                           )}
                         </span>
                       </p>
                       <p className="mt-0.5 text-2xs text-tertiary">
-                        {OPS_PURPOSE[kind]}
+                        {ops.purpose[kind]}
                       </p>
                       {run?.summary && (
                         <p
@@ -201,11 +195,11 @@ export default async function SystemPage() {
         </div>
 
         <Section
-          title="Historique d’exploitation"
-          description="Exécutions récentes, toutes tâches confondues"
+          title={text.history}
+          description={text.historyDescription}
           flush
         >
-          <OpsList runs={system.recentRuns} />
+          <OpsList runs={system.recentRuns} locale={locale} />
         </Section>
       </ControlBody>
     </>

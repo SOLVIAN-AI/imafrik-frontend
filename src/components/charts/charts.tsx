@@ -1,6 +1,9 @@
 import type * as React from "react";
 
+import { messagesFor } from "@/i18n";
 import { axisTicks, labelIndices } from "@/lib/charts";
+import { formatPercent } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
 /**
@@ -17,7 +20,10 @@ import { cn } from "@/lib/utils";
  *   ="none"`), le texte en HTML par-dessus : les étiquettes ne se
  *   déforment jamais, quelle que soit la largeur ;
  * - chaque graphique porte un tableau de ses données, masqué à l'écran
- *   et lu par les lecteurs d'écran : une courbe ne se décrit pas.
+ *   et lu par les lecteurs d'écran : une courbe ne se décrit pas ;
+ * - tout texte qu'ils écrivent eux-mêmes — en-têtes, infobulles, jours —
+ *   suit la langue reçue en propriété (`locale`) : les graphiques sont
+ *   rendus au serveur comme au navigateur.
  */
 
 /** Charge sémantique d'une série. */
@@ -216,20 +222,24 @@ function XLabels({ labels }: { labels: string[] }) {
  * @param points  Une entrée par période : son libellé et une valeur par série.
  * @param series  Séries empilées, de bas en haut.
  * @param caption Titre lu par les lecteurs d'écran.
+ * @param locale  Langue de l'utilisateur.
  */
 export function StackedBars({
   points,
   series,
   caption,
+  locale,
   height = 180,
   format = (value) => String(Math.round(value)),
 }: {
   points: { label: string; values: number[] }[];
   series: { label: string; tone: Tone }[];
   caption: string;
+  locale: Locale;
   height?: number;
   format?: (value: number) => string;
 }) {
+  const t = messagesFor(locale).admin.charts;
   const scale = axisTicks(
     Math.max(0, ...points.map((p) => p.values.reduce((a, b) => a + b, 0))),
   );
@@ -263,7 +273,9 @@ export function StackedBars({
                     rx={0.8}
                     fill={FILL[series[serie].tone]}
                   >
-                    <title>{`${point.label} · ${series[serie].label} : ${format(value)}`}</title>
+                    <title>
+                      {t.point(point.label, series[serie].label, format(value))}
+                    </title>
                   </rect>
                 ) : null;
               });
@@ -274,7 +286,7 @@ export function StackedBars({
       <XLabels labels={points.map((p) => p.label)} />
       <DataTable
         caption={caption}
-        headers={["Période", ...series.map((s) => s.label)]}
+        headers={[t.period, ...series.map((s) => s.label)]}
         rows={points.map((p) => [p.label, ...p.values.map(format)])}
       />
     </figure>
@@ -286,11 +298,14 @@ export function StackedBars({
  *
  * Un point `null` interrompt la courbe : une journée sans examen n'a pas
  * de délai, et la relier à ses voisines inventerait une valeur.
+ *
+ * @param locale Langue de l'utilisateur.
  */
 export function Lines({
   points,
   series,
   caption,
+  locale,
   threshold,
   unit = "count",
   height = 180,
@@ -299,12 +314,14 @@ export function Lines({
   points: { label: string; values: (number | null)[] }[];
   series: { label: string; tone: Tone; dashed?: boolean }[];
   caption: string;
+  locale: Locale;
   threshold?: { value: number; label: string };
   /** Nature des valeurs : choisit des graduations rondes pour l'unité. */
   unit?: "count" | "minutes";
   height?: number;
   format?: (value: number) => string;
 }) {
+  const t = messagesFor(locale).admin.charts;
   const values = points.flatMap((p) =>
     p.values.filter((v): v is number => v !== null),
   );
@@ -380,7 +397,7 @@ export function Lines({
       <XLabels labels={points.map((p) => p.label)} />
       <DataTable
         caption={caption}
-        headers={["Période", ...series.map((s) => s.label)]}
+        headers={[t.period, ...series.map((s) => s.label)]}
         rows={points.map((p) => [
           p.label,
           ...p.values.map((v) => (v === null ? "—" : format(v))),
@@ -390,23 +407,26 @@ export function Lines({
   );
 }
 
-const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-
 /**
  * Carte de chaleur jour × heure : quand les examens arrivent.
  *
  * Elle dit où placer les gardes de radiologues : un pic le lundi matin
  * ne se voit pas dans une moyenne quotidienne.
  *
- * @param cells 7 lignes (lundi → dimanche) de 24 valeurs (heure UTC).
+ * @param cells  7 lignes (lundi → dimanche) de 24 valeurs (heure UTC).
+ * @param locale Langue de l'utilisateur : noms des jours, heures.
  */
 export function Heatmap({
   cells,
   caption,
+  locale,
 }: {
   cells: number[][];
   caption: string;
+  locale: Locale;
 }) {
+  const t = messagesFor(locale).admin.charts;
+  const days = t.weekdays;
   const max = Math.max(1, ...cells.flat());
   return (
     <figure className="overflow-x-auto">
@@ -418,18 +438,18 @@ export function Heatmap({
             className="text-center text-2xs text-tertiary tabular-nums"
             aria-hidden
           >
-            {hour % 3 === 0 ? `${hour}h` : ""}
+            {hour % 3 === 0 ? t.hour(hour) : ""}
           </span>
         ))}
         {cells.map((row, day) => (
           <div key={day} className="contents">
             <span className="self-center text-2xs text-tertiary">
-              {DAYS[day]}
+              {days[day]}
             </span>
             {row.map((value, hour) => (
               <span
                 key={hour}
-                title={`${DAYS[day]} ${hour}h : ${value} examen${value > 1 ? "s" : ""}`}
+                title={t.heatmapCell(days[day], t.hour(hour), value)}
                 className="aspect-square rounded-[3px] bg-accent"
                 style={{
                   opacity: value === 0 ? 0.06 : 0.15 + 0.85 * (value / max),
@@ -441,8 +461,8 @@ export function Heatmap({
       </div>
       <DataTable
         caption={caption}
-        headers={["Jour", ...Array.from({ length: 24 }, (_, h) => `${h}h`)]}
-        rows={cells.map((row, day) => [DAYS[day], ...row])}
+        headers={[t.day, ...Array.from({ length: 24 }, (_, h) => t.hour(h))]}
+        rows={cells.map((row, day) => [days[day], ...row])}
       />
     </figure>
   );
@@ -450,20 +470,30 @@ export function Heatmap({
 
 /**
  * Classement en barres horizontales — cliniques, radiologues, modalités.
+ *
+ * @param locale Langue de l'utilisateur, pour le message par défaut.
+ * @param empty  Message sans donnée ; par défaut, « aucune donnée sur la
+ *               période ».
  */
 export function RankedBars({
   items,
+  locale,
   tone = "accent",
   format = (value) => String(Math.round(value)),
-  empty = "Aucune donnée sur la période.",
+  empty,
 }: {
   items: { label: string; value: number; hint?: React.ReactNode }[];
+  locale: Locale;
   tone?: Tone;
   format?: (value: number) => string;
   empty?: string;
 }) {
   if (items.length === 0)
-    return <p className="py-6 text-center text-xs text-tertiary">{empty}</p>;
+    return (
+      <p className="py-6 text-center text-xs text-tertiary">
+        {empty ?? messagesFor(locale).admin.charts.noData}
+      </p>
+    );
   const max = Math.max(1, ...items.map((item) => item.value));
   return (
     <ul className="flex flex-col gap-2.5">
@@ -496,17 +526,20 @@ export function RankedBars({
 /**
  * Anneau de proportion — part des examens rendus dans les délais, par exemple.
  *
- * @param value Proportion entre 0 et 1, ou `null` sans donnée.
+ * @param value  Proportion entre 0 et 1, ou `null` sans donnée.
+ * @param locale Langue de l'utilisateur, pour le libellé lu.
  */
 export function Ring({
   value,
   label,
+  locale,
   tone,
   size = 88,
   showLabel = true,
 }: {
   value: number | null;
   label: string;
+  locale: Locale;
   tone?: Tone;
   size?: number;
   /** Faux quand le libellé est déjà écrit à côté : il reste lu par l'`aria-label`. */
@@ -530,7 +563,10 @@ export function Ring({
         width={size}
         height={size}
         role="img"
-        aria-label={`${label} : ${value === null ? "aucune donnée" : `${Math.round(ratio * 100)} %`}`}
+        aria-label={messagesFor(locale).admin.charts.ring(
+          label,
+          value === null ? null : formatPercent(ratio, locale),
+        )}
       >
         <circle
           cx="18"

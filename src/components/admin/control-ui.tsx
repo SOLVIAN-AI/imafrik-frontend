@@ -11,7 +11,9 @@ import type * as React from "react";
 
 import { RelativeTime } from "@/components/admin/relative-time";
 import { Panel } from "@/components/layout/app-shell";
+import { messagesFor } from "@/i18n";
 import type { Alert, OpsKind, OpsRun } from "@/lib/data/control";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,6 +23,9 @@ import { cn } from "@/lib/utils";
  * endroit avec la même couleur, une tâche d'exploitation lue de la même
  * façon sur le cockpit et sur l'écran système. Qui passe d'un écran à
  * l'autre n'a rien à réapprendre.
+ *
+ * Module partagé, sans `"use client"` : les pièces qui écrivent du texte
+ * reçoivent la langue de l'utilisateur en propriété.
  */
 
 /**
@@ -103,19 +108,16 @@ const SEVERITY = {
     icon: AlertOctagon,
     row: "border-urgent/30 bg-urgent-muted",
     tint: "text-urgent",
-    label: "Critique",
   },
   warning: {
     icon: AlertTriangle,
     row: "border-progress/30 bg-progress-muted",
     tint: "text-progress",
-    label: "Attention",
   },
   info: {
     icon: Info,
     row: "border-accent/25 bg-accent-muted",
     tint: "text-accent",
-    label: "Information",
   },
 } as const;
 
@@ -123,29 +125,39 @@ const SEVERITY = {
  * Alertes du cockpit, des plus graves aux moins graves.
  *
  * Chacune mène à l'écran où agir : une alerte qu'on ne peut pas suivre
- * d'un clic finit par ne plus être lue.
+ * d'un clic finit par ne plus être lue. Le message vient du service,
+ * déjà rédigé dans la langue de l'utilisateur : il s'affiche tel quel.
+ *
+ * @param alerts Alertes à afficher.
+ * @param locale Langue de l'utilisateur.
  */
-export function AlertList({ alerts }: { alerts: Alert[] }) {
+export function AlertList({
+  alerts,
+  locale,
+}: {
+  alerts: Alert[];
+  locale: Locale;
+}) {
+  const t = messagesFor(locale).admin.alerts;
   if (alerts.length === 0) {
     return (
       <div className="flex items-center gap-3 rounded-xl border border-done/25 bg-done-muted px-4 py-3">
         <CheckCircle2 className="size-4 shrink-0 text-done" aria-hidden />
-        <p className="text-sm">
-          Tout est nominal : délais tenus, passerelles actives, sauvegardes à
-          jour.
-        </p>
+        <p className="text-sm">{t.allClear}</p>
       </div>
     );
   }
   return (
-    <ul className="flex flex-col gap-2" aria-label="Alertes">
+    <ul className="flex flex-col gap-2" aria-label={t.label}>
       {alerts.map((alert) => {
         const style = SEVERITY[alert.severity];
         const Icon = style.icon;
         const content = (
           <>
             <Icon className={cn("size-4 shrink-0", style.tint)} aria-hidden />
-            <span className="sr-only">{style.label} : </span>
+            <span className="sr-only">
+              {t.severityPrefix(t.severity[alert.severity])}
+            </span>
             <span className="min-w-0 flex-1 text-sm">{alert.message}</span>
             {alert.href && (
               <ArrowRight
@@ -181,15 +193,6 @@ export function AlertList({ alerts }: { alerts: Alert[] }) {
   );
 }
 
-/** Libellés des tâches d'exploitation. */
-export const OPS_LABELS: Record<OpsKind, string> = {
-  backup: "Sauvegarde",
-  restore_drill: "Exercice de restauration",
-  reconciliation: "Réconciliation PACS",
-  host_watch: "Surveillance de l’hôte",
-  retention: "Conservation des données",
-};
-
 /**
  * Fraîcheur attendue de chaque tâche, en heures — au-delà, elle est en
  * retard même si sa dernière exécution a réussi. Mêmes seuils que les
@@ -203,30 +206,31 @@ export const OPS_FRESHNESS: Record<OpsKind, number> = {
   retention: 48,
 };
 
-/** Cibles lisibles. */
-const TARGETS: Record<string, string> = {
-  supabase: "base applicative",
-  "orthanc-index": "index du PACS",
-};
-
 /**
  * Tâches d'exploitation : état, ancienneté, résumé.
  *
- * @param runs  Exécutions à afficher.
- * @param dense Variante compacte, pour le cockpit.
+ * Libellés et cibles viennent des textes de l'utilisateur ; le résumé,
+ * rédigé par le service, s'affiche tel quel.
+ *
+ * @param runs   Exécutions à afficher.
+ * @param locale Langue de l'utilisateur.
+ * @param dense  Variante compacte, pour le cockpit.
  */
 export function OpsList({
   runs,
+  locale,
   dense = false,
 }: {
   runs: OpsRun[];
+  locale: Locale;
   dense?: boolean;
 }) {
+  const t = messagesFor(locale).admin.ops;
   if (runs.length === 0) {
     return (
       <p className="px-4 py-6 text-center text-xs text-tertiary">
-        Aucune exécution enregistrée. Les tâches s&apos;installent avec{" "}
-        <code className="font-mono">tools/install_ops.sh</code>.
+        {t.emptyBefore} <code className="font-mono">tools/install_ops.sh</code>
+        {t.emptyAfter}
       </p>
     );
   }
@@ -243,20 +247,20 @@ export function OpsList({
           {run.ok ? (
             <CheckCircle2
               className="mt-0.5 size-4 shrink-0 text-done"
-              aria-label="Réussie"
+              aria-label={t.succeeded}
             />
           ) : (
             <XCircle
               className="mt-0.5 size-4 shrink-0 text-urgent"
-              aria-label="En échec"
+              aria-label={t.failed}
             />
           )}
           <div className="min-w-0 flex-1">
             <p className="flex flex-wrap items-baseline gap-x-2 text-xs">
-              <span className="font-medium">{OPS_LABELS[run.kind]}</span>
+              <span className="font-medium">{t.labels[run.kind]}</span>
               {run.target && (
                 <span className="text-tertiary">
-                  {TARGETS[run.target] ?? run.target}
+                  {t.targets[run.target] ?? run.target}
                 </span>
               )}
             </p>

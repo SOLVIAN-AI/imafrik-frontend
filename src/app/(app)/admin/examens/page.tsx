@@ -14,8 +14,11 @@ import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Tous les examens" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.admin.studies.metaTitle };
+}
 
 /**
  * Tous les examens de la plateforme.
@@ -34,6 +37,8 @@ export default async function AdminStudiesPage({
   searchParams,
 }: PageProps<"/admin/examens">) {
   const session = await requireSession(["platform_admin"]);
+  const { t } = await getMessages();
+  const text = t.admin.studies;
   const { urgent } = await searchParams;
   const search = await readListSearch("admin-examens", session);
   // `?urgent=1` : les urgences pas encore rendues — la destination de
@@ -55,20 +60,24 @@ export default async function AdminStudiesPage({
   return (
     <>
       <PageHeader
-        title="Examens"
+        title={t.admin.shared.examinations}
         description={
           urgentOnly
-            ? `${studies.length} urgence${studies.length > 1 ? "s" : ""} pas encore rendue${studies.length > 1 ? "s" : ""}`
-            : `${studies.length} examens, toutes organisations confondues`
+            ? text.urgentDescription(studies.length)
+            : text.allDescription(studies.length)
         }
         actions={
           <>
             <Segmented
-              label="Filtre"
+              label={t.admin.shared.filter}
               options={[
-                { label: "Tous", href: "/admin/examens", active: !urgentOnly },
                 {
-                  label: "Urgences en cours",
+                  label: t.admin.shared.all,
+                  href: "/admin/examens",
+                  active: !urgentOnly,
+                },
+                {
+                  label: text.openUrgent,
                   href: "/admin/examens?urgent=1",
                   active: urgentOnly,
                 },
@@ -82,10 +91,7 @@ export default async function AdminStudiesPage({
       {stuck.length > 0 && (
         <div className="mx-4 mb-4 flex sm:mx-6 items-center gap-2.5 rounded-xl bg-urgent-muted px-4 py-3 text-xs text-urgent">
           <AlertTriangle className="size-4 shrink-0" aria-hidden />
-          <span>
-            {stuck.length} examen{stuck.length > 1 ? "s" : ""} urgent
-            {stuck.length > 1 ? "s" : ""} en attente de prise en charge.
-          </span>
+          <span>{text.stuck(stuck.length)}</span>
         </div>
       )}
 
@@ -115,7 +121,7 @@ export default async function AdminStudiesPage({
                     {study.bodyPart && ` · ${study.bodyPart}`} · {study.clinic}
                   </p>
                   <p className="mt-0.5 truncate text-2xs text-tertiary">
-                    {study.assignedToName ?? "Non attribué"}
+                    {study.assignedToName ?? t.admin.shared.unassigned}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -134,25 +140,33 @@ export default async function AdminStudiesPage({
               <thead className="sticky top-0 z-10">
                 <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
                   <th scope="col" className="w-[24%]">
-                    <span className="label-eyebrow">Patient</span>
+                    <span className="label-eyebrow">
+                      {text.columns.patient}
+                    </span>
                   </th>
                   <th scope="col" className="w-[14%]">
-                    <span className="label-eyebrow">Examen</span>
+                    <span className="label-eyebrow">{text.columns.study}</span>
                   </th>
                   <th scope="col" className="w-[20%]">
-                    <span className="label-eyebrow">Établissement</span>
+                    <span className="label-eyebrow">
+                      {text.columns.facility}
+                    </span>
                   </th>
                   <th scope="col" className="w-[14%]">
-                    <span className="label-eyebrow">Statut</span>
+                    <span className="label-eyebrow">{text.columns.status}</span>
                   </th>
                   <th scope="col" className="w-[14%]">
-                    <span className="label-eyebrow">Radiologue</span>
+                    <span className="label-eyebrow">
+                      {text.columns.radiologist}
+                    </span>
                   </th>
                   <th scope="col" className="w-[14%]">
-                    <span className="label-eyebrow">UID</span>
+                    <span className="label-eyebrow">{text.columns.uid}</span>
                   </th>
                   <th scope="col" className="w-[8%] text-right">
-                    <span className="label-eyebrow">Attente</span>
+                    <span className="label-eyebrow">
+                      {text.columns.waiting}
+                    </span>
                   </th>
                 </tr>
               </thead>

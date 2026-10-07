@@ -8,8 +8,15 @@ import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { type AdminOrganization, listOrganizations } from "@/lib/data/admin";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
+import { getMessages } from "@/i18n/server";
+import type { AppMessages } from "@/i18n";
 
-export const metadata: Metadata = { title: "Organisations" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.organisations };
+}
+
+/** Textes des organisations. */
+type Text = AppMessages["admin"]["organisations"];
 
 /**
  * Organisations de la plateforme.
@@ -26,21 +33,20 @@ export const metadata: Metadata = { title: "Organisations" };
  */
 export default async function AdminOrganizationsPage() {
   await requireSession(["platform_admin"]);
+  const { t } = await getMessages();
+  const text = t.admin.organisations;
   const organizations = await listOrganizations();
   const clinics = organizations.filter((org) => org.kind === "clinic");
   const groups = organizations.length - clinics.length;
 
   // Accord en nombre : « 1 cabinets » trahit une interface qui ne relit
   // pas ce qu'elle écrit, et c'est le genre de détail qu'on remarque
-  // avant le reste.
-  const plural = (count: number, singular: string, plural_: string) =>
-    `${count} ${count > 1 ? plural_ : singular}`;
-
+  // avant le reste. Les pluriels vivent dans les textes de chaque langue.
   return (
     <>
       <PageHeader
-        title="Organisations"
-        description={`${plural(clinics.length, "clinique", "cliniques")} · ${plural(groups, "groupe de radiologie", "groupes de radiologie")} `}
+        title={t.nav.items.organisations}
+        description={`${text.clinicCount(clinics.length)} · ${text.groupCount(groups)}`}
       />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
@@ -55,26 +61,30 @@ export default async function AdminOrganizationsPage() {
                   <div className="min-w-0 flex-1">
                     <OrgName org={org} />
                     <p className="truncate text-2xs text-tertiary">
-                      {org.kind === "clinic" ? "Clinique" : "Groupe"} ·{" "}
-                      {org.city} ·{" "}
-                      {plural(org.memberCount, "membre", "membres")}
+                      {text.kind[org.kind]} · {org.city} ·{" "}
+                      {text.memberCount(org.memberCount)}
                       {org.kind === "clinic" && (
                         <>
                           {" · "}
-                          {plural(org.received30d, "examen", "examens")} en 30 j
+                          {text.received30d(org.received30d)}
                         </>
                       )}
                     </p>
                     {org.kind === "clinic" && (
                       <p className="text-2xs text-tertiary">
-                        Dernier envoi : <LastReceived org={org} />
+                        {text.lastSent}{" "}
+                        <LastReceived org={org} never={t.admin.shared.never} />
                       </p>
                     )}
                   </div>
-                  <ActiveState active={org.active} />
+                  <ActiveState active={org.active} text={text} />
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <PacsState kind={org.kind} connected={org.connected} />
+                  <PacsState
+                    kind={org.kind}
+                    connected={org.connected}
+                    text={text}
+                  />
                   <OrganizationRowActions organization={org} />
                 </div>
               </li>
@@ -86,28 +96,34 @@ export default async function AdminOrganizationsPage() {
               <thead className="sticky top-0 z-10">
                 <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
                   <th scope="col" className="w-[26%]">
-                    <span className="label-eyebrow">Organisation</span>
+                    <span className="label-eyebrow">
+                      {text.columns.organisation}
+                    </span>
                   </th>
                   <th scope="col" className="w-[10%]">
-                    <span className="label-eyebrow">Nature</span>
+                    <span className="label-eyebrow">{text.columns.kind}</span>
                   </th>
                   <th scope="col" className="w-[13%]">
-                    <span className="label-eyebrow">PACS</span>
+                    <span className="label-eyebrow">{text.columns.pacs}</span>
                   </th>
                   <th scope="col" className="w-[8%] text-right">
-                    <span className="label-eyebrow">Membres</span>
+                    <span className="label-eyebrow">
+                      {text.columns.members}
+                    </span>
                   </th>
                   <th scope="col" className="w-[9%] text-right">
-                    <span className="label-eyebrow">30 jours</span>
+                    <span className="label-eyebrow">{text.columns.days30}</span>
                   </th>
                   <th scope="col" className="w-[12%] text-right">
-                    <span className="label-eyebrow">Dernier envoi</span>
+                    <span className="label-eyebrow">
+                      {text.columns.lastSent}
+                    </span>
                   </th>
                   <th scope="col" className="w-[10%] text-right">
-                    <span className="label-eyebrow">État</span>
+                    <span className="label-eyebrow">{text.columns.state}</span>
                   </th>
                   <th scope="col" className="w-[12%] text-right">
-                    <span className="sr-only">Actions</span>
+                    <span className="sr-only">{text.columns.actions}</span>
                   </th>
                 </tr>
               </thead>
@@ -133,12 +149,14 @@ export default async function AdminOrganizationsPage() {
                       </div>
                     </td>
 
-                    <td className="text-secondary">
-                      {org.kind === "clinic" ? "Clinique" : "Groupe"}
-                    </td>
+                    <td className="text-secondary">{text.kind[org.kind]}</td>
 
                     <td>
-                      <PacsState kind={org.kind} connected={org.connected} />
+                      <PacsState
+                        kind={org.kind}
+                        connected={org.connected}
+                        text={text}
+                      />
                     </td>
 
                     <td className="text-right text-secondary tabular-nums">
@@ -146,16 +164,16 @@ export default async function AdminOrganizationsPage() {
                     </td>
                     <td
                       className="text-right text-secondary tabular-nums"
-                      title={`${org.studyCount} examens au total`}
+                      title={text.totalStudies(org.studyCount)}
                     >
                       {org.kind === "clinic" ? org.received30d : "—"}
                     </td>
                     <td className="text-right text-2xs whitespace-nowrap text-tertiary">
-                      <LastReceived org={org} />
+                      <LastReceived org={org} never={t.admin.shared.never} />
                     </td>
 
                     <td className="text-right">
-                      <ActiveState active={org.active} />
+                      <ActiveState active={org.active} text={text} />
                     </td>
 
                     <td>
@@ -193,9 +211,15 @@ function OrgName({ org }: { org: AdminOrganization }) {
  * Dernier examen reçu d'une clinique — en ambre au-delà de 24 heures,
  * le signe d'une passerelle à l'arrêt.
  */
-function LastReceived({ org }: { org: AdminOrganization }) {
+function LastReceived({
+  org,
+  never,
+}: {
+  org: AdminOrganization;
+  never: string;
+}) {
   if (org.kind !== "clinic") return <>—</>;
-  if (!org.lastReceivedAt) return <>jamais</>;
+  if (!org.lastReceivedAt) return <>{never}</>;
   return <RelativeTime date={org.lastReceivedAt} staleAfterHours={24} />;
 }
 
@@ -216,21 +240,23 @@ function OrgIcon({ kind }: { kind: "clinic" | "radiology_group" }) {
 function PacsState({
   kind,
   connected,
+  text,
 }: {
   kind: "clinic" | "radiology_group";
   connected: boolean;
+  text: Text;
 }) {
   if (kind !== "clinic")
-    return <span className="text-2xs text-tertiary">Pas de PACS</span>;
+    return <span className="text-2xs text-tertiary">{text.noPacs}</span>;
   return connected ? (
-    <span className="text-2xs text-done">PACS raccordé</span>
+    <span className="text-2xs text-done">{text.pacsConnected}</span>
   ) : (
-    <span className="text-2xs text-progress">PACS non raccordé</span>
+    <span className="text-2xs text-progress">{text.pacsNotConnected}</span>
   );
 }
 
 /** État de l'organisation : active, ou suspendue. */
-function ActiveState({ active }: { active: boolean }) {
+function ActiveState({ active, text }: { active: boolean; text: Text }) {
   return (
     <span
       className={cn(
@@ -245,7 +271,7 @@ function ActiveState({ active }: { active: boolean }) {
         )}
         aria-hidden
       />
-      {active ? "Active" : "Suspendue"}
+      {active ? text.active : text.suspended}
     </span>
   );
 }

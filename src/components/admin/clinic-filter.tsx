@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { Select } from "@/components/ui/input";
+import { useMessages } from "@/i18n/client";
 
 /**
  * Filtre par clinique, porté par l'adresse (`?clinique=<id>`).
@@ -22,6 +23,7 @@ export function ClinicFilter({
   clinics: { id: string; name: string }[];
   param?: string;
 }) {
+  const t = useMessages();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -40,13 +42,13 @@ export function ClinicFilter({
 
   return (
     <Select
-      aria-label="Filtrer par clinique"
+      aria-label={t.admin.shared.filterByClinic}
       value={current}
       onChange={change}
       disabled={pending}
       className="w-auto max-w-[14rem] min-w-[10rem]"
     >
-      <option value="">Tout le réseau</option>
+      <option value="">{t.admin.shared.wholeNetwork}</option>
       {clinics.map((clinic) => (
         <option key={clinic.id} value={clinic.id}>
           {clinic.name}

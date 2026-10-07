@@ -5,11 +5,9 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Select, Textarea } from "@/components/ui/input";
+import { useMessages } from "@/i18n/client";
 import { trackContactRequest } from "@/lib/actions/control";
-import {
-  CONTACT_STATUS_LABELS,
-  type ContactStatus,
-} from "@/lib/contact-status";
+import { CONTACT_STATUSES, type ContactStatus } from "@/lib/contact-status";
 
 /**
  * Suivi d'une demande : étape et notes de l'équipe.
@@ -27,6 +25,8 @@ export function ContactTracker({
   status: ContactStatus;
   notes: string | null;
 }) {
+  const t = useMessages();
+  const text = t.admin.requests;
   const [draftStatus, setDraftStatus] = React.useState(status);
   const [draftNotes, setDraftNotes] = React.useState(notes ?? "");
   const [pending, startTransition] = React.useTransition();
@@ -39,7 +39,7 @@ export function ContactTracker({
         status: draftStatus,
         notes: draftNotes,
       });
-      if (result.ok) toast.success("Suivi enregistré.");
+      if (result.ok) toast.success(text.saved);
       else toast.error(result.error);
     });
   };
@@ -47,31 +47,31 @@ export function ContactTracker({
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
       <Select
-        aria-label="Étape du suivi"
+        aria-label={text.stage}
         value={draftStatus}
         onChange={(event) =>
           setDraftStatus(event.target.value as ContactStatus)
         }
         className="sm:w-36"
       >
-        {Object.entries(CONTACT_STATUS_LABELS).map(([value, label]) => (
+        {CONTACT_STATUSES.map((value) => (
           <option key={value} value={value}>
-            {label}
+            {text.status[value]}
           </option>
         ))}
       </Select>
       <Textarea
-        aria-label="Notes de l’équipe"
+        aria-label={text.notesLabel}
         value={draftNotes}
         onChange={(event) => setDraftNotes(event.target.value)}
         maxLength={4000}
         rows={1}
-        placeholder="Notes : rappel prévu, devis envoyé…"
+        placeholder={text.notesPlaceholder}
         className="min-h-8 flex-1 resize-y py-1.5 text-xs"
       />
       {dirty && (
         <Button size="sm" onClick={save} loading={pending} className="shrink-0">
-          Enregistrer
+          {t.common.actions.save}
         </Button>
       )}
     </div>

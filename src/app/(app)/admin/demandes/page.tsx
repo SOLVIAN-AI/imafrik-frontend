@@ -6,16 +6,15 @@ import { ControlBody, Segmented } from "@/components/admin/control-ui";
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
-import {
-  CONTACT_STATUSES,
-  CONTACT_STATUS_LABELS,
-  type ContactStatus,
-} from "@/lib/contact-status";
+import { CONTACT_STATUSES, type ContactStatus } from "@/lib/contact-status";
 import { listContactRequests } from "@/lib/data/admin";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Demandes reçues" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.requests };
+}
 
 /** Teinte de chaque étape : seule une demande nouvelle appelle une action. */
 const STATUS_STYLES: Record<ContactStatus, string> = {
@@ -37,6 +36,8 @@ export default async function ContactRequestsPage({
   searchParams,
 }: PageProps<"/admin/demandes">) {
   await requireSession(["platform_admin"]);
+  const { t } = await getMessages();
+  const text = t.admin.requests;
   const params = await searchParams;
   const requests = await listContactRequests();
   const counts = Object.fromEntries(
@@ -63,19 +64,19 @@ export default async function ContactRequestsPage({
   return (
     <>
       <PageHeader
-        title="Demandes reçues"
-        description={`${requests.length} demande${requests.length > 1 ? "s" : ""} · ${counts.new} à traiter`}
+        title={t.nav.items.requests}
+        description={text.description(requests.length, counts.new)}
         actions={
           <Segmented
-            label="Étape du suivi"
+            label={text.stage}
             options={[
               {
-                label: `Toutes · ${requests.length}`,
+                label: text.allFilter(requests.length),
                 href: "/admin/demandes?etat=all",
                 active: filter === "all",
               },
               ...CONTACT_STATUSES.map((status) => ({
-                label: `${CONTACT_STATUS_LABELS[status]}s · ${counts[status]}`,
+                label: `${text.statusPlural[status]} · ${counts[status]}`,
                 href: `/admin/demandes?etat=${status}`,
                 active: filter === status,
               })),
@@ -89,11 +90,9 @@ export default async function ContactRequestsPage({
             <EmptyState
               icon={Inbox}
               title={
-                requests.length === 0
-                  ? "Aucune demande"
-                  : "Rien dans cette étape"
+                requests.length === 0 ? text.noRequest : text.nothingInStage
               }
-              detail="Les demandes envoyées depuis le formulaire de contact du site apparaissent ici."
+              detail={text.emptyDetail}
             />
           </Panel>
         ) : (
@@ -114,7 +113,7 @@ export default async function ContactRequestsPage({
                         STATUS_STYLES[request.status],
                       )}
                     >
-                      {CONTACT_STATUS_LABELS[request.status]}
+                      {text.status[request.status]}
                     </span>
                     <DateTime
                       date={request.createdAt}

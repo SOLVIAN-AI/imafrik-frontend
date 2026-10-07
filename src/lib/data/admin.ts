@@ -89,7 +89,7 @@ function demoOrganizations(): AdminOrganization[] {
     id: DEMO_GROUP.id,
     name: DEMO_GROUP.name,
     kind: "radiology_group",
-    city: "Lomé",
+    city: DEMO_GROUP.city,
     active: true,
     openToPool: false,
     connected: false,

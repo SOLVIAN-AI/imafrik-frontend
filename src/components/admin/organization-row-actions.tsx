@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { InviteDialog } from "@/components/domain/invite-dialog";
 import { Button } from "@/components/ui/button";
+import { useMessages } from "@/i18n/client";
 import {
   inviteIntoOrganization,
   setOrganizationActive,
@@ -25,16 +26,12 @@ export function OrganizationRowActions({
 }: {
   organization: AdminOrganization;
 }) {
+  const text = useMessages().admin.organisations;
   const [pending, startTransition] = React.useTransition();
 
   const toggle = () => {
     const suspending = organization.active;
-    if (
-      suspending &&
-      !window.confirm(
-        `Suspendre ${organization.name} ? Tous ses membres perdent l’accès immédiatement.`,
-      )
-    ) {
+    if (suspending && !window.confirm(text.confirmSuspend(organization.name))) {
       return;
     }
     startTransition(async () => {
@@ -63,14 +60,14 @@ export function OrganizationRowActions({
           <Button
             variant="ghost"
             size="icon"
-            aria-label={`Inviter dans ${organization.name}`}
+            aria-label={text.inviteInto(organization.name)}
           >
             <UserPlus />
           </Button>
         }
       />
       <Button variant="ghost" size="sm" loading={pending} onClick={toggle}>
-        {organization.active ? "Suspendre" : "Réactiver"}
+        {organization.active ? text.suspend : text.reactivate}
       </Button>
     </div>
   );

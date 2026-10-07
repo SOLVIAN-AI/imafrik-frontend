@@ -5,6 +5,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { useMessages } from "@/i18n/client";
 import { resetUserMfa } from "@/lib/actions/control";
 
 /**
@@ -23,21 +24,15 @@ export function MfaResetButton({
   profileId: string;
   fullName: string;
 }) {
+  const text = useMessages().admin.mfaReset;
   const [pending, startTransition] = React.useTransition();
 
   const reset = () => {
-    if (
-      !window.confirm(
-        `Réinitialiser la double authentification de ${fullName} ?\n\n` +
-          "Vérifiez d’abord son identité par un autre canal, par exemple en l’appelant à un numéro connu. " +
-          "À sa prochaine connexion, il ou elle enrôlera un nouveau téléphone.",
-      )
-    )
-      return;
+    if (!window.confirm(text.confirm(fullName))) return;
     startTransition(async () => {
       const result = await resetUserMfa(profileId);
       if (result.ok) {
-        toast.success(`Double authentification de ${fullName} réinitialisée.`);
+        toast.success(text.done(fullName));
       } else {
         toast.error(result.error);
       }
@@ -50,10 +45,10 @@ export function MfaResetButton({
       size="sm"
       loading={pending}
       onClick={reset}
-      title="Téléphone perdu ou changé"
+      title={text.title}
     >
       <RotateCcw aria-hidden />
-      Réinitialiser
+      {text.button}
     </Button>
   );
 }

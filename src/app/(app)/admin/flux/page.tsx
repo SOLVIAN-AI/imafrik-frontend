@@ -17,9 +17,14 @@ import {
   formatRate,
 } from "@/lib/format";
 import { throughput } from "@/lib/pipeline";
+import type { Locale } from "@/lib/i18n/locale";
 import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
+import type { AppMessages } from "@/i18n";
 
-export const metadata: Metadata = { title: "Flux d’images" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.flow };
+}
 
 /** Examens affichés : assez pour voir une tendance, assez peu pour rester lisible. */
 const LIMIT = 100;
@@ -39,6 +44,8 @@ export default async function FlowPage({
   searchParams,
 }: PageProps<"/admin/flux">) {
   await requireSession(["platform_admin"]);
+  const { t, locale } = await getMessages();
+  const text = t.admin.flow;
   const params = await searchParams;
   const clinics = (await listOrganizations())
     .filter((org) => org.kind === "clinic")
@@ -52,29 +59,29 @@ export default async function FlowPage({
   return (
     <>
       <PageHeader
-        title="Flux d’images"
-        description={`Les ${studies.length} derniers examens reçus, de l’acquisition à la remise du compte-rendu`}
+        title={t.nav.items.flow}
+        description={text.description(studies.length)}
         actions={<ClinicFilter clinics={clinics} />}
       />
       <ControlBody>
         {studies.length === 0 ? (
-          <Section title="Examens">
+          <Section title={t.admin.shared.examinations}>
             <EmptyState
               icon={Activity}
-              title="Aucun examen reçu"
-              detail="Les examens apparaissent ici dès que le PACS central les a reçus."
+              title={text.emptyTitle}
+              detail={text.emptyDetail}
             />
           </Section>
         ) : (
           <>
-            <Summary studies={studies} />
+            <Summary studies={studies} t={t} locale={locale} />
             <Section
-              title="Examens"
-              description="Les plus récents en tête"
-              aside={<SegmentLegend />}
+              title={t.admin.shared.examinations}
+              description={t.admin.shared.mostRecentFirst}
+              aside={<SegmentLegend locale={locale} />}
               flush
             >
-              <FlowList studies={studies} />
+              <FlowList studies={studies} locale={locale} />
             </Section>
           </>
         )}
@@ -84,7 +91,16 @@ export default async function FlowPage({
 }
 
 /** Synthèse des examens affichés. */
-function Summary({ studies }: { studies: PipelineStudy[] }) {
+function Summary({
+  studies,
+  t,
+  locale,
+}: {
+  studies: PipelineStudy[];
+  t: AppMessages;
+  locale: Locale;
+}) {
+  const text = t.admin.flow;
   const rates = studies
     .map(throughput)
     .filter((rate): rate is number => rate !== null);
@@ -104,29 +120,32 @@ function Summary({ studies }: { studies: PipelineStudy[] }) {
 
   return (
     <section
-      aria-label="Synthèse"
+      aria-label={t.admin.shared.summary}
       className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-xl border border-border-subtle bg-surface-raised p-4 shadow-raised sm:grid-cols-4"
     >
       <Figure
-        label="Débit médian"
-        value={formatRate(quantile(rates, 0.5))}
-        hint={`10 % sous ${formatRate(slowest)}`}
+        label={text.medianThroughput}
+        value={formatRate(quantile(rates, 0.5), locale)}
+        hint={text.slowestTenth(formatRate(slowest, locale))}
         tone={slowest !== null && slowest < 1 ? "progress" : undefined}
       />
       <Figure
-        label="Acheminement médian"
-        value={formatMinutes(quantile(arrivals, 0.5))}
-        hint="acquisition → dernière image"
+        label={text.medianArrival}
+        value={formatMinutes(quantile(arrivals, 0.5), locale)}
+        hint={text.arrivalHint}
       />
       <Figure
-        label="Volume reçu"
-        value={formatBytes(bytes)}
-        hint={`${formatCount(studies.length)} examens`}
+        label={t.admin.shared.volumeReceived}
+        value={formatBytes(bytes, locale)}
+        hint={t.admin.shared.studyCount(
+          studies.length,
+          formatCount(studies.length, locale),
+        )}
       />
       <Figure
-        label="En file"
-        value={formatCount(waiting)}
-        hint="pas encore pris en charge"
+        label={text.inQueue}
+        value={formatCount(waiting, locale)}
+        hint={text.inQueueHint}
         tone={waiting > 0 ? "progress" : "done"}
       />
     </section>

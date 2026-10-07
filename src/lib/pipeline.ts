@@ -22,21 +22,19 @@ export interface FlowInstants {
 export type SegmentKey = "arrival" | "queue" | "reading" | "delivery";
 
 /**
- * Libellés et teintes des étapes — partagés par la frise et sa légende.
+ * Teintes des étapes, partagées par la frise et sa légende. Leurs libellés
+ * sont dans les dictionnaires (`admin.stages.labels`).
  *
  * Ici plutôt que dans le composant de la frise : celui-ci s'exécute dans
  * le navigateur, et un objet exporté d'un module client n'est, côté
  * serveur, qu'une référence opaque — la légende, rendue au serveur, ne
  * pourrait pas le lire.
  */
-export const SEGMENT_STYLES: Record<
-  SegmentKey,
-  { label: string; bar: string }
-> = {
-  arrival: { label: "Acheminement", bar: "bg-tertiary/60" },
-  queue: { label: "File", bar: "bg-progress" },
-  reading: { label: "Lecture", bar: "bg-accent" },
-  delivery: { label: "Remise", bar: "bg-done" },
+export const SEGMENT_STYLES: Record<SegmentKey, { bar: string }> = {
+  arrival: { bar: "bg-tertiary/60" },
+  queue: { bar: "bg-progress" },
+  reading: { bar: "bg-accent" },
+  delivery: { bar: "bg-done" },
 };
 
 /** Une étape du parcours et sa durée. */

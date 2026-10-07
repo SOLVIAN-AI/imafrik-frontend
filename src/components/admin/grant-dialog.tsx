@@ -15,8 +15,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, Select } from "@/components/ui/input";
+import { useMessages } from "@/i18n/client";
 import { grantMembership } from "@/lib/actions/control";
-import { ROLE_LABELS, type OrgKind, type UserRole } from "@/lib/session/types";
+import type { OrgKind, UserRole } from "@/lib/session/types";
 
 /** Rôles compatibles avec chaque nature d'organisation — même règle que le service. */
 const ROLES_BY_KIND: Record<OrgKind, readonly UserRole[]> = {
@@ -42,6 +43,8 @@ export function GrantDialog({
   user: { id: string; fullName: string; isRadiologist: boolean };
   organizations: { id: string; name: string; kind: OrgKind }[];
 }) {
+  const t = useMessages();
+  const text = t.admin.grant;
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -73,9 +76,7 @@ export function GrantDialog({
         setError(result.error);
         return;
       }
-      toast.success(
-        `${user.fullName} est rattaché(e) à ${organization?.name ?? "l’organisation"}.`,
-      );
+      toast.success(text.done(user.fullName, organization?.name ?? null));
       setOpen(false);
     });
   };
@@ -91,22 +92,18 @@ export function GrantDialog({
       <DialogTrigger asChild>
         <Button size="sm" variant="secondary">
           <Link2 />
-          Rattacher
+          {text.trigger}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <form onSubmit={submit}>
           <DialogHeader>
-            <DialogTitle>Rattacher {user.fullName}</DialogTitle>
-            <DialogDescription>
-              Le compte accède aux examens de l’organisation dès sa prochaine
-              requête. Vérifiez son dossier avant : numéro d’ordre, diplôme,
-              identité.
-            </DialogDescription>
+            <DialogTitle>{text.title(user.fullName)}</DialogTitle>
+            <DialogDescription>{text.description}</DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-4 px-5 pb-5">
-            <Field id="grant-organization" label="Organisation">
+            <Field id="grant-organization" label={text.organisation}>
               <Select
                 id="grant-organization"
                 value={organizationId}
@@ -116,12 +113,12 @@ export function GrantDialog({
                 {organizations.map((org) => (
                   <option key={org.id} value={org.id}>
                     {org.name}
-                    {org.kind === "radiology_group" ? " (groupe)" : ""}
+                    {org.kind === "radiology_group" ? text.groupSuffix : ""}
                   </option>
                 ))}
               </Select>
             </Field>
-            <Field id="grant-role" label="Rôle">
+            <Field id="grant-role" label={text.role}>
               {/* La clé force une liste neuve quand la nature change : le
                   rôle par défaut suit l'organisation choisie. */}
               <Select
@@ -132,7 +129,7 @@ export function GrantDialog({
               >
                 {roles.map((role) => (
                   <option key={role} value={role}>
-                    {ROLE_LABELS[role]}
+                    {t.common.roles[role]}
                   </option>
                 ))}
               </Select>
@@ -151,7 +148,7 @@ export function GrantDialog({
               size="sm"
               onClick={() => setOpen(false)}
             >
-              Annuler
+              {t.common.actions.cancel}
             </Button>
             <Button
               type="submit"
@@ -159,7 +156,7 @@ export function GrantDialog({
               loading={pending}
               disabled={!organizationId}
             >
-              Rattacher
+              {text.submit}
             </Button>
           </DialogFooter>
         </form>

@@ -7,36 +7,24 @@ import { DateTime } from "@/components/domain/date-time";
 import { PageHeader } from "@/components/layout/app-shell";
 import { getPlatformSettings } from "@/lib/data/control";
 import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Réglages" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.controls };
+}
 
 /**
  * Gestes d'exploitation qui ne se font **pas** depuis un navigateur, et
  * pourquoi. Les lister ici évite qu'on les cherche — ou qu'on demande un
- * jour de les y ajouter sans en mesurer le risque.
+ * jour de les y ajouter sans en mesurer le risque. Intitulé et raison
+ * vivent dans `admin.settings.operatorTasks`, sous la même clé.
  */
 const OPERATOR_ONLY = [
-  {
-    task: "Raccorder une clinique",
-    command: "make clinic",
-    why: "Génère le certificat DICOM TLS et la clé Tailscale à usage unique : des secrets qui ne transitent pas par le web.",
-  },
-  {
-    task: "Révoquer une passerelle",
-    command: "tools/dicom_pki.py revoke",
-    why: "La révocation touche l’autorité de certification, gardée hors ligne.",
-  },
-  {
-    task: "Restaurer une sauvegarde",
-    command: "docs/exploitation.md",
-    why: "Le déchiffrement exige la clé privée age, conservée hors du web et jamais saisie dans un formulaire.",
-  },
-  {
-    task: "Déployer une version",
-    command: "CI · deploy.yml",
-    why: "Chaque déploiement passe par la CI, ses tests et son approbation.",
-  },
-];
+  { key: "clinic", command: "make clinic" },
+  { key: "revoke", command: "tools/dicom_pki.py revoke" },
+  { key: "restore", command: "docs/exploitation.md" },
+  { key: "deploy", command: "CI · deploy.yml" },
+] as const;
 
 /**
  * Réglages de la plateforme.
@@ -47,23 +35,21 @@ const OPERATOR_ONLY = [
  */
 export default async function SettingsPage() {
   await requireSession(["platform_admin"]);
+  const { t } = await getMessages();
+  const text = t.admin.settings;
   const settings = await getPlatformSettings();
 
   return (
     <>
-      <PageHeader
-        title="Réglages"
-        description="S’appliquent à toute la plateforme dès le prochain affichage et sont tracés dans le journal d’audit"
-      />
+      <PageHeader title={t.nav.items.controls} description={text.description} />
       <ControlBody>
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
           <Section
-            title="Plateforme"
+            title={text.platform}
             description={
               settings ? (
                 <>
-                  Dernière modification le{" "}
-                  <DateTime date={settings.updatedAt} />
+                  {text.lastChanged} <DateTime date={settings.updatedAt} />
                 </>
               ) : undefined
             }
@@ -77,29 +63,30 @@ export default async function SettingsPage() {
               />
             ) : (
               <p role="alert" className="text-sm text-urgent">
-                Les réglages sont momentanément illisibles : le service ne
-                répond pas. Réessayez dans un instant.
+                {text.unreadable}
               </p>
             )}
           </Section>
 
           <Section
-            title="Depuis le poste d’exploitation"
-            description="Volontairement absents de cet écran"
+            title={text.operatorOnly}
+            description={text.operatorOnlyDescription}
             className="lg:col-span-2"
             flush
           >
             <ul className="divide-y divide-border-subtle">
               {OPERATOR_ONLY.map((item) => (
-                <li key={item.task} className="px-4 py-3">
+                <li key={item.key} className="px-4 py-3">
                   <p className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium">
-                    {item.task}
+                    {text.operatorTasks[item.key].task}
                     <code className="inline-flex items-center gap-1 rounded bg-surface-sunken px-1.5 py-0.5 font-mono text-2xs font-normal text-secondary">
                       <Terminal className="size-3" aria-hidden />
                       {item.command}
                     </code>
                   </p>
-                  <p className="mt-0.5 text-2xs text-tertiary">{item.why}</p>
+                  <p className="mt-0.5 text-2xs text-tertiary">
+                    {text.operatorTasks[item.key].why}
+                  </p>
                 </li>
               ))}
             </ul>

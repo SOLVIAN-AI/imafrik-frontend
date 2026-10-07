@@ -41,10 +41,21 @@ import {
   formatPersonName,
   formatRate,
 } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/locale";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
+import { getMessages } from "@/i18n/server";
+import type { AppMessages } from "@/i18n";
 
-export const metadata: Metadata = { title: "Activité" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.nav.items.analytics };
+}
+
+/** Textes et langue de l'utilisateur, transmis aux blocs de l'écran. */
+interface Lang {
+  t: AppMessages;
+  locale: Locale;
+}
 
 /** Au-delà, une barre par jour devient illisible : on passe à la semaine. */
 const DAILY_LIMIT = 90;
@@ -61,6 +72,9 @@ export default async function ActivityPage({
   searchParams,
 }: PageProps<"/admin/activite">) {
   await requireSession(["platform_admin"]);
+  const { t, locale } = await getMessages();
+  const lang = { t, locale };
+  const text = t.admin.activity;
   const params = await searchParams;
   const clinics = (await listOrganizations())
     .filter((org) => org.kind === "clinic")
@@ -82,14 +96,20 @@ export default async function ActivityPage({
   return (
     <>
       <PageHeader
-        title="Activité"
-        description={`${clinicName ?? "Tout le réseau"} · ${days} derniers jours`}
+        title={t.nav.items.analytics}
+        description={text.description(
+          clinicName ?? t.admin.shared.wholeNetwork,
+          days,
+        )}
         actions={
           <>
             <Segmented
-              label="Période"
+              label={text.period}
               options={ANALYTICS_PERIODS.map((period) => ({
-                label: period === 365 ? "1 an" : `${period} j`,
+                label:
+                  period === 365
+                    ? t.common.units.years(1)
+                    : `${period} ${t.common.units.day}`,
                 href: periodHref(period),
                 active: period === days,
               }))}
@@ -100,76 +120,88 @@ export default async function ActivityPage({
       />
 
       <ControlBody>
-        <Totals data={data} />
+        <Totals data={data} {...lang} />
 
         <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
-          <Volume data={data} />
-          <Turnaround data={data} />
+          <Volume data={data} {...lang} />
+          <Turnaround data={data} {...lang} />
         </div>
 
-        <Stages stages={data.stages} />
+        <Stages stages={data.stages} {...lang} />
 
         <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-3">
           <Section
-            title="Heures d’arrivée"
-            description="Examens reçus par jour de la semaine et heure (UTC, heure de Lomé)"
+            title={text.arrivals}
+            description={text.arrivalsDescription}
             className="xl:col-span-2"
           >
             <Heatmap
               cells={data.heatmap}
-              caption="Examens reçus par jour de la semaine et par heure"
+              caption={text.arrivalsCaption}
+              locale={locale}
             />
           </Section>
-          <Section title="Modalités" description="Examens reçus · délai médian">
+          <Section
+            title={text.modalities}
+            description={text.modalitiesDescription}
+          >
             <RankedBars
+              locale={locale}
               items={data.byModality.map((row) => ({
                 label: row.modality,
                 value: row.received,
-                hint: formatMinutes(row.medianMinutes),
+                hint: formatMinutes(row.medianMinutes, locale),
               }))}
             />
           </Section>
         </div>
 
-        {!clinicId && <Clinics data={data} days={days} />}
+        {!clinicId && <Clinics data={data} days={days} {...lang} />}
 
-        <Radiologists data={data} />
+        <Radiologists data={data} {...lang} />
       </ControlBody>
     </>
   );
 }
 
 /** Totaux de la période. */
-function Totals({ data }: { data: ControlAnalytics }) {
+function Totals({ data, t, locale }: { data: ControlAnalytics } & Lang) {
+  const text = t.admin.activity;
+  const shared = t.admin.shared;
   const { totals, sla } = data;
   const ratio = sla.withinSla;
   return (
     <section
-      aria-label="Totaux de la période"
+      aria-label={text.totals}
       className="grid grid-cols-2 gap-x-4 gap-y-5 rounded-xl border border-border-subtle bg-surface-raised p-4 shadow-raised sm:grid-cols-3 lg:grid-cols-5"
     >
-      <Figure label="Examens reçus" value={formatCount(totals.received)} />
       <Figure
-        label="Dont urgences"
-        value={formatCount(totals.urgent)}
+        label={shared.receivedStudies}
+        value={formatCount(totals.received, locale)}
+      />
+      <Figure
+        label={shared.ofWhichUrgent}
+        value={formatCount(totals.urgent, locale)}
         hint={
           totals.received
-            ? formatPercent(totals.urgent / totals.received)
+            ? formatPercent(totals.urgent / totals.received, locale)
             : undefined
         }
       />
       <Figure
-        label="Comptes-rendus signés"
-        value={formatCount(totals.signed)}
+        label={shared.signedReports}
+        value={formatCount(totals.signed, locale)}
         hint={
           totals.received
-            ? `${formatPercent(totals.signed / totals.received)} des reçus`
+            ? text.ofReceived(
+                formatPercent(totals.signed / totals.received, locale),
+              )
             : undefined
         }
       />
       <Figure
-        label="Dans les délais promis"
-        value={formatPercent(ratio)}
+        label={text.withinSla}
+        value={formatPercent(ratio, locale)}
         tone={
           ratio === null
             ? undefined
@@ -179,14 +211,17 @@ function Totals({ data }: { data: ControlAnalytics }) {
                 ? "progress"
                 : "urgent"
         }
-        hint={`urgence ${formatPercent(sla.urgent.withinSla)} · routine ${formatPercent(sla.routine.withinSla)}`}
+        hint={text.withinSlaHint(
+          formatPercent(sla.urgent.withinSla, locale),
+          formatPercent(sla.routine.withinSla, locale),
+        )}
       />
       <Figure
-        label="Images reçues"
-        value={formatBytes(totals.bytes)}
+        label={shared.imagesReceived}
+        value={formatBytes(totals.bytes, locale)}
         hint={
           totals.received
-            ? `${formatBytes(totals.bytes / totals.received)} par examen`
+            ? text.perStudy(formatBytes(totals.bytes / totals.received, locale))
             : undefined
         }
       />
@@ -194,9 +229,10 @@ function Totals({ data }: { data: ControlAnalytics }) {
   );
 }
 
-const VOLUME_SERIES = [
-  { label: "Routine", tone: "accent" as const },
-  { label: "Urgence", tone: "urgent" as const },
+/** Séries de l'histogramme des volumes, de bas en haut. */
+const volumeSeries = (t: AppMessages) => [
+  { label: t.admin.shared.routine, tone: "accent" as const },
+  { label: t.admin.shared.urgent, tone: "urgent" as const },
 ];
 
 /** Séries quotidiennes, regroupées par semaine au-delà de 90 jours. */
@@ -209,88 +245,85 @@ function buckets(data: ControlAnalytics) {
 }
 
 /** Volume reçu par période. */
-function Volume({ data }: { data: ControlAnalytics }) {
+function Volume({ data, t, locale }: { data: ControlAnalytics } & Lang) {
+  const text = t.admin.activity;
+  const series = volumeSeries(t);
   const { weekly, groups } = buckets(data);
   return (
     <Section
-      title="Volume reçu"
-      description={weekly ? "Par semaine" : "Par jour"}
-      aside={<Legend series={VOLUME_SERIES} />}
+      title={t.admin.shared.volumeReceived}
+      description={weekly ? text.perWeek : text.perDay}
+      aside={<Legend series={series} />}
     >
       <StackedBars
-        caption={`Examens reçus ${weekly ? "par semaine" : "par jour"}`}
+        caption={weekly ? text.receivedPerWeek : text.receivedPerDay}
+        locale={locale}
         points={groups.map((group) => ({
-          label: formatDayShort(group[0].day),
+          label: formatDayShort(group[0].day, locale),
           values: [
             group.reduce((sum, day) => sum + day.routine, 0),
             group.reduce((sum, day) => sum + day.urgent, 0),
           ],
         }))}
-        series={VOLUME_SERIES}
+        series={series}
       />
     </Section>
   );
 }
 
-const TURNAROUND_SERIES = [
-  { label: "Médiane", tone: "accent" as const },
-  { label: "9 examens sur 10", tone: "progress" as const, dashed: true },
+/** Séries des délais : médiane et 90e centile. */
+const turnaroundSeries = (t: AppMessages) => [
+  { label: t.admin.activity.median, tone: "accent" as const },
+  { label: t.admin.activity.p90, tone: "progress" as const, dashed: true },
 ];
 
 /** Délai de réception à signature, au fil de la période. */
-function Turnaround({ data }: { data: ControlAnalytics }) {
+function Turnaround({ data, t, locale }: { data: ControlAnalytics } & Lang) {
+  const text = t.admin.activity;
+  const series = turnaroundSeries(t);
   const { weekly, groups } = buckets(data);
   return (
     <Section
-      title="Délai de lecture"
-      description={
-        weekly
-          ? "De la réception à la signature, en moyenne hebdomadaire des valeurs quotidiennes"
-          : "De la réception à la signature, par jour"
-      }
-      aside={<Legend series={TURNAROUND_SERIES} />}
+      title={text.turnaround}
+      description={weekly ? text.turnaroundWeekly : text.turnaroundDaily}
+      aside={<Legend series={series} />}
     >
       <Lines
-        caption="Délai de réception à signature, en minutes"
+        caption={text.turnaroundCaption}
+        locale={locale}
         points={groups.map((group) => {
           const pairs = (
             pick: (day: (typeof group)[number]) => number | null,
           ) => weightedMean(group.map((day) => [pick(day), day.signed]));
           return {
-            label: formatDayShort(group[0].day),
+            label: formatDayShort(group[0].day, locale),
             values: [
               pairs((day) => day.medianMinutes),
               pairs((day) => day.p90Minutes),
             ],
           };
         })}
-        series={TURNAROUND_SERIES}
+        series={series}
         threshold={{
           value: data.targets.routine,
-          label: `Promis en routine : ${formatDuration(data.targets.routine)}`,
+          label: text.routineTarget(
+            formatDuration(data.targets.routine, locale),
+          ),
         }}
         unit="minutes"
-        format={(value) => formatDuration(value)}
+        format={(value) => formatDuration(value, locale)}
       />
     </Section>
   );
 }
 
-/** Étapes du parcours, dans l'ordre. */
-const STAGES: { key: keyof StageMedians; label: string; detail: string }[] = [
-  {
-    key: "arrival",
-    label: "Acheminement",
-    detail: "acquisition → dernière image reçue",
-  },
-  {
-    key: "transfer",
-    label: "Transfert",
-    detail: "première → dernière image",
-  },
-  { key: "queue", label: "File", detail: "réception → prise en charge" },
-  { key: "reading", label: "Lecture", detail: "prise en charge → signature" },
-  { key: "delivery", label: "Remise", detail: "signature → téléchargement" },
+/** Étapes du parcours, dans l'ordre ; libellés dans `admin.stages`. */
+const STAGES: (keyof StageMedians)[] = [
+  "arrival",
+  "transfer",
+  "queue",
+  "reading",
+  "delivery",
 ];
 
 /**
@@ -299,21 +332,22 @@ const STAGES: { key: keyof StageMedians; label: string; detail: string }[] = [
  * Le délai total ne dit pas si un examen attend dans le réseau, dans la
  * file ou chez le radiologue — et la réponse n'appelle pas le même geste.
  */
-function Stages({ stages }: { stages: StageMedians }) {
-  const values = STAGES.map((stage) => stages[stage.key] ?? 0);
+function Stages({ stages, t, locale }: { stages: StageMedians } & Lang) {
+  const labels = t.admin.stages;
+  const values = STAGES.map((key) => stages[key] ?? 0);
   const slowest = Math.max(...values);
   return (
     <Section
-      title="Parcours d’un examen"
-      description="Durée médiane de chaque étape, la plus longue étant mise en évidence"
+      title={t.admin.activity.journey}
+      description={t.admin.activity.journeyDescription}
     >
       <ol className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {STAGES.map((stage, index) => {
-          const value = stages[stage.key];
+        {STAGES.map((key, index) => {
+          const value = stages[key];
           const isSlowest = value !== null && value > 0 && value === slowest;
           return (
             <li
-              key={stage.key}
+              key={key}
               className={cn(
                 "relative rounded-lg border px-3 py-2.5",
                 isSlowest
@@ -323,7 +357,7 @@ function Stages({ stages }: { stages: StageMedians }) {
             >
               <p className="flex items-center gap-1 text-2xs text-tertiary">
                 <span className="tabular-nums">{index + 1}.</span>
-                <span className="truncate">{stage.label}</span>
+                <span className="truncate">{labels.labels[key]}</span>
               </p>
               <p
                 className={cn(
@@ -331,13 +365,13 @@ function Stages({ stages }: { stages: StageMedians }) {
                   isSlowest && "text-progress",
                 )}
               >
-                {formatMinutes(value)}
+                {formatMinutes(value, locale)}
               </p>
               <p
                 className="truncate text-2xs text-tertiary"
-                title={stage.detail}
+                title={labels.details[key]}
               >
-                {stage.detail}
+                {labels.details[key]}
               </p>
               {index < STAGES.length - 1 && (
                 <ChevronRight
@@ -354,16 +388,19 @@ function Stages({ stages }: { stages: StageMedians }) {
 }
 
 /** Tableau par clinique : volumes, délais, débit de réception. */
-function Clinics({ data, days }: { data: ControlAnalytics; days: number }) {
+function Clinics({
+  data,
+  days,
+  t,
+  locale,
+}: { data: ControlAnalytics; days: number } & Lang) {
+  const text = t.admin.activity;
+  const columns = text.columns;
   return (
-    <Section
-      title="Par clinique"
-      description="Le débit est celui de la liaison entre la passerelle et le PACS central"
-      flush
-    >
+    <Section title={text.byClinic} description={text.byClinicDescription} flush>
       {data.byClinic.length === 0 ? (
         <p className="px-4 py-6 text-center text-xs text-tertiary">
-          Aucune clinique sur la période.
+          {text.noClinic}
         </p>
       ) : (
         <>
@@ -377,23 +414,29 @@ function Clinics({ data, days }: { data: ControlAnalytics; days: number }) {
                   {clinic.name}
                 </Link>
                 <dl className="mt-1.5 grid grid-cols-3 gap-2 text-2xs">
-                  <Cell label="Reçus" value={formatCount(clinic.received)} />
                   <Cell
-                    label="Délai médian"
-                    value={formatMinutes(clinic.medianMinutes)}
+                    label={columns.received}
+                    value={formatCount(clinic.received, locale)}
                   />
                   <Cell
-                    label="Dans les délais"
-                    value={formatPercent(clinic.withinSla)}
+                    label={columns.median}
+                    value={formatMinutes(clinic.medianMinutes, locale)}
                   />
                   <Cell
-                    label="Débit"
-                    value={formatRate(clinic.medianMbPerSecond)}
+                    label={columns.withinSla}
+                    value={formatPercent(clinic.withinSla, locale)}
+                  />
+                  <Cell
+                    label={columns.throughput}
+                    value={formatRate(clinic.medianMbPerSecond, locale)}
                     warn={isSlow(clinic.medianMbPerSecond)}
                   />
-                  <Cell label="Volume" value={formatBytes(clinic.bytes)} />
+                  <Cell
+                    label={columns.volume}
+                    value={formatBytes(clinic.bytes, locale)}
+                  />
                   <div className="min-w-0">
-                    <dt className="text-tertiary">Dernier envoi</dt>
+                    <dt className="text-tertiary">{columns.lastSent}</dt>
                     <dd className="truncate">
                       {clinic.lastReceivedAt ? (
                         <RelativeTime
@@ -414,28 +457,28 @@ function Clinics({ data, days }: { data: ControlAnalytics; days: number }) {
               <thead>
                 <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:px-4 [&>th]:text-right [&>th]:font-medium [&>th:first-child]:text-left">
                   <th scope="col">
-                    <span className="label-eyebrow">Clinique</span>
+                    <span className="label-eyebrow">{columns.clinic}</span>
                   </th>
                   <th scope="col">
-                    <span className="label-eyebrow">Reçus</span>
+                    <span className="label-eyebrow">{columns.received}</span>
                   </th>
                   <th scope="col">
-                    <span className="label-eyebrow">Signés</span>
+                    <span className="label-eyebrow">{columns.signed}</span>
                   </th>
                   <th scope="col">
-                    <span className="label-eyebrow">Délai médian</span>
+                    <span className="label-eyebrow">{columns.median}</span>
                   </th>
                   <th scope="col">
-                    <span className="label-eyebrow">Dans les délais</span>
+                    <span className="label-eyebrow">{columns.withinSla}</span>
                   </th>
                   <th scope="col">
-                    <span className="label-eyebrow">Débit</span>
+                    <span className="label-eyebrow">{columns.throughput}</span>
                   </th>
                   <th scope="col">
-                    <span className="label-eyebrow">Volume</span>
+                    <span className="label-eyebrow">{columns.volume}</span>
                   </th>
                   <th scope="col">
-                    <span className="label-eyebrow">Dernier envoi</span>
+                    <span className="label-eyebrow">{columns.lastSent}</span>
                   </th>
                 </tr>
               </thead>
@@ -453,18 +496,18 @@ function Clinics({ data, days }: { data: ControlAnalytics; days: number }) {
                         {clinic.name}
                       </Link>
                     </td>
-                    <td>{formatCount(clinic.received)}</td>
-                    <td>{formatCount(clinic.signed)}</td>
-                    <td>{formatMinutes(clinic.medianMinutes)}</td>
-                    <td>{formatPercent(clinic.withinSla)}</td>
+                    <td>{formatCount(clinic.received, locale)}</td>
+                    <td>{formatCount(clinic.signed, locale)}</td>
+                    <td>{formatMinutes(clinic.medianMinutes, locale)}</td>
+                    <td>{formatPercent(clinic.withinSla, locale)}</td>
                     <td
                       className={cn(
                         isSlow(clinic.medianMbPerSecond) && "text-progress",
                       )}
                     >
-                      {formatRate(clinic.medianMbPerSecond)}
+                      {formatRate(clinic.medianMbPerSecond, locale)}
                     </td>
-                    <td>{formatBytes(clinic.bytes)}</td>
+                    <td>{formatBytes(clinic.bytes, locale)}</td>
                     <td className="text-2xs whitespace-nowrap text-tertiary">
                       {clinic.lastReceivedAt ? (
                         <RelativeTime
@@ -516,16 +559,17 @@ function Cell({
 }
 
 /** Production des radiologues. */
-function Radiologists({ data }: { data: ControlAnalytics }) {
+function Radiologists({ data, t, locale }: { data: ControlAnalytics } & Lang) {
+  const text = t.admin.activity;
   return (
     <Section
-      title="Par radiologue"
-      description="Délai total (réception → signature) et temps de lecture (prise en charge → signature)"
+      title={text.byRadiologist}
+      description={text.byRadiologistDescription}
       flush
     >
       {data.byRadiologist.length === 0 ? (
         <p className="px-4 py-6 text-center text-xs text-tertiary">
-          Aucun compte-rendu signé sur la période.
+          {text.noReport}
         </p>
       ) : (
         <ul className="divide-y divide-border-subtle">
@@ -549,14 +593,16 @@ function Radiologists({ data }: { data: ControlAnalytics }) {
                   />
                 </span>
                 <span className="text-right text-sm font-semibold tabular-nums">
-                  {formatCount(reader.signed)}
+                  {formatCount(reader.signed, locale)}
                   <span className="ml-1 text-2xs font-normal text-tertiary">
-                    signés
+                    {text.signed}
                   </span>
                 </span>
                 <span className="col-span-2 text-2xs text-tertiary tabular-nums sm:col-span-1 sm:w-44 sm:text-right">
-                  délai {formatMinutes(reader.medianMinutes)} · lecture{" "}
-                  {formatMinutes(reader.medianReadingMinutes)}
+                  {text.radiologistTimes(
+                    formatMinutes(reader.medianMinutes, locale),
+                    formatMinutes(reader.medianReadingMinutes, locale),
+                  )}
                 </span>
               </li>
             );
