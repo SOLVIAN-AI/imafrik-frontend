@@ -51,9 +51,10 @@ export interface UseAutosaveOptions<T> {
  *    valeur **courante** — les intermédiaires, périmées, ne partent jamais.
  *    Deux requêtes concurrentes pourraient arriver dans le désordre, et
  *    une version ancienne écraserait alors la récente.
- * 3. *Aucune perte silencieuse.* Un échec laisse la modification marquée
- *    « à écrire » : la frappe suivante, ou `flush`, la réémet, et quitter
- *    la page demande confirmation.
+ * 3. *Aucune perte silencieuse.* Un échec — réponse d'erreur ou
+ *    exception — laisse la modification marquée « à écrire » : la frappe
+ *    suivante, ou `flush`, la réémet, et quitter la page demande
+ *    confirmation. La chaîne d'écritures ne reste jamais rejetée.
  * 4. *`flush` dit la vérité.* Il attend la fin de **toutes** les écritures
  *    en cours et renvoie `true` seulement si la valeur affichée est bien
  *    enregistrée. La signature s'appuie dessus : signer après un `flush`
@@ -98,7 +99,17 @@ export function useAutosave<T>({
       dirty.current = false;
       setState("saving");
 
-      const outcome = await saveFn.current(snapshot);
+      // Une fonction qui lève — un appel d'action serveur, quand le réseau
+      // tombe, rejette au lieu de répondre — compte comme une coupure. Sans
+      // ce filet, la chaîne restait rejetée : plus aucune écriture ne
+      // partait, même le réseau revenu, et l'indicateur restait figé sur
+      // « enregistrement ».
+      let outcome: SaveOutcome;
+      try {
+        outcome = await saveFn.current(snapshot);
+      } catch {
+        outcome = "failed";
+      }
       if (outcome === "saved") {
         setState("saved");
       } else if (outcome === "conflict") {

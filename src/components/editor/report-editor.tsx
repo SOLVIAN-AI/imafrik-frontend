@@ -360,12 +360,22 @@ function EditorAction({
  */
 export function ReportEditor({
   sections,
+  revision = 0,
   saveState = "idle",
   readOnly = false,
   onChange,
   footer,
 }: {
   sections: ReportSections;
+  /**
+   * Révision du contenu. Chaque section ne lit `sections` qu'à sa
+   * création : le parent incrémente ce compteur quand il remplace le
+   * texte autrement que par la frappe (modèle, copie de secours), et les
+   * sections sont recréées sur le nouveau contenu. Les synchroniser à
+   * chaque rendu ferait perdre des frappes, une valeur en retard d'un
+   * rendu écrasant le texte tout juste saisi.
+   */
+  revision?: number;
   saveState?: SaveState;
   /** Un compte-rendu signé est verrouillé, en base comme à l'écran. */
   readOnly?: boolean;
@@ -375,7 +385,10 @@ export function ReportEditor({
   // La barre de mise en forme agit sur la section qui a le focus. On
   // retient donc l'éditeur actif plutôt que d'en dupliquer une par
   // section, ce qui encombrerait le document.
-  const [active, setActive] = React.useState<Editor | null>(null);
+  const [focused, setActive] = React.useState<Editor | null>(null);
+  // Un éditeur recréé — voir `revision` — laisse l'ancien détruit : la
+  // barre ne doit pas agir dessus.
+  const active = focused && !focused.isDestroyed ? focused : null;
   const [focusMode, setFocusMode] = React.useState(false);
   const [helpOpen, setHelpOpen] = React.useState(false);
   const [reviewOpen, setReviewOpen] = React.useState(false);
@@ -573,7 +586,7 @@ export function ReportEditor({
         <div className="mx-auto max-w-3xl rounded-xl border border-border-subtle bg-surface-raised shadow-raised">
           {REPORT_SECTIONS.map((section) => (
             <Section
-              key={section.key}
+              key={`${section.key}:${revision}`}
               id={`${idPrefix}-${section.key}`}
               title={section.title}
               placeholder={section.placeholder}
