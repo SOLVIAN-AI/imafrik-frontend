@@ -37,7 +37,7 @@ describe("textes du site public", () => {
 
   it.each(LOCALES)("%s : aucun texte vide", (locale) => {
     const empty = strings(marketingCopy(locale))
-      .filter(([path, text]) => text.trim() === "")
+      .filter(([, text]) => text.trim() === "")
       // La version française n'a pas d'avertissement de traduction.
       .filter(
         ([path]) => !(locale === "fr" && path === "legal.translationNotice"),

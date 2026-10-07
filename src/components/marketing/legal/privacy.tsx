@@ -302,8 +302,8 @@ function English() {
       <h2 id={SUBPROCESSORS_ANCHOR.en}>Sub-processors</h2>
       <p>
         Sub-processors are contractually bound by security and confidentiality
-        obligations equivalent to our own. Facilities are notified of any change before it
-        takes effect.
+        obligations equivalent to our own. Facilities are notified of any change
+        before it takes effect.
       </p>
       <ul>
         {SUBPROCESSORS.map((processor) => (

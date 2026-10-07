@@ -153,10 +153,10 @@ function English() {
 
       <h2>2. Access and accounts</h2>
       <p>
-        Access is granted by personal invitation. An account is personal: it
-        may not be shared or assigned to a workstation or department. The
-        account holder is responsible for keeping their credentials confidential
-        and must report any unauthorised use without delay.
+        Access is granted by personal invitation. An account is personal: it may
+        not be shared or assigned to a workstation or department. The account
+        holder is responsible for keeping their credentials confidential and
+        must report any unauthorised use without delay.
       </p>
       <p>
         Each access to an examination is recorded and linked to the account
@@ -187,8 +187,8 @@ function English() {
 
       <h2>4. Medical responsibility</h2>
       <p>
-        IMAFRIK ensures the transmission, storage, availability and
-        traceability of examinations and reports.{" "}
+        IMAFRIK ensures the transmission, storage, availability and traceability
+        of examinations and reports.{" "}
         <strong>
           The interpretation of an examination and the content of the report are
           the sole responsibility of the radiologist who signs it
