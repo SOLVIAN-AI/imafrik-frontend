@@ -3,25 +3,45 @@
 import { RefreshCw, Search, Siren } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { setListSearch } from "@/lib/actions/search";
+import {
+  LIST_SEARCH_MAX_LENGTH,
+  type ListSearchScope,
+} from "@/lib/search/list-search";
 import { cn } from "@/lib/utils";
 
 /**
  * Barre d'outils d'une liste d'examens : recherche, filtre des urgences,
  * actualisation.
  *
- * **L'état vit dans l'adresse** (`?q=…&urgent=1`), pas dans le composant :
- * la page serveur relit les paramètres et interroge le service avec. Un
- * filtre se partage donc par lien, survit au rechargement, et la liste
- * affichée est toujours celle que le service a renvoyée — jamais un
- * sous-ensemble filtré dans le navigateur.
+ * **Aucun état dans le composant** : la page serveur relit les filtres et
+ * interroge le service avec, et la liste affichée est toujours celle qu'il
+ * a renvoyée — jamais un sous-ensemble filtré dans le navigateur.
  *
+ * Les deux filtres ne voyagent pas de la même façon :
+ *
+ * - **la recherche** porte un nom de patient : elle passe par une action
+ *   serveur qui la range dans un cookie httpOnly lié au compte, et
+ *   n'apparaît ni dans l'adresse, ni dans l'historique, ni dans les
+ *   journaux (voir `lib/search/list-search.ts`) ;
+ * - **le filtre des urgences** ne dit rien de personne : il reste dans
+ *   l'adresse (`?urgent=1`), partageable par lien — c'est la destination
+ *   des alertes du cockpit.
+ *
+ * @param scope        Liste dont la recherche est tenue.
+ * @param search       Recherche en cours, relue par la page serveur.
  * @param urgentFilter Afficher le bouton « Urgences seulement ».
  */
 export function ListToolbar({
+  scope,
+  search,
   urgentFilter = false,
 }: {
+  scope: ListSearchScope;
+  search?: string;
   urgentFilter?: boolean;
 }) {
   const router = useRouter();
@@ -32,6 +52,8 @@ export function ListToolbar({
 
   const navigate = (update: (next: URLSearchParams) => void) => {
     const next = new URLSearchParams(params);
+    // Un ancien lien portant encore `?q=` ne le transmet pas plus loin.
+    next.delete("q");
     update(next);
     const query = next.toString();
     startTransition(() =>
@@ -50,8 +72,11 @@ export function ListToolbar({
           event.preventDefault();
           const value = String(
             new FormData(event.currentTarget).get("q") ?? "",
-          ).trim();
-          navigate((next) => (value ? next.set("q", value) : next.delete("q")));
+          );
+          startTransition(async () => {
+            const result = await setListSearch(scope, value);
+            if (!result.ok) toast.error(result.error);
+          });
         }}
       >
         <label className="relative flex items-center">
@@ -63,7 +88,14 @@ export function ListToolbar({
           <input
             name="q"
             type="search"
-            defaultValue={params.get("q") ?? ""}
+            // Remonté quand la recherche change côté serveur : le champ
+            // reflète toujours le filtre réellement appliqué.
+            key={search ?? ""}
+            defaultValue={search ?? ""}
+            maxLength={LIST_SEARCH_MAX_LENGTH}
+            // L'historique de saisie du navigateur garderait, lui aussi,
+            // les noms cherchés.
+            autoComplete="off"
             placeholder="Patient, identifiant, modalité…"
             className={cn(
               "h-9 w-full rounded-lg border border-border-subtle bg-surface-base/60 pr-2.5 pl-8 sm:h-8 sm:w-56",

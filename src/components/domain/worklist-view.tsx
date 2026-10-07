@@ -82,9 +82,11 @@ function describeScope(studies: Study[]): string {
  */
 export function WorklistView({
   studies,
+  search,
   filtered,
 }: {
   studies: Study[];
+  search?: string;
   filtered: boolean;
 }) {
   const now = useNow();
@@ -94,7 +96,7 @@ export function WorklistView({
       <PageHeader
         title="À lire"
         description={describeScope(studies)}
-        actions={<ListToolbar urgentFilter />}
+        actions={<ListToolbar scope="worklist" search={search} urgentFilter />}
       />
       <MetricGrid
         metrics={buildMetrics(studies, now)}

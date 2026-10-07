@@ -14,6 +14,7 @@ import {
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { toast } from "sonner";
 
 import {
   StudyStatusChip,
@@ -21,17 +22,30 @@ import {
 } from "@/components/domain/study-status";
 import { NAV_ICONS } from "@/components/layout/sidebar";
 import { useSession } from "@/components/providers/session-provider";
-import { searchStudies, type StudyHit } from "@/lib/actions/search";
+import {
+  searchStudies,
+  setListSearch,
+  type StudyHit,
+} from "@/lib/actions/search";
 import { formatPatientName } from "@/lib/format";
 import { navigationFor } from "@/lib/navigation";
+import type { ListSearchScope } from "@/lib/search/list-search";
 import type { UserRole } from "@/lib/session/types";
 import { cn } from "@/lib/utils";
 
-/** Liste où mène « voir tous les résultats », par portail. */
-const SEARCH_TARGET: Record<UserRole, string> = {
-  radiologist: "/worklist",
-  clinic_staff: "/examens",
-  platform_admin: "/admin/examens",
+/**
+ * Liste où mène « voir tous les résultats », par portail.
+ *
+ * La recherche n'y voyage pas dans l'adresse — elle porte un nom de
+ * patient — mais par le cookie de la liste (`setListSearch`).
+ */
+const SEARCH_TARGET: Record<
+  UserRole,
+  { href: string; scope: ListSearchScope }
+> = {
+  radiologist: { href: "/worklist", scope: "worklist" },
+  clinic_staff: { href: "/examens", scope: "examens" },
+  platform_admin: { href: "/admin/examens", scope: "admin-examens" },
 };
 
 /**
@@ -40,15 +54,23 @@ const SEARCH_TARGET: Record<UserRole, string> = {
  * Le radiologue va droit à l'écran de lecture, la clinique à la fiche de
  * suivi. L'équipe IMAFRIK n'a pas d'écran par examen — elle ne lit pas
  * les images — : la liste filtrée sur l'identifiant en tient lieu.
+ *
+ * @returns L'adresse, et la recherche à appliquer à la liste d'arrivée.
  */
-function studyHref(role: UserRole, hit: StudyHit): string {
+function studyTarget(
+  role: UserRole,
+  hit: StudyHit,
+): { href: string; search?: string } {
   switch (role) {
     case "radiologist":
-      return `/lecture/${hit.id}`;
+      return { href: `/lecture/${hit.id}` };
     case "clinic_staff":
-      return `/examens/${hit.id}`;
+      return { href: `/examens/${hit.id}` };
     case "platform_admin":
-      return `/admin/examens?q=${encodeURIComponent(hit.patientId || hit.patientName)}`;
+      return {
+        href: SEARCH_TARGET.platform_admin.href,
+        search: hit.patientId || hit.patientName,
+      };
   }
 }
 
@@ -163,6 +185,31 @@ export function CommandPalette({
     [close, router],
   );
 
+  /** Ouvre la liste du portail, filtrée sur une recherche. */
+  const goSearch = React.useCallback(
+    async (search: string) => {
+      const target = SEARCH_TARGET[active.role];
+      close();
+      const result = await setListSearch(target.scope, search);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      router.push(target.href);
+    },
+    [active.role, close, router],
+  );
+
+  /** Ouvre un examen trouvé. */
+  const openHit = React.useCallback(
+    (hit: StudyHit) => {
+      const target = studyTarget(active.role, hit);
+      if (target.search) void goSearch(target.search);
+      else go(target.href);
+    },
+    [active.role, go, goSearch],
+  );
+
   const commands = React.useMemo<Command[]>(() => {
     const needle = normalize(query.trim());
     const studies: Command[] = hits.map((hit) => ({
@@ -178,7 +225,7 @@ export function CommandPalette({
         .join(" · "),
       icon: Stethoscope,
       hit,
-      run: () => go(studyHref(active.role, hit)),
+      run: () => openHit(hit),
     }));
 
     const screens: Command[] = navigationFor(active.role)
@@ -207,7 +254,7 @@ export function CommandPalette({
       !needle || normalize(theme.label).includes(needle) ? [theme] : [];
 
     return [...studies, ...screens, ...preferences];
-  }, [hits, query, active.role, resolvedTheme, setTheme, go, close]);
+  }, [hits, query, active.role, resolvedTheme, setTheme, go, close, openHit]);
 
   const selected = commands[Math.min(cursor, commands.length - 1)];
 
@@ -232,10 +279,7 @@ export function CommandPalette({
     } else if (event.key === "Enter") {
       event.preventDefault();
       if (selected) selected.run();
-      else if (query.trim())
-        go(
-          `${SEARCH_TARGET[active.role]}?q=${encodeURIComponent(query.trim())}`,
-        );
+      else if (query.trim()) void goSearch(query);
     }
   };
 

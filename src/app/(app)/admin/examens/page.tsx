@@ -10,6 +10,7 @@ import {
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { ListToolbar } from "@/components/domain/list-toolbar";
 import { listStudies } from "@/lib/data/studies";
+import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -32,14 +33,13 @@ export const metadata: Metadata = { title: "Tous les examens" };
 export default async function AdminStudiesPage({
   searchParams,
 }: PageProps<"/admin/examens">) {
-  await requireSession(["platform_admin"]);
-  const { q, urgent } = await searchParams;
+  const session = await requireSession(["platform_admin"]);
+  const { urgent } = await searchParams;
+  const search = await readListSearch("admin-examens", session);
   // `?urgent=1` : les urgences pas encore rendues — la destination de
   // l'alerte « urgences en retard » du cockpit.
   const urgentOnly = urgent === "1";
-  const all = await listStudies({
-    search: typeof q === "string" ? q : undefined,
-  });
+  const all = await listStudies({ search });
   const studies = urgentOnly
     ? all.filter(
         (study) =>
@@ -74,7 +74,7 @@ export default async function AdminStudiesPage({
                 },
               ]}
             />
-            <ListToolbar />
+            <ListToolbar scope="admin-examens" search={search} />
           </>
         }
       />

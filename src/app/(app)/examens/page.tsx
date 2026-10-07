@@ -5,6 +5,7 @@ import { ListToolbar } from "@/components/domain/list-toolbar";
 import { StudyList } from "@/components/domain/study-list";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { listStudies } from "@/lib/data/studies";
+import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
 
 export const metadata: Metadata = { title: "Examens" };
@@ -21,12 +22,9 @@ export const metadata: Metadata = { title: "Examens" };
  * l'écran faisait auparavant un appel par ligne — qui, pour un
  * radiologue, créait même un brouillon sur chaque examen listé.
  */
-export default async function StudiesPage({
-  searchParams,
-}: PageProps<"/examens">) {
+export default async function StudiesPage() {
   const session = await requireSession(["clinic_staff", "radiologist"]);
-  const { q } = await searchParams;
-  const search = typeof q === "string" ? q : undefined;
+  const search = await readListSearch("examens", session);
   const studies = await listStudies({ search });
   const isClinic = session.active.role === "clinic_staff";
 
@@ -35,7 +33,13 @@ export default async function StudiesPage({
       <PageHeader
         title="Examens"
         description={`${studies.length} examen${studies.length > 1 ? "s" : ""} · ${session.active.organizationName}`}
-        actions={isClinic ? <ClinicStudiesActions /> : <ListToolbar />}
+        actions={
+          isClinic ? (
+            <ClinicStudiesActions search={search} />
+          ) : (
+            <ListToolbar scope="examens" search={search} />
+          )
+        }
       />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">

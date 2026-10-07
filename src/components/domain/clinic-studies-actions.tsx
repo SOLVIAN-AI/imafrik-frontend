@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
  * et accès à la page de raccordement.
  *
  * Extraites de la page pour que celle-ci reste un composant serveur.
+ *
+ * @param search Recherche en cours, relue par la page serveur.
  */
-export function ClinicStudiesActions() {
+export function ClinicStudiesActions({ search }: { search?: string }) {
   return (
     <>
-      <ListToolbar />
+      <ListToolbar scope="examens" search={search} />
       <Button size="sm" asChild>
         <Link href="/envoyer">
           <Upload />

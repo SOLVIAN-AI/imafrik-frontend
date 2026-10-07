@@ -67,6 +67,28 @@ Conséquence pratique : le client Supabase serveur est recréé à chaque
 requête pour lire les cookies de *cette* requête, et ne peut pas être mis
 en cache dans un module.
 
+### Aucun nom de patient dans l'adresse
+
+Une recherche dans une liste d'examens (« À lire », « Examens », « Examens »
+de l'administration) porte presque toujours un nom de patient. Dans
+l'adresse (`?q=KOFFI`), elle finirait dans l'historique du navigateur —
+lisible du suivant sur un poste partagé —, dans les journaux d'accès de
+l'hébergeur et dans tout lien copié. Elle passe donc par l'action
+`setListSearch`, qui la range dans un cookie `httpOnly` :
+
+- valable trente minutes, un par liste ;
+- lié au compte **et** à l'organisation active : un autre compte sur le
+  même navigateur, ou une bascule d'organisation, repart d'une liste
+  vierge ;
+- relu par la page serveur (`lib/search/server.ts`), jamais par le
+  navigateur.
+
+Le champ désactive aussi l'historique de saisie du navigateur. Côté API,
+seuls méthode, chemin et statut sont journalisés, jamais la chaîne de
+requête. Les filtres qui ne disent rien de personne — urgences, statut,
+période — restent dans l'adresse, partageables par lien. La recherche des
+comptes porte sur des soignants, pas sur des patients : elle y reste aussi.
+
 ### Le proxy, avant tout rendu
 
 `src/proxy.ts` (le successeur de `middleware.ts` depuis Next 16)
