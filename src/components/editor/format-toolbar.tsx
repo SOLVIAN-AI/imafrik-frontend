@@ -162,7 +162,7 @@ const ALIGNMENTS = [
  */
 const SYMBOLS = [
   ["±", "plus ou moins"],
-  ["×", "multiplié par — dimensions"],
+  ["×", "multiplié par (dimensions)"],
   ["°", "degré"],
   ["µ", "micro"],
   ["²", "au carré"],
@@ -327,7 +327,7 @@ export function FormatToolbar({
 
       <ToolButton
         icon={SuperscriptIcon}
-        label="Exposant — cm², mm³"
+        label="Exposant (cm², mm³)"
         shortcut={shortcut(".")}
         active={state?.superscript}
         disabled={disabled}
@@ -448,9 +448,9 @@ export function FormatToolbar({
             <>
               <DropdownMenuLabel>Insérer un tableau</DropdownMenuLabel>
               {[
-                [2, 2, "2 × 2 — valeur et mesure"],
-                [3, 3, "3 × 3 — lésions et dimensions"],
-                [4, 3, "4 × 3 — suivi comparatif"],
+                [2, 2, "2 × 2 : valeur et mesure"],
+                [3, 3, "3 × 3 : lésions et dimensions"],
+                [4, 3, "4 × 3 : suivi comparatif"],
               ].map(([rows, cols, label]) => (
                 <DropdownMenuItem
                   key={String(label)}

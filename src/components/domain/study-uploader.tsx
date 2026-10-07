@@ -260,10 +260,10 @@ export function StudyUploader() {
             traité
             {done.length > 1 ? "s" : ""}
             {failed.length > 0 &&
-              ` · ${failed.length} refusé${failed.length > 1 ? "s" : ""}`}
+              `, ${failed.length} refusé${failed.length > 1 ? "s" : ""}`}
             {!running &&
               done.length > 0 &&
-              " · l’examen apparaîtra dans le suivi d’ici une minute"}
+              ". L’examen apparaîtra dans le suivi d’ici une minute."}
           </p>
           <ul className="max-h-80 divide-y divide-border-subtle overflow-auto rounded-lg border border-border-subtle">
             {items.map((item) => (

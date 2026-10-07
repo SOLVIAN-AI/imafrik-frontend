@@ -163,7 +163,7 @@ export function Topbar({ counts }: { counts: NavCounts | null }) {
       <Link
         href="/"
         className="flex min-h-6 shrink-0 items-center py-1 lg:hidden"
-        aria-label="IMAFRIK — accueil"
+        aria-label="Accueil IMAFRIK"
       >
         <Wordmark className="h-4" title="" />
       </Link>

@@ -109,7 +109,7 @@ export function ProfileForm({
         label="Titre"
         hint={
           isRadiologist
-            ? "Imprimé devant votre nom — « Dr », « Pr »."
+            ? "Imprimé devant votre nom, par exemple « Dr » ou « Pr »."
             : "Fonction dans l’établissement."
         }
       >

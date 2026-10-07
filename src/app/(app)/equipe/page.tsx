@@ -80,7 +80,7 @@ export default async function TeamPage() {
                   {/* Téléphone : rôle et date passent sous le nom, qui
                       sinon se réduisait à son initiale. */}
                   <p className="mt-0.5 truncate text-2xs text-tertiary sm:hidden">
-                    {ROLE_LABELS[member.role]} · depuis le{" "}
+                    {ROLE_LABELS[member.role]} depuis le{" "}
                     {formatDate(member.joinedAt)}
                   </p>
                 </div>

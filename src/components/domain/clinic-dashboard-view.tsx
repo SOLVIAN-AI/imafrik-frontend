@@ -131,7 +131,7 @@ export function ClinicDashboardView({
                     </p>
                     <p className="truncate text-2xs text-tertiary">
                       {study.modality}
-                      {study.bodyPart && ` ${study.bodyPart}`} · signé par{" "}
+                      {study.bodyPart && ` ${study.bodyPart}`}, signé par{" "}
                       {study.reportedBy ?? "—"}
                       {study.reportedAt && (
                         <>

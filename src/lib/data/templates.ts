@@ -35,7 +35,7 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
   {
     // Modèle à champs : Tab parcourt [taille], [segment]… dans l'ordre.
     id: "t-us-abdomen",
-    name: "Échographie abdominale — avec mesures",
+    name: "Échographie abdominale avec mesures",
     modality: "US",
     bodyPart: "Abdomen",
     shared: true,
@@ -51,7 +51,7 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
   },
   {
     id: "t-ct-thorax",
-    name: "TDM thoracique — normal",
+    name: "TDM thoracique normale",
     modality: "CT",
     bodyPart: "Thorax",
     shared: true,
@@ -66,7 +66,7 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
   },
   {
     id: "t-mr-crane",
-    name: "IRM encéphalique — normale",
+    name: "IRM encéphalique normale",
     modality: "MR",
     bodyPart: "Crâne",
     shared: true,
@@ -81,7 +81,7 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
   },
   {
     id: "t-cr-thorax",
-    name: "Radiographie thoracique — normale",
+    name: "Radiographie thoracique normale",
     modality: "CR",
     bodyPart: "Thorax",
     shared: true,

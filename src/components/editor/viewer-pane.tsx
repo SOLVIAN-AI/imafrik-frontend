@@ -54,7 +54,7 @@ export function ViewerPane({
         {viewerUrl ? (
           <iframe
             src={viewerUrl}
-            title={`Images de l'examen ${study.studyInstanceUid}`}
+            title={`Images de l’examen ${study.studyInstanceUid}`}
             className="size-full border-0"
             allow="fullscreen"
             sandbox="allow-scripts allow-same-origin allow-downloads"

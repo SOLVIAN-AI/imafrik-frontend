@@ -28,7 +28,7 @@ const GUARANTEES = [
     icon: KeyRound,
     title: "Cloisonnement par établissement",
     detail:
-      "L’isolation est appliquée par la base de données, pas seulement par l’interface : une erreur de programmation ne peut pas l’ouvrir.",
+      "L’isolation est appliquée par la base de données, pas seulement par l’interface : une erreur dans le code de l’application ne suffit pas à l’ouvrir.",
   },
   {
     icon: ScrollText,

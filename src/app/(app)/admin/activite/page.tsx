@@ -245,8 +245,8 @@ function Turnaround({ data }: { data: ControlAnalytics }) {
       title="Délai de lecture"
       description={
         weekly
-          ? "Réception → signature · moyenne hebdomadaire des valeurs quotidiennes"
-          : "Réception → signature, par jour"
+          ? "De la réception à la signature, en moyenne hebdomadaire des valeurs quotidiennes"
+          : "De la réception à la signature, par jour"
       }
       aside={<Legend series={TURNAROUND_SERIES} />}
     >
@@ -305,7 +305,7 @@ function Stages({ stages }: { stages: StageMedians }) {
   return (
     <Section
       title="Parcours d’un examen"
-      description="Durée médiane de chaque étape — la plus longue est mise en évidence"
+      description="Durée médiane de chaque étape, la plus longue étant mise en évidence"
     >
       <ol className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {STAGES.map((stage, index) => {

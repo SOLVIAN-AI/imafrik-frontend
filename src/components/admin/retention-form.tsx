@@ -80,8 +80,8 @@ export function RetentionForm({
         label="Conservation des images (jours)"
         hint={
           purged > 0
-            ? `${purged} examen${purged > 1 ? "s" : ""} déjà purgé${purged > 1 ? "s" : ""} · entre 30 et 7 300 jours`
-            : "Entre 30 et 7 300 jours · vide = durée du contrat"
+            ? `${purged} examen${purged > 1 ? "s" : ""} déjà purgé${purged > 1 ? "s" : ""}. Entre 30 et 7 300 jours.`
+            : "Entre 30 et 7 300 jours. Laissez vide pour conserver les images pendant toute la durée du contrat."
         }
       >
         <Input

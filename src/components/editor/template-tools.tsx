@@ -158,7 +158,7 @@ export function SaveAsTemplate({
                 name="name"
                 required
                 maxLength={200}
-                placeholder="TDM thoracique — normal"
+                placeholder="TDM thoracique normale"
               />
             </Field>
             <div className="grid grid-cols-2 gap-3">

@@ -84,7 +84,7 @@ export function SimulatedScan({
         interactive && "cursor-ns-resize",
       )}
       role="img"
-      aria-label={`Coupe simulée ${slice} sur ${total} — démonstration`}
+      aria-label={`Coupe simulée ${slice} sur ${total} (démonstration)`}
     >
       <svg
         viewBox="0 0 512 512"

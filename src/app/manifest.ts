@@ -13,7 +13,7 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "IMAFRIK — Téléradiologie",
+    name: "IMAFRIK · Téléradiologie",
     short_name: "IMAFRIK",
     description:
       "Vos examens lus par des radiologues inscrits à l’Ordre, le compte-rendu signé le jour même.",

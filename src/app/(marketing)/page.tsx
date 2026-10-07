@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   // `absolute` court-circuite le gabarit « %s · IMAFRIK » de la
   // disposition racine : le nom y figure déjà.
   title: {
-    absolute: "IMAFRIK — Téléradiologie pour l’Afrique de l’Ouest",
+    absolute: "IMAFRIK · Téléradiologie pour l’Afrique de l’Ouest",
   },
   description:
     "Le compte-rendu de vos examens le jour même. Une passerelle logicielle sur un de vos postes, et vos manipulateurs ne changent rien à leurs habitudes.",

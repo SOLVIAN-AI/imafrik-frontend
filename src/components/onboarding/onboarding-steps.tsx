@@ -88,7 +88,7 @@ export function ProfileStep({
         label="Titre"
         hint={
           isRadiologist
-            ? "Imprimé devant votre nom — « Dr », « Pr »."
+            ? "Imprimé devant votre nom, par exemple « Dr » ou « Pr »."
             : "Votre fonction dans l’établissement."
         }
       >
@@ -252,7 +252,7 @@ export function FirstStudyStep({ step, previousSlug, nextSlug }: StepProps) {
         )}
         {received
           ? "Un examen est arrivé : la liaison fonctionne."
-          : "Envoyez un examen depuis votre console — ou déposez-le ci-dessous. Cet écran se met à jour seul."}
+          : "Envoyez un examen depuis votre console, ou déposez-le ci-dessous. Cet écran se met à jour seul."}
       </div>
       {!received && (
         <div className="rounded-xl border border-border-subtle">

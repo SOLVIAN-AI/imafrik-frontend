@@ -29,7 +29,7 @@ const OPERATOR_ONLY = [
   {
     task: "Restaurer une sauvegarde",
     command: "docs/exploitation.md",
-    why: "Le déchiffrement exige la clé privée age, conservée hors du web — jamais dans un formulaire.",
+    why: "Le déchiffrement exige la clé privée age, conservée hors du web et jamais saisie dans un formulaire.",
   },
   {
     task: "Déployer une version",
@@ -53,7 +53,7 @@ export default async function SettingsPage() {
     <>
       <PageHeader
         title="Réglages"
-        description="S’appliquent à toute la plateforme, dès le prochain affichage · tracés dans le journal d’audit"
+        description="S’appliquent à toute la plateforme dès le prochain affichage et sont tracés dans le journal d’audit"
       />
       <ControlBody>
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-5">

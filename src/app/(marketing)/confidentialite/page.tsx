@@ -95,7 +95,7 @@ export default function PrivacyPage() {
         <li>Durée : {RETENTION.examinations.toLowerCase()}</li>
         <li>
           Restitution : sur simple demande, l’établissement reçoit l’export de
-          ses examens — images DICOM, comptes-rendus signés en PDF, manifeste
+          ses examens : images DICOM, comptes-rendus signés en PDF et manifeste
           d’empreintes
         </li>
       </ul>

@@ -402,7 +402,7 @@ function demoOps(now: number): ApiOpsRun[] {
       target: null,
       ok: false,
       finished_at: at(0.2),
-      summary: "Disque /var à 83 % — seuil d'alerte 80 %",
+      summary: "Disque /var à 83 % (seuil d’alerte : 80 %)",
     },
   ];
 }
@@ -458,13 +458,13 @@ export function demoOverview(now = Date.now()): ApiControlOverview {
     alerts.push({
       code: "clinic_silent",
       severity: "warning",
-      message: `${silent.name} n'a rien envoyé depuis ${silent.silentHours} h — passerelle à vérifier`,
+      message: `${silent.name} n’a rien envoyé depuis ${silent.silentHours} h : passerelle à vérifier`,
       href: "/admin/organisations",
     });
   alerts.push({
     code: "host_watch_failed",
     severity: "warning",
-    message: "Surveillance de l'hôte en échec : disque /var à 83 %",
+    message: "Surveillance de l’hôte en échec : disque /var à 83 %",
     href: "/admin/systeme",
   });
   alerts.push({
@@ -1104,7 +1104,7 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
       email: "direction@tsevie.example",
       phone: "+228 90 00 00 01",
       message:
-        "Nous avons un scanner 16 barrettes sans radiologue sur place. Pouvez-vous nous présenter l'offre et les délais de lecture ?",
+        "Nous avons un scanner 16 barrettes sans radiologue sur place. Pouvez-vous nous présenter l’offre et les délais de lecture ?",
       status: "new",
       notes: null,
       handled_at: null,
@@ -1116,7 +1116,7 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
       organization: "Clinique Les Palmiers",
       email: "m.sanni@palmiers.example",
       phone: null,
-      message: "Demande de démonstration pour notre équipe d'imagerie.",
+      message: "Demande de démonstration pour notre équipe d’imagerie.",
       status: "new",
       notes: null,
       handled_at: null,
@@ -1130,7 +1130,7 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
       phone: "+228 91 00 00 02",
       message: "Intéressés par la lecture des radiographies de nuit.",
       status: "contacted",
-      notes: "Appelé le 2 oct. — visite prévue, devis à envoyer.",
+      notes: "Appelé le 2 oct. : visite prévue, devis à envoyer.",
       handled_at: at(90),
       created_at: at(120),
     },
@@ -1142,7 +1142,7 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
       phone: "+228 92 00 00 03",
       message: "Nous souhaitons rejoindre le réseau.",
       status: "converted",
-      notes: "Raccordé — kit installé, équipe invitée.",
+      notes: "Raccordé : kit installé, équipe invitée.",
       handled_at: at(150),
       created_at: at(200),
     },

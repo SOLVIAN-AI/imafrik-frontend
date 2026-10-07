@@ -79,7 +79,7 @@ export const SUBPROCESSORS: readonly Subprocessor[] = [
   },
   {
     name: "Tailscale Inc.",
-    role: "Coordination du réseau privé entre les passerelles et la plateforme : adresses techniques des appareils, aucun contenu d’examen — le trafic est chiffré de bout en bout",
+    role: "Coordination du réseau privé entre les passerelles et la plateforme : adresses techniques des appareils, sans aucun contenu d’examen. Le trafic est chiffré de bout en bout",
     location:
       "Hors Union européenne possible, sous clauses contractuelles types",
   },

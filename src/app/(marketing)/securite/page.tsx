@@ -23,7 +23,7 @@ const CHAPTERS = [
     icon: FileLock2,
     title: "En transit",
     detail:
-      "Entre la clinique et la plateforme, les examens voyagent dans un réseau privé chiffré ; le portail ne répond qu’en HTTPS. Entre nos services, les échanges restent à l’intérieur du serveur, et tout ce qui en sort — base de données, stockage — est chiffré. Aucun examen ne traverse Internet en clair.",
+      "Entre la clinique et la plateforme, les examens voyagent dans un réseau privé chiffré ; le portail ne répond qu’en HTTPS. Entre nos services, les échanges restent à l’intérieur du serveur, et tout ce qui en sort (base de données, stockage) est chiffré. Aucun examen ne traverse Internet en clair.",
   },
   {
     icon: KeyRound,
@@ -35,7 +35,7 @@ const CHAPTERS = [
     icon: Users,
     title: "Cloisonnement",
     detail:
-      "Chaque organisation ne voit que ses examens. L’isolation est appliquée par la base elle-même, à chaque requête, et non par le code applicatif : une erreur de programmation ne peut pas l’ouvrir.",
+      "Chaque organisation ne voit que ses examens. L’isolation est appliquée par la base elle-même, à chaque requête, et non par le seul code applicatif : une erreur dans le code de l’application ne suffit pas à l’ouvrir.",
   },
   {
     icon: ScrollText,
@@ -53,7 +53,7 @@ const CHAPTERS = [
     icon: History,
     title: "Conservation",
     detail:
-      "La durée de conservation des images est fixée au contrat, établissement par établissement. À son terme, elles quittent nos serveurs — chaque purge est tracée — et les sauvegardes chiffrées qui les contenaient expirent au plus tard douze mois après.",
+      "La durée de conservation des images est fixée au contrat, établissement par établissement. À son terme, elles quittent nos serveurs et chaque purge est tracée ; les sauvegardes chiffrées qui les contenaient expirent au plus tard douze mois après.",
   },
   {
     icon: RefreshCcw,
@@ -81,9 +81,10 @@ export const metadata: Metadata = {
  *
  * **Elle s'adresse à un décideur, pas à un ingénieur.** Chaque garantie
  * est formulée par ce qu'elle empêche, pas par la technologie qui la
- * met en œuvre — « une erreur de programmation ne peut pas ouvrir le
+ * met en œuvre : « une erreur dans le code ne suffit pas à ouvrir le
  * cloisonnement » dit quelque chose ; « politiques RLS PostgreSQL » ne
- * dit rien à qui signe le contrat.
+ * dit rien à qui signe le contrat. Aucune garantie n’y est absolue : la
+ * page promet ce que le service tient, pas davantage.
  */
 export default function SecurityPage() {
   return (

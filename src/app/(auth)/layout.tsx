@@ -112,7 +112,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           </div>
 
           <p className="text-2xs text-tertiary">
-            IMAFRIK est un service de SOLVIAN AI LLC · Lomé, Togo
+            IMAFRIK est un service édité par SOLVIAN AI LLC, Lomé, Togo.
           </p>
         </div>
       </aside>

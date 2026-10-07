@@ -120,7 +120,7 @@ function useUrgentArrivals(open: Study[]) {
     }
     for (const study of arrivals) {
       toast.warning(
-        `Nouvelle urgence : ${study.modality}${study.bodyPart ? ` ${study.bodyPart}` : ""} · ${study.clinic}`,
+        `Nouvelle urgence : ${study.modality}${study.bodyPart ? ` ${study.bodyPart}` : ""}, ${study.clinic}`,
         {
           description: formatPatientName(study.patientName),
           duration: 15_000,

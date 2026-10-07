@@ -52,7 +52,7 @@ export default async function AuditPage({
     <>
       <PageHeader
         title="Journal d’audit"
-        description="Chaque geste sensible, horodaté et attribué · lecture seule"
+        description="Chaque geste sensible, horodaté et attribué, en lecture seule"
         actions={<AuditFilter current={action ?? ""} />}
       />
       <ControlBody>

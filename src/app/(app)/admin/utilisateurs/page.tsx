@@ -190,7 +190,7 @@ function UserRow({
             <li
               key={membership.membershipId}
               className="max-w-full truncate rounded-full border border-border-subtle bg-surface-sunken/60 px-2 py-0.5 text-2xs"
-              title={`${membership.organizationName} — ${ROLE_LABELS[membership.role]}`}
+              title={`${membership.organizationName} (${ROLE_LABELS[membership.role]})`}
             >
               <span className="text-secondary">
                 {membership.organizationName}
@@ -212,7 +212,7 @@ function UserRow({
           </>
         ) : (
           <>
-            Jamais connecté · créé le{" "}
+            Jamais connecté, compte créé le{" "}
             <DateTime date={user.createdAt} withTime={false} />
           </>
         )}

@@ -22,7 +22,7 @@ export const DEMO_MEMBERSHIPS: Membership[] = [
   {
     id: "m-admin",
     organizationId: "org-solvian",
-    organizationName: "IMAFRIK — équipe",
+    organizationName: "Équipe IMAFRIK",
     organizationKind: "radiology_group",
     role: "platform_admin",
     city: "Lomé",

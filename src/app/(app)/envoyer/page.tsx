@@ -30,7 +30,7 @@ export default async function SendStudyPage() {
     <>
       <PageHeader
         title="Envoyer un examen"
-        description={`${session.active.organizationName} · les images sont chiffrées pendant le transfert`}
+        description={`Les images de ${session.active.organizationName} sont chiffrées pendant le transfert`}
       />
 
       <div className="grid min-h-0 flex-1 items-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">

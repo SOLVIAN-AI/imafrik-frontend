@@ -186,7 +186,7 @@ export const OPS_LABELS: Record<OpsKind, string> = {
   backup: "Sauvegarde",
   restore_drill: "Exercice de restauration",
   reconciliation: "Réconciliation PACS",
-  host_watch: "Surveillance de l'hôte",
+  host_watch: "Surveillance de l’hôte",
   retention: "Conservation des données",
 };
 

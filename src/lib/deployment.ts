@@ -105,7 +105,7 @@ const REQUIRED_IN_PRODUCTION = [
   },
   {
     name: "NEXT_PUBLIC_VIEWER_URL",
-    purpose: "affichage des images dans l'écran de lecture",
+    purpose: "affichage des images dans l’écran de lecture",
     present: () => isAbsoluteUrl(process.env.NEXT_PUBLIC_VIEWER_URL),
   },
   {

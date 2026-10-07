@@ -50,7 +50,7 @@ export default async function CockpitPage() {
     <>
       <PageHeader
         title="Tour de contrôle"
-        description="État de la plateforme à l’instant — files, délais, réseau, exploitation."
+        description="État de la plateforme à l’instant : files, délais, réseau et exploitation."
         actions={
           <Button asChild variant="secondary" size="sm">
             <Link href="/admin/activite">
@@ -148,7 +148,7 @@ export default async function CockpitPage() {
         </div>
 
         <p className="text-center text-2xs text-tertiary">
-          Calculé le <DateTime date={overview.generatedAt} /> (UTC) · rechargez
+          Calculé le <DateTime date={overview.generatedAt} /> (UTC). Rechargez
           la page pour actualiser.
         </p>
       </ControlBody>
@@ -170,7 +170,7 @@ function liveMetrics({ live }: ControlOverview): Metric[] {
       value: formatCount(live.waiting),
       hint:
         live.oldestWaitingMinutes !== null
-          ? `dont ${live.urgentWaiting} urgence${live.urgentWaiting > 1 ? "s" : ""} · plus ancien ${formatDuration(live.oldestWaitingMinutes)}`
+          ? `dont ${live.urgentWaiting} urgence${live.urgentWaiting > 1 ? "s" : ""} ; le plus ancien attend depuis ${formatDuration(live.oldestWaitingMinutes)}`
           : "file vide",
       icon: METRIC_ICONS.inbox,
       tone: live.urgentWaiting > 0 ? "urgent" : "neutral",
@@ -222,7 +222,7 @@ function SlaRow({
         <dt className="col-span-2 font-medium">
           {label}{" "}
           <span className="font-normal text-tertiary">
-            · promis en {formatDuration(target)}
+            (promis en {formatDuration(target)})
           </span>
         </dt>
         <dt className="text-tertiary">Médiane</dt>

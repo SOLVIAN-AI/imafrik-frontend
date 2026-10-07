@@ -53,7 +53,7 @@ export default async function FlowPage({
     <>
       <PageHeader
         title="Flux d’images"
-        description={`${studies.length} derniers examens reçus · de l’acquisition à la remise du compte-rendu`}
+        description={`Les ${studies.length} derniers examens reçus, de l’acquisition à la remise du compte-rendu`}
         actions={<ClinicFilter clinics={clinics} />}
       />
       <ControlBody>

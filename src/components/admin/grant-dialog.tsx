@@ -116,7 +116,7 @@ export function GrantDialog({
                 {organizations.map((org) => (
                   <option key={org.id} value={org.id}>
                     {org.name}
-                    {org.kind === "radiology_group" ? " — groupe" : ""}
+                    {org.kind === "radiology_group" ? " (groupe)" : ""}
                   </option>
                 ))}
               </Select>

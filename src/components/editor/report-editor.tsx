@@ -191,13 +191,13 @@ function SaveIndicator({ state }: { state: SaveState }) {
     offline: (
       <>
         <CloudOff className="size-3 text-progress" aria-hidden />
-        Hors ligne — copie gardée sur ce poste
+        Hors ligne : copie gardée sur ce poste
       </>
     ),
     conflict: (
       <>
         <AlertTriangle className="size-3 text-urgent" aria-hidden />
-        Modifié dans un autre onglet — rechargez
+        Modifié dans un autre onglet : rechargez la page
       </>
     ),
   }[state];
@@ -277,10 +277,10 @@ function Outline({
             {section.title}
             <span className="sr-only">
               {filled
-                ? " — rédigée"
+                ? ", rédigée"
                 : blocking
-                  ? " — obligatoire, vide"
-                  : " — facultative, vide"}
+                  ? ", obligatoire et vide"
+                  : ", facultative et vide"}
             </span>
           </a>
         );

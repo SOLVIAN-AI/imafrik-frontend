@@ -29,7 +29,7 @@ export function MfaResetButton({
     if (
       !window.confirm(
         `Réinitialiser la double authentification de ${fullName} ?\n\n` +
-          "Vérifiez d’abord son identité par un autre canal — un appel à un numéro connu. " +
+          "Vérifiez d’abord son identité par un autre canal, par exemple en l’appelant à un numéro connu. " +
           "À sa prochaine connexion, il ou elle enrôlera un nouveau téléphone.",
       )
     )

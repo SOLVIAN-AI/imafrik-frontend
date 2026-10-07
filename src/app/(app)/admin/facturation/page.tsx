@@ -40,7 +40,7 @@ export default async function BillingPage({
     <>
       <PageHeader
         title="Facturation"
-        description={`${monthLabel(month)} · actes reçus, par clinique et modalité`}
+        description={`${monthLabel(month)} : actes reçus, par clinique et par modalité`}
         actions={
           <>
             <nav

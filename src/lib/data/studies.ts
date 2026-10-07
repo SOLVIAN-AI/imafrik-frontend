@@ -252,7 +252,7 @@ export async function getViewerUrl(studyId: string): Promise<string | null> {
     if (!isConfiguredViewer(url, process.env.NEXT_PUBLIC_VIEWER_URL)) {
       // Le jeton ne part pas vers une origine que la CSP refuserait.
       console.error(
-        "Viewer renvoyé par le service hors de l'origine configurée",
+        "Viewer renvoyé par le service hors de l’origine configurée",
       );
       return null;
     }

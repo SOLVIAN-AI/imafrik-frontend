@@ -88,8 +88,8 @@ export default function LegalNoticePage() {
 
       <h2>Propriété intellectuelle</h2>
       <p>
-        L’ensemble des éléments composant le service — code, interface, marques,
-        documentation — demeure la propriété de {PUBLISHER.name} ou de ses
+        L’ensemble des éléments composant le service (code, interface, marques,
+        documentation) demeure la propriété de {PUBLISHER.name} ou de ses
         concédants. Les examens transmis et les comptes-rendus produits restent
         la propriété de l’établissement client et de ses patients, dans les
         conditions prévues au contrat.

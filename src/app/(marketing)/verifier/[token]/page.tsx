@@ -26,10 +26,10 @@ export const metadata: Metadata = {
  * Vérification publique d’un compte-rendu signé.
  *
  * **Ce que la page montre, et surtout ce qu’elle ne montre pas.** Elle
- * atteste qu’un document existe, qui l’a signé et quand — rien d’autre.
- * Ni nom de patient, ni identifiant, ni contenu du compte-rendu : le
- * code est imprimé sur un document qui circule, il peut être lu par
- * n’importe qui.
+ * atteste qu’un document existe, qui l’a signé et quand, et rien d’autre.
+ * Du patient, seule l’initiale du nom ; ni identifiant, ni contenu du
+ * compte-rendu : le code est imprimé sur un document qui circule, il peut
+ * être lu par n’importe qui.
  *
  * Elle sert au médecin traitant, à l’assurance ou au patient qui veut
  * s’assurer qu’un document n’a pas été fabriqué. Sans elle, un
@@ -59,7 +59,9 @@ export default async function VerifyPage({
           <h1 className="mt-6 text-2xl font-semibold">Document authentique</h1>
           <p className="mt-2 max-w-md text-sm leading-relaxed text-secondary">
             Ce code correspond à un compte-rendu signé sur la plateforme
-            IMAFRIK. Aucune donnée du patient n’est communiquée sur cette page.
+            IMAFRIK. Pour protéger le patient, seule l’initiale de son nom est
+            affichée : ni son identité complète ni le contenu du compte-rendu ne
+            le sont.
           </p>
 
           <dl className="mt-10 w-full divide-y divide-border-subtle overflow-hidden rounded-2xl border border-border-subtle bg-surface-raised text-left">
@@ -124,7 +126,7 @@ export default async function VerifyPage({
           <h1 className="mt-6 text-2xl font-semibold">Code inconnu</h1>
           <p className="mt-2 max-w-md text-sm leading-relaxed text-secondary">
             Aucun compte-rendu signé ne correspond à ce code. Vérifiez que
-            l’adresse est complète — le plus sûr est de scanner le QR code du
+            l’adresse est complète ; le plus sûr est de scanner le QR code du
             document. Si elle l’est, le document ne provient pas d’IMAFRIK.
           </p>
           <p className="mt-6 font-mono text-2xs text-tertiary">

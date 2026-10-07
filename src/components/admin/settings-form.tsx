@@ -66,8 +66,8 @@ export function SettingsForm({
   const preview = (value: string) => {
     const minutes = Number(value);
     return Number.isInteger(minutes) && minutes > 0
-      ? `soit ${formatDuration(minutes)}`
-      : "en minutes";
+      ? ` Valeur saisie : ${formatDuration(minutes)}.`
+      : "";
   };
 
   return (
@@ -79,7 +79,7 @@ export function SettingsForm({
         <Field
           id="sla-urgent"
           label="Urgence"
-          hint={`Entre 5 et 720 minutes · ${preview(urgentMinutes)}`}
+          hint={`Entre 5 et 720 minutes.${preview(urgentMinutes)}`}
         >
           <Input
             id="sla-urgent"
@@ -96,7 +96,7 @@ export function SettingsForm({
         <Field
           id="sla-routine"
           label="Routine"
-          hint={`Entre 15 et 2 880 minutes · ${preview(routineMinutes)}`}
+          hint={`Entre 15 et 2 880 minutes.${preview(routineMinutes)}`}
         >
           <Input
             id="sla-routine"
@@ -117,7 +117,7 @@ export function SettingsForm({
         <Field
           id="banner"
           label="Message affiché à tous les utilisateurs"
-          hint={`${banner.length} / ${BANNER_MAX} · vide = aucun bandeau`}
+          hint={`${banner.length} / ${BANNER_MAX} caractères. Laissez vide pour n’afficher aucun bandeau.`}
         >
           <Textarea
             id="banner"

@@ -106,7 +106,7 @@ export default function TermsPage() {
         particulier à son terme, l’établissement peut demander l’export de ses
         examens et de ses comptes-rendus : images DICOM, comptes-rendus signés
         en PDF et manifeste d’empreintes permettant d’en vérifier l’intégrité.
-        La suite — conservation ou suppression — suit les durées fixées au
+        La suite, conservation ou suppression, obéit aux durées fixées au
         contrat.
       </p>
 
