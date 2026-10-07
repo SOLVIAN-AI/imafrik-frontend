@@ -107,7 +107,7 @@ const fr: AuthCopy = {
     back: "Retour à la connexion",
     sentTitle: "Vérifiez vos courriels",
     sentText:
-      "Si un compte existe pour {email}, un lien de réinitialisation vient d’y être envoyé. Il expire dans une heure.",
+      "Si un compte existe pour {email}, un lien de réinitialisation vient d’y être envoyé. Il expire dans 24 heures.",
     sentHint:
       "Rien reçu au bout de quelques minutes ? Vérifiez les indésirables, puis réessayez.",
   },
@@ -170,7 +170,7 @@ const en: AuthCopy = {
     back: "Back to sign in",
     sentTitle: "Check your email",
     sentText:
-      "If an account exists for {email}, a password reset link has just been sent to it. The link expires in one hour.",
+      "If an account exists for {email}, a password reset link has just been sent to it. The link expires in 24 hours.",
     sentHint:
       "Nothing received after a few minutes? Check your spam folder, then try again.",
   },
