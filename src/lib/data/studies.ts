@@ -50,6 +50,11 @@ export interface Study {
   reportId: string | null;
   /** Date de signature du compte-rendu. */
   reportedAt: Date | null;
+  /**
+   * Purge des images du PACS central au terme de la durée contractuelle ;
+   * la clinique garde ses originaux. `null` : images disponibles.
+   */
+  imagesPurgedAt?: Date | null;
   /** Signataire, figé à la signature. */
   reportedBy: string | null;
 }
@@ -78,6 +83,9 @@ function toStudy(row: ApiStudy): Study {
     reportId: row.report_id,
     reportedAt: row.reported_at ? new Date(row.reported_at) : null,
     reportedBy: row.reported_by_name,
+    imagesPurgedAt: row.images_purged_at
+      ? new Date(row.images_purged_at)
+      : null,
   };
 }
 

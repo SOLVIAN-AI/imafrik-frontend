@@ -187,6 +187,7 @@ export const OPS_LABELS: Record<OpsKind, string> = {
   restore_drill: "Exercice de restauration",
   reconciliation: "Réconciliation PACS",
   host_watch: "Surveillance de l'hôte",
+  retention: "Conservation des données",
 };
 
 /**
@@ -199,6 +200,7 @@ export const OPS_FRESHNESS: Record<OpsKind, number> = {
   restore_drill: 24 * 8,
   reconciliation: 0.5,
   host_watch: 0.5,
+  retention: 48,
 };
 
 /** Cibles lisibles. */

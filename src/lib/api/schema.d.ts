@@ -87,6 +87,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics/{clinic_id}/retention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Durée de conservation des images
+         * @description Applique la durée de conservation prévue au contrat d'une clinique.
+         *
+         *     Au-delà, la tâche quotidienne purge du PACS central les images des
+         *     examens remis (``app.services.retention``) ; la fiche, le compte-rendu
+         *     et le journal d'audit restent. ``None`` revient à la conservation pour
+         *     la durée du contrat. Le changement est tracé.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        put: operations["set_retention_admin_clinics__clinic_id__retention_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/contact-requests": {
         parameters: {
             query?: never;
@@ -1828,6 +1856,16 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Image Retention Days
+             * @description Conservation des images après remise ; None : durée du contrat.
+             */
+            image_retention_days: number | null;
+            /**
+             * Images Purged
+             * @description Examens dont les images ont été purgées.
+             */
+            images_purged: number;
             /** Is Active */
             is_active: boolean;
             /** Last Received At */
@@ -2298,7 +2336,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "backup" | "restore_drill" | "reconciliation" | "host_watch";
+            kind: "backup" | "restore_drill" | "reconciliation" | "host_watch" | "retention";
             /** Ok */
             ok: boolean;
             /** Summary */
@@ -2674,6 +2712,17 @@ export interface components {
             };
         };
         /**
+         * RetentionUpdate
+         * @description Durée de conservation des images d'une clinique, fixée par contrat.
+         */
+        RetentionUpdate: {
+            /**
+             * Image Retention Days
+             * @description Jours après remise du compte-rendu ; None : durée du contrat.
+             */
+            image_retention_days?: number | null;
+        };
+        /**
          * SectionsPatch
          * @description Fragment de compte-rendu envoyé par l'auto-save.
          *
@@ -2793,6 +2842,8 @@ export interface components {
          *         received_at: Arrivée sur la plateforme.
          *         reported_at: Signature du compte-rendu, s'il l'est.
          *         reported_by_name: Signataire, tel que figé à la signature.
+         *         images_purged_at: Purge des images du PACS central au terme de la
+         *             durée contractuelle ; la clinique garde ses originaux.
          *         report_id: Compte-rendu de l'examen, s'il est visible de
          *             l'appelant — signé pour une clinique, brouillon compris pour
          *             le radiologue qui le rédige.
@@ -2813,6 +2864,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Images Purged At */
+            images_purged_at?: string | null;
             /** Instance Count */
             instance_count: number;
             /** Modality */
@@ -3301,6 +3354,43 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_retention_admin_clinics__clinic_id__retention_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RetentionUpdate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

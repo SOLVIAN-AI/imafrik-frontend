@@ -67,6 +67,8 @@ export const studySchema = z.object({
   received_at: isoDate,
   reported_at: isoDate.nullable(),
   reported_by_name: z.string().nullable(),
+  // Absent d'une réponse antérieure à la conservation contractuelle.
+  images_purged_at: isoDate.nullable().optional(),
   report_id: uuid.nullable(),
 });
 const _study: Matches<z.input<typeof studySchema>, Schemas["Study"]> = true;
@@ -295,7 +297,13 @@ const ratio = z.number().nullable();
 const priority = z.enum(["routine", "urgent"]);
 
 const opsRunSchema = z.object({
-  kind: z.enum(["backup", "restore_drill", "reconciliation", "host_watch"]),
+  kind: z.enum([
+    "backup",
+    "restore_drill",
+    "reconciliation",
+    "host_watch",
+    "retention",
+  ]),
   target: z.string().nullable(),
   ok: z.boolean(),
   finished_at: isoDate,
@@ -555,6 +563,8 @@ export const clinicDetailSchema = z.object({
   open_to_pool: z.boolean(),
   received_30d: count,
   last_received_at: isoDate.nullable(),
+  image_retention_days: z.number().int().nullable(),
+  images_purged: count,
   onboarding: z.array(
     z.object({
       key: z.enum([

@@ -23,6 +23,7 @@ const OPS_ORDER: OpsKind[] = [
   "backup",
   "restore_drill",
   "reconciliation",
+  "retention",
   "host_watch",
 ];
 
@@ -36,6 +37,8 @@ const OPS_PURPOSE: Record<OpsKind, string> = {
     "Rattrape les examens que le PACS a reçus sans que l’application en soit prévenue.",
   host_watch:
     "Disque, conteneurs, certificats HTTPS et DICOM du serveur central.",
+  retention:
+    "Applique les durées de conservation fixées par contrat : images des examens remis, demandes reçues de plus de trois ans. Chaque purge est tracée.",
 };
 
 /**

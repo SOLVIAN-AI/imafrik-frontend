@@ -390,6 +390,14 @@ function demoOps(now: number): ApiOpsRun[] {
       summary: "0 examen manquant",
     },
     {
+      kind: "retention",
+      target: null,
+      ok: true,
+      finished_at: at(3.4),
+      summary:
+        "3 examen(s) purgé(s) du PACS, 0 en échec, 0 demande(s) reçue(s) supprimée(s)",
+    },
+    {
       kind: "host_watch",
       target: null,
       ok: false,
@@ -965,6 +973,9 @@ export function demoClinic(
     open_to_pool: true,
     received_30d: flows.filter((flow) => flow.receivedAt >= now - 30 * DAY)
       .length,
+    // Saint-Joseph a fixé une durée par contrat ; les autres, non.
+    image_retention_days: clinic.id === DEMO_NETWORK[0].id ? 365 : null,
+    images_purged: clinic.id === DEMO_NETWORK[0].id ? 42 : 0,
     last_received_at: first ? iso(flows[0].receivedAt) : null,
     onboarding: [
       step("created", "Organisation créée", created),
