@@ -275,6 +275,8 @@ const PUBLIC_ROUTES = [
   "/confidentialite",
   "/cgu",
   "/verifier",
+  // Le site public en anglais : uniquement des pages de vitrine.
+  "/en",
   "/connexion",
   "/mot-de-passe-oublie",
   "/auth",

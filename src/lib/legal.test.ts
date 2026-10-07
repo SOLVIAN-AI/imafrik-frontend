@@ -7,13 +7,23 @@ import { SUBPROCESSORS, missingLegalFacts } from "@/lib/legal";
 
 /** Fichiers source des pages publiques. */
 function publicSources(): string[] {
-  const roots = ["src/app/(marketing)", "src/components/marketing"];
+  const roots = [
+    "src/app/(marketing)",
+    "src/components/marketing",
+    "src/content",
+  ];
   const files: string[] = [];
   const walk = (dir: string) => {
     for (const name of readdirSync(dir)) {
       const path = join(dir, name);
       if (statSync(path).isDirectory()) walk(path);
-      else if (path.endsWith(".tsx")) files.push(path);
+      // Dans `src/content`, seuls les dictionnaires portent du texte ;
+      // le reste est du code (`values[name]` n'est pas un trou).
+      else if (
+        path.endsWith(".tsx") ||
+        (path.startsWith("src/content") && /\/(fr|en)\.ts$/.test(path))
+      )
+        files.push(path);
     }
   };
   roots.forEach(walk);
@@ -21,11 +31,11 @@ function publicSources(): string[] {
 }
 
 describe("pages publiques", () => {
-  it("n'affichent aucun trou « [à compléter] » au public", () => {
+  it("n'affichent aucun trou « [à compléter] » au public, dans aucune langue", () => {
     // Un crochet contenant un mot de gabarit trahit une page légale
     // inachevée : nom, adresse, durée, droit applicable…
     const placeholder =
-      /\[[^\]\n]*\b(durée|nom|adresse|droit|préciser|autorité|numéro|forme|juridiction|hébergeur|qualité)\b[^\]\n]*\]/i;
+      /\[[^\]\n]*\b(durée|nom|adresse|droit|préciser|autorité|numéro|forme|juridiction|hébergeur|qualité|name|address|law|specify|authority|number|jurisdiction|host|tbd|todo)\b[^\]\n]*\]/i;
     const offenders = publicSources().filter((file) =>
       placeholder.test(readFileSync(file, "utf8")),
     );
@@ -39,6 +49,8 @@ describe("pages publiques", () => {
     expect(text).not.toMatch(/Nous chiffrons son disque/);
     expect(text).not.toMatch(/Windows, macOS ou Linux/);
     expect(text).not.toMatch(/Aucun port d’imagerie n’est exposé/);
+    expect(text).not.toMatch(/Windows, macOS or Linux/);
+    expect(text).not.toMatch(/We encrypt (its|the) disk/);
   });
 });
 

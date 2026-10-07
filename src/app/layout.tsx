@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 
+import { DEFAULT_LOCALE, isLocale, LOCALE_HEADER } from "@/lib/i18n/locale";
 import "./globals.css";
 
 // L'italique est chargé explicitement : sans lui, l'emphase de l'éditeur
@@ -64,13 +65,18 @@ export const viewport: Viewport = {
  * différent puisse être servi à chaque requête.
  */
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
+  // Langue posée par le proxy d'après l'adresse : `/en/…` est en anglais,
+  // tout le reste (site public français et application) en français.
+  const locale = requestHeaders.get(LOCALE_HEADER);
+  const lang = isLocale(locale) ? locale : DEFAULT_LOCALE;
 
   return (
     // suppressHydrationWarning : next-themes pose la classe de thème sur
     // <html> avant l'hydratation, ce que React signalerait autrement
     // comme une divergence.
-    <html lang="fr" suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider nonce={nonce}>
           {children}

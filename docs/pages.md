@@ -69,12 +69,47 @@ manipule des données de santé.
 | `/tarifs` | Grille tarifaire. Un service de santé qui cache ses prix inquiète. | V2 |
 | `/securite` | Hébergement, chiffrement, journalisation, localisation des données, sous-traitance. **Page commerciale, pas juridique** : c'est la première question d'un directeur d'établissement. | V1 |
 | `/contact` | Demande de démonstration. | V1 |
-| `/verifier/[jeton]` | **Vérification publique d'un compte-rendu signé.** Le PDF porte un code ; le scanner mène ici, qui confirme l'authenticité du document, son signataire et sa date. Aucun compte requis, aucune donnée patient affichée. Sert l'API `GET /verify/{verify_token}`. | V1 |
+| `/verifier/[jeton]` | **Vérification publique d'un compte-rendu signé.** Le PDF porte un code ; le scanner mène ici, qui confirme l'authenticité du document, son signataire et sa date. Aucun compte requis ; du patient, seule l'initiale du nom est affichée. Sert l'API `GET /verify/{verify_token}`. | V1 |
 | `/mentions-legales` | Éditeur, hébergeur, directeur de publication. | V1 |
 | `/confidentialite` | Politique de confidentialité et traitement des données de santé. | V1 |
 | `/cgu` | Conditions d'utilisation et contrat de service. | V1 |
 
-**10 écrans.**
+**10 écrans**, chacun en français et en anglais pour ce qui est en ligne.
+
+### Version anglaise
+
+Le site public existe aussi en anglais, pour les établissements
+anglophones (Ghana, Nigeria, Liberia, Sierra Leone, Gambie). Chaque page a
+son adresse dans sa langue :
+
+| Français | Anglais |
+| --- | --- |
+| `/` | `/en` |
+| `/securite` | `/en/security` |
+| `/contact` | `/en/contact` |
+| `/verifier/[jeton]` | `/en/verify/[jeton]` |
+| `/mentions-legales` | `/en/legal-notice` |
+| `/confidentialite` | `/en/privacy` |
+| `/cgu` | `/en/terms` |
+
+- **Les textes** vivent dans `src/content/marketing/fr.ts` et `en.ts`,
+  deux objets du même type (`MarketingCopy`) : une entrée oubliée dans
+  une langue est une erreur de compilation. Les pages juridiques, rédigées
+  plutôt que composées, ont une version par langue dans
+  `src/components/marketing/legal/`, et les faits qu'elles citent
+  (sous-traitants, durées) sont bilingues dans `lib/legal.ts`.
+- **Les adresses** se correspondent dans `lib/i18n/routes.ts`, seule
+  table de correspondance : le sélecteur « FR | EN » mène à la même page
+  dans l'autre langue, et chaque page déclare son équivalent (`hreflang`).
+- **La langue de la page** est déduite de l'adresse par le proxy, qui la
+  transmet à la disposition racine pour `<html lang>`.
+- **Aucune redirection automatique** selon la langue du navigateur : elle
+  empêcherait de partager une page dans l'autre langue, et d'indexer les
+  deux.
+- **La version française fait foi** pour les documents juridiques ; la
+  traduction le rappelle en tête de page.
+- **L'application reste en français.** La FAQ anglaise le dit, et les
+  liens « Sign in » mènent à la connexion française.
 
 > La vitrine vit dans la même application que le produit. Elle partage le
 > système de design, se déploie d'un coup et évite un second dépôt à

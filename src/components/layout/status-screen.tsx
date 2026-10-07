@@ -82,12 +82,15 @@ export function StatusScreen({
 /** Retour à l'accueil, sortie par défaut de tous ces écrans. */
 export function BackHomeButton({
   label = "Retour à l’accueil",
+  href = "/",
 }: {
   label?: string;
+  /** Accueil visé ; celui du site anglais est `/en`. */
+  href?: string;
 }) {
   return (
     <Button variant="secondary" size="lg" asChild>
-      <Link href="/">{label}</Link>
+      <Link href={href}>{label}</Link>
     </Button>
   );
 }

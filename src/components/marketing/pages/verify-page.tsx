@@ -4,23 +4,15 @@ import {
   ShieldCheck,
   Stethoscope,
 } from "lucide-react";
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { PdfHashCheck } from "@/components/marketing/pdf-hash-check";
+import { fill, marketingCopy } from "@/content/marketing";
 import { verifyReport } from "@/lib/data/verification";
 import { formatDate, formatDateTime } from "@/lib/format";
-
-export const metadata: Metadata = {
-  title: "Vérification d’un compte-rendu",
-  description:
-    "Vérifiez l’authenticité d’un compte-rendu IMAFRIK à partir du code figurant sur le document.",
-  // La page est publique mais ne doit pas être indexée : chaque adresse
-  // contient un code, et un moteur qui les collecterait rendrait
-  // vérifiables des documents au hasard.
-  robots: { index: false, follow: false },
-};
+import type { Locale } from "@/lib/i18n/locale";
+import { localizePath } from "@/lib/i18n/routes";
 
 /**
  * Vérification publique d’un compte-rendu signé.
@@ -38,12 +30,18 @@ export const metadata: Metadata = {
  * Rendue côté serveur : la vérification ne doit pas dépendre de
  * l’exécution de script chez celui qui vérifie. Elle appellera
  * `GET /verify/{verify_token}`, qui existe déjà côté API.
+ *
+ * @param token  Code lu sur le document.
+ * @param locale Langue de la page.
  */
-export default async function VerifyPage({
-  params,
-}: PageProps<"/verifier/[token]">) {
-  const { token } = await params;
-
+export async function VerifyPage({
+  token,
+  locale,
+}: {
+  token: string;
+  locale: Locale;
+}) {
+  const t = marketingCopy(locale).verifyPage;
   const attestation = await verifyReport(token);
 
   return (
@@ -56,37 +54,34 @@ export default async function VerifyPage({
           >
             <ShieldCheck className="size-6 text-done" />
           </span>
-          <h1 className="mt-6 text-2xl font-semibold">Document authentique</h1>
+          <h1 className="mt-6 text-2xl font-semibold">{t.validTitle}</h1>
           <p className="mt-2 max-w-md text-sm leading-relaxed text-secondary">
-            Ce code correspond à un compte-rendu signé sur la plateforme
-            IMAFRIK. Pour protéger le patient, seule l’initiale de son nom est
-            affichée : ni son identité complète ni le contenu du compte-rendu ne
-            le sont.
+            {t.validText}
           </p>
 
           <dl className="mt-10 w-full divide-y divide-border-subtle overflow-hidden rounded-2xl border border-border-subtle bg-surface-raised text-left">
             <Row
               icon={Stethoscope}
-              label="Signé par"
+              label={t.signedBy}
               value={attestation.radiologist}
               detail={
                 attestation.licenseNumber
-                  ? `Ordre n° ${attestation.licenseNumber}`
+                  ? fill(t.license, { number: attestation.licenseNumber })
                   : undefined
               }
             />
             <Row
               icon={CalendarCheck}
-              label="Date de signature"
-              value={formatDateTime(attestation.signedAt)}
+              label={t.signedAt}
+              value={formatDateTime(attestation.signedAt, locale)}
             />
             <Row
               icon={FileCheck2}
-              label="Examen"
+              label={t.exam}
               value={[
                 attestation.modality ?? "—",
                 attestation.studyDate
-                  ? formatDate(attestation.studyDate)
+                  ? formatDate(attestation.studyDate, locale)
                   : null,
               ]
                 .filter(Boolean)
@@ -94,7 +89,7 @@ export default async function VerifyPage({
               detail={[
                 attestation.clinic,
                 attestation.patientInitial
-                  ? `Patient ${attestation.patientInitial}`
+                  ? fill(t.patient, { initial: attestation.patientInitial })
                   : null,
               ]
                 .filter(Boolean)
@@ -104,16 +99,15 @@ export default async function VerifyPage({
 
           {attestation.addendaCount > 0 && (
             <p className="mt-4 text-xs text-secondary">
-              Ce compte-rendu a été complété par{" "}
               {attestation.addendaCount === 1
-                ? "un addendum"
-                : `${attestation.addendaCount} addenda`}{" "}
-              depuis sa signature. Demandez-en le texte à l’établissement qui
-              vous a remis le document.
+                ? t.addendaOne
+                : fill(t.addendaMany, { count: attestation.addendaCount })}
             </p>
           )}
 
-          {attestation.sha256 && <PdfHashCheck expected={attestation.sha256} />}
+          {attestation.sha256 && (
+            <PdfHashCheck expected={attestation.sha256} locale={locale} />
+          )}
         </>
       ) : (
         <>
@@ -123,17 +117,15 @@ export default async function VerifyPage({
           >
             <ShieldCheck className="size-6 text-urgent" />
           </span>
-          <h1 className="mt-6 text-2xl font-semibold">Code inconnu</h1>
+          <h1 className="mt-6 text-2xl font-semibold">{t.invalidTitle}</h1>
           <p className="mt-2 max-w-md text-sm leading-relaxed text-secondary">
-            Aucun compte-rendu signé ne correspond à ce code. Vérifiez que
-            l’adresse est complète ; le plus sûr est de scanner le QR code du
-            document. Si elle l’est, le document ne provient pas d’IMAFRIK.
+            {t.invalidText}
           </p>
           <p className="mt-6 font-mono text-2xs text-tertiary">
-            Code soumis : {token}
+            {fill(t.submittedCode, { code: token })}
           </p>
           <Button variant="secondary" size="sm" className="mt-8" asChild>
-            <Link href="/contact">Signaler un document suspect</Link>
+            <Link href={localizePath("/contact", locale)}>{t.report}</Link>
           </Button>
         </>
       )}

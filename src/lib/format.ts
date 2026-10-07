@@ -1,3 +1,5 @@
+import { INTL_LOCALE, type Locale } from "@/lib/i18n/locale";
+
 /**
  * Formate un nom au format DICOM pour la lecture.
  *
@@ -14,18 +16,19 @@ export function formatPatientName(dicomName: string): string {
 }
 
 /**
- * Date longue, en français.
+ * Date longue.
  *
- * La locale est imposée plutôt que déduite du navigateur : le service
- * s'adresse à des professionnels francophones, et une date rendue
+ * La locale est imposée plutôt que déduite du navigateur : une date rendue
  * différemment par le serveur et par le client provoquerait une
- * divergence d'hydratation.
+ * divergence d'hydratation. L'application est en français ; le site public
+ * passe sa langue.
  *
- * @param date Date à formater.
- * @returns Par exemple « 18 août 2026 ».
+ * @param date   Date à formater.
+ * @param locale Langue, français par défaut.
+ * @returns Par exemple « 18 août 2026 », ou « 18 August 2026 ».
  */
-export function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", {
+export function formatDate(date: Date, locale: Locale = "fr"): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -34,18 +37,19 @@ export function formatDate(date: Date): string {
 }
 
 /**
- * Date et heure, format court.
+ * Date et heure, format court, en temps universel.
  *
- * @param date Date à formater.
- * @returns Par exemple « 18/08/2026 à 14:32 ».
+ * @param date   Date à formater.
+ * @param locale Langue, français par défaut.
+ * @returns Par exemple « 18/08/2026 à 14:32 », ou « 18/08/2026 at 14:32 ».
  */
-export function formatDateTime(date: Date): string {
-  const formatted = new Intl.DateTimeFormat("fr-FR", {
+export function formatDateTime(date: Date, locale: Locale = "fr"): string {
+  const formatted = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     dateStyle: "short",
     timeStyle: "short",
     timeZone: "UTC",
   }).format(date);
-  return formatted.replace(" ", " à ");
+  return formatted.replace(/,? /, locale === "en" ? " at " : " à ");
 }
 
 /**

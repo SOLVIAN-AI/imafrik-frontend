@@ -1,6 +1,9 @@
 import { FileSignature, HardDrive, ScanLine } from "lucide-react";
 
 import { Section } from "@/components/marketing/section";
+import { marketingCopy } from "@/content/marketing";
+import type { Locale } from "@/lib/i18n/locale";
+import { ANCHORS } from "@/lib/i18n/routes";
 
 /**
  * Les trois temps du service.
@@ -16,71 +19,57 @@ import { Section } from "@/components/marketing/section";
  * est coupée » lui parle immédiatement, parce que c'est arrivé la
  * semaine dernière.
  */
-const STEPS = [
-  {
-    icon: HardDrive,
-    title: "La passerelle reçoit",
-    detail:
-      "Vos modalités envoient l’examen à un poste de l’établissement, comme à n’importe quelle destination du réseau interne. Il accepte immédiatement, même si la liaison est coupée.",
-    note: "Un logiciel à installer, aucun matériel à acheter",
-  },
-  {
-    icon: ScanLine,
-    title: "Un radiologue lit",
-    detail:
-      "L’examen part vers la plateforme dès que la liaison le permet, compressé et chiffré. Il entre dans une file de travail ; les urgences remontent en tête.",
-    note: "Images et compte-rendu côte à côte",
-  },
-  {
-    icon: FileSignature,
-    title: "Le compte-rendu est signé",
-    detail:
-      "Signature nominative, document verrouillé, transmis à l’établissement. Un code imprimé permet d’en vérifier l’authenticité en ligne.",
-    note: "PDF disponible immédiatement",
-  },
-] as const;
+/** Icône de chaque étape, dans l'ordre. */
+const STEP_ICONS = [HardDrive, ScanLine, FileSignature] as const;
 
-/** Section « comment ça marche ». */
-export function HowItWorks() {
+/**
+ * Section « comment ça marche ».
+ *
+ * @param locale Langue de la page.
+ */
+export function HowItWorks({ locale }: { locale: Locale }) {
+  const t = marketingCopy(locale).howItWorks;
   return (
     <Section
-      id="fonctionnement"
-      eyebrow="Fonctionnement"
-      title="Trois étapes, rien à installer sur vos postes"
-      lead="Entre l’acquisition et le compte-rendu signé, il n’y a que le temps de lecture du radiologue."
+      id={ANCHORS.fonctionnement[locale]}
+      eyebrow={t.eyebrow}
+      title={t.title}
+      lead={t.lead}
     >
       <ol className="mt-12 grid gap-5 md:grid-cols-3">
-        {STEPS.map((step, index) => (
-          <li
-            key={step.title}
-            className="group relative flex flex-col rounded-xl border border-border-subtle bg-surface-raised p-6 shadow-raised transition-all duration-200 ease-(--ease-out-quart) hover:-translate-y-0.5 hover:border-border-default hover:shadow-overlay"
-          >
-            <div className="flex items-center justify-between">
-              <span
-                className="flex size-10 items-center justify-center rounded-lg bg-accent-muted ring-1 ring-accent/25 transition-transform duration-200 ease-(--ease-out-quart) ring-inset group-hover:scale-105"
-                aria-hidden
-              >
-                <step.icon className="size-4.5 text-accent" />
-              </span>
-              <span className="font-mono text-2xs text-tertiary">
-                0{index + 1}
-              </span>
-            </div>
+        {t.steps.map((step, index) => {
+          const Icon = STEP_ICONS[index];
+          return (
+            <li
+              key={step.title}
+              className="group relative flex flex-col rounded-xl border border-border-subtle bg-surface-raised p-6 shadow-raised transition-all duration-200 ease-(--ease-out-quart) hover:-translate-y-0.5 hover:border-border-default hover:shadow-overlay"
+            >
+              <div className="flex items-center justify-between">
+                <span
+                  className="flex size-10 items-center justify-center rounded-lg bg-accent-muted ring-1 ring-accent/25 transition-transform duration-200 ease-(--ease-out-quart) ring-inset group-hover:scale-105"
+                  aria-hidden
+                >
+                  <Icon className="size-4.5 text-accent" />
+                </span>
+                <span className="font-mono text-2xs text-tertiary">
+                  0{index + 1}
+                </span>
+              </div>
 
-            <h3 className="mt-5 text-lg font-semibold">{step.title}</h3>
-            <p className="prose-justify mt-2 flex-1 text-sm leading-relaxed text-secondary">
-              {step.detail}
-            </p>
-            <p className="mt-4 border-t border-border-subtle pt-3 text-2xs text-tertiary">
-              {step.note}
-            </p>
-          </li>
-        ))}
+              <h3 className="mt-5 text-lg font-semibold">{step.title}</h3>
+              <p className="prose-justify mt-2 flex-1 text-sm leading-relaxed text-secondary">
+                {step.detail}
+              </p>
+              <p className="mt-4 border-t border-border-subtle pt-3 text-2xs text-tertiary">
+                {step.note}
+              </p>
+            </li>
+          );
+        })}
       </ol>
 
       <p className="prose-justify mx-auto mt-6 max-w-2xl text-center text-xs leading-relaxed text-tertiary">
-        Pas encore de passerelle, ou un examen gravé sur CD ? Les fichiers se
-        déposent depuis un navigateur, sans rien installer.
+        {t.uploadNote}
       </p>
     </Section>
   );

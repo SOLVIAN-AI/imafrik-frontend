@@ -5,25 +5,10 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
+import { marketingCopy, fill } from "@/content/marketing";
 import { submitContact } from "@/lib/actions/contact";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
-
-/** Volumes proposés, en tranches larges plutôt qu'en chiffre libre. */
-const VOLUMES = [
-  "Moins de 50 examens par mois",
-  "50 à 200 examens par mois",
-  "200 à 500 examens par mois",
-  "Plus de 500 examens par mois",
-  "Je ne sais pas encore",
-] as const;
-
-/** Modalités disponibles à l'envoi. */
-const MODALITIES = [
-  "Scanner (CT)",
-  "IRM (MR)",
-  "Radiographie (CR/DX)",
-  "Échographie (US)",
-] as const;
 
 /**
  * Demande de démonstration.
@@ -40,9 +25,14 @@ const MODALITIES = [
  * La demande est enregistrée par le service, qui limite le débit par
  * adresse ; l'équipe IMAFRIK la retrouve dans le back-office (« Demandes
  * reçues »). Fonction, volume et modalités n'ont pas de colonne à eux : ils
- * sont joints au message, en tête, pour préparer l'entretien.
+ * sont joints au message, en tête, pour préparer l'entretien. Ce contexte
+ * reste en français, la langue du back-office, et porte la langue du
+ * demandeur : l'équipe lui répond dans la sienne.
+ *
+ * @param locale Langue de la page.
  */
-export default function ContactPage() {
+export function ContactPage({ locale }: { locale: Locale }) {
+  const t = marketingCopy(locale).contactPage;
   const [sent, setSent] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
@@ -53,7 +43,7 @@ export default function ContactPage() {
     role: "",
     email: "",
     phone: "",
-    volume: VOLUMES[1],
+    volume: t.volumes[1],
     message: "",
   });
   const [modalities, setModalities] = React.useState<string[]>([]);
@@ -71,6 +61,7 @@ export default function ContactPage() {
     if (!valid) return;
     setError(null);
     const context = [
+      `Langue : ${locale === "en" ? "anglais" : "français"}`,
       form.role && `Fonction : ${form.role}`,
       `Volume : ${form.volume}`,
       modalities.length > 0 && `Modalités : ${modalities.join(", ")}`,
@@ -87,6 +78,7 @@ export default function ContactPage() {
           ? `${context}\n\n${form.message.trim()}`
           : context,
         website: trap,
+        locale,
       });
       if (result.ok) setSent(true);
       else setError(result.error);
@@ -96,14 +88,10 @@ export default function ContactPage() {
   return (
     <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 md:py-24 lg:grid-cols-[1fr_1.2fr]">
       <div>
-        <p className="label-eyebrow text-accent">Contact</p>
-        <h1 className="mt-3 text-3xl font-semibold md:text-4xl">
-          Parlons de votre installation
-        </h1>
+        <p className="label-eyebrow text-accent">{t.eyebrow}</p>
+        <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{t.title}</h1>
         <p className="prose-justify mt-5 text-base leading-relaxed text-secondary">
-          Trente minutes suffisent : vous décrivez votre installation et votre
-          volume, nous vous montrons le parcours complet d’un examen, de
-          l’acquisition au compte-rendu signé.
+          {t.lead}
         </p>
 
         <dl className="mt-10 flex flex-col gap-5">
@@ -111,9 +99,7 @@ export default function ContactPage() {
             <Mail className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
             <div>
               <dt className="text-sm font-medium">contact@imafrik.tech</dt>
-              <dd className="mt-0.5 text-xs text-tertiary">
-                Nous vous rappelons pour convenir d’un créneau.
-              </dd>
+              <dd className="mt-0.5 text-xs text-tertiary">{t.emailHint}</dd>
             </div>
           </div>
           <div className="flex gap-3">
@@ -122,16 +108,14 @@ export default function ContactPage() {
               aria-hidden
             />
             <div>
-              <dt className="text-sm font-medium">Lomé, Togo</dt>
+              <dt className="text-sm font-medium">{t.location}</dt>
               <dd className="mt-0.5 text-xs text-tertiary">SOLVIAN AI LLC</dd>
             </div>
           </div>
         </dl>
 
         <p className="prose-justify mt-10 rounded-xl border border-border-subtle bg-surface-raised px-4 py-3.5 text-xs leading-relaxed text-tertiary">
-          La démonstration se fait sur des examens de test. Ne nous transmettez
-          aucune donnée de patient avant la signature d’un contrat et de son
-          annexe de traitement des données.
+          {t.testDataNotice}
         </p>
       </div>
 
@@ -144,17 +128,18 @@ export default function ContactPage() {
             >
               <CheckCircle2 className="size-5 text-accent" />
             </span>
-            <h2 className="mt-5 text-xl font-semibold">Demande envoyée</h2>
+            <h2 className="mt-5 text-xl font-semibold">{t.sentTitle}</h2>
             <p className="mt-2 text-sm leading-relaxed text-secondary">
-              Merci {form.name.split(" ")[0]}. Nous revenons vers vous à
-              l’adresse <span className="text-primary">{form.email}</span> avec
-              une proposition de créneau.
+              {fill(t.sentText, {
+                name: form.name.trim().split(/\s+/)[0],
+                email: form.email.trim(),
+              })}
             </p>
           </div>
         ) : (
           <form onSubmit={submit} className="relative flex flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field id="name" label="Nom complet">
+              <Field id="name" label={t.fields.name}>
                 <Input
                   id="name"
                   value={form.name}
@@ -163,18 +148,18 @@ export default function ContactPage() {
                   className="h-10"
                 />
               </Field>
-              <Field id="role" label="Fonction">
+              <Field id="role" label={t.fields.role}>
                 <Input
                   id="role"
                   value={form.role}
                   onChange={(event) => update("role")(event.target.value)}
-                  placeholder="Directeur, manipulateur, radiologue…"
+                  placeholder={t.fields.rolePlaceholder}
                   className="h-10"
                 />
               </Field>
             </div>
 
-            <Field id="organization" label="Établissement">
+            <Field id="organization" label={t.fields.organization}>
               <Input
                 id="organization"
                 value={form.organization}
@@ -185,7 +170,7 @@ export default function ContactPage() {
             </Field>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field id="email" label="Adresse électronique">
+              <Field id="email" label={t.fields.email}>
                 <Input
                   id="email"
                   type="email"
@@ -195,7 +180,7 @@ export default function ContactPage() {
                   className="h-10"
                 />
               </Field>
-              <Field id="phone" label="Téléphone" hint="Facultatif.">
+              <Field id="phone" label={t.fields.phone} hint={t.fields.optional}>
                 <Input
                   id="phone"
                   type="tel"
@@ -207,7 +192,7 @@ export default function ContactPage() {
               </Field>
             </div>
 
-            <Field id="volume" label="Volume mensuel estimé">
+            <Field id="volume" label={t.fields.volume}>
               <select
                 id="volume"
                 value={form.volume}
@@ -219,7 +204,7 @@ export default function ContactPage() {
                   "focus:border-accent focus:outline-none",
                 )}
               >
-                {VOLUMES.map((volume) => (
+                {t.volumes.map((volume) => (
                   <option key={volume} value={volume}>
                     {volume}
                   </option>
@@ -229,10 +214,10 @@ export default function ContactPage() {
 
             <fieldset>
               <legend className="text-xs font-medium text-secondary">
-                Modalités concernées
+                {t.fields.modalities}
               </legend>
               <div className="mt-2 flex flex-wrap gap-2">
-                {MODALITIES.map((modality) => {
+                {t.modalityOptions.map((modality) => {
                   const selected = modalities.includes(modality);
                   return (
                     <button
@@ -260,13 +245,17 @@ export default function ContactPage() {
               </div>
             </fieldset>
 
-            <Field id="message" label="Message" hint="Facultatif.">
+            <Field
+              id="message"
+              label={t.fields.message}
+              hint={t.fields.optional}
+            >
               <Textarea
                 id="message"
                 rows={4}
                 value={form.message}
                 onChange={(event) => update("message")(event.target.value)}
-                placeholder="Vos modalités, vos délais actuels, ce qui vous pose problème aujourd’hui…"
+                placeholder={t.fields.messagePlaceholder}
               />
             </Field>
 
@@ -300,7 +289,7 @@ export default function ContactPage() {
               disabled={!valid}
               className="mt-2 h-10"
             >
-              Envoyer la demande
+              {t.submit}
             </Button>
           </form>
         )}

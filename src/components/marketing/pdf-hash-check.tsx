@@ -3,6 +3,8 @@
 import { FileSearch, ShieldAlert, ShieldCheck } from "lucide-react";
 import * as React from "react";
 
+import { fill, marketingCopy } from "@/content/marketing";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
 type Outcome =
@@ -23,8 +25,16 @@ type Outcome =
  * données de santé, et la page est publique.
  *
  * @param expected Empreinte enregistrée, en hexadécimal.
+ * @param locale   Langue de la page.
  */
-export function PdfHashCheck({ expected }: { expected: string }) {
+export function PdfHashCheck({
+  expected,
+  locale,
+}: {
+  expected: string;
+  locale: Locale;
+}) {
+  const t = marketingCopy(locale).hashCheck;
   const [outcome, setOutcome] = React.useState<Outcome>({ state: "idle" });
 
   const check = async (file: File) => {
@@ -44,12 +54,8 @@ export function PdfHashCheck({ expected }: { expected: string }) {
 
   return (
     <div className="mt-6 w-full rounded-2xl border border-border-subtle bg-surface-raised p-5 text-left">
-      <p className="label-eyebrow">Vérifier un fichier PDF</p>
-      <p className="mt-1.5 text-xs leading-relaxed text-secondary">
-        Vous avez reçu ce compte-rendu en PDF ? Choisissez le fichier : son
-        empreinte est calculée sur votre ordinateur et comparée à celle
-        enregistrée à la signature. Le fichier n’est envoyé nulle part.
-      </p>
+      <p className="label-eyebrow">{t.title}</p>
+      <p className="mt-1.5 text-xs leading-relaxed text-secondary">{t.text}</p>
 
       <label
         className={cn(
@@ -59,7 +65,7 @@ export function PdfHashCheck({ expected }: { expected: string }) {
         )}
       >
         <FileSearch className="size-4 shrink-0 text-tertiary" aria-hidden />
-        Choisir le fichier PDF…
+        {t.choose}
         <input
           type="file"
           accept="application/pdf"
@@ -75,22 +81,19 @@ export function PdfHashCheck({ expected }: { expected: string }) {
         {outcome.state === "match" && (
           <p className="mt-3 flex items-center gap-2 text-xs font-medium text-done">
             <ShieldCheck className="size-4" aria-hidden />
-            Fichier intact : identique à celui signé.
+            {t.match}
           </p>
         )}
         {outcome.state === "mismatch" && (
           <p className="mt-3 flex items-start gap-2 text-xs text-urgent">
             <ShieldAlert className="mt-px size-4 shrink-0" aria-hidden />
-            <span>
-              Ce fichier diffère du document signé : il a été modifié, ou ce
-              n’est pas le bon fichier.
-            </span>
+            <span>{t.mismatch}</span>
           </p>
         )}
       </div>
 
       <p className="mt-4 font-mono text-2xs break-all text-tertiary">
-        Empreinte enregistrée : {expected}
+        {fill(t.expected, { hash: expected })}
       </p>
     </div>
   );

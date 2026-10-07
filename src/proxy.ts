@@ -2,6 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { mustRefuseToServe } from "@/lib/deployment";
+import { LOCALE_HEADER } from "@/lib/i18n/locale";
+import { localeOfPath } from "@/lib/i18n/routes";
 import { isDemoMode } from "@/lib/demo/mode";
 import { homeFor, isPublicRoute, isRouteAllowed } from "@/lib/navigation";
 import { contentSecurityPolicy, createNonce } from "@/lib/security/csp";
@@ -47,6 +49,9 @@ export async function proxy(request: NextRequest) {
   // x-nonce pour le transmettre à next-themes.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
+  // Langue de la page, déduite de l'adresse : la disposition racine en
+  // tire `<html lang>`.
+  requestHeaders.set(LOCALE_HEADER, localeOfPath(request.nextUrl.pathname));
   requestHeaders.set("Content-Security-Policy", csp);
 
   const withCsp = (response: NextResponse) => {

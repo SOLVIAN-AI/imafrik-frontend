@@ -3,21 +3,9 @@ import Link from "next/link";
 
 import { Section } from "@/components/marketing/section";
 import { Button } from "@/components/ui/button";
-
-/**
- * Ce qui est compris quel que soit le volume.
- *
- * La liste sert à écarter la crainte du coût caché : dans un service
- * facturé à l'acte, ce qu'on redoute n'est pas le prix unitaire mais les
- * frais annexes — installation, licence, maintenance, stockage.
- */
-const INCLUDED = [
-  "Installation et supervision de la passerelle",
-  "Stockage et archivage des examens",
-  "Portail clinique et accès pour toute l’équipe",
-  "Comptes-rendus signés, PDF et vérification en ligne",
-  "Assistance au raccordement des modalités",
-] as const;
+import { marketingCopy } from "@/content/marketing";
+import type { Locale } from "@/lib/i18n/locale";
+import { ANCHORS, localizePath } from "@/lib/i18n/routes";
 
 /**
  * Section tarifaire.
@@ -30,20 +18,28 @@ const INCLUDED = [
  *
  * Une grille chiffrée remplacera ce bloc dès que les premiers contrats
  * auront établi les paliers.
+ *
+ * La liste de ce qui est compris sert à écarter la crainte du coût caché :
+ * dans un service facturé à l'acte, ce qu'on redoute n'est pas le prix
+ * unitaire mais les frais annexes (installation, licence, maintenance,
+ * stockage).
+ *
+ * @param locale Langue de la page.
  */
-export function Pricing() {
+export function Pricing({ locale }: { locale: Locale }) {
+  const t = marketingCopy(locale).pricing;
   return (
     <Section
-      id="tarifs"
-      eyebrow="Tarifs"
-      title="À l’acte, sans abonnement."
-      lead="Vous payez les examens lus. Le tarif unitaire dépend de la modalité et du délai retenu ; il est fixé au contrat et n’évolue pas en cours d’année."
+      id={ANCHORS.tarifs[locale]}
+      eyebrow={t.eyebrow}
+      title={t.title}
+      lead={t.lead}
     >
       <div className="mt-12 grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="rounded-2xl border border-border-subtle bg-surface-raised p-8 shadow-raised">
-          <p className="label-eyebrow">Compris dans chaque contrat</p>
+          <p className="label-eyebrow">{t.includedTitle}</p>
           <ul className="mt-5 grid gap-3 sm:grid-cols-2">
-            {INCLUDED.map((item) => (
+            {t.included.map((item) => (
               <li key={item} className="flex gap-2.5 text-sm text-secondary">
                 <Check
                   className="mt-0.5 size-4 shrink-0 text-accent"
@@ -55,7 +51,7 @@ export function Pricing() {
           </ul>
 
           <p className="mt-8 border-t border-border-subtle pt-5 text-xs leading-relaxed text-tertiary">
-            Aucun engagement de volume n’est demandé à l’établissement.
+            {t.noCommitment}
           </p>
         </div>
 
@@ -67,15 +63,14 @@ export function Pricing() {
             >
               <MessageSquare className="size-4.5 text-accent" />
             </span>
-            <h3 className="mt-5 text-xl font-semibold">Obtenir une grille</h3>
+            <h3 className="mt-5 text-xl font-semibold">{t.quoteTitle}</h3>
             <p className="mt-2 text-sm leading-relaxed text-secondary">
-              Dites-nous votre volume mensuel et vos modalités : nous vous
-              adressons une proposition chiffrée.
+              {t.quoteText}
             </p>
           </div>
 
           <Button size="lg" className="mt-8 w-full" asChild>
-            <Link href="/contact">Demander une proposition</Link>
+            <Link href={localizePath("/contact", locale)}>{t.quoteCta}</Link>
           </Button>
         </div>
       </div>

@@ -1,52 +1,8 @@
 import { ChevronDown } from "lucide-react";
 
 import { Section } from "@/components/marketing/section";
-
-/**
- * Les objections réelles, dans l'ordre où elles viennent.
- *
- * Une FAQ n'est pas un espace de reformulation du discours commercial :
- * chaque entrée doit répondre à une question qui, sans réponse, empêche
- * de signer. D'où le ton — direct, et assumant les limites du service
- * quand il en a.
- */
-const QUESTIONS = [
-  {
-    question: "Faut-il changer notre installation ?",
-    answer:
-      "Non. La passerelle est un logiciel que nous installons sur un poste de l’établissement ; vos modalités lui envoient les examens comme à n’importe quelle destination du réseau interne. Si vous avez déjà un PACS, il reste en place.",
-  },
-  {
-    question: "Quel ordinateur faut-il pour la passerelle ?",
-    answer:
-      "Un poste bureautique sous Windows 10 ou plus récent, avec une centaine de gigaoctets libres : la passerelle garde une copie des examens sur place. Une seule exigence, mais elle est ferme : il doit rester allumé, sinon les examens ne partent pas. Un poste dédié vaut mieux qu’un poste partagé qu’on éteint le soir. Nous recommandons d’activer le chiffrement de son disque (BitLocker), et vous y aidons à l’installation.",
-  },
-  {
-    question: "Que se passe-t-il si Internet ou le courant est coupé ?",
-    answer:
-      "L’examen est accepté quand même : la passerelle le conserve et le transfère dès que la liaison revient. Vos images restent consultables sur place pendant la coupure. C’est sa raison d’être : une console d’acquisition, elle, ne garde pas les envois qui échouent.",
-  },
-  {
-    question: "Qui signe le compte-rendu, et qui en est responsable ?",
-    answer:
-      "Un radiologue nommément identifié, inscrit à un ordre professionnel, dont le numéro figure sur le document. La responsabilité de l’interprétation lui incombe, comme pour un examen lu sur place. IMAFRIK assure la transmission et la traçabilité.",
-  },
-  {
-    question: "Où sont stockées les images de nos patients ?",
-    answer:
-      "Sur la passerelle de votre établissement, et sur nos serveurs dans l’Union européenne, chiffrées. Elles restent la propriété de l’établissement, qui en reçoit l’export complet sur simple demande. Leur durée de conservation sur nos serveurs est fixée au contrat.",
-  },
-  {
-    question: "Combien de temps prend la mise en service ?",
-    answer:
-      "L’installation de la passerelle et le raccordement des modalités se planifient avec votre technicien. Le dépôt depuis un navigateur, lui, est utilisable dès la création du compte : vous pouvez envoyer votre premier examen sans attendre.",
-  },
-  {
-    question: "Peut-on essayer avant de s’engager ?",
-    answer:
-      "Oui. La démonstration se fait sur des examens de test, sans aucune donnée patient. Les premiers examens réels peuvent être traités sous convention d’essai avant contrat.",
-  },
-] as const;
+import { marketingCopy } from "@/content/marketing";
+import type { Locale } from "@/lib/i18n/locale";
 
 /**
  * Foire aux questions.
@@ -55,12 +11,20 @@ const QUESTIONS = [
  * JavaScript, reste accessible au clavier et se laisse chercher par la
  * recherche du navigateur. Une bibliothèque d'accordéon n'apporterait
  * ici qu'une dépendance.
+ *
+ * Les questions sont les objections réelles, dans l'ordre où elles
+ * viennent : chaque entrée répond à une question qui, sans réponse,
+ * empêche de signer. D'où le ton, direct, et qui assume les limites du
+ * service quand il en a.
+ *
+ * @param locale Langue de la page.
  */
-export function Faq() {
+export function Faq({ locale }: { locale: Locale }) {
+  const t = marketingCopy(locale).faq;
   return (
-    <Section eyebrow="Questions" title="Ce qu’on nous demande avant de signer">
+    <Section eyebrow={t.eyebrow} title={t.title}>
       <div className="mt-10 divide-y divide-border-subtle overflow-hidden rounded-2xl border border-border-subtle bg-surface-raised">
-        {QUESTIONS.map((entry) => (
+        {t.entries.map((entry) => (
           <details key={entry.question} className="group">
             <summary
               className={
