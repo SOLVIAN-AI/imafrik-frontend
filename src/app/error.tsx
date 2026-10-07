@@ -63,7 +63,8 @@ export default function ErrorScreen({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const t = COPY[localeOfPath(usePathname())];
+  const locale = localeOfPath(usePathname());
+  const t = COPY[locale];
 
   React.useEffect(() => {
     // Le `digest` est la seule information à communiquer au support :
@@ -74,6 +75,7 @@ export default function ErrorScreen({
   return (
     <StatusScreen
       code={error.digest ?? "500"}
+      locale={locale}
       tone="urgent"
       title={t.title}
       detail={t.detail}

@@ -53,13 +53,13 @@ export default function NewPasswordPage() {
 
   return (
     <div className="w-full max-w-sm animate-[rise-in_400ms_var(--ease-out-quart)]">
-      <h2 className="text-2xl font-semibold">Nouveau mot de passe</h2>
+      <h2 className="text-2xl font-semibold">{t.session.newPassword.title}</h2>
       <p className="mt-1.5 text-sm text-tertiary">
-        Vos sessions ouvertes sur d’autres appareils seront fermées.
+        {t.session.newPassword.description}
       </p>
 
       <form onSubmit={submit} className="mt-8 flex flex-col gap-4">
-        <Field id="password" label="Nouveau mot de passe">
+        <Field id="password" label={t.session.newPassword.password}>
           <Input
             id="password"
             type="password"
@@ -95,10 +95,10 @@ export default function NewPasswordPage() {
 
         <Field
           id="confirm"
-          label="Confirmation"
+          label={t.session.newPassword.confirmation}
           error={
             confirm.length > 0 && !match
-              ? "Les deux saisies diffèrent."
+              ? t.session.newPassword.mismatch
               : undefined
           }
         >
@@ -126,7 +126,7 @@ export default function NewPasswordPage() {
           disabled={!rulesOk || !match}
           className="mt-2 h-10 w-full"
         >
-          Enregistrer le mot de passe
+          {t.session.newPassword.submit}
         </Button>
       </form>
     </div>

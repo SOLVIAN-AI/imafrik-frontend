@@ -63,6 +63,7 @@ export const common = {
       "Le service est momentanément indisponible. Réessayez dans un instant.",
     requestFailed: "La demande n’a pas abouti.",
     apiNotConfigured: "L’API n’est pas configurée.",
+    unexpectedResponse: "Le service a renvoyé une réponse inattendue.",
     unreachable:
       "Le service est injoignable. Vérifiez la connexion, puis réessayez.",
   },

@@ -73,6 +73,6 @@ describe("contrôles propres à IMAFRIK", () => {
     const missing = missingProductionConfig();
     expect(missing).toHaveLength(1);
     expect(missing[0].name).toBe("NEXT_PUBLIC_VIEWER_URL");
-    expect(missing[0].purpose).toContain("autre origine");
+    expect(missing[0].purpose).toBe("viewerIsolation");
   });
 });

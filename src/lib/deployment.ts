@@ -90,53 +90,61 @@ function viewerIsolated(): boolean {
 const REQUIRED_IN_PRODUCTION = [
   {
     name: "NEXT_PUBLIC_SUPABASE_URL",
-    purpose: "authentification et lecture des appartenances",
+    purpose: "supabase",
     present: () => isSupabaseConfigured(),
   },
   {
     name: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    purpose: "authentification et lecture des appartenances",
+    purpose: "supabase",
     present: () => isSupabaseConfigured(),
   },
   {
     name: "NEXT_PUBLIC_API_URL",
-    purpose: "examens, comptes-rendus et jetons de visualisation",
+    purpose: "api",
     present: () => isApiConfigured(),
   },
   {
     name: "NEXT_PUBLIC_VIEWER_URL",
-    purpose: "affichage des images dans l’écran de lecture",
+    purpose: "viewer",
     present: () => isAbsoluteUrl(process.env.NEXT_PUBLIC_VIEWER_URL),
   },
   {
     name: "NEXT_PUBLIC_VIEWER_URL",
-    purpose:
-      "doit être servi depuis une autre origine que le site : il ne doit partager ni ses cookies ni son stockage",
+    purpose: "viewerIsolation",
     present: viewerIsolated,
   },
   {
     name: "NEXT_PUBLIC_SITE_URL",
-    purpose: "liens des courriels et lien de vérification des comptes-rendus",
+    purpose: "siteUrl",
     present: () => isAbsoluteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   },
   {
     name: "REPORT_BACKUP_SECRET",
-    purpose:
-      "chiffrement des copies de secours des brouillons sur le poste (32 caractères au moins)",
+    purpose: "backupSecret",
     present: hasReportBackupSecret,
   },
 ] as const;
 
+/**
+ * Rôle d'une variable, sous forme de clé : le texte, dans la langue du
+ * visiteur, est dans `session.configuration.purposes`. Ce module reste
+ * ainsi sans dépendance aux textes, et utilisable depuis le proxy.
+ */
+export type DeploymentPurpose =
+  (typeof REQUIRED_IN_PRODUCTION)[number]["purpose"];
+
 /** Une variable manquante, et ce qu'elle sert. */
 export interface MissingVariable {
   name: string;
-  purpose: string;
+  /** Clé du rôle de la variable (voir {@link DeploymentPurpose}). */
+  purpose: DeploymentPurpose;
 }
 
 /**
  * Variables manquantes pour servir un déploiement de production.
  *
- * @returns La liste, vide si tout est en place.
+ * @returns La liste, vide si tout est en place. Le rôle de chaque
+ *          variable est une clé, à traduire par l'écran qui l'affiche.
  */
 export function missingProductionConfig(): MissingVariable[] {
   return REQUIRED_IN_PRODUCTION.filter((entry) => !entry.present()).map(

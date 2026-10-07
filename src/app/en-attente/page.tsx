@@ -3,13 +3,22 @@ import { redirect } from "next/navigation";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { StatusScreen } from "@/components/layout/status-screen";
+import { LocaleProvider } from "@/i18n/client";
+import { getMessages } from "@/i18n/server";
 import { homeFor } from "@/lib/navigation";
 import { getAuthState } from "@/lib/session/server";
 
-export const metadata: Metadata = {
-  title: "Compte en attente",
-  robots: { index: false, follow: false },
-};
+/** Titre de l'onglet, dans la langue de l'utilisateur ; page non indexée. */
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getMessages();
+  return {
+    title: t.session.pending.metaTitle,
+    robots: { index: false, follow: false },
+  };
+}
+
+/** Adresse de l'équipe IMAFRIK, donnée telle quelle dans les deux langues. */
+const CONTACT_EMAIL = "contact@imafrik.tech";
 
 /**
  * Compte valide, rattaché à aucune organisation active.
@@ -22,6 +31,10 @@ export const metadata: Metadata = {
  *
  * L'écran dit donc ce qui se passe, et offre la seule sortie utile : se
  * déconnecter, pour se reconnecter sous un autre compte.
+ *
+ * Sans appartenance, la langue est celle de la requête ; le bouton de
+ * déconnexion, composant client hors de tout `SessionProvider`, la reçoit
+ * par son propre `LocaleProvider`.
  */
 export default async function PendingAccountPage() {
   const state = await getAuthState();
@@ -29,25 +42,24 @@ export default async function PendingAccountPage() {
   if (state === "mfa-required") redirect("/double-authentification");
   if (state !== "no-membership") redirect(homeFor(state.active.role));
 
+  const { t, locale } = await getMessages();
   return (
     <StatusScreen
-      code="En attente"
-      title="Votre compte n’ouvre encore aucun espace"
+      code="pending"
+      eyebrow={t.session.pending.eyebrow}
+      locale={locale}
+      title={t.session.pending.title}
       detail={
         <>
-          <p>
-            Vous êtes bien connecté, mais votre compte n’est rattaché à aucun
-            établissement ni groupe de radiologie actif.
-          </p>
-          <p className="mt-3">
-            Si vous venez de déposer votre dossier, il est en cours de
-            vérification. Si vous utilisiez déjà IMAFRIK, votre accès a pu être
-            retiré par votre établissement : rapprochez-vous de lui, ou
-            écrivez-nous à contact@imafrik.tech.
-          </p>
+          <p>{t.session.pending.notLinked}</p>
+          <p className="mt-3">{t.session.pending.nextSteps(CONTACT_EMAIL)}</p>
         </>
       }
-      actions={<SignOutButton />}
+      actions={
+        <LocaleProvider locale={locale}>
+          <SignOutButton />
+        </LocaleProvider>
+      }
     />
   );
 }

@@ -58,6 +58,7 @@ export const common: AppMessages["common"] = {
       "The service is temporarily unavailable. Please try again in a moment.",
     requestFailed: "The request could not be completed.",
     apiNotConfigured: "The API is not configured.",
+    unexpectedResponse: "The service returned an unexpected response.",
     unreachable:
       "The service cannot be reached. Please check your connection and try again.",
   },

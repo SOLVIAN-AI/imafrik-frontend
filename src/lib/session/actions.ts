@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { apiFetch } from "@/lib/api/client";
 import { type ActionResult } from "@/lib/actions/result";
+import { getMessages } from "@/i18n/server";
 import { isDemoMode } from "@/lib/demo/mode";
 import { DEMO_MEMBERSHIPS } from "@/lib/session/demo";
 import { DEMO_MEMBERSHIP_COOKIE, getSession } from "@/lib/session/server";
@@ -25,11 +26,12 @@ import { createClient } from "@/lib/supabase/server";
 export async function setActiveMembership(
   membershipId: string,
 ): Promise<ActionResult> {
+  const { t } = await getMessages();
   if (isDemoMode()) {
     if (
       !DEMO_MEMBERSHIPS.some((membership) => membership.id === membershipId)
     ) {
-      return { ok: false, error: "Appartenance inconnue.", status: 404 };
+      return { ok: false, error: t.session.membership.unknown, status: 404 };
     }
     const store = await cookies();
     store.set(DEMO_MEMBERSHIP_COOKIE, membershipId, {
@@ -50,7 +52,7 @@ export async function setActiveMembership(
     (membership) => membership.id === membershipId,
   );
   if (!target)
-    return { ok: false, error: "Appartenance inconnue.", status: 404 };
+    return { ok: false, error: t.session.membership.unknown, status: 404 };
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("set_active_organization", {
@@ -59,7 +61,7 @@ export async function setActiveMembership(
   if (error) {
     return {
       ok: false,
-      error: "La bascule d’organisation a été refusée.",
+      error: t.session.membership.switchRefused,
       status: 403,
     };
   }

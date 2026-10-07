@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useMessages } from "@/i18n/client";
 import { signOut } from "@/lib/session/actions";
 import {
   ACTIVITY_KEY,
@@ -56,6 +57,7 @@ const SHARE_EVERY_MS = 5_000;
  * données — celles-ci exigent de toute façon un jeton valide.
  */
 export function InactivityLock() {
+  const t = useMessages();
   const pathname = usePathname();
   const [phase, setPhase] = React.useState<InactivityPhase>("active");
   const [secondsLeft, setSecondsLeft] = React.useState(0);
@@ -156,23 +158,22 @@ export function InactivityLock() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Lock className="size-4 text-progress" aria-hidden />
-            Session bientôt fermée
+            {t.session.inactivity.title}
           </DialogTitle>
           <DialogDescription id="inactivity-detail">
-            Aucune activité depuis près de {IDLE_MINUTES} minutes. Pour protéger
-            les examens affichés, la session se ferme dans{" "}
+            {t.session.inactivity.detailBefore(IDLE_MINUTES)}
             <strong className="text-primary tabular-nums" aria-live="polite">
-              {secondsLeft} s
+              {t.session.inactivity.seconds(secondsLeft)}
             </strong>
-            . Vos comptes-rendus sont enregistrés.
+            {t.session.inactivity.detailAfter}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" size="sm" onClick={() => void lock()}>
-            Fermer maintenant
+            {t.session.inactivity.signOutNow}
           </Button>
           <Button size="sm" onClick={markActive} autoFocus>
-            Rester connecté
+            {t.session.inactivity.staySignedIn}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
+import { useMessages } from "@/i18n/client";
 
 /**
  * Erreur d'un écran des portails, affichée **dans** le châssis.
@@ -25,6 +26,8 @@ export default function AppError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useMessages();
+
   React.useEffect(() => {
     console.error("[imafrik]", error.digest ?? error.message);
   }, [error]);
@@ -35,21 +38,18 @@ export default function AppError({
         <span className="mx-auto mb-5 flex size-12 items-center justify-center rounded-full bg-urgent-muted ring-1 ring-urgent/20 ring-inset">
           <AlertTriangle className="size-5 text-urgent" aria-hidden />
         </span>
-        <h1 className="text-xl font-semibold">
-          Cet écran n’a pas pu s’afficher
-        </h1>
+        <h1 className="text-xl font-semibold">{t.session.appError.title}</h1>
         <p className="mt-2 text-sm leading-relaxed text-secondary">
-          Le service n’a pas répondu comme prévu. Ces erreurs sont le plus
-          souvent passagères : réessayez dans un instant.
+          {t.session.appError.detail}
         </p>
         {error.digest && (
           <p className="mt-4 font-mono text-2xs text-tertiary">
-            Référence : {error.digest}
+            {t.session.appError.reference(error.digest)}
           </p>
         )}
         <Button className="mt-6" onClick={reset}>
           <RotateCw />
-          Réessayer
+          {t.common.actions.retry}
         </Button>
       </Panel>
     </div>

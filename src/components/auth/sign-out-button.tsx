@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
+import { useMessages } from "@/i18n/client";
 import { clearLocalData } from "@/lib/local-data";
 import { signOut } from "@/lib/session/actions";
 
@@ -14,6 +15,7 @@ import { signOut } from "@/lib/session/actions";
  * jetons de visualisation révoqués, session fermée.
  */
 export function SignOutButton() {
+  const t = useMessages();
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
 
@@ -30,7 +32,7 @@ export function SignOutButton() {
         })
       }
     >
-      Se déconnecter
+      {t.common.actions.signOut}
     </Button>
   );
 }

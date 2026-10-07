@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import type { ActionResult } from "@/lib/actions/result";
+import { getMessages } from "@/i18n/server";
 import { isDemoMode } from "@/lib/demo/mode";
 import { homeFor } from "@/lib/navigation";
 import { safeRedirect } from "@/lib/security/redirect";
@@ -45,17 +46,13 @@ export interface Enrollment {
  * qui vérifie l'identité par un autre canal.
  */
 export async function startEnrollment(): Promise<ActionResult<Enrollment>> {
+  const { t } = await getMessages();
   if (isDemoMode()) {
-    return {
-      ok: false,
-      error:
-        "La double authentification n’est pas disponible en démonstration.",
-      status: 503,
-    };
+    return { ok: false, error: t.session.mfa.errors.demo, status: 503 };
   }
   const state = await getAuthState();
   if (state === "anonymous") {
-    return { ok: false, error: "Session expirée.", status: 401 };
+    return { ok: false, error: t.common.errors.sessionExpired, status: 401 };
   }
 
   const supabase = await createClient();
@@ -64,15 +61,14 @@ export async function startEnrollment(): Promise<ActionResult<Enrollment>> {
   if (listError) {
     return {
       ok: false,
-      error: "Le service d’authentification ne répond pas. Réessayez.",
+      error: t.session.mfa.errors.serviceDown,
       status: 503,
     };
   }
   if (factors.totp.some((factor) => factor.status === "verified")) {
     return {
       ok: false,
-      error:
-        "Une application est déjà associée à ce compte. Pour changer de téléphone, contactez l’équipe IMAFRIK.",
+      error: t.session.mfa.errors.alreadyEnrolled,
       status: 409,
     };
   }
@@ -85,12 +81,12 @@ export async function startEnrollment(): Promise<ActionResult<Enrollment>> {
   const { data, error } = await supabase.auth.mfa.enroll({
     factorType: "totp",
     issuer: "IMAFRIK",
-    friendlyName: "Application d’authentification",
+    friendlyName: t.session.mfa.factorName,
   });
   if (error || !data) {
     return {
       ok: false,
-      error: "L’enrôlement n’a pas pu démarrer. Réessayez.",
+      error: t.session.mfa.errors.enrollFailed,
       status: 503,
     };
   }
@@ -122,16 +118,17 @@ export async function verifyCode(
   input: string,
   suite: string,
 ): Promise<ActionResult> {
+  const { t } = await getMessages();
   const code = normalizeOtp(input);
   if (!code) {
-    return {
-      ok: false,
-      error: "Le code compte six chiffres.",
-      status: 422,
-    };
+    return { ok: false, error: t.session.mfa.errors.codeFormat, status: 422 };
   }
   if (isDemoMode() || !factorId) {
-    return { ok: false, error: "Facteur inconnu.", status: 422 };
+    return {
+      ok: false,
+      error: t.session.mfa.errors.unknownFactor,
+      status: 422,
+    };
   }
 
   const supabase = await createClient();
@@ -144,8 +141,8 @@ export async function verifyCode(
       ok: false,
       error:
         error.status === 429
-          ? "Trop d’essais. Patientez une minute avant de recommencer."
-          : "Code incorrect ou expiré. Saisissez le code affiché maintenant.",
+          ? t.session.mfa.errors.tooManyAttempts
+          : t.session.mfa.errors.wrongCode,
       status: error.status ?? 401,
     };
   }
@@ -157,7 +154,7 @@ export async function verifyCode(
   if (state === "mfa-required") {
     return {
       ok: false,
-      error: "La vérification n’a pas été prise en compte. Réessayez.",
+      error: t.session.mfa.errors.notApplied,
       status: 409,
     };
   }

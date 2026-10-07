@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { MfaForm } from "@/components/auth/mfa-form";
+import { getMessages } from "@/i18n/server";
 import { isDemoMode } from "@/lib/demo/mode";
 import { homeFor } from "@/lib/navigation";
 import { getAuthState } from "@/lib/session/server";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Double authentification" };
+/** Titre de l'onglet, dans la langue de l'utilisateur. */
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.session.mfa.title };
+}
 
 /**
  * Double authentification : enrôler une application, ou saisir son code.

@@ -157,7 +157,7 @@ export async function apiGet<S extends z.ZodTypeAny>(
 ): Promise<z.output<S> | null> {
   try {
     const response = await apiFetch(path);
-    return parseContract(path, schema, await response.json());
+    return await parseContract(path, schema, await response.json());
   } catch (error) {
     if (
       options.notFoundAsNull &&
@@ -189,15 +189,15 @@ export async function apiSend<S extends z.ZodTypeAny>(
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!schema || response.status === 204) return undefined as z.output<S>;
-  return parseContract(path, schema, await response.json());
+  return await parseContract(path, schema, await response.json());
 }
 
 /** Valide une réponse ; une rupture de contrat devient une ApiError explicite. */
-function parseContract<S extends z.ZodTypeAny>(
+async function parseContract<S extends z.ZodTypeAny>(
   path: string,
   schema: S,
   raw: unknown,
-) {
+): Promise<z.output<S>> {
   const parsed = schema.safeParse(raw);
   if (!parsed.success) {
     // Le détail part dans les journaux du serveur, pas vers l'écran : il
@@ -206,7 +206,10 @@ function parseContract<S extends z.ZodTypeAny>(
       `Rupture de contrat sur ${path}`,
       parsed.error.issues.slice(0, 5),
     );
-    throw new ApiError(502, "Le service a renvoyé une réponse inattendue.");
+    throw new ApiError(
+      502,
+      messagesFor(await getLocale()).common.errors.unexpectedResponse,
+    );
   }
   return parsed.data as z.output<S>;
 }

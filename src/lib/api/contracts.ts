@@ -42,7 +42,9 @@ const isoDate = z.string();
 const browserUrl = z
   .string()
   .url()
-  .refine(isSafeBrowserUrl, "Adresse non sûre renvoyée par le service");
+  // Message technique : une adresse refusée fait échouer la lecture du
+  // contrat, que l'écran présente comme une réponse inattendue.
+  .refine(isSafeBrowserUrl, "unsafe URL returned by the service");
 
 export const studyStatusSchema = z.enum([
   "received",

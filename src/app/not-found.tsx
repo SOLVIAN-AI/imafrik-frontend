@@ -27,6 +27,7 @@ export default async function NotFound() {
     return (
       <StatusScreen
         code="404"
+        locale="en"
         title="This page does not exist"
         detail={
           <>
