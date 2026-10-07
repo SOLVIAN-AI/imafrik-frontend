@@ -75,4 +75,21 @@ describe("contrôles propres à IMAFRIK", () => {
     expect(missing[0].name).toBe("NEXT_PUBLIC_VIEWER_URL");
     expect(missing[0].purpose).toBe("viewerIsolation");
   });
+
+  it("refuse une adresse de site éphémère : elle figure dans les liens de vérification", async () => {
+    for (const site of [
+      "https://imafrik-frontend-git-demo-x.vercel.app",
+      "http://imafrik.tech",
+    ]) {
+      vi.resetModules();
+      const { missingProductionConfig } = await load({
+        ...COMPLETE,
+        NEXT_PUBLIC_SITE_URL: site,
+        VERCEL_ENV: "production",
+      });
+      expect(missingProductionConfig()).toEqual([
+        { name: "NEXT_PUBLIC_SITE_URL", purpose: "siteUrlDurable" },
+      ]);
+    }
+  });
 });

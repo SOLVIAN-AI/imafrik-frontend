@@ -74,6 +74,22 @@ function viewerIsolated(): boolean {
 }
 
 /**
+ * Vrai si l'adresse du site est une adresse durable : en https, et pas
+ * une adresse de prévisualisation (`*.vercel.app`).
+ *
+ * Elle sert de base aux liens de vérification des comptes-rendus et des
+ * courriels : un lien vers un aperçu cesserait de fonctionner au
+ * déploiement suivant, sur des documents déjà remis. Une adresse absente
+ * ou invalide est signalée par sa propre entrée.
+ */
+function siteUrlDurable(): boolean {
+  const value = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!isAbsoluteUrl(value)) return true;
+  const url = new URL(value as string);
+  return url.protocol === "https:" && !url.hostname.endsWith(".vercel.app");
+}
+
+/**
  * Variables indispensables à un déploiement de production.
  *
  * **Toutes, pas seulement les clés Supabase.** Un déploiement muni des
@@ -117,6 +133,11 @@ const REQUIRED_IN_PRODUCTION = [
     name: "NEXT_PUBLIC_SITE_URL",
     purpose: "siteUrl",
     present: () => isAbsoluteUrl(process.env.NEXT_PUBLIC_SITE_URL),
+  },
+  {
+    name: "NEXT_PUBLIC_SITE_URL",
+    purpose: "siteUrlDurable",
+    present: siteUrlDurable,
   },
   {
     name: "REPORT_BACKUP_SECRET",

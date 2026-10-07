@@ -89,6 +89,8 @@ export const session: AppMessages["session"] = {
       viewerIsolation:
         "must be served from a different origin from the site, so that it shares neither its cookies nor its storage",
       siteUrl: "links in emails and the report verification link",
+      siteUrlDurable:
+        "must be the permanent site address, over https, not a preview address: it appears in the verification links of documents already issued",
       backupSecret: (minLength: number) =>
         `encryption of draft backups stored on the device (at least ${minLength} characters)`,
     },

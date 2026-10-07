@@ -97,6 +97,8 @@ export const session = {
       viewerIsolation:
         "doit être servi depuis une autre origine que le site : il ne doit partager ni ses cookies ni son stockage",
       siteUrl: "liens des courriels et lien de vérification des comptes-rendus",
+      siteUrlDurable:
+        "doit être l’adresse durable du site, en https, et non une adresse de prévisualisation : elle figure dans les liens de vérification des documents remis",
       backupSecret: (minLength: number) =>
         `chiffrement des copies de secours des brouillons sur le poste (${minLength} caractères au moins)`,
     },
