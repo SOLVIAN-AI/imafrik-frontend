@@ -91,7 +91,7 @@ manipule des données de santé.
 | `/mot-de-passe-oublie` | Demande de lien de réinitialisation. | V1 |
 | `/nouveau-mot-de-passe` | Saisie du nouveau mot de passe, après le lien reçu. | V1 |
 | `/rejoindre` | **Candidature d'un radiologue.** Pas une inscription : un dossier, soumis à validation. Voir la décision n° 1. | V2 |
-| `/verification` | Second facteur (code à usage unique). Voir la décision n° 4. | V2 |
+| `/double-authentification` | **Second facteur** : enrôlement d'une application TOTP (QR code, clé de secours) ou saisie du code. Obligatoire pour radiologues et administration — imposé au jeton, voir AD-8 du dépôt backend. | V1 — fait |
 
 | `/en-attente` | Compte valide rattaché à aucune organisation active : candidature en cours d'examen ou organisation suspendue. | V1 |
 
@@ -176,21 +176,26 @@ attend des comptes-rendus.
 
 ## 7. Back-office IMAFRIK — `(admin)`
 
-Réservé à l'équipe Solvian AI. Tant qu'il n'existe pas, ces opérations
-se font en SQL — tenable pour une clinique, intenable pour dix.
+Réservé à l'équipe IMAFRIK : la tour de contrôle. Aucune donnée de
+patient dans les vues de pilotage (AD-13 du dépôt backend).
 
-| Route | Écran | Phase |
+| Route | Écran | État |
 | --- | --- | --- |
-| `/admin/organisations` | Cliniques et cabinets, création, suspension. | V1 |
-| `/admin/examens` | Recherche globale, réattribution, déblocage. | V1 |
-| `/admin/radiologues` | Validation des candidatures et des pièces justificatives. | V2 |
-| `/admin/contrats` | Qui sert qui : table `service_contracts`, qui détermine la visibilité inter-organisations. | V2 |
-| `/admin/facturation` | Facturation des cliniques, rémunération des radiologues. | V2 |
-| `/admin/audit` | Journal d'accès. Table `audit_log` déjà en base. Obligatoire dès qu'un litige survient. | V2 |
-| `/admin` | Vue d'ensemble : volumes, délais, incidents. | V3 |
-| `/admin/parametres` | Paramètres de la plateforme. | V3 |
+| `/admin` | **Cockpit** : alertes, files en direct, délais promis tenus, réseau, exploitation. | Fait |
+| `/admin/activite` | Volumes, délais (médiane, 9 sur 10), étapes du parcours, heures d'arrivée, par clinique (débit), modalité, radiologue. Période et clinique dans l'adresse. | Fait |
+| `/admin/flux` | Flux d'images examen par examen : débit de réception, frise acquisition → remise. | Fait |
+| `/admin/organisations` | Volumes sur 30 jours, dernier envoi, suspension, invitation. | Fait |
+| `/admin/organisations/[id]` | Mise en service d'une clinique, activité, **durée de conservation des images**. | Fait |
+| `/admin/utilisateurs` | Comptes : rattachement des radiologues en attente, double authentification, réinitialisation. | Fait |
+| `/admin/examens` | Recherche globale, urgences en cours. | Fait |
+| `/admin/demandes` | Demandes reçues par le site, suivi et notes. | Fait |
+| `/admin/facturation` | Actes du mois par clinique et modalité, export CSV protégé contre l'injection de formules. | Fait |
+| `/admin/systeme` | Dépendances, PACS, version, filets de sécurité (sauvegardes, exercices, réconciliation, conservation). | Fait |
+| `/admin/audit` | Journal d'audit, filtré par action, paginé par curseur. | Fait |
+| `/admin/reglages` | Délais promis, bandeau de maintenance. | Fait |
+| `/admin/contrats` | Qui sert qui (`service_contracts`). | V2 — en SQL pour l'instant |
 
-**8 écrans.**
+**13 écrans.**
 
 ---
 
@@ -244,11 +249,10 @@ se font en SQL — tenable pour une clinique, intenable pour dix.
 | --- | --- | --- |
 | `/cliniques`, `/radiologues`, `/tarifs` | V2 | L'accueil couvre les deux publics ; ces pages n'ont d'intérêt qu'avec du contenu commercial propre. |
 | `/rejoindre` (candidature radiologue) | V2 | Dépend du parcours de validation côté back-office. |
-| `/verification` (second facteur) | V2 | Décision n° 4 non tranchée. |
 | `/patients` (clinique) | V3 | Confort ; la recherche par patient existe déjà dans les comptes-rendus. |
 | `/facturation`, `/honoraires` | V2 | Décision n° 3 non tranchée : la rémunération passe-t-elle par l'application ? |
 | `/activite` (radiologue) | V3 | Analyse ; sans valeur avant plusieurs mois d'exploitation. |
-| `/admin/radiologues`, `/contrats`, `/facturation`, `/audit`, `/admin` | V2–V3 | Aucune route d'administration côté service ; se font en SQL pour l'instant. |
+| `/admin/contrats` | V2 | Les contrats de service se créent en SQL ; tenable tant que le réseau compte quelques groupes. |
 
 ## 10. Ce qui n'est pas un écran
 
@@ -284,9 +288,10 @@ ici pour être tranchées explicitement.
 3. **La rémunération des radiologues passe-t-elle par l'application ?**
    Si oui, `/honoraires` et `/admin/facturation` deviennent structurants
    et il faut un modèle tarifaire par acte en base.
-4. **Second facteur d'authentification ?** Recommandation : oui pour les
-   comptes qui accèdent aux images, au moins en option, avant la
-   première mise en production réelle.
+4. ~~**Second facteur d'authentification ?**~~ **Tranché (8 octobre
+   2026)** : obligatoire pour les radiologues et l'administration, imposé
+   à l'émission du jeton ; facultatif pour les établissements, et alors
+   exigé à chaque connexion. Voir AD-8 du dépôt backend.
 
 ---
 
