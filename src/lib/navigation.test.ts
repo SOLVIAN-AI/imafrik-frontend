@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { homeFor, isPublicRoute, isRouteAllowed } from "@/lib/navigation";
+import {
+  homeFor,
+  isActive,
+  isPublicRoute,
+  isRouteAllowed,
+  navigationFor,
+} from "@/lib/navigation";
 
 describe("isPublicRoute", () => {
   it("ouvre la vitrine, la connexion et la vérification", () => {
@@ -49,6 +55,52 @@ describe("isRouteAllowed", () => {
       expect(isRouteAllowed(role, "/bienvenue/profil")).toBe(true);
       expect(isRouteAllowed(role, "/nouveau-mot-de-passe")).toBe(true);
       expect(isRouteAllowed(role, homeFor(role))).toBe(true);
+    }
+  });
+});
+
+describe("tour de contrôle", () => {
+  it("ouvre le cockpit à l'administration, et à elle seule", () => {
+    expect(homeFor("platform_admin")).toBe("/admin");
+    for (const path of [
+      "/admin/activite",
+      "/admin/flux",
+      "/admin/organisations/abc",
+      "/admin/utilisateurs",
+      "/admin/facturation",
+      "/admin/systeme",
+      "/admin/audit",
+      "/admin/reglages",
+    ]) {
+      expect(isRouteAllowed("platform_admin", path)).toBe(true);
+      expect(isRouteAllowed("radiologist", path)).toBe(false);
+      expect(isRouteAllowed("clinic_staff", path)).toBe(false);
+    }
+  });
+
+  it("n'allume le cockpit que sur sa propre adresse", () => {
+    const cockpit = {
+      href: "/admin",
+      label: "Cockpit",
+      icon: "cockpit",
+      exact: true,
+    } as const;
+    expect(isActive(cockpit, "/admin")).toBe(true);
+    expect(isActive(cockpit, "/admin/flux")).toBe(false);
+    const flux = { href: "/admin/flux", label: "Flux", icon: "flow" } as const;
+    expect(isActive(flux, "/admin/flux")).toBe(true);
+    expect(isActive(flux, "/admin/fluxx")).toBe(false);
+  });
+
+  it("n'a qu'une entrée active par adresse du portail", () => {
+    const items = navigationFor("platform_admin").flatMap(
+      (group) => group.items,
+    );
+    for (const item of items) {
+      const active = items.filter((candidate) =>
+        isActive(candidate, item.href),
+      );
+      expect(active.map((entry) => entry.href)).toEqual([item.href]);
     }
   });
 });

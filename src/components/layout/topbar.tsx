@@ -162,7 +162,7 @@ export function Topbar({ counts }: { counts: NavCounts | null }) {
       <MobileNav counts={counts} />
       <Link
         href="/"
-        className="flex shrink-0 items-center lg:hidden"
+        className="flex min-h-6 shrink-0 items-center py-1 lg:hidden"
         aria-label="IMAFRIK — accueil"
       >
         <Wordmark className="h-4" title="" />

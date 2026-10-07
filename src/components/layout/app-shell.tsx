@@ -1,5 +1,6 @@
 "use client";
 
+import { Megaphone } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
@@ -127,10 +128,13 @@ export function Panel({
  */
 export function AppShell({
   counts,
+  banner = null,
   children,
 }: {
   /** Compteurs de navigation ; `null` si le service n'a pas répondu. */
   counts: NavCounts | null;
+  /** Bandeau de maintenance, réglé par l'équipe IMAFRIK ; `null` sans bandeau. */
+  banner?: string | null;
   children: React.ReactNode;
 }) {
   useRoleRouting();
@@ -142,8 +146,38 @@ export function AppShell({
       <Sidebar counts={counts} className="hidden lg:flex" />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar counts={counts} />
+        {banner && <MaintenanceBanner message={banner} />}
         <main className="flex min-h-0 flex-1 flex-col">{children}</main>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Bandeau de maintenance, en tête de tous les écrans.
+ *
+ * Un `role="status"` plutôt qu'une alerte : l'information compte, mais
+ * n'interrompt pas un radiologue en pleine dictée. Le texte vient de la
+ * base et s'affiche comme texte — jamais comme du HTML.
+ *
+ * Affiché aussi sur l'écran de lecture, pourtant dépouillé de tout le
+ * reste : une maintenance annoncée est précisément ce qu'un radiologue
+ * doit savoir avant de commencer un compte-rendu.
+ */
+export function MaintenanceBanner({ message }: { message: string }) {
+  return (
+    <div
+      role="status"
+      className="flex shrink-0 items-start gap-2.5 border-b border-progress/25 bg-progress-muted px-4 py-2 text-xs sm:items-center sm:px-6"
+    >
+      <Megaphone
+        className="mt-0.5 size-3.5 shrink-0 text-progress sm:mt-0"
+        aria-hidden
+      />
+      <p className="min-w-0 break-words">
+        <span className="sr-only">Information de l’équipe IMAFRIK : </span>
+        {message}
+      </p>
     </div>
   );
 }

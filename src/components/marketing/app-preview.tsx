@@ -1,4 +1,4 @@
-import { BrandMark } from "@/components/brand/brand";
+import { Wordmark } from "@/components/brand/brand";
 import { cn } from "@/lib/utils";
 
 /**
@@ -96,18 +96,16 @@ export function AppPreview({ className }: { className?: string }) {
           <span className="size-2 rounded-full bg-border-strong" />
           <span className="size-2 rounded-full bg-border-strong" />
           <span className="size-2 rounded-full bg-border-strong" />
-          <BrandMark
-            variant="micro"
-            title=""
-            className="ml-3 size-3.5 text-secondary"
-          />
-          <span className="text-2xs text-tertiary">
-            IMAFRIK · file de lecture
-          </span>
+          {/* Le logotype lui-même, pas le nom composé en texte : l'aperçu
+              doit montrer l'application telle qu'elle est, marque comprise. */}
+          <Wordmark title="" className="ml-3 h-2.5" />
+          <span className="text-2xs text-tertiary">· file de lecture</span>
         </div>
 
         <div className="flex">
           <div className="hidden w-40 shrink-0 flex-col gap-1 border-r border-border-subtle p-3 sm:flex">
+            {/* Comme la barre latérale réelle : le logotype en tête. */}
+            <Wordmark title="" className="mb-2 h-3.5 self-start px-2" />
             <div className="flex h-7 items-center gap-2 rounded-md bg-accent-muted px-2">
               <span className="size-3 rounded-xs bg-accent/70" />
               <span className="h-1.5 w-14 rounded-full bg-accent/50" />
@@ -128,7 +126,12 @@ export function AppPreview({ className }: { className?: string }) {
               {[
                 { value: "3", label: "À lire", tone: "text-accent" },
                 { value: "2", label: "Urgences", tone: "text-urgent" },
-                { value: "1 h 50", label: "Délai moyen", tone: "text-primary" },
+                {
+                  value: "1 h 50",
+                  label: "Délai moyen",
+                  short: "Délai",
+                  tone: "text-primary",
+                },
               ].map((metric) => (
                 <div
                   key={metric.label}
@@ -137,8 +140,17 @@ export function AppPreview({ className }: { className?: string }) {
                   <p className={cn("text-lg font-semibold", metric.tone)}>
                     {metric.value}
                   </p>
+                  {/* Libellé court sur téléphone : trois tuiles d'un tiers
+                      de 360 px ne laissent pas la place à « Délai moyen ». */}
                   <p className="label-eyebrow mt-0.5 truncate">
-                    {metric.label}
+                    {"short" in metric ? (
+                      <>
+                        <span className="sm:hidden">{metric.short}</span>
+                        <span className="hidden sm:inline">{metric.label}</span>
+                      </>
+                    ) : (
+                      metric.label
+                    )}
                   </p>
                 </div>
               ))}

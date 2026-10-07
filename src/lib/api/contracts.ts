@@ -261,6 +261,8 @@ export const adminOrganizationSchema = z.object({
   has_dicom_aet: z.boolean(),
   study_count: z.number().int(),
   member_count: z.number().int(),
+  received_30d: z.number().int(),
+  last_received_at: isoDate.nullable(),
   created_at: isoDate,
 });
 const _adminOrganization: Matches<
@@ -275,12 +277,313 @@ export const contactRequestSchema = z.object({
   email: z.string(),
   phone: z.string().nullable(),
   message: z.string().nullable(),
+  status: z.enum(["new", "contacted", "converted", "dismissed"]),
+  notes: z.string().nullable(),
   handled_at: isoDate.nullable(),
   created_at: isoDate,
 });
 const _contactRequest: Matches<
   z.input<typeof contactRequestSchema>,
   Schemas["ContactRequest"]
+> = true;
+
+// ─── Tour de contrôle ─────────────────────────────────────────────────
+
+const count = z.number().int();
+const minutes = z.number().nullable();
+const ratio = z.number().nullable();
+const priority = z.enum(["routine", "urgent"]);
+
+const opsRunSchema = z.object({
+  kind: z.enum(["backup", "restore_drill", "reconciliation", "host_watch"]),
+  target: z.string().nullable(),
+  ok: z.boolean(),
+  finished_at: isoDate,
+  summary: z.string().nullable(),
+});
+const _opsRun: Matches<z.input<typeof opsRunSchema>, Schemas["OpsRun"]> = true;
+
+const alertSchema = z.object({
+  code: z.string(),
+  severity: z.enum(["critical", "warning", "info"]),
+  message: z.string(),
+  href: z.string().nullable(),
+});
+const _alert: Matches<z.input<typeof alertSchema>, Schemas["Alert"]> = true;
+
+const prioritySlaSchema = z.object({
+  signed: count,
+  within_sla: ratio,
+  median_minutes: minutes,
+  p90_minutes: minutes,
+});
+const _prioritySla: Matches<
+  z.input<typeof prioritySlaSchema>,
+  Schemas["PrioritySla"]
+> = true;
+
+const slaSchema = z.object({
+  urgent: prioritySlaSchema,
+  routine: prioritySlaSchema,
+  within_sla: ratio,
+});
+const _sla: Matches<z.input<typeof slaSchema>, Schemas["Sla"]> = true;
+
+export const controlOverviewSchema = z.object({
+  generated_at: isoDate,
+  live: z.object({
+    waiting: count,
+    urgent_waiting: count,
+    in_progress: count,
+    urgent_overdue: count,
+    routine_overdue: count,
+    oldest_waiting_minutes: minutes,
+    received_today: count,
+    signed_today: count,
+    delivered_today: count,
+    received_7d: count,
+  }),
+  network: z.object({
+    clinics_active: count,
+    clinics_connected: count,
+    radiologists_active: count,
+    new_requests: count,
+  }),
+  received_14d: z.array(
+    z.object({ day: z.string(), urgent: count, routine: count }),
+  ),
+  sla_30d: slaSchema,
+  sla_urgent_minutes: count,
+  sla_routine_minutes: count,
+  alerts: z.array(alertSchema),
+  ops: z.array(opsRunSchema),
+});
+const _controlOverview: Matches<
+  z.input<typeof controlOverviewSchema>,
+  Schemas["ControlOverview"]
+> = true;
+
+export const controlAnalyticsSchema = z.object({
+  days: count,
+  since: isoDate,
+  until: isoDate,
+  totals: z.object({
+    received: count,
+    urgent: count,
+    signed: count,
+    bytes: count,
+  }),
+  sla: slaSchema,
+  sla_urgent_minutes: count,
+  sla_routine_minutes: count,
+  stages: z.object({
+    transfer: minutes,
+    arrival: minutes,
+    queue: minutes,
+    reading: minutes,
+    delivery: minutes,
+  }),
+  daily: z.array(
+    z.object({
+      day: z.string(),
+      urgent: count,
+      routine: count,
+      signed: count,
+      median_minutes: minutes,
+      p90_minutes: minutes,
+    }),
+  ),
+  heatmap: z.array(z.array(z.number())),
+  by_clinic: z.array(
+    z.object({
+      id: uuid,
+      name: z.string(),
+      received: count,
+      signed: count,
+      bytes: count,
+      median_minutes: minutes,
+      within_sla: ratio,
+      median_mb_per_s: z.number().nullable(),
+      last_received_at: isoDate.nullable(),
+    }),
+  ),
+  by_modality: z.array(
+    z.object({
+      modality: z.string(),
+      received: count,
+      median_minutes: minutes,
+    }),
+  ),
+  by_radiologist: z.array(
+    z.object({
+      id: uuid,
+      full_name: z.string(),
+      title: z.string().nullable(),
+      signed: count,
+      median_minutes: minutes,
+      median_reading_minutes: minutes,
+    }),
+  ),
+});
+const _controlAnalytics: Matches<
+  z.input<typeof controlAnalyticsSchema>,
+  Schemas["ControlAnalytics"]
+> = true;
+
+export const pipelineStudySchema = z.object({
+  id: uuid,
+  clinic: z.string(),
+  modality: z.string().nullable(),
+  body_part: z.string().nullable(),
+  priority,
+  status: z.string(),
+  instance_count: count,
+  radiologist: z.string().nullable(),
+  acquired_at: isoDate.nullable(),
+  first_instance_at: isoDate.nullable(),
+  last_instance_at: isoDate.nullable(),
+  received_at: isoDate,
+  claimed_at: isoDate.nullable(),
+  signed_at: isoDate.nullable(),
+  delivered_at: isoDate.nullable(),
+  transfer_bytes: z.number().int().nullable(),
+});
+const _pipelineStudy: Matches<
+  z.input<typeof pipelineStudySchema>,
+  Schemas["PipelineStudy"]
+> = true;
+
+export const billingLineSchema = z.object({
+  clinic_id: uuid,
+  clinic: z.string(),
+  modality: z.string(),
+  reported: count,
+  urgent: count,
+  routine: count,
+});
+const _billingLine: Matches<
+  z.input<typeof billingLineSchema>,
+  Schemas["BillingLine"]
+> = true;
+
+const serviceHealthSchema = z.object({
+  name: z.string(),
+  ok: z.boolean(),
+  detail: z.string().nullable().optional(),
+});
+const _serviceHealth: Matches<
+  z.input<typeof serviceHealthSchema>,
+  Schemas["ServiceHealth"]
+> = true;
+
+export const systemStatusSchema = z.object({
+  environment: z.string(),
+  release: z.string().nullable(),
+  services: z.array(serviceHealthSchema),
+  orthanc_version: z.string().nullable(),
+  stored_studies: z.number().int().nullable(),
+  stored_megabytes: z.number().nullable(),
+  ops: z.array(opsRunSchema),
+  recent_runs: z.array(opsRunSchema),
+});
+const _systemStatus: Matches<
+  z.input<typeof systemStatusSchema>,
+  Schemas["SystemStatus"]
+> = true;
+
+export const platformSettingsSchema = z.object({
+  sla_urgent_minutes: count,
+  sla_routine_minutes: count,
+  maintenance_message: z.string().nullable(),
+  updated_at: isoDate,
+});
+const _platformSettings: Matches<
+  z.input<typeof platformSettingsSchema>,
+  Schemas["PlatformSettings"]
+> = true;
+
+export const auditEntrySchema = z.object({
+  id: z.number().int(),
+  at: isoDate,
+  action: z.string(),
+  actor_id: z.string().nullable(),
+  actor_name: z.string().nullable(),
+  organization_id: z.string().nullable(),
+  organization_name: z.string().nullable(),
+  resource_type: z.string().nullable(),
+  resource_id: z.string().nullable(),
+  metadata: z.record(z.string(), z.unknown()).nullable(),
+});
+const _auditEntry: Matches<
+  z.input<typeof auditEntrySchema>,
+  Schemas["AuditEntry"]
+> = true;
+
+const userMembershipSchema = z.object({
+  membership_id: uuid,
+  organization_id: uuid,
+  organization_name: z.string(),
+  organization_kind: kindSchema,
+  role: roleSchema,
+});
+const _userMembership: Matches<
+  z.input<typeof userMembershipSchema>,
+  Schemas["UserMembership"]
+> = true;
+
+export const adminUserSchema = z.object({
+  id: uuid,
+  full_name: z.string(),
+  title: z.string().nullable(),
+  license_number: z.string().nullable(),
+  email: z.string().nullable(),
+  created_at: isoDate,
+  last_sign_in_at: isoDate.nullable(),
+  mfa_enabled: z.boolean().nullable(),
+  memberships: z.array(userMembershipSchema),
+});
+const _adminUser: Matches<
+  z.input<typeof adminUserSchema>,
+  Schemas["AdminUser"]
+> = true;
+
+export const clinicDetailSchema = z.object({
+  id: uuid,
+  name: z.string(),
+  city: z.string().nullable(),
+  is_active: z.boolean(),
+  open_to_pool: z.boolean(),
+  received_30d: count,
+  last_received_at: isoDate.nullable(),
+  onboarding: z.array(
+    z.object({
+      key: z.enum([
+        "created",
+        "connected",
+        "team",
+        "first_study",
+        "first_report",
+        "first_delivery",
+      ]),
+      label: z.string(),
+      done: z.boolean(),
+      done_at: isoDate.nullable(),
+    }),
+  ),
+});
+const _clinicDetail: Matches<
+  z.input<typeof clinicDetailSchema>,
+  Schemas["ClinicDetail"]
+> = true;
+
+export const contactTrackingSchema = z.object({
+  id: uuid,
+  status: z.string(),
+  notes: z.string().nullable(),
+});
+const _contactTracking: Matches<
+  z.input<typeof contactTrackingSchema>,
+  Schemas["ContactRequestTracking"]
 > = true;
 
 /**
@@ -305,6 +608,22 @@ export const CONTRACT_CHECKS = [
   _member,
   _adminOrganization,
   _contactRequest,
+  _opsRun,
+  _alert,
+  _prioritySla,
+  _sla,
+  _controlOverview,
+  _controlAnalytics,
+  _pipelineStudy,
+  _billingLine,
+  _serviceHealth,
+  _systemStatus,
+  _platformSettings,
+  _auditEntry,
+  _userMembership,
+  _adminUser,
+  _clinicDetail,
+  _contactTracking,
 ] as const;
 
 export type ApiStudy = z.output<typeof studySchema>;
@@ -315,3 +634,14 @@ export type ApiAdminOrganization = z.output<typeof adminOrganizationSchema>;
 export type ApiContactRequest = z.output<typeof contactRequestSchema>;
 export type ApiMetrics = z.output<typeof metricsSchema>;
 export type ApiOrganization = z.output<typeof organizationSchema>;
+export type ApiControlOverview = z.output<typeof controlOverviewSchema>;
+export type ApiControlAnalytics = z.output<typeof controlAnalyticsSchema>;
+export type ApiPipelineStudy = z.output<typeof pipelineStudySchema>;
+export type ApiBillingLine = z.output<typeof billingLineSchema>;
+export type ApiSystemStatus = z.output<typeof systemStatusSchema>;
+export type ApiPlatformSettings = z.output<typeof platformSettingsSchema>;
+export type ApiAuditEntry = z.output<typeof auditEntrySchema>;
+export type ApiAdminUser = z.output<typeof adminUserSchema>;
+export type ApiClinicDetail = z.output<typeof clinicDetailSchema>;
+export type ApiOpsRun = z.output<typeof opsRunSchema>;
+export type ApiAlert = z.output<typeof alertSchema>;

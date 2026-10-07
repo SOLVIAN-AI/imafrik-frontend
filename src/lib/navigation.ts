@@ -30,6 +30,22 @@ export interface NavItem {
   count?: keyof NavCounts;
   /** Compteur dont une valeur non nulle signale des urgences. */
   urgentCount?: keyof NavCounts;
+  /**
+   * Actif sur cette adresse seulement, pas sur ses sous-pages — pour une
+   * racine comme `/admin`, qui coifferait sinon tout le portail.
+   */
+  exact?: boolean;
+}
+
+/**
+ * Indique si une entrée correspond à l'adresse courante.
+ *
+ * @param item     Entrée de navigation.
+ * @param pathname Adresse courante.
+ */
+export function isActive(item: NavItem, pathname: string): boolean {
+  if (pathname === item.href) return true;
+  return !item.exact && pathname.startsWith(`${item.href}/`);
 }
 
 /**
@@ -127,13 +143,42 @@ const CLINIC_NAV: NavGroup[] = [
   },
 ];
 
-/** Navigation de l'équipe IMAFRIK. */
+/**
+ * Navigation de l'équipe IMAFRIK : la tour de contrôle.
+ *
+ * Trois questions, trois groupes. **Pilotage** : la plateforme tient-elle
+ * ses promesses, en ce moment et dans la durée ? **Réseau** : qui est
+ * raccordé, qui attend, qui a écrit ? **Plateforme** : ce qui se facture,
+ * ce qui tourne, ce qui s'est passé, ce qui se règle.
+ */
 const ADMIN_NAV: NavGroup[] = [
   {
     items: [
-      { href: "/admin/organisations", label: "Organisations", icon: "team" },
+      { href: "/admin", label: "Cockpit", icon: "cockpit", exact: true },
+      { href: "/admin/activite", label: "Activité", icon: "analytics" },
+      { href: "/admin/flux", label: "Flux d’images", icon: "flow" },
+    ],
+  },
+  {
+    label: "Réseau",
+    items: [
+      {
+        href: "/admin/organisations",
+        label: "Organisations",
+        icon: "organizations",
+      },
+      { href: "/admin/utilisateurs", label: "Comptes", icon: "users" },
       { href: "/admin/examens", label: "Examens", icon: "studies" },
       { href: "/admin/demandes", label: "Demandes reçues", icon: "inbox" },
+    ],
+  },
+  {
+    label: "Plateforme",
+    items: [
+      { href: "/admin/facturation", label: "Facturation", icon: "billing" },
+      { href: "/admin/systeme", label: "Système", icon: "system" },
+      { href: "/admin/audit", label: "Journal d’audit", icon: "audit" },
+      { href: "/admin/reglages", label: "Réglages", icon: "controls" },
     ],
   },
   {
@@ -173,7 +218,7 @@ export function navigationFor(role: UserRole): NavGroup[] {
 const HOME_BY_ROLE: Record<UserRole, string> = {
   radiologist: "/worklist",
   clinic_staff: "/tableau-de-bord",
-  platform_admin: "/admin/organisations",
+  platform_admin: "/admin",
 };
 
 /**

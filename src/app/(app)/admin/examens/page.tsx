@@ -1,6 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 
+import { Segmented } from "@/components/admin/control-ui";
 import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
@@ -32,10 +33,21 @@ export default async function AdminStudiesPage({
   searchParams,
 }: PageProps<"/admin/examens">) {
   await requireSession(["platform_admin"]);
-  const { q } = await searchParams;
-  const studies = await listStudies({
+  const { q, urgent } = await searchParams;
+  // `?urgent=1` : les urgences pas encore rendues — la destination de
+  // l'alerte « urgences en retard » du cockpit.
+  const urgentOnly = urgent === "1";
+  const all = await listStudies({
     search: typeof q === "string" ? q : undefined,
   });
+  const studies = urgentOnly
+    ? all.filter(
+        (study) =>
+          study.urgent &&
+          study.status !== "reported" &&
+          study.status !== "delivered",
+      )
+    : all;
   const stuck = studies.filter(
     (study) => study.status === "received" && study.urgent,
   );
@@ -44,12 +56,31 @@ export default async function AdminStudiesPage({
     <>
       <PageHeader
         title="Examens"
-        description={`${studies.length} examens, toutes organisations confondues`}
-        actions={<ListToolbar />}
+        description={
+          urgentOnly
+            ? `${studies.length} urgence${studies.length > 1 ? "s" : ""} pas encore rendue${studies.length > 1 ? "s" : ""}`
+            : `${studies.length} examens, toutes organisations confondues`
+        }
+        actions={
+          <>
+            <Segmented
+              label="Filtre"
+              options={[
+                { label: "Tous", href: "/admin/examens", active: !urgentOnly },
+                {
+                  label: "Urgences en cours",
+                  href: "/admin/examens?urgent=1",
+                  active: urgentOnly,
+                },
+              ]}
+            />
+            <ListToolbar />
+          </>
+        }
       />
 
       {stuck.length > 0 && (
-        <div className="mx-6 mb-4 flex items-center gap-2.5 rounded-xl bg-urgent-muted px-4 py-3 text-xs text-urgent">
+        <div className="mx-4 mb-4 flex sm:mx-6 items-center gap-2.5 rounded-xl bg-urgent-muted px-4 py-3 text-xs text-urgent">
           <AlertTriangle className="size-4 shrink-0" aria-hidden />
           <span>
             {stuck.length} examen{stuck.length > 1 ? "s" : ""} urgent

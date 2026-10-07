@@ -1,4 +1,6 @@
+import { MaintenanceBanner } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { getPlatformSettings } from "@/lib/data/control";
 import { requireSession } from "@/lib/session/server";
 
 /**
@@ -18,17 +20,25 @@ import { requireSession } from "@/lib/session/server";
  * pas pendant qu'on rédige une conclusion.
  *
  * Le retour à la liste reste à un clic, en tête de l'écran de lecture.
+ * Seule exception à la sobriété : le bandeau de maintenance, s'il y en a
+ * un.
  */
 export default async function ReadingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireSession();
+  const [session, settings] = await Promise.all([
+    requireSession(),
+    getPlatformSettings(),
+  ]);
 
   return (
     <SessionProvider session={session}>
       <div className="flex h-dvh flex-col overflow-hidden bg-surface-base">
+        {settings?.maintenanceMessage && (
+          <MaintenanceBanner message={settings.maintenanceMessage} />
+        )}
         {children}
       </div>
     </SessionProvider>

@@ -1,21 +1,29 @@
 "use client";
 
 import {
+  Activity,
+  BarChart3,
   Building2,
   Check,
   ChevronsUpDown,
   FileStack,
   FileText,
+  Gauge,
   Hospital,
   Inbox,
   LayoutDashboard,
   LayoutList,
   Loader2,
   LogOut,
+  Receipt,
+  ScrollText,
+  Server,
   Settings,
+  SlidersHorizontal,
   Stethoscope,
   Upload,
   User,
+  UserCog,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -36,7 +44,12 @@ import {
 import { useSession } from "@/components/providers/session-provider";
 import { formatPersonName } from "@/lib/format";
 import { clearLocalData } from "@/lib/local-data";
-import { navigationFor, type NavCounts, type NavItem } from "@/lib/navigation";
+import {
+  isActive,
+  navigationFor,
+  type NavCounts,
+  type NavItem,
+} from "@/lib/navigation";
 import { setActiveMembership, signOut } from "@/lib/session/actions";
 import { ROLE_LABELS, type Membership } from "@/lib/session/types";
 import { cn } from "@/lib/utils";
@@ -59,6 +72,15 @@ export const NAV_ICONS = {
   team: Users,
   settings: Settings,
   inbox: Inbox,
+  cockpit: Gauge,
+  analytics: BarChart3,
+  flow: Activity,
+  organizations: Building2,
+  users: UserCog,
+  billing: Receipt,
+  system: Server,
+  audit: ScrollText,
+  controls: SlidersHorizontal,
 } satisfies Record<string, LucideIcon>;
 
 export type NavIconKey = keyof typeof NAV_ICONS;
@@ -379,10 +401,7 @@ export function Sidebar({
                   <NavLink
                     item={item}
                     counts={counts}
-                    active={
-                      pathname === item.href ||
-                      pathname.startsWith(`${item.href}/`)
-                    }
+                    active={isActive(item, pathname)}
                   />
                 </li>
               ))}

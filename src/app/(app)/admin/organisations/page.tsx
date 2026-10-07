@@ -1,9 +1,11 @@
 import { Building2, Hospital } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { OrganizationRowActions } from "@/components/admin/organization-row-actions";
+import { RelativeTime } from "@/components/admin/relative-time";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
-import { listOrganizations } from "@/lib/data/admin";
+import { type AdminOrganization, listOrganizations } from "@/lib/data/admin";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
 
@@ -51,13 +53,23 @@ export default async function AdminOrganizationsPage() {
                 <div className="flex items-start gap-3">
                   <OrgIcon kind={org.kind} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{org.name}</p>
+                    <OrgName org={org} />
                     <p className="truncate text-2xs text-tertiary">
                       {org.kind === "clinic" ? "Clinique" : "Groupe"} ·{" "}
                       {org.city} ·{" "}
-                      {plural(org.memberCount, "membre", "membres")} ·{" "}
-                      {plural(org.studyCount, "examen", "examens")}
+                      {plural(org.memberCount, "membre", "membres")}
+                      {org.kind === "clinic" && (
+                        <>
+                          {" · "}
+                          {plural(org.received30d, "examen", "examens")} en 30 j
+                        </>
+                      )}
                     </p>
+                    {org.kind === "clinic" && (
+                      <p className="text-2xs text-tertiary">
+                        Dernier envoi : <LastReceived org={org} />
+                      </p>
+                    )}
                   </div>
                   <ActiveState active={org.active} />
                 </div>
@@ -70,28 +82,31 @@ export default async function AdminOrganizationsPage() {
           </ul>
 
           <div className="hidden min-h-0 overflow-auto md:block">
-            <table className="w-full border-separate border-spacing-0 text-sm">
+            <table className="w-full min-w-[60rem] border-separate border-spacing-0 text-sm">
               <thead className="sticky top-0 z-10">
                 <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
-                  <th scope="col" className="w-[32%]">
+                  <th scope="col" className="w-[26%]">
                     <span className="label-eyebrow">Organisation</span>
                   </th>
-                  <th scope="col" className="w-[16%]">
+                  <th scope="col" className="w-[10%]">
                     <span className="label-eyebrow">Nature</span>
                   </th>
-                  <th scope="col" className="w-[14%]">
+                  <th scope="col" className="w-[13%]">
                     <span className="label-eyebrow">PACS</span>
                   </th>
-                  <th scope="col" className="w-[10%] text-right">
+                  <th scope="col" className="w-[8%] text-right">
                     <span className="label-eyebrow">Membres</span>
                   </th>
-                  <th scope="col" className="w-[10%] text-right">
-                    <span className="label-eyebrow">Examens</span>
+                  <th scope="col" className="w-[9%] text-right">
+                    <span className="label-eyebrow">30 jours</span>
+                  </th>
+                  <th scope="col" className="w-[12%] text-right">
+                    <span className="label-eyebrow">Dernier envoi</span>
                   </th>
                   <th scope="col" className="w-[10%] text-right">
                     <span className="label-eyebrow">État</span>
                   </th>
-                  <th scope="col" className="w-[14%] text-right">
+                  <th scope="col" className="w-[12%] text-right">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
@@ -110,7 +125,7 @@ export default async function AdminOrganizationsPage() {
                       <div className="flex items-center gap-2.5">
                         <OrgIcon kind={org.kind} />
                         <div className="min-w-0">
-                          <p className="truncate font-medium">{org.name}</p>
+                          <OrgName org={org} />
                           <p className="truncate text-2xs text-tertiary">
                             {org.city}
                           </p>
@@ -129,8 +144,14 @@ export default async function AdminOrganizationsPage() {
                     <td className="text-right text-secondary tabular-nums">
                       {org.memberCount}
                     </td>
-                    <td className="text-right text-secondary tabular-nums">
-                      {org.studyCount}
+                    <td
+                      className="text-right text-secondary tabular-nums"
+                      title={`${org.studyCount} examens au total`}
+                    >
+                      {org.kind === "clinic" ? org.received30d : "—"}
+                    </td>
+                    <td className="text-right text-2xs whitespace-nowrap text-tertiary">
+                      <LastReceived org={org} />
                     </td>
 
                     <td className="text-right">
@@ -149,6 +170,33 @@ export default async function AdminOrganizationsPage() {
       </div>
     </>
   );
+}
+
+/**
+ * Nom de l'organisation ; celui d'une clinique mène à sa fiche de mise en
+ * service.
+ */
+function OrgName({ org }: { org: AdminOrganization }) {
+  if (org.kind !== "clinic")
+    return <p className="truncate font-medium">{org.name}</p>;
+  return (
+    <Link
+      href={`/admin/organisations/${org.id}`}
+      className="block truncate py-0.5 font-medium hover:text-accent hover:underline"
+    >
+      {org.name}
+    </Link>
+  );
+}
+
+/**
+ * Dernier examen reçu d'une clinique — en ambre au-delà de 24 heures,
+ * le signe d'une passerelle à l'arrêt.
+ */
+function LastReceived({ org }: { org: AdminOrganization }) {
+  if (org.kind !== "clinic") return <>—</>;
+  if (!org.lastReceivedAt) return <>jamais</>;
+  return <RelativeTime date={org.lastReceivedAt} staleAfterHours={24} />;
 }
 
 /** Pastille de nature : clinique ou groupe de radiologie. */

@@ -46,7 +46,7 @@ export function OnboardingChrome({ children }: { children: React.ReactNode }) {
       />
 
       <header className="relative flex h-16 shrink-0 items-center gap-6 border-b border-border-subtle px-4 sm:px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+        <Link href="/" className="flex min-h-6 shrink-0 items-center gap-2.5">
           <Wordmark className="h-5" />
         </Link>
 

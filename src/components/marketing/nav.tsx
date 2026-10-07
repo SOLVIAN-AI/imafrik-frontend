@@ -38,7 +38,7 @@ export function MarketingNav() {
   return (
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface-base/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:gap-8">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+        <Link href="/" className="flex min-h-6 shrink-0 items-center gap-2.5">
           <Wordmark className="h-6" />
         </Link>
 

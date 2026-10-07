@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { getPlatformSettings } from "@/lib/data/control";
 import { getMetrics } from "@/lib/data/metrics";
 import type { NavCounts } from "@/lib/navigation";
 import { requireSession } from "@/lib/session/server";
@@ -46,11 +47,18 @@ async function navCounts(): Promise<NavCounts | null> {
  */
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const session = await requireSession();
-  const counts = await navCounts();
+  // En parallèle : le bandeau ne doit pas retarder la navigation, ni
+  // l'inverse. Les deux lectures tolèrent un service muet.
+  const [counts, settings] = await Promise.all([
+    navCounts(),
+    getPlatformSettings(),
+  ]);
 
   return (
     <SessionProvider session={session}>
-      <AppShell counts={counts}>{children}</AppShell>
+      <AppShell counts={counts} banner={settings?.maintenanceMessage ?? null}>
+        {children}
+      </AppShell>
     </SessionProvider>
   );
 }

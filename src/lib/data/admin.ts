@@ -7,9 +7,17 @@ import {
   adminOrganizationSchema,
   contactRequestSchema,
 } from "@/lib/api/contracts";
+import {
+  DEMO_GROUP,
+  DEMO_NETWORK,
+  demoContactRequests,
+  demoFlows,
+} from "@/lib/demo/control";
+import type { ContactStatus } from "@/lib/contact-status";
 import { isDemoMode } from "@/lib/demo/mode";
-import { DEMO_CLINIC_IDS, DEMO_STUDIES } from "@/lib/demo/studies";
 import type { OrgKind } from "@/lib/session/types";
+
+const DAY = 86_400_000;
 
 /**
  * Une organisation, vue du back-office.
@@ -28,6 +36,13 @@ export interface AdminOrganization {
   /** Examens envoyés, tous statuts confondus. */
   studyCount: number;
   memberCount: number;
+  /** Examens reçus sur trente jours. */
+  received30d: number;
+  /**
+   * Dernier examen reçu : une passerelle muette se voit ici avant qu'une
+   * clinique ne s'en plaigne.
+   */
+  lastReceivedAt: Date | null;
   createdAt: Date;
 }
 
@@ -39,39 +54,52 @@ export interface ContactRequest {
   email: string;
   phone: string | null;
   message: string | null;
+  status: ContactStatus;
+  /** Notes de l'équipe IMAFRIK. */
+  notes: string | null;
   handledAt: Date | null;
   createdAt: Date;
 }
 
-/** Organisations de démonstration, dérivées du jeu d'examens. */
+/**
+ * Organisations de démonstration : le réseau synthétique de la tour de
+ * contrôle, pour que les volumes concordent d'un écran à l'autre.
+ */
 function demoOrganizations(): AdminOrganization[] {
-  const clinics = Object.entries(DEMO_CLINIC_IDS).map(([name, id]) => ({
-    id,
-    name,
-    kind: "clinic" as const,
-    city: name.includes("Kara") ? "Kara" : "Lomé",
-    active: true,
-    openToPool: true,
-    connected: true,
-    studyCount: DEMO_STUDIES.filter((study) => study.clinicId === id).length,
-    memberCount: 2,
-    createdAt: new Date("2026-08-01"),
-  }));
-  return [
-    ...clinics,
-    {
-      id: "org-radio",
-      name: "IMAFRIK Radiologie",
-      kind: "radiology_group",
-      city: "Lomé",
+  const now = Date.now();
+  const clinics = DEMO_NETWORK.map((clinic): AdminOrganization => {
+    const all = demoFlows(now - clinic.ageDays * DAY, now, clinic.id);
+    return {
+      id: clinic.id,
+      name: clinic.name,
+      kind: "clinic",
+      city: clinic.city,
       active: true,
-      openToPool: false,
-      connected: false,
-      studyCount: 0,
-      memberCount: 4,
-      createdAt: new Date("2026-08-01"),
-    },
-  ];
+      openToPool: true,
+      connected: true,
+      studyCount: all.length,
+      memberCount: clinic.volume > 0 ? 3 : 1,
+      received30d: all.filter((flow) => flow.receivedAt >= now - 30 * DAY)
+        .length,
+      lastReceivedAt: all[0] ? new Date(all[0].receivedAt) : null,
+      createdAt: new Date(now - clinic.ageDays * DAY),
+    };
+  });
+  const group: AdminOrganization = {
+    id: DEMO_GROUP.id,
+    name: DEMO_GROUP.name,
+    kind: "radiology_group",
+    city: "Lomé",
+    active: true,
+    openToPool: false,
+    connected: false,
+    studyCount: 0,
+    memberCount: 5,
+    received30d: 0,
+    lastReceivedAt: null,
+    createdAt: new Date(now - 450 * DAY),
+  };
+  return [...clinics, group].sort((a, b) => a.name.localeCompare(b.name, "fr"));
 }
 
 /**
@@ -96,17 +124,19 @@ export async function listOrganizations(): Promise<AdminOrganization[]> {
     connected: row.has_dicom_aet,
     studyCount: row.study_count,
     memberCount: row.member_count,
+    received30d: row.received_30d,
+    lastReceivedAt: row.last_received_at
+      ? new Date(row.last_received_at)
+      : null,
     createdAt: new Date(row.created_at),
   }));
 }
 
 /** Demandes reçues par le site, les plus récentes d'abord. */
 export async function listContactRequests(): Promise<ContactRequest[]> {
-  if (isDemoMode()) return [];
-  const rows = await apiGet(
-    "/admin/contact-requests",
-    z.array(contactRequestSchema),
-  );
+  const rows = isDemoMode()
+    ? demoContactRequests()
+    : await apiGet("/admin/contact-requests", z.array(contactRequestSchema));
   return rows.map((row) => ({
     id: row.id,
     fullName: row.full_name,
@@ -114,6 +144,8 @@ export async function listContactRequests(): Promise<ContactRequest[]> {
     email: row.email,
     phone: row.phone,
     message: row.message,
+    status: row.status,
+    notes: row.notes,
     handledAt: row.handled_at ? new Date(row.handled_at) : null,
     createdAt: new Date(row.created_at),
   }));

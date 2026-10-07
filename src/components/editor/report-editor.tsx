@@ -271,10 +271,13 @@ function Outline({
   sections: ReportSections;
   idPrefix: string;
 }) {
+  // `relative` : les mentions `sr-only` des pastilles sont positionnées en
+  // absolu ; sans ancêtre positionné, elles échappaient au défilement de
+  // la barre et faisaient déborder toute la page.
   return (
     <nav
       aria-label="Sections du compte-rendu"
-      className="flex shrink-0 gap-1.5 overflow-x-auto border-b border-border-subtle bg-surface-base px-3 py-2 sm:px-5"
+      className="relative flex shrink-0 gap-1.5 overflow-x-auto border-b border-border-subtle bg-surface-base px-3 py-2 sm:px-5"
     >
       {REPORT_SECTIONS.map((section) => {
         const filled = !isSectionEmpty(sections[section.key]);

@@ -156,3 +156,66 @@ export function formatDemographics(
 export function formatPersonName(title: string | null, name: string): string {
   return [title?.trim(), name.trim()].filter(Boolean).join(" ");
 }
+
+/** Tiret des valeurs absentes : une case vide ressemble à un oubli. */
+export const MISSING = "—";
+
+/**
+ * Proportion en pourcentage entier.
+ *
+ * @param ratio Proportion entre 0 et 1, ou `null` sans donnée.
+ * @returns Par exemple « 94 % », ou « — ».
+ */
+export function formatPercent(ratio: number | null): string {
+  if (ratio === null || !Number.isFinite(ratio)) return MISSING;
+  return `${Math.round(ratio * 100)} %`;
+}
+
+/**
+ * Durée en minutes, tolérante à l'absence de donnée.
+ *
+ * @param minutes Minutes, ou `null` — une étape jamais atteinte.
+ * @returns La durée lisible ({@link formatDuration}), ou « — ».
+ */
+export function formatMinutes(minutes: number | null): string {
+  if (minutes === null || !Number.isFinite(minutes)) return MISSING;
+  // Sous la minute, « 0 min » mentirait : un transfert de 20 secondes
+  // n'est pas instantané.
+  if (minutes > 0 && minutes < 1) return `${Math.round(minutes * 60)} s`;
+  return formatDuration(minutes);
+}
+
+/**
+ * Débit de réception.
+ *
+ * @param mbPerSecond Mégaoctets par seconde, ou `null`.
+ * @returns Par exemple « 2,4 Mo/s », ou « — ».
+ */
+export function formatRate(mbPerSecond: number | null): string {
+  if (mbPerSecond === null || !Number.isFinite(mbPerSecond)) return MISSING;
+  return `${mbPerSecond.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} Mo/s`;
+}
+
+/**
+ * Nombre entier avec séparateur de milliers français.
+ *
+ * @param value Nombre.
+ * @returns Par exemple « 12 480 ».
+ */
+export function formatCount(value: number): string {
+  return value.toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+}
+
+/**
+ * Jour court, pour une étiquette d'axe.
+ *
+ * @param date Jour, lu en UTC.
+ * @returns Par exemple « 7 oct. ».
+ */
+export function formatDayShort(date: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(date);
+}
