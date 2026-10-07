@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { LocaleProvider } from "@/i18n/client";
 import type { Session } from "@/lib/session/types";
 
 /**
@@ -31,7 +32,8 @@ export function SessionProvider({
 }) {
   return (
     <SessionContext.Provider value={session}>
-      {children}
+      {/* La langue de l'utilisateur suit sa session : celle de son profil. */}
+      <LocaleProvider locale={session.locale}>{children}</LocaleProvider>
     </SessionContext.Provider>
   );
 }

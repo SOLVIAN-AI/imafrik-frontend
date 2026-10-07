@@ -112,7 +112,7 @@ export async function grantMembership(
   if (isDemoMode()) return demoUnavailable("Le rattachement");
 
   const { profileId, organizationId, role } = parsed.data;
-  const invalid = rejectInvalidIds(profileId);
+  const invalid = await rejectInvalidIds(profileId);
   if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(
@@ -146,7 +146,7 @@ export async function trackContactRequest(
   if (isDemoMode()) return demoUnavailable("Le suivi des demandes");
 
   const { requestId, status, notes } = parsed.data;
-  const invalid = rejectInvalidIds(requestId);
+  const invalid = await rejectInvalidIds(requestId);
   if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(
@@ -176,7 +176,7 @@ export async function resetUserMfa(
   profileId: string,
 ): Promise<ActionResult<number>> {
   if (isDemoMode()) return demoUnavailable("La réinitialisation");
-  const invalid = rejectInvalidIds(profileId);
+  const invalid = await rejectInvalidIds(profileId);
   if (invalid) return invalid;
   const result = await run(async () => {
     const body = await apiSend(
@@ -218,7 +218,7 @@ export async function setClinicRetention(
     return { ok: false, error: parsed.error.issues[0].message, status: 422 };
   }
   if (isDemoMode()) return demoUnavailable("La durée de conservation");
-  const invalid = rejectInvalidIds(parsed.data.clinicId);
+  const invalid = await rejectInvalidIds(parsed.data.clinicId);
   if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(

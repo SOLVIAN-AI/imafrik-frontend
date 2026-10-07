@@ -2,6 +2,9 @@ import "server-only";
 
 import type { z } from "zod";
 
+import { getLocale } from "@/i18n/server";
+import { messagesFor } from "@/i18n";
+import type { Locale } from "@/lib/i18n/locale";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,20 +38,24 @@ export class ApiError extends Error {
  * l'utilisateur, sans donnée de santé. Une erreur de validation renvoie
  * une liste : on n'en garde alors qu'un résumé.
  */
-async function errorMessage(response: Response): Promise<string> {
+async function errorMessage(
+  response: Response,
+  locale: Locale,
+): Promise<string> {
+  const errors = messagesFor(locale).common.errors;
   try {
     const body: unknown = await response.json();
     if (body && typeof body === "object" && "detail" in body) {
       const { detail } = body as { detail: unknown };
       if (typeof detail === "string") return detail;
-      if (Array.isArray(detail)) return "Requête invalide.";
+      if (Array.isArray(detail)) return errors.invalidRequest;
     }
   } catch {
     // Corps absent ou non JSON : on retombe sur le message générique.
   }
   return response.status >= 500
-    ? "Le service est momentanément indisponible. Réessayez dans un instant."
-    : "La demande n’a pas abouti.";
+    ? errors.serviceUnavailable
+    : errors.requestFailed;
 }
 
 /**
@@ -68,12 +75,16 @@ export async function apiFetch(
   path: string,
   init: RequestInit = {},
 ): Promise<Response> {
+  // Langue de l'utilisateur : le service y écrit ses messages d'erreur.
+  const locale = await getLocale();
+  const errors = messagesFor(locale).common.errors;
   if (!API_URL) {
-    throw new ApiError(503, "L’API n’est pas configurée.");
+    throw new ApiError(503, errors.apiNotConfigured);
   }
 
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
+  headers.set("Accept-Language", locale);
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
@@ -98,14 +109,11 @@ export async function apiFetch(
       cache: "no-store",
     });
   } catch {
-    throw new ApiError(
-      503,
-      "Le service est injoignable. Vérifiez la connexion, puis réessayez.",
-    );
+    throw new ApiError(503, errors.unreachable);
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status, await errorMessage(response));
+    throw new ApiError(response.status, await errorMessage(response, locale));
   }
   return response;
 }

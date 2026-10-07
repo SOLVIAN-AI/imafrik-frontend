@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
+import { getMessages } from "@/i18n/server";
 import { cn } from "@/lib/utils";
 
 /**
@@ -20,21 +21,20 @@ import { cn } from "@/lib/utils";
  * @param enrolled Un facteur vérifié existe.
  * @param required Le rôle actif l'exige.
  */
-export function MfaCard({
+export async function MfaCard({
   enrolled,
   required,
 }: {
   enrolled: boolean;
   required: boolean;
 }) {
+  const t = (await getMessages()).t.settings.mfa;
   const Icon = enrolled ? ShieldCheck : ShieldAlert;
   return (
     <Panel className="overflow-hidden">
       <div className="border-b border-border-subtle px-4 py-3">
-        <h2 className="text-sm font-semibold">Double authentification</h2>
-        <p className="mt-0.5 text-xs text-tertiary">
-          Un code à usage unique, en plus du mot de passe, à chaque connexion.
-        </p>
+        <h2 className="text-sm font-semibold">{t.title}</h2>
+        <p className="mt-0.5 text-xs text-tertiary">{t.description}</p>
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4">
         <span
@@ -49,22 +49,16 @@ export function MfaCard({
         </span>
         <div className="min-w-0 flex-[1_1_14rem] text-sm">
           <p className="font-medium">
-            {enrolled
-              ? "Active"
-              : required
-                ? "Exigée pour votre rôle"
-                : "Recommandée, non activée"}
+            {enrolled ? t.active : required ? t.required : t.recommended}
           </p>
           <p className="mt-0.5 text-xs text-tertiary">
-            {enrolled
-              ? "Téléphone perdu ou changé : contactez l’équipe IMAFRIK, qui réinitialise l’accès après vérification de votre identité."
-              : "Un mot de passe volé ne suffit plus à ouvrir votre compte. Une fois activée, elle vous est demandée à chaque connexion."}
+            {enrolled ? t.activeDetail : t.inactiveDetail}
           </p>
         </div>
         {!enrolled && (
           <Button asChild variant="secondary" size="sm">
             <Link href="/double-authentification?activer=1&suite=/parametres">
-              Activer
+              {t.enable}
             </Link>
           </Button>
         )}

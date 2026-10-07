@@ -1,7 +1,6 @@
 import { FlowTimeline } from "@/components/admin/flow-timeline";
 import { RelativeTime } from "@/components/admin/relative-time";
 import {
-  STUDY_STATUSES,
   type StudyStatus,
   StudyStatusChip,
   UrgentMarker,
@@ -10,6 +9,7 @@ import type { PipelineStudy } from "@/lib/data/control";
 import { MISSING, formatBytes, formatCount, formatRate } from "@/lib/format";
 import { SEGMENT_STYLES, throughput } from "@/lib/pipeline";
 import { cn } from "@/lib/utils";
+import { STUDY_STATUSES } from "@/lib/study-status";
 
 /**
  * Liste des examens du flux d'images : clinique, débit, frise des étapes,

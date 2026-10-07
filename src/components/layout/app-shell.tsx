@@ -10,6 +10,7 @@ import { Topbar } from "@/components/layout/topbar";
 import { useSession } from "@/components/providers/session-provider";
 import { homeFor, isRouteAllowed, type NavCounts } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { useMessages } from "@/i18n/client";
 
 /**
  * Ramène l'utilisateur chez lui quand il change de casquette.
@@ -169,6 +170,7 @@ export function AppShell({
  * doit savoir avant de commencer un compte-rendu.
  */
 export function MaintenanceBanner({ message }: { message: string }) {
+  const t = useMessages();
   return (
     <div
       role="status"
@@ -179,7 +181,7 @@ export function MaintenanceBanner({ message }: { message: string }) {
         aria-hidden
       />
       <p className="min-w-0 break-words">
-        <span className="sr-only">Information de l’équipe IMAFRIK : </span>
+        <span className="sr-only">{t.nav.maintenance} </span>
         {message}
       </p>
     </div>

@@ -976,6 +976,8 @@ export function demoClinic(
     // Saint-Joseph a fixé une durée par contrat ; les autres, non.
     image_retention_days: clinic.id === DEMO_NETWORK[0].id ? 365 : null,
     images_purged: clinic.id === DEMO_NETWORK[0].id ? 42 : 0,
+    // Une clinique anglophone, pour montrer la langue des comptes-rendus.
+    report_language: clinic.id === DEMO_NETWORK.at(-1)?.id ? "en" : "fr",
     last_received_at: first ? iso(flows[0].receivedAt) : null,
     onboarding: [
       step("created", "Organisation créée", created),

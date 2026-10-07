@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/layout/app-shell";
 import {
+  LanguageForm,
   PasswordForm,
   PoolForm,
   ProfileForm,
@@ -13,9 +14,11 @@ import { isDemoMode } from "@/lib/demo/mode";
 import { roleRequiresMfa } from "@/lib/session/mfa";
 import { requireSession } from "@/lib/session/server";
 import { createClient } from "@/lib/supabase/server";
-import { ROLE_LABELS } from "@/lib/session/types";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Paramètres" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.settings.title };
+}
 
 /**
  * Paramètres.
@@ -30,6 +33,7 @@ export const metadata: Metadata = { title: "Paramètres" };
  */
 export default async function SettingsPage() {
   const session = await requireSession();
+  const { t } = await getMessages();
   const isClinic = session.active.role === "clinic_staff";
   const [profile, organization, mfaEnrolled] = await Promise.all([
     getProfile(),
@@ -40,8 +44,8 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader
-        title="Paramètres"
-        description={`${session.active.organizationName} · ${ROLE_LABELS[session.active.role]}`}
+        title={t.settings.title}
+        description={`${session.active.organizationName} · ${t.common.roles[session.active.role]}`}
       />
 
       <div className="min-h-0 flex-1 overflow-auto px-4 pb-6 sm:px-6">
@@ -50,6 +54,7 @@ export default async function SettingsPage() {
             profile={profile}
             isRadiologist={session.active.role === "radiologist"}
           />
+          <LanguageForm />
           {organization && <PoolForm openToPool={organization.openToPool} />}
           <PasswordForm />
           <MfaCard

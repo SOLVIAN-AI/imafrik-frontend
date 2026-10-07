@@ -2,6 +2,8 @@
 
 import { useNow } from "@/hooks/use-now";
 import { cn } from "@/lib/utils";
+import { messagesFor } from "@/i18n";
+import type { Locale } from "@/lib/i18n/locale";
 
 /** Seuil au-delà duquel l'attente d'un examen est signalée. */
 export const STALE_AFTER_HOURS = 4;
@@ -17,7 +19,11 @@ export const STALE_AFTER_HOURS = 4;
  * @param now  Instant de référence, injectable pour les tests.
  * @returns Une durée compacte : « 12 min », « 3 h », « 2 j ».
  */
-export function formatAge(date: Date, now: Date = new Date()): string {
+export function formatAge(
+  date: Date,
+  now: Date = new Date(),
+  locale: Locale = "fr",
+): string {
   const minutes = Math.max(
     0,
     Math.round((now.getTime() - date.getTime()) / 60_000),
@@ -25,7 +31,7 @@ export function formatAge(date: Date, now: Date = new Date()): string {
   if (minutes < 60) return `${minutes} min`;
   const hours = Math.round(minutes / 60);
   if (hours < 24) return `${hours} h`;
-  return `${Math.round(hours / 24)} j`;
+  return `${Math.round(hours / 24)} ${messagesFor(locale).common.units.day}`;
 }
 
 /**

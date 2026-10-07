@@ -2,6 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
+import { getMessages } from "@/i18n/server";
 import { ApiError } from "@/lib/api/client";
 
 /**
@@ -39,19 +40,24 @@ export async function run<T>(
       return { ok: false, error: error.message, status: error.status };
     }
     console.error("Action en échec", error);
-    return {
-      ok: false,
-      error: "Une erreur inattendue est survenue. Réessayez.",
-      status: 500,
-    };
+    const { t } = await getMessages();
+    return { ok: false, error: t.common.errors.unexpected, status: 500 };
   }
 }
 
-/** Résultat d'une action indisponible en démonstration. */
-export function demoUnavailable<T>(what: string): ActionResult<T> {
+/**
+ * Résultat d'une action indisponible en démonstration.
+ *
+ * @param what Ce qui est indisponible, déjà dans la langue de
+ *             l'utilisateur (« La signature », « Signing »).
+ */
+export async function demoUnavailable<T>(
+  what: string,
+): Promise<ActionResult<T>> {
+  const { t } = await getMessages();
   return {
     ok: false,
-    error: `${what} n’est pas disponible en démonstration : aucun service n’est branché.`,
+    error: t.common.errors.demoUnavailable(what),
     status: 503,
   };
 }
@@ -74,10 +80,10 @@ const resourceId = z.string().uuid();
  * @param ids Identifiants reçus.
  * @returns Un refus si l'un d'eux n'est pas un UUID, sinon `null`.
  */
-export function rejectInvalidIds(
+export async function rejectInvalidIds(
   ...ids: unknown[]
-): { ok: false; error: string; status: number } | null {
-  return ids.every((id) => resourceId.safeParse(id).success)
-    ? null
-    : { ok: false, error: "Identifiant invalide.", status: 422 };
+): Promise<{ ok: false; error: string; status: number } | null> {
+  if (ids.every((id) => resourceId.safeParse(id).success)) return null;
+  const { t } = await getMessages();
+  return { ok: false, error: t.common.errors.invalidId, status: 422 };
 }

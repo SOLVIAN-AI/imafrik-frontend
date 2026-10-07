@@ -4,6 +4,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
   ArrowRight,
   CornerDownLeft,
+  Languages,
   Loader2,
   Moon,
   Search,
@@ -27,7 +28,11 @@ import {
   setListSearch,
   type StudyHit,
 } from "@/lib/actions/search";
+import { messagesFor } from "@/i18n";
+import { useLocale, useMessages } from "@/i18n/client";
+import { setLanguage } from "@/lib/actions/profile";
 import { formatPatientName } from "@/lib/format";
+import { LOCALE_NAMES, LOCALES } from "@/lib/i18n/locale";
 import { isTyping } from "@/lib/keyboard";
 import { navigationFor } from "@/lib/navigation";
 import type { ListSearchScope } from "@/lib/search/list-search";
@@ -78,7 +83,7 @@ function studyTarget(
 /** Une entrée de la palette, quelle qu'en soit la nature. */
 interface Command {
   id: string;
-  group: "Examens" | "Aller à" | "Préférences";
+  group: "studies" | "goTo" | "preferences";
   label: string;
   detail?: string;
   icon: LucideIcon;
@@ -158,6 +163,8 @@ export function CommandPalette({
   const router = useRouter();
   const { active } = useSession();
   const { resolvedTheme, setTheme } = useTheme();
+  const t = useMessages();
+  const locale = useLocale();
   const [query, setQuery] = React.useState("");
   const [cursor, setCursor] = React.useState(0);
   const { hits, loading } = useStudySearch(open ? query : "");
@@ -206,7 +213,7 @@ export function CommandPalette({
     const needle = normalize(query.trim());
     const studies: Command[] = hits.map((hit) => ({
       id: `study-${hit.id}`,
-      group: "Examens",
+      group: "studies",
       label: formatPatientName(hit.patientName),
       detail: [
         hit.patientId,
@@ -222,11 +229,13 @@ export function CommandPalette({
 
     const screens: Command[] = navigationFor(active.role)
       .flatMap((group) => group.items)
-      .filter((item) => !needle || normalize(item.label).includes(needle))
+      .filter(
+        (item) => !needle || normalize(t.nav.items[item.key]).includes(needle),
+      )
       .map((item) => ({
         id: `nav-${item.href}`,
-        group: "Aller à",
-        label: item.label,
+        group: "goTo",
+        label: t.nav.items[item.key],
         icon: NAV_ICONS[item.icon],
         run: () => go(item.href),
       }));
@@ -234,19 +243,48 @@ export function CommandPalette({
     const dark = resolvedTheme !== "light";
     const theme: Command = {
       id: "theme",
-      group: "Préférences",
-      label: dark ? "Passer en thème clair" : "Passer en thème sombre",
+      group: "preferences",
+      label: dark ? t.nav.theme.toLight : t.nav.theme.toDark,
       icon: dark ? Sun : Moon,
       run: () => {
         setTheme(dark ? "light" : "dark");
         close();
       },
     };
-    const preferences =
-      !needle || normalize(theme.label).includes(needle) ? [theme] : [];
+    // L'autre langue de l'application, proposée dans cette langue-là.
+    const otherLocale = LOCALES.find((candidate) => candidate !== locale)!;
+    const language: Command = {
+      id: "language",
+      group: "preferences",
+      label: messagesFor(otherLocale).nav.palette.language(
+        LOCALE_NAMES[otherLocale],
+      ),
+      icon: Languages,
+      run: () => {
+        close();
+        void setLanguage(otherLocale).then((result) => {
+          if (result.ok) window.location.reload();
+          else toast.error(result.error);
+        });
+      },
+    };
+    const preferences = [theme, language].filter(
+      (command) => !needle || normalize(command.label).includes(needle),
+    );
 
     return [...studies, ...screens, ...preferences];
-  }, [hits, query, active.role, resolvedTheme, setTheme, go, close, openHit]);
+  }, [
+    hits,
+    query,
+    active.role,
+    resolvedTheme,
+    setTheme,
+    go,
+    close,
+    openHit,
+    t,
+    locale,
+  ]);
 
   const selected = commands[Math.min(cursor, commands.length - 1)];
 
@@ -294,7 +332,7 @@ export function CommandPalette({
           onKeyDown={onKeyDown}
         >
           <DialogPrimitive.Title className="sr-only">
-            Palette de commandes
+            {t.nav.palette.title}
           </DialogPrimitive.Title>
 
           <div className="flex items-center gap-3 border-b border-border-subtle px-4">
@@ -313,7 +351,7 @@ export function CommandPalette({
                 setQuery(event.target.value);
                 setCursor(0);
               }}
-              placeholder="Rechercher un patient, un écran…"
+              placeholder={t.nav.searchPlaceholder}
               className="h-13 min-w-0 flex-1 bg-transparent text-base text-primary placeholder:text-tertiary focus:outline-none"
               role="combobox"
               aria-expanded
@@ -324,7 +362,7 @@ export function CommandPalette({
               aria-autocomplete="list"
             />
             <kbd className="rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5 text-2xs text-tertiary">
-              Échap
+              {t.nav.palette.escape}
             </kbd>
           </div>
 
@@ -332,14 +370,14 @@ export function CommandPalette({
             ref={listRef}
             id="command-list"
             role="listbox"
-            aria-label="Résultats"
+            aria-label={t.nav.palette.results}
             className="max-h-[min(26rem,60vh)] overflow-auto p-2"
           >
             {commands.length === 0 ? (
               <p className="px-3 py-8 text-center text-xs text-tertiary">
                 {query.trim().length >= 2 && !loading
-                  ? "Aucun résultat. « Entrée » cherche dans toute la liste."
-                  : "Tapez au moins deux lettres pour chercher un patient."}
+                  ? t.nav.palette.noResult
+                  : t.nav.palette.typeMore}
               </p>
             ) : (
               commands.map((command, index) => {
@@ -351,7 +389,7 @@ export function CommandPalette({
                   <React.Fragment key={command.id}>
                     {heading && (
                       <p className="label-eyebrow px-3 pt-2.5 pb-1.5">
-                        {heading}
+                        {t.nav.palette.groups[heading]}
                       </p>
                     )}
                     <div

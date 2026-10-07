@@ -51,8 +51,9 @@ import {
   type NavItem,
 } from "@/lib/navigation";
 import { setActiveMembership, signOut } from "@/lib/session/actions";
-import { ROLE_LABELS, type Membership } from "@/lib/session/types";
+import type { Membership } from "@/lib/session/types";
 import { cn } from "@/lib/utils";
+import { useMessages } from "@/i18n/client";
 
 /**
  * Icônes de navigation, résolues par clé.
@@ -106,6 +107,7 @@ const ORG_ICONS = {
  */
 function OrganisationSwitcher() {
   const { memberships, active } = useSession();
+  const t = useMessages();
   const [pending, startTransition] = React.useTransition();
   const ActiveIcon = ORG_ICONS[active.organizationKind];
 
@@ -114,7 +116,7 @@ function OrganisationSwitcher() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label="Changer d’organisation"
+          aria-label={t.nav.switchOrganisation}
           className={cn(
             "group mx-2 flex h-11 items-center gap-2.5 rounded-lg px-2.5",
             "border border-border-subtle bg-surface-base/60",
@@ -131,7 +133,7 @@ function OrganisationSwitcher() {
               {active.organizationName}
             </span>
             <span className="w-full truncate text-2xs text-tertiary">
-              {ROLE_LABELS[active.role]}
+              {t.common.roles[active.role]}
             </span>
           </span>
           {pending ? (
@@ -149,7 +151,7 @@ function OrganisationSwitcher() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuLabel>Mes organisations</DropdownMenuLabel>
+        <DropdownMenuLabel>{t.nav.myOrganisations}</DropdownMenuLabel>
         {memberships.map((membership) => (
           <OrganisationItem
             key={membership.id}
@@ -178,6 +180,7 @@ function OrganisationItem({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const t = useMessages();
   const Icon = ORG_ICONS[membership.organizationKind];
 
   return (
@@ -188,7 +191,7 @@ function OrganisationItem({
           {membership.organizationName}
         </span>
         <span className="truncate text-2xs text-tertiary">
-          {ROLE_LABELS[membership.role]} · {membership.city}
+          {t.common.roles[membership.role]} · {membership.city}
         </span>
       </span>
       {selected && (
@@ -208,6 +211,7 @@ function OrganisationItem({
  */
 function UserCard() {
   const { user } = useSession();
+  const t = useMessages();
   const router = useRouter();
 
   const initials = user.fullName
@@ -260,7 +264,7 @@ function UserCard() {
         <DropdownMenuItem asChild>
           <Link href="/parametres">
             <User className="size-3.5 text-tertiary" aria-hidden />
-            Mon profil
+            {t.nav.myProfile}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -278,7 +282,7 @@ function UserCard() {
           }}
         >
           <LogOut className="size-3.5" aria-hidden />
-          Se déconnecter
+          {t.nav.signOut}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -295,6 +299,7 @@ function NavLink({
   active: boolean;
   counts: NavCounts | null;
 }) {
+  const t = useMessages();
   const Icon = NAV_ICONS[item.icon];
   const count = item.count && counts ? counts[item.count] : 0;
   const urgent =
@@ -329,14 +334,14 @@ function NavLink({
         )}
         aria-hidden
       />
-      <span className="flex-1 truncate">{item.label}</span>
+      <span className="flex-1 truncate">{t.nav.items[item.key]}</span>
       {count > 0 && (
         <span
           className={cn(
             "rounded px-1.5 py-0.5 text-2xs font-medium tabular-nums",
             urgent ? "bg-urgent-muted text-urgent" : "text-tertiary",
           )}
-          aria-label={urgent ? `${count}, dont des urgences` : String(count)}
+          aria-label={urgent ? t.nav.countWithUrgent(count) : String(count)}
         >
           {count}
         </span>
@@ -372,11 +377,12 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { active } = useSession();
+  const t = useMessages();
   const groups = navigationFor(active.role);
 
   return (
     <nav
-      aria-label="Navigation principale"
+      aria-label={t.nav.mainNavigation}
       className={cn(
         "flex h-full w-60 shrink-0 flex-col",
         "border-r border-border-subtle",
@@ -391,9 +397,11 @@ export function Sidebar({
 
       <div className="mt-4 flex flex-1 flex-col gap-5 overflow-y-auto px-2">
         {groups.map((group, index) => (
-          <div key={group.label ?? index}>
-            {group.label && (
-              <p className="label-eyebrow mb-1 px-2.5">{group.label}</p>
+          <div key={group.key ?? index}>
+            {group.key && (
+              <p className="label-eyebrow mb-1 px-2.5">
+                {t.nav.groups[group.key]}
+              </p>
             )}
             <ul className="flex flex-col gap-0.5">
               {group.items.map((item) => (

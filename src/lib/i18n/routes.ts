@@ -149,13 +149,9 @@ export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 export const LANGUAGE_PARAM = "langue";
 
 /**
- * Écrans de l'application qui suivent la langue choisie sur le site.
- *
- * Seulement ceux qu'on atteint depuis le site, avant toute session : la
- * connexion et la demande de réinitialisation. Les écrans suivants
- * (double authentification, nouveau mot de passe, application) sont en
- * français ; leur cadre aussi, pour ne jamais afficher une page à moitié
- * traduite.
+ * Écrans d'entrée, atteints depuis le site avant toute session : ils
+ * portent le sélecteur de langue du site (`?langue=en`). Une fois
+ * connecté, la langue se règle dans les paramètres.
  */
 export const BILINGUAL_SCREENS: readonly string[] = [
   "/connexion",
@@ -173,11 +169,14 @@ export function isBilingualScreen(pathname: string): boolean {
 }
 
 /**
- * Langue d'une page.
+ * Langue d'une page, pour `<html lang>` dès le premier octet.
  *
  * - le site public : la langue de son adresse ;
- * - les écrans partagés : la langue choisie (cookie), le français à défaut ;
- * - tout le reste, l'application : le français.
+ * - tout le reste (connexion, application) : la langue choisie (cookie),
+ *   le français à défaut. Le cookie suit la langue du site visité, puis
+ *   celle du profil, posée à la connexion et à chaque changement de
+ *   préférence ; les textes de l'application, eux, suivent toujours le
+ *   profil (`Session.locale`).
  *
  * @param pathname Chemin demandé.
  * @param chosen   Valeur du cookie de langue, si présent.
@@ -187,6 +186,6 @@ export function resolveLocale(
   chosen: string | undefined,
 ): Locale {
   if (localeOfPath(pathname) === "en") return "en";
-  if (isBilingualScreen(pathname) && chosen === "en") return "en";
-  return DEFAULT_LOCALE;
+  if (isPublicSitePath(pathname)) return DEFAULT_LOCALE;
+  return chosen === "en" ? "en" : DEFAULT_LOCALE;
 }

@@ -6,7 +6,10 @@ import { z } from "zod";
 import { apiSend } from "@/lib/api/client";
 import { type ActionResult, demoUnavailable, run } from "@/lib/actions/result";
 import { isDemoMode } from "@/lib/demo/mode";
-import { firstBrokenRule } from "@/lib/security/password";
+import { writeLanguageCookie } from "@/lib/i18n/cookie";
+import { isLocale } from "@/lib/i18n/locale";
+import { getMessages } from "@/i18n/server";
+import { firstBrokenRule, PASSWORD_MAX_LENGTH } from "@/lib/security/password";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -18,7 +21,7 @@ import { createClient } from "@/lib/supabase/server";
  */
 
 const profileSchema = z.object({
-  fullName: z.string().trim().min(1, "Le nom est requis").max(200),
+  fullName: z.string().trim().min(1).max(200),
   title: z.string().trim().max(100),
   licenseNumber: z.string().trim().max(50),
 });
@@ -30,11 +33,12 @@ export type ProfileInput = z.input<typeof profileSchema>;
 export async function updateProfile(
   input: ProfileInput,
 ): Promise<ActionResult> {
+  const { t } = await getMessages();
   const parsed = profileSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0].message, status: 422 };
+    return { ok: false, error: t.settings.profile.nameRequired, status: 422 };
   }
-  if (isDemoMode()) return demoUnavailable("L’enregistrement du profil");
+  if (isDemoMode()) return demoUnavailable(t.settings.profileDemoAction);
 
   const result = await run(async () => {
     await apiSend("/me", "PATCH", {
@@ -46,6 +50,33 @@ export async function updateProfile(
   });
   revalidatePath("/", "layout");
   return result;
+}
+
+/**
+ * Change la langue de l'utilisateur.
+ *
+ * Enregistrée dans son profil, elle régit ses écrans, les messages du
+ * service et ses courriels (le service la reporte sur le compte
+ * d'authentification). Le cookie de langue suit, pour `<html lang>` dès
+ * le prochain chargement. En démonstration, seul le cookie existe.
+ *
+ * @param locale Langue choisie : `fr` ou `en`.
+ */
+export async function setLanguage(locale: unknown): Promise<ActionResult> {
+  if (!isLocale(locale)) {
+    const { t } = await getMessages();
+    return { ok: false, error: t.settings.language.unknown, status: 422 };
+  }
+  if (!isDemoMode()) {
+    const result = await run(async () => {
+      await apiSend("/me", "PATCH", { locale });
+      return undefined;
+    });
+    if (!result.ok) return result;
+  }
+  await writeLanguageCookie(locale);
+  revalidatePath("/", "layout");
+  return { ok: true, data: undefined };
 }
 
 /**
@@ -62,18 +93,20 @@ export async function changePassword(
   password: string,
   confirmation: string,
 ): Promise<ActionResult> {
+  const { t } = await getMessages();
+  const messages = t.settings.password;
   const broken = firstBrokenRule(password);
   if (broken) {
-    return {
-      ok: false,
-      error: `Mot de passe refusé : ${broken.toLowerCase()}.`,
-      status: 422,
-    };
+    const rule =
+      broken === "tooLong"
+        ? messages.rules.tooLong(PASSWORD_MAX_LENGTH)
+        : messages.rules[broken];
+    return { ok: false, error: messages.refused(rule), status: 422 };
   }
   if (password !== confirmation) {
-    return { ok: false, error: "Les deux saisies diffèrent.", status: 422 };
+    return { ok: false, error: messages.mismatch, status: 422 };
   }
-  if (isDemoMode()) return demoUnavailable("Le changement de mot de passe");
+  if (isDemoMode()) return demoUnavailable(messages.demoAction);
 
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password });
@@ -84,9 +117,7 @@ export async function changePassword(
     const weak = /weak|short|same/i.test(error.message);
     return {
       ok: false,
-      error: weak
-        ? "Ce mot de passe est refusé : choisissez-en un plus long, différent du précédent."
-        : "Le mot de passe n’a pas pu être changé. Le lien a peut-être expiré.",
+      error: weak ? messages.weak : messages.failed,
       status: 422,
     };
   }

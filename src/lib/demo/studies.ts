@@ -114,6 +114,7 @@ function study(
       receivedAt.getTime() +
         DEMO_SLA_MINUTES[fields.urgent ? "urgent" : "routine"] * MINUTE,
     ),
+    reportLanguage: "fr",
   };
 }
 

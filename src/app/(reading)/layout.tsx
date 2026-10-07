@@ -37,7 +37,7 @@ export default async function ReadingLayout({
 
   return (
     <SessionProvider session={session}>
-      <HtmlLang lang="fr" />
+      <HtmlLang lang={session.locale} />
       <div className="flex h-dvh flex-col overflow-hidden bg-surface-base">
         {/* Écran de lecture compris : c'est là qu'on laisse un examen
             ouvert en partant. */}

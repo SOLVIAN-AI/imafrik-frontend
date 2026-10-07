@@ -52,6 +52,7 @@ function study(
     reportedAt: null,
     reportedBy: null,
     dueAt: new Date(receivedAt.getTime() + sla * MINUTE),
+    reportLanguage: "fr",
     ...rest,
   };
 }

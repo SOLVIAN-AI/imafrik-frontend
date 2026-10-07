@@ -81,13 +81,13 @@ describe("tour de contrôle", () => {
   it("n'allume le cockpit que sur sa propre adresse", () => {
     const cockpit = {
       href: "/admin",
-      label: "Cockpit",
+      key: "cockpit",
       icon: "cockpit",
       exact: true,
     } as const;
     expect(isActive(cockpit, "/admin")).toBe(true);
     expect(isActive(cockpit, "/admin/flux")).toBe(false);
-    const flux = { href: "/admin/flux", label: "Flux", icon: "flow" } as const;
+    const flux = { href: "/admin/flux", key: "flow", icon: "flow" } as const;
     expect(isActive(flux, "/admin/flux")).toBe(true);
     expect(isActive(flux, "/admin/fluxx")).toBe(false);
   });

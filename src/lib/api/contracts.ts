@@ -77,6 +77,7 @@ export const studySchema = z.object({
   // Absent d'une réponse antérieure à la conservation contractuelle.
   images_purged_at: isoDate.nullable().optional(),
   report_id: uuid.nullable(),
+  report_language: z.enum(["fr", "en"]),
   due_at: isoDate,
 });
 const _study: Matches<z.input<typeof studySchema>, Schemas["Study"]> = true;
@@ -189,7 +190,7 @@ export const profileSchema = z.object({
   full_name: z.string(),
   title: z.string().nullable().optional(),
   license_number: z.string().nullable().optional(),
-  locale: z.string(),
+  locale: z.enum(["fr", "en"]),
 });
 const _profile: Matches<
   z.input<typeof profileSchema>,
@@ -573,6 +574,7 @@ export const clinicDetailSchema = z.object({
   last_received_at: isoDate.nullable(),
   image_retention_days: z.number().int().nullable(),
   images_purged: count,
+  report_language: z.enum(["fr", "en"]),
   onboarding: z.array(
     z.object({
       key: z.enum([

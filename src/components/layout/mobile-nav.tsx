@@ -7,6 +7,7 @@ import * as React from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import type { NavCounts } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { useMessages } from "@/i18n/client";
 
 /**
  * Navigation en tiroir, pour les téléphones et les tablettes.
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
  * ouvert par-dessus l'écran demandé.
  */
 export function MobileNav({ counts }: { counts: NavCounts | null }) {
+  const t = useMessages();
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -29,7 +31,7 @@ export function MobileNav({ counts }: { counts: NavCounts | null }) {
       <DialogPrimitive.Trigger asChild>
         <button
           type="button"
-          aria-label="Ouvrir la navigation"
+          aria-label={t.nav.openNavigation}
           className="flex size-10 shrink-0 items-center justify-center rounded-lg text-secondary transition-colors hover:bg-surface-hover hover:text-primary lg:hidden"
         >
           <Menu className="size-5" aria-hidden />
@@ -49,11 +51,11 @@ export function MobileNav({ counts }: { counts: NavCounts | null }) {
           }}
         >
           <DialogPrimitive.Title className="sr-only">
-            Navigation
+            {t.nav.mainNavigation}
           </DialogPrimitive.Title>
           <Sidebar counts={counts} className="w-full bg-surface-base" />
           <DialogPrimitive.Close
-            aria-label="Fermer la navigation"
+            aria-label={t.nav.closeNavigation}
             className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-lg text-tertiary transition-colors hover:bg-surface-hover hover:text-primary"
           >
             <X className="size-4" aria-hidden />

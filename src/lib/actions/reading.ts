@@ -60,7 +60,7 @@ export async function claimStudy(
       data: { studyId, reportId: `draft-${studyId}`, version: 1 },
     };
   }
-  const invalid = rejectInvalidIds(studyId);
+  const invalid = await rejectInvalidIds(studyId);
   if (invalid) return invalid;
   const result = await run(async () => {
     const id = encodeURIComponent(studyId);
@@ -86,7 +86,7 @@ export async function claimStudy(
  */
 export async function releaseStudy(studyId: string): Promise<ActionResult> {
   if (isDemoMode()) return demoUnavailable("Rendre un examen");
-  const invalid = rejectInvalidIds(studyId);
+  const invalid = await rejectInvalidIds(studyId);
   if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(
@@ -142,7 +142,7 @@ export async function saveReportDraft(
   expectedVersion: number,
 ): Promise<ActionResult<{ version: number }>> {
   if (isDemoMode()) return { ok: true, data: { version: expectedVersion + 1 } };
-  const invalid = rejectInvalidIds(reportId);
+  const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
   if (!Number.isInteger(expectedVersion) || !isSectionsPayload(sections)) {
     return { ok: false, error: "Brouillon invalide.", status: 422 };
@@ -167,7 +167,7 @@ export async function saveReportDraft(
  */
 export async function signReport(reportId: string): Promise<ActionResult> {
   if (isDemoMode()) return demoUnavailable("La signature");
-  const invalid = rejectInvalidIds(reportId);
+  const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(
@@ -195,7 +195,7 @@ export async function getReportPdfLink(
   reportId: string,
 ): Promise<ActionResult<string>> {
   if (isDemoMode()) return demoUnavailable("Le téléchargement du PDF");
-  const invalid = rejectInvalidIds(reportId);
+  const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
   const result = await run(async () => {
     const link = await apiGet(
@@ -239,7 +239,7 @@ export async function addAddendum(
     };
   }
   if (isDemoMode()) return demoUnavailable("L’ajout d’un addendum");
-  const invalid = rejectInvalidIds(reportId);
+  const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
 
   const result = await run(async () => {

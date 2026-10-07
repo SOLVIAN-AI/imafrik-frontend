@@ -52,14 +52,15 @@ describe("adresses du site public", () => {
 });
 
 describe("langue des écrans partagés", () => {
-  it("suit la langue choisie sur la connexion seulement", () => {
+  it("suit la langue choisie hors du site public", () => {
     expect(resolveLocale("/connexion", "en")).toBe("en");
     expect(resolveLocale("/mot-de-passe-oublie", "en")).toBe("en");
     expect(resolveLocale("/connexion", undefined)).toBe("fr");
     expect(resolveLocale("/connexion", "de")).toBe("fr");
-    // L'application et les écrans qui suivent la connexion restent en français.
-    expect(resolveLocale("/double-authentification", "en")).toBe("fr");
-    expect(resolveLocale("/worklist", "en")).toBe("fr");
+    // L'application suit la langue choisie ; le français à défaut.
+    expect(resolveLocale("/double-authentification", "en")).toBe("en");
+    expect(resolveLocale("/worklist", "en")).toBe("en");
+    expect(resolveLocale("/worklist", undefined)).toBe("fr");
     expect(resolveLocale("/en/security", undefined)).toBe("en");
     expect(resolveLocale("/securite", "en")).toBe("fr");
   });

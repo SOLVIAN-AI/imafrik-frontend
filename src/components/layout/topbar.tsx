@@ -16,6 +16,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { Button } from "@/components/ui/button";
 import type { NavCounts } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { useMessages } from "@/i18n/client";
 
 /**
  * Accès à la palette de commandes, au centre de la barre.
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils";
  * l'hydratation ; avant, seul `/`, commun à tous, est affiché.
  */
 function SearchTrigger() {
+  const t = useMessages();
   const [open, setOpen] = React.useState(false);
   const hydrated = useHydrated();
   const openPalette = React.useCallback(() => setOpen(true), []);
@@ -40,7 +42,7 @@ function SearchTrigger() {
       <button
         type="button"
         onClick={openPalette}
-        aria-label="Rechercher"
+        aria-label={t.common.actions.search}
         className="flex size-10 shrink-0 items-center justify-center rounded-lg text-secondary transition-colors hover:bg-surface-hover hover:text-primary sm:hidden"
       >
         <Search className="size-4.5" aria-hidden />
@@ -57,7 +59,7 @@ function SearchTrigger() {
       >
         <Search className="size-3.5 shrink-0" aria-hidden />
         <span className="min-w-0 flex-1 truncate text-left">
-          Rechercher un patient, un écran…
+          {t.nav.searchPlaceholder}
         </span>
         <kbd
           className="rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-sans text-2xs text-tertiary"
@@ -79,6 +81,7 @@ function SearchTrigger() {
  * un clignotement.
  */
 function ThemeToggle() {
+  const t = useMessages();
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useHydrated();
 
@@ -96,9 +99,9 @@ function ThemeToggle() {
       aria-label={
         mounted
           ? dark
-            ? "Passer en thème clair"
-            : "Passer en thème sombre"
-          : "Changer de thème"
+            ? t.nav.theme.toLight
+            : t.nav.theme.toDark
+          : t.nav.theme.toggle
       }
     >
       {mounted && (dark ? <Sun /> : <Moon />)}
@@ -123,6 +126,7 @@ function ThemeToggle() {
  */
 function DemoBadge() {
   const { isDemo } = useSession();
+  const t = useMessages();
   if (!isDemo) return null;
 
   return (
@@ -132,11 +136,11 @@ function DemoBadge() {
         "bg-progress-muted text-2xs font-medium text-progress",
         "ring-1 ring-progress/25 ring-inset",
       )}
-      title="Aucune donnée réelle : les patients et les examens affichés sont inventés."
+      title={t.nav.demo.hint}
     >
       <FlaskConical className="size-3" aria-hidden />
-      <span className="hidden sm:inline">Démonstration</span>
-      <span className="sr-only sm:hidden">Démonstration</span>
+      <span className="hidden sm:inline">{t.nav.demo.badge}</span>
+      <span className="sr-only sm:hidden">{t.nav.demo.badge}</span>
     </span>
   );
 }
@@ -150,6 +154,7 @@ function DemoBadge() {
  * cherche une action au mauvais endroit.
  */
 export function Topbar({ counts }: { counts: NavCounts | null }) {
+  const t = useMessages();
   return (
     <div
       className={cn(
@@ -163,7 +168,7 @@ export function Topbar({ counts }: { counts: NavCounts | null }) {
       <Link
         href="/"
         className="flex min-h-6 shrink-0 items-center py-1 lg:hidden"
-        aria-label="Accueil IMAFRIK"
+        aria-label={t.nav.home}
       >
         <Wordmark className="h-4" title="" />
       </Link>

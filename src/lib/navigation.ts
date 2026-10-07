@@ -1,5 +1,12 @@
 import type { NavIconKey } from "@/components/layout/sidebar";
+import type { AppMessages } from "@/i18n";
 import type { UserRole } from "@/lib/session/types";
+
+/** Clé d'une entrée de navigation ; son libellé dépend de la langue. */
+export type NavItemKey = keyof AppMessages["nav"]["items"];
+
+/** Clé d'un titre de groupe. */
+export type NavGroupKey = keyof AppMessages["nav"]["groups"];
 
 /**
  * Compteurs affichables dans la navigation.
@@ -24,7 +31,8 @@ export interface NavCounts {
 
 export interface NavItem {
   href: string;
-  label: string;
+  /** Clé du libellé dans les textes de l'application (`nav.items`). */
+  key: NavItemKey;
   icon: NavIconKey;
   /** Compteur affiché à droite. Masqué à zéro : un « 0 » attire l'œil pour rien. */
   count?: keyof NavCounts;
@@ -60,7 +68,8 @@ export function isActive(item: NavItem, pathname: string): boolean {
  * jour n'a pas besoin d'être annoncé.
  */
 export interface NavGroup {
-  label?: string;
+  /** Clé du titre de groupe (`nav.groups`) ; sans titre, le premier groupe. */
+  key?: NavGroupKey;
   items: NavItem[];
 }
 
@@ -76,29 +85,29 @@ const RADIOLOGIST_NAV: NavGroup[] = [
     items: [
       {
         href: "/worklist",
-        label: "À lire",
+        key: "worklist",
         icon: "worklist",
         count: "toRead",
         urgentCount: "urgentToRead",
       },
       {
         href: "/mes-examens",
-        label: "Mes examens",
+        key: "myStudies",
         icon: "studies",
         count: "mine",
       },
     ],
   },
   {
-    label: "Production",
+    key: "production",
     items: [
-      { href: "/comptes-rendus", label: "Comptes-rendus", icon: "reports" },
-      { href: "/modeles", label: "Modèles", icon: "templates" },
+      { href: "/comptes-rendus", key: "reports", icon: "reports" },
+      { href: "/modeles", key: "templates", icon: "templates" },
     ],
   },
   {
-    label: "Compte",
-    items: [{ href: "/parametres", label: "Paramètres", icon: "settings" }],
+    key: "account",
+    items: [{ href: "/parametres", key: "settings", icon: "settings" }],
   },
 ];
 
@@ -113,32 +122,32 @@ const RADIOLOGIST_NAV: NavGroup[] = [
 const CLINIC_NAV: NavGroup[] = [
   {
     items: [
-      { href: "/tableau-de-bord", label: "Tableau de bord", icon: "dashboard" },
-      { href: "/envoyer", label: "Envoyer un examen", icon: "send" },
+      { href: "/tableau-de-bord", key: "dashboard", icon: "dashboard" },
+      { href: "/envoyer", key: "send", icon: "send" },
     ],
   },
   {
-    label: "Suivi",
+    key: "tracking",
     items: [
       {
         href: "/examens",
-        label: "Examens",
+        key: "studies",
         icon: "studies",
         count: "clinicOpen",
       },
       {
         href: "/comptes-rendus",
-        label: "Comptes-rendus",
+        key: "reports",
         icon: "reports",
         count: "reportsToDownload",
       },
     ],
   },
   {
-    label: "Établissement",
+    key: "facility",
     items: [
-      { href: "/equipe", label: "Équipe", icon: "team" },
-      { href: "/parametres", label: "Paramètres", icon: "settings" },
+      { href: "/equipe", key: "team", icon: "team" },
+      { href: "/parametres", key: "settings", icon: "settings" },
     ],
   },
 ];
@@ -154,36 +163,36 @@ const CLINIC_NAV: NavGroup[] = [
 const ADMIN_NAV: NavGroup[] = [
   {
     items: [
-      { href: "/admin", label: "Cockpit", icon: "cockpit", exact: true },
-      { href: "/admin/activite", label: "Activité", icon: "analytics" },
-      { href: "/admin/flux", label: "Flux d’images", icon: "flow" },
+      { href: "/admin", key: "cockpit", icon: "cockpit", exact: true },
+      { href: "/admin/activite", key: "analytics", icon: "analytics" },
+      { href: "/admin/flux", key: "flow", icon: "flow" },
     ],
   },
   {
-    label: "Réseau",
+    key: "network",
     items: [
       {
         href: "/admin/organisations",
-        label: "Organisations",
+        key: "organisations",
         icon: "organizations",
       },
-      { href: "/admin/utilisateurs", label: "Comptes", icon: "users" },
-      { href: "/admin/examens", label: "Examens", icon: "studies" },
-      { href: "/admin/demandes", label: "Demandes reçues", icon: "inbox" },
+      { href: "/admin/utilisateurs", key: "accounts", icon: "users" },
+      { href: "/admin/examens", key: "studies", icon: "studies" },
+      { href: "/admin/demandes", key: "requests", icon: "inbox" },
     ],
   },
   {
-    label: "Plateforme",
+    key: "platform",
     items: [
-      { href: "/admin/facturation", label: "Facturation", icon: "billing" },
-      { href: "/admin/systeme", label: "Système", icon: "system" },
-      { href: "/admin/audit", label: "Journal d’audit", icon: "audit" },
-      { href: "/admin/reglages", label: "Réglages", icon: "controls" },
+      { href: "/admin/facturation", key: "billing", icon: "billing" },
+      { href: "/admin/systeme", key: "system", icon: "system" },
+      { href: "/admin/audit", key: "audit", icon: "audit" },
+      { href: "/admin/reglages", key: "controls", icon: "controls" },
     ],
   },
   {
-    label: "Compte",
-    items: [{ href: "/parametres", label: "Paramètres", icon: "settings" }],
+    key: "account",
+    items: [{ href: "/parametres", key: "settings", icon: "settings" }],
   },
 ];
 

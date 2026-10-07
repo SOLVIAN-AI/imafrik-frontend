@@ -80,7 +80,7 @@ export async function removeMember(
   membershipId: string,
 ): Promise<ActionResult> {
   if (isDemoMode()) return demoUnavailable("Le retrait d’un membre");
-  const invalid = rejectInvalidIds(membershipId);
+  const invalid = await rejectInvalidIds(membershipId);
   if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(

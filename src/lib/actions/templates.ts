@@ -70,7 +70,7 @@ export async function deleteTemplate(
   templateId: string,
 ): Promise<ActionResult> {
   if (isDemoMode()) return demoUnavailable("La suppression d’un modèle");
-  const invalid = rejectInvalidIds(templateId);
+  const invalid = await rejectInvalidIds(templateId);
   if (invalid) return invalid;
   const result = await run(async () => {
     await apiSend(`/templates/${encodeURIComponent(templateId)}`, "DELETE");

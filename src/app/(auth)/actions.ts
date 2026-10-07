@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { authCopy } from "@/content/auth";
 import { isDemoMode } from "@/lib/demo/mode";
+import { writeLanguageCookie } from "@/lib/i18n/cookie";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locale";
 import { homeFor } from "@/lib/navigation";
 import { safeRedirect } from "@/lib/security/redirect";
@@ -68,6 +69,8 @@ export async function signIn(
   // Compte valide sans organisation active : écran dédié, qui l'explique.
   if (state === "no-membership") redirect("/en-attente");
 
+  // L'application s'ouvre dans la langue du profil, `<html lang>` compris.
+  await writeLanguageCookie(state.locale);
   redirect(suite ?? homeFor(state.active.role));
 }
 

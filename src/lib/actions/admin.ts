@@ -29,7 +29,7 @@ export async function setOrganizationActive(
   active: boolean,
 ): Promise<ActionResult> {
   if (isDemoMode()) return demoUnavailable("La suspension");
-  const invalid = rejectInvalidIds(organizationId);
+  const invalid = await rejectInvalidIds(organizationId);
   if (invalid) return invalid;
   if (typeof active !== "boolean")
     return { ok: false, error: "État invalide.", status: 422 };

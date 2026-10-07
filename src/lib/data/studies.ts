@@ -9,6 +9,7 @@ import {
   type ApiStudy,
 } from "@/lib/api/contracts";
 import { isDemoMode } from "@/lib/demo/mode";
+import type { Locale } from "@/lib/i18n/locale";
 import { DEMO_STUDIES, DEMO_USER_ID } from "@/lib/demo/studies";
 import { isConfiguredViewer } from "@/lib/security/urls";
 import { getSession } from "@/lib/session/server";
@@ -59,6 +60,12 @@ export interface Study {
   /** Signataire, figé à la signature. */
   reportedBy: string | null;
   /**
+   * Langue des intitulés du compte-rendu PDF : celle de la clinique,
+   * fixée à son contrat. L'éditeur l'affiche, pour que le radiologue
+   * rédige dans cette langue.
+   */
+  reportLanguage: Locale;
+  /**
    * Échéance du compte-rendu : réception plus le délai promis pour sa
    * priorité. Calculée par le service, seul à connaître les délais en
    * vigueur.
@@ -94,6 +101,7 @@ function toStudy(row: ApiStudy): Study {
       ? new Date(row.images_purged_at)
       : null,
     dueAt: new Date(row.due_at),
+    reportLanguage: row.report_language,
   };
 }
 

@@ -7,9 +7,15 @@ import { toast } from "sonner";
 import { Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
+import { useLocale, useMessages } from "@/i18n/client";
 import { setOpenToPool } from "@/lib/actions/organization";
-import { changePassword, updateProfile } from "@/lib/actions/profile";
+import {
+  changePassword,
+  setLanguage,
+  updateProfile,
+} from "@/lib/actions/profile";
 import type { Profile } from "@/lib/data/profile";
+import { LOCALES, LOCALE_NAMES, type Locale } from "@/lib/i18n/locale";
 import { PASSWORD_RULES } from "@/lib/security/password";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +31,7 @@ function Section({
   description,
   onSubmit,
   pending,
-  submitLabel = "Enregistrer",
+  submitLabel,
   children,
 }: {
   title: string;
@@ -35,6 +41,7 @@ function Section({
   submitLabel?: string;
   children: React.ReactNode;
 }) {
+  const t = useMessages();
   return (
     <Panel className="overflow-hidden">
       <form
@@ -50,7 +57,7 @@ function Section({
         <div className="flex flex-col gap-4 px-4 py-4">{children}</div>
         <div className="flex justify-end border-t border-border-subtle px-4 py-2.5">
           <Button type="submit" variant="secondary" size="sm" loading={pending}>
-            {submitLabel}
+            {submitLabel ?? t.common.actions.save}
           </Button>
         </div>
       </form>
@@ -71,6 +78,7 @@ export function ProfileForm({
   profile: Profile;
   isRadiologist: boolean;
 }) {
+  const t = useMessages().settings.profile;
   const [pending, startTransition] = React.useTransition();
 
   const submit = (form: FormData) =>
@@ -80,22 +88,20 @@ export function ProfileForm({
         title: String(form.get("title") ?? ""),
         licenseNumber: String(form.get("licenseNumber") ?? ""),
       });
-      if (result.ok) toast.success("Profil enregistré.");
+      if (result.ok) toast.success(t.saved);
       else toast.error(result.error);
     });
 
   return (
     <Section
-      title="Profil"
+      title={t.title}
       description={
-        isRadiologist
-          ? "Imprimé sur les comptes-rendus que vous signerez. Ceux déjà signés ne changent pas."
-          : "Votre identité au sein de l’établissement. Elle figure dans le journal d’accès aux examens."
+        isRadiologist ? t.descriptionRadiologist : t.descriptionStaff
       }
       onSubmit={submit}
       pending={pending}
     >
-      <Field id="fullName" label="Nom complet">
+      <Field id="fullName" label={t.fullName}>
         <Input
           id="fullName"
           name="fullName"
@@ -106,12 +112,8 @@ export function ProfileForm({
       </Field>
       <Field
         id="title"
-        label="Titre"
-        hint={
-          isRadiologist
-            ? "Imprimé devant votre nom, par exemple « Dr » ou « Pr »."
-            : "Fonction dans l’établissement."
-        }
+        label={t.titleField}
+        hint={isRadiologist ? t.titleHintRadiologist : t.titleHintStaff}
       >
         <Input
           id="title"
@@ -121,11 +123,7 @@ export function ProfileForm({
         />
       </Field>
       {isRadiologist && (
-        <Field
-          id="licenseNumber"
-          label="Numéro d’ordre"
-          hint="Imprimé sous votre signature."
-        >
+        <Field id="licenseNumber" label={t.license} hint={t.licenseHint}>
           <Input
             id="licenseNumber"
             name="licenseNumber"
@@ -155,39 +153,30 @@ export function ProfileForm({
  * charge.
  */
 export function PoolForm({ openToPool }: { openToPool: boolean }) {
+  const t = useMessages().settings.pool;
   const [value, setValue] = React.useState(openToPool);
   const [pending, startTransition] = React.useTransition();
 
   const options = [
-    {
-      value: true,
-      title: "Tous les radiologues de la plateforme",
-      detail:
-        "Vos examens entrent dans la file commune. Le premier radiologue disponible les prend en charge.",
-    },
-    {
-      value: false,
-      title: "Nos radiologues uniquement",
-      detail:
-        "Seuls les radiologues que vous avez invités dans votre équipe voient vos examens. Personne d’autre.",
-    },
+    { value: true, title: t.poolTitle, detail: t.poolDetail },
+    { value: false, title: t.ownTitle, detail: t.ownDetail },
   ];
 
   return (
     <Section
-      title="Qui lit vos examens"
-      description="Le réglage s’applique immédiatement ; un examen déjà pris en charge ne change pas de main."
+      title={t.title}
+      description={t.description}
       pending={pending}
       onSubmit={() =>
         startTransition(async () => {
           const result = await setOpenToPool(value);
-          if (result.ok) toast.success("Réglage enregistré.");
+          if (result.ok) toast.success(t.saved);
           else toast.error(result.error);
         })
       }
     >
       <fieldset className="flex flex-col gap-2">
-        <legend className="sr-only">Qui lit vos examens</legend>
+        <legend className="sr-only">{t.title}</legend>
         {options.map((option) => {
           const selected = value === option.value;
           return (
@@ -223,9 +212,7 @@ export function PoolForm({ openToPool }: { openToPool: boolean }) {
       {!value && (
         <p className="flex items-start gap-2 rounded-lg bg-progress-muted px-3 py-2.5 text-2xs leading-relaxed text-progress">
           <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden />
-          Aucun radiologue de la plateforme ne pourra lire vos examens, y
-          compris la nuit et le week-end. Assurez-vous que vos propres
-          radiologues couvrent ces périodes.
+          {t.ownWarning}
         </p>
       )}
     </Section>
@@ -240,15 +227,16 @@ export function PoolForm({ openToPool }: { openToPool: boolean }) {
  * de celui qui l'a utilisé.
  */
 export function PasswordForm() {
+  const t = useMessages().settings.password;
   const [pending, startTransition] = React.useTransition();
   const formRef = React.useRef<HTMLDivElement>(null);
 
   return (
     <div ref={formRef}>
       <Section
-        title="Mot de passe"
-        description="Vos sessions ouvertes sur d’autres appareils seront fermées."
-        submitLabel="Changer le mot de passe"
+        title={t.title}
+        description={t.description}
+        submitLabel={t.submit}
         pending={pending}
         onSubmit={(form) =>
           startTransition(async () => {
@@ -260,15 +248,15 @@ export function PasswordForm() {
               toast.error(result.error);
               return;
             }
-            toast.success("Mot de passe changé.");
+            toast.success(t.changed);
             formRef.current?.querySelector("form")?.reset();
           })
         }
       >
         <Field
           id="password"
-          label="Nouveau mot de passe"
-          hint={PASSWORD_RULES.map((rule) => rule.label).join(" · ")}
+          label={t.newPassword}
+          hint={PASSWORD_RULES.map((rule) => t.rules[rule.id]).join(" · ")}
         >
           <Input
             id="password"
@@ -278,7 +266,7 @@ export function PasswordForm() {
             required
           />
         </Field>
-        <Field id="confirmation" label="Confirmation">
+        <Field id="confirmation" label={t.confirmation}>
           <Input
             id="confirmation"
             name="confirmation"
@@ -289,5 +277,70 @@ export function PasswordForm() {
         </Field>
       </Section>
     </div>
+  );
+}
+
+/**
+ * Langue de l'utilisateur.
+ *
+ * Elle régit ses écrans, les messages du service et ses courriels ; la
+ * langue des comptes-rendus PDF, elle, est celle de chaque clinique. Le
+ * changement s'applique aussitôt : la page est relue dans la nouvelle
+ * langue.
+ */
+export function LanguageForm() {
+  const t = useMessages();
+  const current = useLocale();
+  const [value, setValue] = React.useState<Locale>(current);
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <Section
+      title={t.settings.language.title}
+      description={t.settings.language.description}
+      pending={pending}
+      onSubmit={() =>
+        startTransition(async () => {
+          const result = await setLanguage(value);
+          if (!result.ok) {
+            toast.error(result.error);
+            return;
+          }
+          // Rechargement complet : `<html lang>`, titre et textes suivent.
+          window.location.reload();
+        })
+      }
+    >
+      <fieldset className="flex flex-wrap gap-2">
+        <legend className="sr-only">{t.settings.language.title}</legend>
+        {LOCALES.map((locale) => {
+          const selected = value === locale;
+          return (
+            <label
+              key={locale}
+              lang={locale}
+              className={cn(
+                "flex cursor-pointer items-center gap-2.5 rounded-xl border px-4 py-3 text-sm transition-colors duration-100",
+                selected
+                  ? "border-accent/40 bg-accent-muted font-medium"
+                  : "border-border-subtle hover:border-border-default hover:bg-surface-hover",
+              )}
+            >
+              <input
+                type="radio"
+                name="locale"
+                checked={selected}
+                onChange={() => setValue(locale)}
+                className="size-4 shrink-0 accent-[var(--accent)]"
+              />
+              {LOCALE_NAMES[locale]}
+            </label>
+          );
+        })}
+      </fieldset>
+      <p className="text-2xs leading-relaxed text-tertiary">
+        {t.settings.language.reportsNote}
+      </p>
+    </Section>
   );
 }

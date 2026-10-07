@@ -1,4 +1,5 @@
 import { DEMO_USER_ID } from "@/lib/demo/studies";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 import type { Membership, Session } from "@/lib/session/types";
 
 /**
@@ -72,7 +73,10 @@ const PERSONAS: Record<string, Session["user"]> = {
  *
  * @param activeId Appartenance choisie, si l'utilisateur en a changé.
  */
-export function demoSession(activeId?: string): Session {
+export function demoSession(
+  activeId?: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Session {
   const active =
     DEMO_MEMBERSHIPS.find((membership) => membership.id === activeId) ??
     DEMO_MEMBERSHIPS[0];
@@ -81,6 +85,7 @@ export function demoSession(activeId?: string): Session {
     user: PERSONAS[active.id],
     memberships: DEMO_MEMBERSHIPS,
     active,
+    locale,
     isDemo: true,
   };
 }

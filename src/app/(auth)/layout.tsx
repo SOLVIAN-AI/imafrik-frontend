@@ -2,6 +2,7 @@ import { Clock3, Lock, Stethoscope } from "lucide-react";
 
 import { Wordmark } from "@/components/brand/brand";
 import { HtmlLang } from "@/components/i18n/html-lang";
+import { LocaleProvider } from "@/i18n/client";
 import { authCopy } from "@/content/auth";
 import { requestLocale } from "@/lib/i18n/server";
 
@@ -108,7 +109,7 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
       </aside>
 
       <main className="flex flex-1 items-center justify-center px-6 py-12">
-        {children}
+        <LocaleProvider locale={locale}>{children}</LocaleProvider>
       </main>
     </div>
   );

@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import { isDemoMode } from "@/lib/demo/mode";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locale";
+import { LANGUAGE_COOKIE } from "@/lib/i18n/routes";
 import { homeFor, isRouteAllowed } from "@/lib/navigation";
 import { demoSession } from "@/lib/session/demo";
 import { needsSecondFactor } from "@/lib/session/mfa";
@@ -64,7 +66,13 @@ export type AuthState =
 export const getAuthState = cache(async (): Promise<AuthState> => {
   if (isDemoMode()) {
     const store = await cookies();
-    return demoSession(store.get(DEMO_MEMBERSHIP_COOKIE)?.value);
+    // La démonstration n'a pas de profil en base : sa langue est celle du
+    // cookie de langue, réglée depuis les paramètres ou le site public.
+    const chosen = store.get(LANGUAGE_COOKIE)?.value;
+    return demoSession(
+      store.get(DEMO_MEMBERSHIP_COOKIE)?.value,
+      isLocale(chosen) ? chosen : DEFAULT_LOCALE,
+    );
   }
 
   const supabase = await createClient();
@@ -76,7 +84,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
   const [{ data: profile }, { data: rows }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, title, active_membership_id")
+      .select("full_name, title, active_membership_id, locale")
       .eq("id", user.id)
       .single(),
     supabase
@@ -128,6 +136,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
     },
     memberships,
     active,
+    locale: isLocale(profile?.locale) ? profile.locale : DEFAULT_LOCALE,
     isDemo: false,
   };
 });

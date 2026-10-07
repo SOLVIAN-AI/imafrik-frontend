@@ -9,6 +9,7 @@ import { Field, Input } from "@/components/ui/input";
 import { changePassword } from "@/lib/actions/profile";
 import { PASSWORD_RULES } from "@/lib/security/password";
 import { cn } from "@/lib/utils";
+import { useMessages } from "@/i18n/client";
 
 /**
  * Choix d'un mot de passe, après réception d'un lien par courriel.
@@ -30,6 +31,7 @@ export default function NewPasswordPage() {
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
 
+  const t = useMessages();
   const rulesOk = PASSWORD_RULES.every((rule) => rule.test(password));
   const match = confirm.length > 0 && confirm === password;
 
@@ -74,7 +76,7 @@ export default function NewPasswordPage() {
             const ok = rule.test(password);
             return (
               <li
-                key={rule.label}
+                key={rule.id}
                 className={cn(
                   "flex items-center gap-2 text-2xs transition-colors",
                   ok ? "text-done" : "text-tertiary",
@@ -85,7 +87,7 @@ export default function NewPasswordPage() {
                 ) : (
                   <X className="size-3 shrink-0 opacity-50" aria-hidden />
                 )}
-                {rule.label}
+                {t.settings.password.rules[rule.id]}
               </li>
             );
           })}

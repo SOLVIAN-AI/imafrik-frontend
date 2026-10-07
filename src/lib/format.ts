@@ -1,3 +1,4 @@
+import { messagesFor } from "@/i18n";
 import { INTL_LOCALE, type Locale } from "@/lib/i18n/locale";
 
 /**
@@ -58,24 +59,26 @@ export function formatDateTime(date: Date, locale: Locale = "fr"): string {
  * @param bytes Taille en octets.
  * @returns Par exemple « 12,4 Mo ».
  */
-export function formatBytes(bytes: number): string {
-  const units = ["o", "ko", "Mo", "Go"];
+export function formatBytes(bytes: number, locale: Locale = "fr"): string {
+  const units = messagesFor(locale).common.units.bytes;
   let value = bytes;
   let unit = 0;
   while (value >= 1024 && unit < units.length - 1) {
     value /= 1024;
     unit += 1;
   }
-  return `${value.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} ${units[unit]}`;
+  return `${value.toLocaleString(INTL_LOCALE[locale], { maximumFractionDigits: 1 })} ${units[unit]}`;
 }
 
 /**
  * Durée lisible, à partir d'un nombre de minutes.
  *
  * @param minutes Durée en minutes.
- * @returns Par exemple « 45 min », « 2 h 10 », « 3 j 4 h ».
+ * @param locale  Langue, français par défaut.
+ * @returns Par exemple « 45 min », « 2 h 10 », « 3 j 4 h » (« 3 d 4 h »).
  */
-export function formatDuration(minutes: number): string {
+export function formatDuration(minutes: number, locale: Locale = "fr"): string {
+  const day = messagesFor(locale).common.units.day;
   const total = Math.max(0, Math.round(minutes));
   if (total < 60) return `${total} min`;
   const hours = Math.floor(total / 60);
@@ -85,26 +88,23 @@ export function formatDuration(minutes: number): string {
   }
   const days = Math.floor(hours / 24);
   const restHours = hours % 24;
-  return restHours ? `${days} j ${restHours} h` : `${days} j`;
+  return restHours ? `${days} ${day} ${restHours} h` : `${days} ${day}`;
 }
 
 /**
  * Sexe DICOM en toutes lettres.
  *
- * @param sex Valeur du tag PatientSex : `M`, `F`, `O`, ou vide.
+ * @param sex    Valeur du tag PatientSex : `M`, `F`, `O`, ou vide.
+ * @param locale Langue, français par défaut.
  * @returns « Homme », « Femme », « Autre », ou `null` s'il n'a pas été transmis.
  */
-export function formatSex(sex: string | null): string | null {
-  switch (sex?.trim().toUpperCase()) {
-    case "M":
-      return "Homme";
-    case "F":
-      return "Femme";
-    case "O":
-      return "Autre";
-    default:
-      return null;
-  }
+export function formatSex(
+  sex: string | null,
+  locale: Locale = "fr",
+): string | null {
+  const key = sex?.trim().toUpperCase();
+  const labels = messagesFor(locale).common.sex;
+  return key === "M" || key === "F" || key === "O" ? labels[key] : null;
 }
 
 /**
@@ -116,13 +116,16 @@ export function formatSex(sex: string | null): string | null {
  *
  * @param birthDate Date de naissance `AAAA-MM-JJ`, ou `null`.
  * @param at        Date de référence.
+ * @param locale    Langue, français par défaut.
  * @returns Par exemple « 58 ans » ou « 14 mois », ou `null` si la date
  *          de naissance est absente ou illisible.
  */
 export function formatPatientAge(
   birthDate: string | null,
   at: Date,
+  locale: Locale = "fr",
 ): string | null {
+  const units = messagesFor(locale).common.units;
   const match = birthDate?.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!match) return null;
   const [year, month, day] = match.slice(1).map(Number);
@@ -130,8 +133,8 @@ export function formatPatientAge(
     (at.getUTCFullYear() - year) * 12 + (at.getUTCMonth() + 1 - month);
   if (at.getUTCDate() < day) months -= 1;
   if (months < 0) return null;
-  if (months < 24) return `${months} mois`;
-  return `${Math.floor(months / 12)} ans`;
+  if (months < 24) return units.months(months);
+  return units.years(Math.floor(months / 12));
 }
 
 /**
@@ -143,10 +146,12 @@ export function formatDemographics(
   sex: string | null,
   birthDate: string | null,
   at: Date,
+  locale: Locale = "fr",
 ): string | null {
-  const parts = [formatSex(sex), formatPatientAge(birthDate, at)].filter(
-    Boolean,
-  );
+  const parts = [
+    formatSex(sex, locale),
+    formatPatientAge(birthDate, at, locale),
+  ].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
@@ -170,9 +175,13 @@ export const MISSING = "—";
  * @param ratio Proportion entre 0 et 1, ou `null` sans donnée.
  * @returns Par exemple « 94 % », ou « — ».
  */
-export function formatPercent(ratio: number | null): string {
+export function formatPercent(
+  ratio: number | null,
+  locale: Locale = "fr",
+): string {
   if (ratio === null || !Number.isFinite(ratio)) return MISSING;
-  return `${Math.round(ratio * 100)} %`;
+  // Espace avant « % » en français, pas en anglais.
+  return `${Math.round(ratio * 100)}${locale === "en" ? "%" : " %"}`;
 }
 
 /**
@@ -181,12 +190,15 @@ export function formatPercent(ratio: number | null): string {
  * @param minutes Minutes, ou `null` — une étape jamais atteinte.
  * @returns La durée lisible ({@link formatDuration}), ou « — ».
  */
-export function formatMinutes(minutes: number | null): string {
+export function formatMinutes(
+  minutes: number | null,
+  locale: Locale = "fr",
+): string {
   if (minutes === null || !Number.isFinite(minutes)) return MISSING;
   // Sous la minute, « 0 min » mentirait : un transfert de 20 secondes
   // n'est pas instantané.
   if (minutes > 0 && minutes < 1) return `${Math.round(minutes * 60)} s`;
-  return formatDuration(minutes);
+  return formatDuration(minutes, locale);
 }
 
 /**
@@ -195,9 +207,13 @@ export function formatMinutes(minutes: number | null): string {
  * @param mbPerSecond Mégaoctets par seconde, ou `null`.
  * @returns Par exemple « 2,4 Mo/s », ou « — ».
  */
-export function formatRate(mbPerSecond: number | null): string {
+export function formatRate(
+  mbPerSecond: number | null,
+  locale: Locale = "fr",
+): string {
   if (mbPerSecond === null || !Number.isFinite(mbPerSecond)) return MISSING;
-  return `${mbPerSecond.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} Mo/s`;
+  const unit = messagesFor(locale).common.units.bytes[2];
+  return `${mbPerSecond.toLocaleString(INTL_LOCALE[locale], { maximumFractionDigits: 1 })} ${unit}/s`;
 }
 
 /**
@@ -206,8 +222,10 @@ export function formatRate(mbPerSecond: number | null): string {
  * @param value Nombre.
  * @returns Par exemple « 12 480 ».
  */
-export function formatCount(value: number): string {
-  return value.toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+export function formatCount(value: number, locale: Locale = "fr"): string {
+  return value.toLocaleString(INTL_LOCALE[locale], {
+    maximumFractionDigits: 0,
+  });
 }
 
 /**
@@ -216,8 +234,8 @@ export function formatCount(value: number): string {
  * @param date Jour, lu en UTC.
  * @returns Par exemple « 7 oct. ».
  */
-export function formatDayShort(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", {
+export function formatDayShort(date: Date, locale: Locale = "fr"): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     day: "numeric",
     month: "short",
     timeZone: "UTC",

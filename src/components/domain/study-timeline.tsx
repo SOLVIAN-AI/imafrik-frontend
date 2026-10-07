@@ -1,11 +1,9 @@
 import { Check, Circle } from "lucide-react";
 
-import {
-  STUDY_STATUSES,
-  type StudyStatus,
-} from "@/components/domain/study-status";
+import { type StudyStatus } from "@/components/domain/study-status";
 import { DateTime } from "@/components/domain/date-time";
 import { cn } from "@/lib/utils";
+import { STUDY_STATUSES } from "@/lib/study-status";
 
 /**
  * Ce que chaque étape signifie **pour la clinique**.

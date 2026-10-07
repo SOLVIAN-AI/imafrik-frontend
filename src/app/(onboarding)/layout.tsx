@@ -16,7 +16,7 @@ export default async function OnboardingLayout({ children }: LayoutProps<"/">) {
 
   return (
     <SessionProvider session={session}>
-      <HtmlLang lang="fr" />
+      <HtmlLang lang={session.locale} />
       <OnboardingChrome>{children}</OnboardingChrome>
     </SessionProvider>
   );

@@ -57,9 +57,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
 
   return (
     <SessionProvider session={session}>
-      {/* L'application est en français, quelle que soit la langue du site
-          d'où l'on vient. */}
-      <HtmlLang lang="fr" />
+      {/* La langue de l'utilisateur, celle de son profil. */}
+      <HtmlLang lang={session.locale} />
       <AppShell counts={counts} banner={settings?.maintenanceMessage ?? null}>
         {children}
       </AppShell>

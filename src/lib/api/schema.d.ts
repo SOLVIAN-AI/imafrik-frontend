@@ -87,6 +87,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics/{clinic_id}/report-language": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Langue des comptes-rendus
+         * @description Fixe la langue des comptes-rendus PDF d'une clinique.
+         *
+         *     Elle régit les intitulés du document signé (sections, identité,
+         *     mentions) et la page de vérification vers laquelle mène son QR code ;
+         *     l'éditeur l'affiche au radiologue, qui rédige dans cette langue. Les
+         *     comptes-rendus déjà signés ne changent pas. Le changement est tracé.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        put: operations["set_report_language_admin_clinics__clinic_id__report_language_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/clinics/{clinic_id}/retention": {
         parameters: {
             query?: never;
@@ -1882,6 +1910,12 @@ export interface components {
             open_to_pool: boolean;
             /** Received 30D */
             received_30d: number;
+            /**
+             * Report Language
+             * @description Langue des intitulés des comptes-rendus PDF, fixée au contrat.
+             * @enum {string}
+             */
+            report_language: "fr" | "en";
         };
         /**
          * ClinicalInfo
@@ -2534,7 +2568,7 @@ export interface components {
          *         full_name: Nom complet.
          *         title: Titre — « Dr », spécialité.
          *         license_number: Numéro d'ordre, imprimé sur les comptes-rendus.
-         *         locale: Langue préférée.
+         *         locale: Langue de l'interface, des messages et des courriels.
          */
         Profile: {
             /** Full Name */
@@ -2549,8 +2583,9 @@ export interface components {
             /**
              * Locale
              * @default fr
+             * @enum {string}
              */
-            locale: string;
+            locale: "fr" | "en";
             /** Title */
             title?: string | null;
         };
@@ -2566,7 +2601,7 @@ export interface components {
          *         full_name: Nom complet, tel qu'imprimé sur les comptes-rendus.
          *         title: Titre — « Dr », spécialité.
          *         license_number: Numéro d'ordre.
-         *         locale: Langue préférée.
+         *         locale: Langue de l'interface, des messages et des courriels.
          */
         ProfileUpdate: {
             /** Full Name */
@@ -2574,7 +2609,7 @@ export interface components {
             /** License Number */
             license_number?: string | null;
             /** Locale */
-            locale?: string | null;
+            locale?: ("fr" | "en") | null;
             /** Title */
             title?: string | null;
         };
@@ -2682,6 +2717,17 @@ export interface components {
             verify_token: string | null;
             /** Version */
             version: number;
+        };
+        /**
+         * ReportLanguageUpdate
+         * @description Langue des comptes-rendus d'une clinique, fixée par contrat.
+         */
+        ReportLanguageUpdate: {
+            /**
+             * Report Language
+             * @enum {string}
+             */
+            report_language: "fr" | "en";
         };
         /**
          * ReportTemplate
@@ -2851,6 +2897,8 @@ export interface components {
          *         report_id: Compte-rendu de l'examen, s'il est visible de
          *             l'appelant — signé pour une clinique, brouillon compris pour
          *             le radiologue qui le rédige.
+         *         report_language: Langue des intitulés du compte-rendu PDF, celle de
+         *             la clinique émettrice : l'éditeur l'affiche au radiologue.
          *         due_at: Échéance du compte-rendu : réception plus le délai promis
          *             pour sa priorité (réglages de la plateforme). Calculée d'après
          *             les délais en vigueur, comme le taux de respect de la tour de
@@ -2908,6 +2956,12 @@ export interface components {
             received_at: string;
             /** Report Id */
             report_id: string | null;
+            /**
+             * Report Language
+             * @default fr
+             * @enum {string}
+             */
+            report_language: "fr" | "en";
             /** Reported At */
             reported_at: string | null;
             /** Reported By Name */
@@ -3367,6 +3421,43 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_report_language_admin_clinics__clinic_id__report_language_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportLanguageUpdate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
