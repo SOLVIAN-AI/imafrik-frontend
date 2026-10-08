@@ -503,8 +503,12 @@ function vessels(slice: number, lung: number): [number, number, number][] {
 
 /** Bloc de surimpression : texte mono, discret, posé sur l'image.
  *
- * Limité à 45 % de la largeur, lignes tronquées : deux coins opposés ne
- * peuvent pas se rejoindre, même sur un téléphone.
+ * Chaque coin occupe au plus la moitié de la largeur, moins une marge, et
+ * tronque ses lignes : posé à 0,75 rem du bord, il s'arrête 0,5 rem avant
+ * le milieu, et le coin opposé commence 0,5 rem après. Deux coins opposés
+ * ne peuvent donc pas se rejoindre, quelle que soit la largeur. L'ancienne
+ * limite (45 %) ne valait qu'au-delà de 240 px : sur un téléphone, pendant
+ * la mise en place du volet, les coins se chevauchaient.
  */
 function Overlay({
   className,
@@ -515,7 +519,7 @@ function Overlay({
 }) {
   return (
     <div
-      className={`pointer-events-none absolute flex max-w-[45%] flex-col gap-0.5 font-mono text-[11px] leading-tight text-ink-400 *:truncate ${className}`}
+      className={`pointer-events-none absolute flex max-w-[calc(50%-1.25rem)] flex-col gap-0.5 font-mono text-[11px] leading-tight text-ink-400 *:truncate ${className}`}
     >
       {children}
     </div>
