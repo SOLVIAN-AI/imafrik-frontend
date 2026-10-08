@@ -22,6 +22,7 @@ données inventées.
 ```bash
 npm run format:check && npm run typecheck && npm run lint
 npm test           # tests unitaires (Vitest)
+npm run test:e2e   # parcours de bout en bout (Playwright, mode démonstration)
 npm run api:check  # contrat d'API, si le dépôt backend est voisin
 npm run build
 ```
@@ -30,7 +31,8 @@ L'intégration continue ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
 lance exactement ces commandes. Les tests unitaires couvrent la logique
 pure dont dépend la sécurité : destinations de redirection, accès aux
 écrans par rôle, politique de sécurité du contenu, variables
-obligatoires, contrat d'API.
+obligatoires, contrat d'API. Les parcours de bout en bout sont décrits
+dans [`docs/tests.md`](docs/tests.md).
 
 ## Le système de design en trois principes
 
