@@ -375,12 +375,49 @@ export interface paths {
          *     Args:
          *         principal: Administrateur.
          *         q: Recherche sur le nom ou l'adresse.
-         *         pending: Seulement les comptes sans appartenance — radiologues en
-         *             attente de validation, invités jamais rattachés.
+         *         pending: Seulement les comptes sans appartenance, invités jamais
+         *             rattachés.
+         *         unverified: Seulement les radiologues dont le numéro d'ordre attend
+         *             la validation de l'équipe IMAFRIK.
          */
         get: operations["list_users_admin_users_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{profile_id}/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Valider ou retirer le numéro d'ordre d'un radiologue
+         * @description Valide le numéro d'ordre d'un radiologue, ou retire la validation.
+         *
+         *     Sans validation, un radiologue n'accède à aucun examen : ni la file,
+         *     ni le viewer, ni la rédaction, ni la signature. La vérification
+         *     elle-même (inscription à l'Ordre, droit d'exercer) se fait hors de la
+         *     plateforme ; ce geste en enregistre le résultat, avec son auteur et le
+         *     numéro vérifié, dans le journal d'audit. Retirer la validation coupe
+         *     l'accès à la requête suivante, et rend au pool les examens que ce
+         *     radiologue avait pris en charge : un examen ne doit pas rester bloqué
+         *     chez quelqu'un qui ne peut plus le signer. Ses brouillons sur ces
+         *     examens sont effacés, comme lorsqu'il rend un examen lui-même.
+         *
+         *     Raises:
+         *         NotFound: Compte introuvable.
+         *         Unprocessable: Validation demandée pour un compte sans numéro
+         *             d'ordre.
+         */
+        post: operations["decide_credentials_admin_users__profile_id__credentials_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1698,6 +1735,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Credentials Verified At
+             * @description Validation du numéro d'ordre par l'équipe IMAFRIK ; None si à faire.
+             */
+            credentials_verified_at?: string | null;
             /** Email */
             email: string | null;
             /** Full Name */
@@ -1944,6 +1986,10 @@ export interface components {
          *         message: Message libre.
          *         website: Champ piège, invisible pour un humain. Rempli, la demande
          *             est ignorée — en silence, pour ne rien apprendre au robot.
+         *         requester_kind: Établissement de santé ou radiologue : les deux
+         *             demandes ne suivent pas le même chemin.
+         *         license_number: Numéro d'ordre, exigé d'un radiologue ; l'équipe
+         *             IMAFRIK le vérifie avant d'ouvrir le moindre accès.
          */
         ContactForm: {
             /**
@@ -1953,12 +1999,19 @@ export interface components {
             email: string;
             /** Full Name */
             full_name: string;
+            /** License Number */
+            license_number?: string | null;
             /** Message */
             message?: string | null;
             /** Organization */
             organization?: string | null;
             /** Phone */
             phone?: string | null;
+            /**
+             * Requester Kind
+             * @enum {string}
+             */
+            requester_kind: "clinic" | "radiologist";
             /** Website */
             website?: string | null;
         };
@@ -1987,6 +2040,9 @@ export interface components {
          *         email: Adresse.
          *         phone: Téléphone.
          *         message: Message.
+         *         requester_kind: Établissement ou radiologue ; nul pour les
+         *             demandes antérieures à la question.
+         *         license_number: Numéro d'ordre déclaré par un radiologue.
          *         status: Suivi — nouvelle, contactée, convertie, écartée.
          *         notes: Notes de l'équipe.
          *         handled_at: Traitée le.
@@ -2009,6 +2065,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** License Number */
+            license_number?: string | null;
             /** Message */
             message: string | null;
             /** Notes */
@@ -2017,6 +2075,8 @@ export interface components {
             organization: string | null;
             /** Phone */
             phone: string | null;
+            /** Requester Kind */
+            requester_kind?: ("clinic" | "radiologist") | null;
             /**
              * Status
              * @enum {string}
@@ -2112,6 +2172,34 @@ export interface components {
             sla_routine_minutes: number;
             /** Sla Urgent Minutes */
             sla_urgent_minutes: number;
+        };
+        /**
+         * CredentialsDecision
+         * @description Décision de l'équipe IMAFRIK sur le numéro d'ordre d'un radiologue.
+         */
+        CredentialsDecision: {
+            /**
+             * Decision
+             * @description verify : numéro vérifié auprès de l'Ordre ; revoke : validation retirée.
+             * @enum {string}
+             */
+            decision: "verify" | "revoke";
+        };
+        /**
+         * CredentialsState
+         * @description Validation du numéro d'ordre après la décision.
+         */
+        CredentialsState: {
+            /** Credentials Verified At */
+            credentials_verified_at: string | null;
+            /** License Number */
+            license_number: string | null;
+            /**
+             * Released Studies
+             * @description Examens en cours rendus au pool par le retrait de la validation.
+             * @default 0
+             */
+            released_studies: number;
         };
         /**
          * DailyActivity
@@ -2569,8 +2657,16 @@ export interface components {
          *         title: Titre — « Dr », spécialité.
          *         license_number: Numéro d'ordre, imprimé sur les comptes-rendus.
          *         locale: Langue de l'interface, des messages et des courriels.
+         *         credentials_verified: Numéro d'ordre validé par l'équipe IMAFRIK.
+         *             Sans cette validation, un radiologue n'accède à aucun examen ;
+         *             changer de numéro la retire.
          */
         Profile: {
+            /**
+             * Credentials Verified
+             * @default false
+             */
+            credentials_verified: boolean;
             /** Full Name */
             full_name: string;
             /**
@@ -3825,6 +3921,7 @@ export interface operations {
             query?: {
                 q?: string | null;
                 pending?: boolean;
+                unverified?: boolean;
             };
             header?: {
                 authorization?: string | null;
@@ -3841,6 +3938,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUser"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_credentials_admin_users__profile_id__credentials_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialsDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialsState"];
                 };
             };
             /** @description Validation Error */
