@@ -1,3 +1,5 @@
+import { DEMO_USER_ID } from "@/lib/demo/studies";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 import type { Membership, Session } from "@/lib/session/types";
 
 /**
@@ -17,14 +19,16 @@ export const DEMO_MEMBERSHIPS: Membership[] = [
     organizationKind: "radiology_group",
     role: "radiologist",
     city: "Lomé",
+    reportLanguage: "fr",
   },
   {
     id: "m-admin",
     organizationId: "org-solvian",
-    organizationName: "IMAFRIK — équipe",
+    organizationName: "Équipe IMAFRIK",
     organizationKind: "radiology_group",
     role: "platform_admin",
     city: "Lomé",
+    reportLanguage: "fr",
   },
   {
     id: "m-clinic",
@@ -33,28 +37,58 @@ export const DEMO_MEMBERSHIPS: Membership[] = [
     organizationKind: "clinic",
     role: "clinic_staff",
     city: "Lomé",
+    reportLanguage: "fr",
   },
 ];
+
+/**
+ * Qui l'on incarne dans chaque portail.
+ *
+ * Un seul compte appartient aux trois organisations — c'est le cas que
+ * l'architecture doit tenir — mais une démonstration où la même
+ * radiologue apparaît dans l'équipe d'une clinique et dans le
+ * back-office brouille le propos. Chaque portail montre donc la personne
+ * qu'un vrai client y verrait.
+ */
+const PERSONAS: Record<string, Session["user"]> = {
+  "m-radio": {
+    id: DEMO_USER_ID,
+    email: "a.kponton@imafrik.tech",
+    fullName: "Adjo Kponton",
+    title: "Dr",
+  },
+  "m-admin": {
+    id: DEMO_USER_ID,
+    email: "operations@imafrik.tech",
+    fullName: "Edem Agbodjan",
+    title: "",
+  },
+  "m-clinic": {
+    id: DEMO_USER_ID,
+    email: "accueil@cliniquesaintjoseph.tg",
+    fullName: "Akouvi Mensah",
+    title: "",
+  },
+};
 
 /**
  * Construit la session de démonstration.
  *
  * @param activeId Appartenance choisie, si l'utilisateur en a changé.
  */
-export function demoSession(activeId?: string): Session {
+export function demoSession(
+  activeId?: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Session {
   const active =
     DEMO_MEMBERSHIPS.find((membership) => membership.id === activeId) ??
     DEMO_MEMBERSHIPS[0];
 
   return {
-    user: {
-      id: "demo-user",
-      email: "demo@imafrik.tech",
-      fullName: "Dr Adjo Kponton",
-      title: "Radiologue",
-    },
+    user: PERSONAS[active.id],
     memberships: DEMO_MEMBERSHIPS,
     active,
+    locale,
     isDemo: true,
   };
 }

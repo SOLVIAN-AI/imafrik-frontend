@@ -1,38 +1,20 @@
+"use client";
+
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
+import { useMessages } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
-/**
- * Les cinq états d'un examen, tels que le schéma les définit.
- *
- * Ils forment une progression, et cet ordre compte : il détermine celui
- * des filtres et du tri. Voir `study_status` dans les migrations.
- */
-export const STUDY_STATUSES = [
-  "received",
-  "assigned",
-  "in_progress",
-  "reported",
-  "delivered",
-] as const;
+import type { StudyStatus } from "@/lib/study-status";
 
-export type StudyStatus = (typeof STUDY_STATUSES)[number];
+export type { StudyStatus } from "@/lib/study-status";
 
-/**
- * Libellés affichés, et ce qu'ils décrivent réellement.
- *
- * On nomme les choses du point de vue de l'utilisateur, pas du système :
- * un radiologue voit « À lire », pas `received`. Le terme technique reste
- * dans le code, où il a sa place.
+/*
+ * Libellés affichés : ceux de l'utilisateur, pas du système. Un radiologue
+ * voit « À lire », pas `received`. Ils vivent dans les textes de
+ * l'application (`common.studyStatus`), dans chaque langue.
  */
-const STATUS_LABELS: Record<StudyStatus, string> = {
-  received: "À lire",
-  assigned: "Attribué",
-  in_progress: "En cours",
-  reported: "Rendu",
-  delivered: "Livré",
-};
 
 /**
  * Teintes des statuts.
@@ -96,13 +78,14 @@ export function StudyStatusChip({
   className,
   ...props
 }: StudyStatusChipProps) {
+  const t = useMessages();
   return (
     <span className={cn(statusStyles({ status }), className)} {...props}>
       <span
         className={cn("size-1.5 rounded-full", dotStyles[status])}
         aria-hidden
       />
-      {STATUS_LABELS[status]}
+      {t.common.studyStatus[status]}
     </span>
   );
 }
@@ -116,6 +99,7 @@ export function StudyStatusChip({
  * ne fait que confirmer.
  */
 export function UrgentMarker({ className }: { className?: string }) {
+  const t = useMessages();
   return (
     <span
       className={cn(
@@ -124,7 +108,7 @@ export function UrgentMarker({ className }: { className?: string }) {
         className,
       )}
     >
-      Urgent
+      {t.common.urgent}
     </span>
   );
 }

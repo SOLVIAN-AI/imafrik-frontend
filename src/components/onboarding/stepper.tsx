@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import Link from "next/link";
 
+import { useMessages } from "@/i18n/client";
 import type { OnboardingStep } from "@/lib/onboarding/steps";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export function Stepper({
   steps: OnboardingStep[];
   currentIndex: number;
 }) {
+  const t = useMessages();
   return (
     <ol className="flex items-center gap-1.5">
       {steps.map((step, index) => {
@@ -46,7 +48,7 @@ export function Stepper({
             </span>
             <span
               className={cn(
-                "hidden text-xs whitespace-nowrap md:block",
+                "hidden text-xs whitespace-nowrap lg:block",
                 current ? "font-medium text-primary" : "text-tertiary",
               )}
             >
@@ -63,7 +65,9 @@ export function Stepper({
                 className="flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-surface-hover"
               >
                 {content}
-                <span className="sr-only">Revenir à l’étape {step.title}</span>
+                <span className="sr-only">
+                  {t.onboarding.backToStep(step.title)}
+                </span>
               </Link>
             ) : (
               <span
@@ -77,7 +81,7 @@ export function Stepper({
             {index < steps.length - 1 && (
               <span
                 className={cn(
-                  "h-px w-4 md:w-8",
+                  "h-px w-4 lg:w-8",
                   done ? "bg-accent/40" : "bg-border-default",
                 )}
                 aria-hidden

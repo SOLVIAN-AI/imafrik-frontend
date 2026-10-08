@@ -4,9 +4,10 @@ import { CircleHelp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
 import { Stepper } from "@/components/onboarding/stepper";
 import { useSession } from "@/components/providers/session-provider";
+import { useMessages } from "@/i18n/client";
 import { stepsFor } from "@/lib/onboarding/steps";
 
 /**
@@ -27,7 +28,8 @@ import { stepsFor } from "@/lib/onboarding/steps";
 export function OnboardingChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { active } = useSession();
-  const steps = stepsFor(active.role);
+  const t = useMessages();
+  const steps = stepsFor(active.role, t.onboarding);
 
   const currentIndex = Math.max(
     0,
@@ -35,7 +37,7 @@ export function OnboardingChrome({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="relative flex min-h-dvh flex-col bg-surface-base">
+    <div className="relative flex min-h-dvh flex-col overflow-x-clip bg-surface-base">
       <div
         className="pointer-events-none absolute -top-48 left-1/2 size-[48rem] -translate-x-1/2 rounded-full blur-3xl"
         style={{
@@ -45,12 +47,9 @@ export function OnboardingChrome({ children }: { children: React.ReactNode }) {
         aria-hidden
       />
 
-      <header className="relative flex h-16 shrink-0 items-center gap-6 border-b border-border-subtle px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <Mark className="size-6" />
-          <span className="text-sm font-semibold tracking-[-0.01em]">
-            IMAFRIK
-          </span>
+      <header className="relative flex h-16 shrink-0 items-center gap-6 border-b border-border-subtle px-4 sm:px-6">
+        <Link href="/" className="flex min-h-6 shrink-0 items-center gap-2.5">
+          <Wordmark className="h-5" />
         </Link>
 
         <div className="mx-auto hidden sm:block">
@@ -59,14 +58,14 @@ export function OnboardingChrome({ children }: { children: React.ReactNode }) {
 
         <Link
           href="/contact"
-          className="ml-auto flex shrink-0 items-center gap-1.5 text-xs text-tertiary transition-colors hover:text-accent"
+          className="-mr-2 ml-auto flex min-h-9 min-w-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs text-tertiary transition-colors hover:text-accent"
         >
           <CircleHelp className="size-3.5" aria-hidden />
-          <span className="hidden sm:inline">Besoin d’aide ?</span>
+          <span className="hidden sm:inline">{t.onboarding.help}</span>
         </Link>
       </header>
 
-      <main className="relative mx-auto w-full max-w-xl flex-1 px-6 py-12 md:py-16">
+      <main className="relative mx-auto w-full max-w-xl flex-1 px-4 py-12 sm:px-6 md:py-16">
         <div className="mb-8 sm:hidden">
           <Stepper steps={steps} currentIndex={currentIndex} />
         </div>

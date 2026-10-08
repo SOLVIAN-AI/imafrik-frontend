@@ -1,72 +1,152 @@
-import { DEMO_STUDIES } from "@/lib/demo/studies";
+import "server-only";
+
+import { z } from "zod";
+
+import { apiGet } from "@/lib/api/client";
+import {
+  adminOrganizationSchema,
+  contactRequestSchema,
+} from "@/lib/api/contracts";
+import {
+  DEMO_GROUP,
+  DEMO_NETWORK,
+  demoContactRequests,
+  demoFlows,
+} from "@/lib/demo/control";
+import type { ContactStatus } from "@/lib/contact-status";
+import { isDemoMode } from "@/lib/demo/mode";
+import type { OrgKind } from "@/lib/session/types";
+
+const DAY = 86_400_000;
 
 /**
  * Une organisation, vue du back-office.
  *
- * ⚠️ **Aucune route d'administration n'existe encore côté service.** Ces
- * données viennent du jeu de démonstration, et cette couche existe pour
- * que la bascule ne touche qu'un fichier le jour où l'API les publiera.
- * Tant qu'elles manquent, ces opérations se font en SQL — tenable pour
- * une clinique, intenable pour dix.
+ * L'AE Title d'une clinique n'y figure pas — seulement le fait qu'elle
+ * soit raccordée : c'est un secret, et l'écran n'a pas à l'afficher.
  */
 export interface AdminOrganization {
   id: string;
   name: string;
-  kind: "clinic" | "radiology_group";
+  kind: OrgKind;
   city: string;
   active: boolean;
-  /** Examens envoyés ou lus, tous statuts confondus. */
+  openToPool: boolean;
+  connected: boolean;
+  /** Examens envoyés, tous statuts confondus. */
   studyCount: number;
   memberCount: number;
-  dicomAet: string | null;
+  /** Examens reçus sur trente jours. */
+  received30d: number;
+  /**
+   * Dernier examen reçu : une passerelle muette se voit ici avant qu'une
+   * clinique ne s'en plaigne.
+   */
+  lastReceivedAt: Date | null;
+  createdAt: Date;
 }
 
-const DEMO_ORGANIZATIONS: AdminOrganization[] = [
-  {
-    id: "org-stj",
-    name: "Clinique Saint-Joseph",
-    kind: "clinic",
-    city: "Lomé",
-    active: true,
-    studyCount: 4,
-    memberCount: 3,
-    dicomAet: "STJOSEPH_LOME",
-  },
-  {
-    id: "org-pka",
-    name: "Polyclinique de Kara",
-    kind: "clinic",
-    city: "Kara",
-    active: true,
-    studyCount: 3,
-    memberCount: 2,
-    dicomAet: "POLYKARA",
-  },
-  {
-    id: "org-radio",
-    name: "IMAFRIK Radiologie",
-    kind: "radiology_group",
-    city: "Lomé",
-    active: true,
-    studyCount: 7,
-    memberCount: 4,
-    dicomAet: null,
-  },
-];
-
-/** Toutes les organisations de la plateforme. */
-export async function listOrganizations(): Promise<AdminOrganization[]> {
-  return DEMO_ORGANIZATIONS;
+/** Une demande reçue par le formulaire de contact du site. */
+export interface ContactRequest {
+  id: string;
+  fullName: string;
+  organization: string | null;
+  email: string;
+  phone: string | null;
+  message: string | null;
+  status: ContactStatus;
+  /** Notes de l'équipe IMAFRIK. */
+  notes: string | null;
+  handledAt: Date | null;
+  createdAt: Date;
 }
 
 /**
- * Tous les examens, sans restriction d'organisation.
- *
- * **La seule vue du produit qui ignore le cloisonnement**, et elle est
- * réservée à l'équipe IMAFRIK. En base, elle suppose un rôle
- * `platform_admin` et une politique dédiée : l'accès y est donc tracé
- * comme le reste, et c'est précisément ce qu'un audit vérifiera.
+ * Organisations de démonstration : le réseau synthétique de la tour de
+ * contrôle, pour que les volumes concordent d'un écran à l'autre.
  */
-export async function listAllStudies() {
-  return DEMO_STUDIES;
+function demoOrganizations(): AdminOrganization[] {
+  const now = Date.now();
+  const clinics = DEMO_NETWORK.map((clinic): AdminOrganization => {
+    const all = demoFlows(now - clinic.ageDays * DAY, now, clinic.id);
+    return {
+      id: clinic.id,
+      name: clinic.name,
+      kind: "clinic",
+      city: clinic.city,
+      active: true,
+      openToPool: true,
+      connected: true,
+      studyCount: all.length,
+      memberCount: clinic.volume > 0 ? 3 : 1,
+      received30d: all.filter((flow) => flow.receivedAt >= now - 30 * DAY)
+        .length,
+      lastReceivedAt: all[0] ? new Date(all[0].receivedAt) : null,
+      createdAt: new Date(now - clinic.ageDays * DAY),
+    };
+  });
+  const group: AdminOrganization = {
+    id: DEMO_GROUP.id,
+    name: DEMO_GROUP.name,
+    kind: "radiology_group",
+    city: DEMO_GROUP.city,
+    active: true,
+    openToPool: false,
+    connected: false,
+    studyCount: 0,
+    memberCount: 5,
+    received30d: 0,
+    lastReceivedAt: null,
+    createdAt: new Date(now - 450 * DAY),
+  };
+  return [...clinics, group].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+}
+
+/**
+ * Toutes les organisations de la plateforme.
+ *
+ * Réservé à l'équipe IMAFRIK : le service le vérifie en base à chaque
+ * appel, quel que soit ce que l'interface affiche.
+ */
+export async function listOrganizations(): Promise<AdminOrganization[]> {
+  if (isDemoMode()) return demoOrganizations();
+  const rows = await apiGet(
+    "/admin/organizations",
+    z.array(adminOrganizationSchema),
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    kind: row.kind,
+    city: row.city ?? "",
+    active: row.is_active,
+    openToPool: row.open_to_pool,
+    connected: row.has_dicom_aet,
+    studyCount: row.study_count,
+    memberCount: row.member_count,
+    received30d: row.received_30d,
+    lastReceivedAt: row.last_received_at
+      ? new Date(row.last_received_at)
+      : null,
+    createdAt: new Date(row.created_at),
+  }));
+}
+
+/** Demandes reçues par le site, les plus récentes d'abord. */
+export async function listContactRequests(): Promise<ContactRequest[]> {
+  const rows = isDemoMode()
+    ? demoContactRequests()
+    : await apiGet("/admin/contact-requests", z.array(contactRequestSchema));
+  return rows.map((row) => ({
+    id: row.id,
+    fullName: row.full_name,
+    organization: row.organization,
+    email: row.email,
+    phone: row.phone,
+    message: row.message,
+    status: row.status,
+    notes: row.notes,
+    handledAt: row.handled_at ? new Date(row.handled_at) : null,
+    createdAt: new Date(row.created_at),
+  }));
 }

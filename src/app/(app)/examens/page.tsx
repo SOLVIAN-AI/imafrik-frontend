@@ -1,47 +1,54 @@
 import type { Metadata } from "next";
 
+import { ClinicStudiesActions } from "@/components/domain/clinic-studies-actions";
+import { ListToolbar } from "@/components/domain/list-toolbar";
 import { StudyList } from "@/components/domain/study-list";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
-import { ClinicStudiesActions } from "@/components/domain/clinic-studies-actions";
-import { getReportForStudy } from "@/lib/data/reports";
 import { listStudies } from "@/lib/data/studies";
-import { getSession } from "@/lib/session/server";
+import { readListSearch } from "@/lib/search/server";
+import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Examens" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.clinic.studies.title };
+}
 
 /**
- * Tous les examens envoyés par la clinique.
+ * Tous les examens du périmètre de l'utilisateur.
  *
- * Écran de suivi : on y vient pour retrouver un dossier précis, pas pour
- * découvrir ce qui est arrivé — c'est le rôle du tableau de bord. D'où
- * la recherche et les filtres en tête, et l'absence de bandeau de
- * mesures.
+ * Pour une clinique, ses envois ; pour un radiologue, tout le pool qu'il
+ * sert, rendus compris — la file « À lire », elle, ne montre que ce qui
+ * reste à faire.
  *
- * L'état du compte-rendu est résolu en parallèle pour toutes les
- * lignes : en série, une liste de quarante examens ferait quarante
- * allers-retours l'un après l'autre.
+ * Écran de suivi : on y vient pour retrouver un dossier précis, d'où la
+ * recherche en tête. L'état du compte-rendu arrive avec chaque examen :
+ * l'écran faisait auparavant un appel par ligne — qui, pour un
+ * radiologue, créait même un brouillon sur chaque examen listé.
  */
-export default async function ClinicStudiesPage() {
-  const [studies, session] = await Promise.all([listStudies(), getSession()]);
-
-  const withReports = await Promise.all(
-    studies.map(async (study) => ({
-      ...study,
-      reportId: (await getReportForStudy(study.id))?.id,
-    })),
-  );
+export default async function StudiesPage() {
+  const session = await requireSession(["clinic_staff", "radiologist"]);
+  const search = await readListSearch("examens", session);
+  const studies = await listStudies({ search });
+  const isClinic = session.active.role === "clinic_staff";
+  const { t } = await getMessages();
 
   return (
     <>
       <PageHeader
-        title="Examens"
-        description={`${withReports.length} examens envoyés · ${session?.active.organizationName ?? ""}`}
-        actions={<ClinicStudiesActions />}
+        title={t.clinic.studies.title}
+        description={`${t.clinic.studies.count(studies.length)} · ${session.active.organizationName}`}
+        actions={
+          isClinic ? (
+            <ClinicStudiesActions search={search} />
+          ) : (
+            <ListToolbar scope="examens" search={search} />
+          )
+        }
       />
 
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <StudyList studies={withReports} />
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        <Panel className="flex min-h-0 flex-col overflow-hidden">
+          <StudyList studies={studies} filtered={Boolean(search)} />
         </Panel>
       </div>
     </>

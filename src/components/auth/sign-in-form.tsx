@@ -1,13 +1,17 @@
 "use client";
 
-import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, ArrowRight, Eye, EyeOff, Lock } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
 import { signIn, type AuthState } from "@/app/(auth)/actions";
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
+import { LanguageSwitch } from "@/components/marketing/language-switch";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
+import { authCopy } from "@/content/auth";
+import type { Locale } from "@/lib/i18n/locale";
+import { localizePath } from "@/lib/i18n/routes";
 import { cn } from "@/lib/utils";
 
 /**
@@ -29,14 +33,24 @@ import { cn } from "@/lib/utils";
  * d'injection exposerait l'accès aux images. Le formulaire fonctionne
  * d'ailleurs sans JavaScript, ce qui n'est pas une coquetterie sur des
  * postes de clinique parfois anciens.
+ *
+ * L'écran suit la langue choisie sur le site public, et propose lui-même
+ * le changement : c'est le pont entre le site et l'application.
+ *
+ * @param locale Langue de l'écran.
+ * @param suite  Destination demandée avant la redirection.
+ * @param motif  Raison d'arrivée : lien expiré ou invalide, inactivité.
  */
 export function SignInForm({
+  locale,
   suite = "",
   motif,
 }: {
+  locale: Locale;
   suite?: string;
   motif?: string;
 }) {
+  const t = authCopy(locale).signIn;
   const [visible, setVisible] = React.useState(false);
   const [state, formAction, pending] = React.useActionState<
     AuthState,
@@ -46,34 +60,34 @@ export function SignInForm({
   const error =
     state.error ??
     (motif === "lien-expire"
-      ? "Ce lien a expiré. Demandez-en un nouveau."
+      ? t.errors.linkExpired
       : motif === "lien-invalide"
-        ? "Ce lien n’est pas valide. Demandez-en un nouveau."
+        ? t.errors.linkInvalid
         : null);
+  // Pas une erreur : une information, présentée comme telle.
+  const notice =
+    motif === "inactivite" && !state.error ? t.inactivityNotice : null;
 
   return (
     <div className="w-full max-w-sm animate-[rise-in_400ms_var(--ease-out-quart)]">
       {/* La marque n'apparaît ici que sur les écrans étroits, où le
           panneau de gauche est masqué : sans elle, on ne saurait pas sur
           quel service on se connecte. */}
-      <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-        <Mark className="size-7" />
-        <span className="text-base font-semibold tracking-[-0.01em]">
-          IMAFRIK
-        </span>
+      <div className="mb-8 flex items-center justify-between gap-2.5">
+        <Wordmark className="h-5 lg:invisible" />
+        <LanguageSwitch locale={locale} />
       </div>
 
-      <h2 className="text-2xl font-semibold">Connexion</h2>
-      <p className="mt-1.5 text-sm text-tertiary">
-        Accédez à vos examens et à vos comptes-rendus.
-      </p>
+      <h2 className="text-2xl font-semibold">{t.title}</h2>
+      <p className="mt-1.5 text-sm text-tertiary">{t.subtitle}</p>
 
       <form action={formAction} className="mt-8 flex flex-col gap-4">
         {/* La destination demandée avant la redirection vers la connexion,
             reportée telle quelle : l’action serveur en vérifie le
             caractère interne avant de l’utiliser. */}
         <input type="hidden" name="suite" value={suite} />
-        <Field id="email" label="Adresse électronique">
+        <input type="hidden" name="locale" value={locale} />
+        <Field id="email" label={t.email}>
           <Input
             id="email"
             name="email"
@@ -83,13 +97,13 @@ export function SignInForm({
             // franchit plusieurs fois par jour, c'est une frappe gagnée
             // à chaque fois.
             autoFocus
-            placeholder="prenom.nom@etablissement.tg"
+            placeholder={t.emailPlaceholder}
             aria-invalid={error !== null}
             className="h-10"
           />
         </Field>
 
-        <Field id="password" label="Mot de passe">
+        <Field id="password" label={t.password}>
           <div className="relative">
             <Input
               id="password"
@@ -103,9 +117,7 @@ export function SignInForm({
             <button
               type="button"
               onClick={() => setVisible((value) => !value)}
-              aria-label={
-                visible ? "Masquer le mot de passe" : "Afficher le mot de passe"
-              }
+              aria-label={visible ? t.hidePassword : t.showPassword}
               className={cn(
                 "absolute top-1/2 right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-md",
                 "text-tertiary transition-colors hover:bg-surface-hover hover:text-primary",
@@ -120,6 +132,16 @@ export function SignInForm({
           </div>
         </Field>
 
+        {notice && (
+          <p
+            role="status"
+            className="flex items-start gap-2 rounded-lg bg-accent-muted px-3 py-2.5 text-xs"
+          >
+            <Lock className="mt-px size-3.5 shrink-0 text-accent" aria-hidden />
+            {notice}
+          </p>
+        )}
+
         {error && (
           <p
             role="alert"
@@ -130,25 +152,18 @@ export function SignInForm({
           </p>
         )}
 
-        <div className="flex items-center justify-between">
-          <label
-            htmlFor="remember"
-            className="flex cursor-pointer items-center gap-2 text-xs text-secondary"
-          >
-            <input
-              id="remember"
-              name="remember"
-              type="checkbox"
-              defaultChecked
-              className="size-3.5 rounded-xs border-border-default accent-[var(--accent)]"
-            />
-            Rester connecté
-          </label>
+        {/* Pas de case « Rester connecté » : la durée de la session est
+            fixée par Supabase, que la bibliothèque de cookies ne laisse pas
+            raccourcir, et une case sans effet serait un mensonge. La
+            protection d'un poste partagé est le verrouillage après
+            inactivité. */}
+        <div className="flex items-center justify-end">
           <Link
             href="/mot-de-passe-oublie"
-            className="text-xs text-tertiary transition-colors hover:text-accent"
+            prefetch={false}
+            className="-my-1 inline-block py-1 text-xs text-tertiary transition-colors hover:text-accent"
           >
-            Mot de passe oublié ?
+            {t.forgot}
           </Link>
         </div>
 
@@ -158,17 +173,20 @@ export function SignInForm({
           loading={pending}
           className="mt-2 h-10 w-full"
         >
-          Se connecter
+          {t.submit}
           <ArrowRight />
         </Button>
       </form>
 
       <div className="mt-8 rounded-xl border border-border-subtle bg-surface-raised px-4 py-3.5">
-        <p className="text-xs font-medium">Pas encore de compte ?</p>
+        <p className="text-xs font-medium">{t.noAccountTitle}</p>
         <p className="mt-1 text-xs leading-relaxed text-tertiary">
-          L’accès se fait sur invitation.{" "}
-          <Link href="/contact" className="text-accent hover:underline">
-            Demander un accès
+          {t.noAccountText}{" "}
+          <Link
+            href={localizePath("/contact", locale)}
+            className="text-accent hover:underline"
+          >
+            {t.requestAccess}
           </Link>
         </p>
       </div>

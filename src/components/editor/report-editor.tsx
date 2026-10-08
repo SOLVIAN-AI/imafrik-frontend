@@ -1,142 +1,68 @@
 "use client";
 
-import CharacterCount from "@tiptap/extension-character-count";
-import Placeholder from "@tiptap/extension-placeholder";
-import TextAlign from "@tiptap/extension-text-align";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { Check, CloudOff, Loader2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  ClipboardCheck,
+  CloudOff,
+  Keyboard,
+  Loader2,
+  Maximize2,
+  Minimize2,
+  Search,
+} from "lucide-react";
 import * as React from "react";
 
+import {
+  DOCUMENT_TEXT_CLASSES,
+  sectionExtensions,
+} from "@/components/editor/extensions";
+import { FindBar } from "@/components/editor/find-bar";
+import {
+  countWords,
+  isSectionEmpty,
+  REPORT_SECTIONS,
+  type ReportSections,
+  type SectionKey,
+} from "@/components/editor/sections";
 import { FormatToolbar } from "@/components/editor/format-toolbar";
+import {
+  adjacentField,
+  bindSectionLeave,
+  type Direction,
+  focusNow,
+  type LeaveReason,
+  selectField,
+} from "@/components/editor/navigation";
+import { reviewReport } from "@/components/editor/review";
+import { ReviewList } from "@/components/editor/review-list";
+import { ShortcutsDialog } from "@/components/editor/shortcuts-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import type { AutosaveState } from "@/hooks/use-autosave";
+import { messagesFor } from "@/i18n";
+import { useLocale, useMessages } from "@/i18n/client";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
-/**
- * Sections d'un compte-rendu, dans l'ordre où elles sont dictées.
- *
- * Cet ordre est celui de la pratique radiologique, pas un choix
- * d'interface : on rappelle la question posée, on dit comment on a
- * regardé, on compare à l'antérieur, on décrit, puis on conclut. Les
- * clés correspondent exactement au champ `sections` du schéma.
- */
-export const REPORT_SECTIONS = [
-  {
-    key: "indication",
-    title: "Indication clinique",
-    placeholder: "Motif de l’examen, renseignement clinique transmis…",
-    required: true,
-  },
-  {
-    key: "technique",
-    title: "Technique",
-    placeholder: "Protocole d’acquisition, injection, reconstructions…",
-    required: false,
-  },
-  {
-    key: "comparatif",
-    title: "Comparatif",
-    placeholder: "Examens antérieurs disponibles, ou absence de comparatif…",
-    required: false,
-  },
-  {
-    key: "resultats",
-    title: "Résultats",
-    placeholder: "Description par organe…",
-    required: true,
-  },
-  {
-    key: "conclusion",
-    title: "Conclusion",
-    placeholder: "Synthèse diagnostique.",
-    required: true,
-  },
-] as const;
+export {
+  countWords,
+  EMPTY_REPORT_SECTIONS,
+  isSectionEmpty,
+  missingRequiredSections,
+  REPORT_SECTIONS,
+  type ReportSections,
+  type SectionKey,
+} from "@/components/editor/sections";
 
-export type SectionKey = (typeof REPORT_SECTIONS)[number]["key"];
-export type ReportSections = Record<SectionKey, string>;
-
-/** Un compte-rendu vierge : toutes les sections présentes, toutes vides. */
-export const EMPTY_REPORT_SECTIONS: ReportSections = Object.fromEntries(
-  REPORT_SECTIONS.map((section) => [section.key, ""]),
-) as ReportSections;
-
-/**
- * Indique si une section est vide de tout texte.
- *
- * L'éditeur ne rend jamais une chaîne vide : une section dans laquelle on
- * a seulement cliqué vaut `<p></p>`. Comparer à `""` laisserait donc
- * signer un compte-rendu sans conclusion.
- *
- * @param html Contenu HTML de la section.
- * @returns `true` s'il ne reste aucun caractère une fois le balisage ôté.
- */
-export function isSectionEmpty(html: string | undefined): boolean {
-  if (!html) return true;
-  return (
-    html
-      .replace(/<[^>]*>/g, "")
-      .replace(/&nbsp;/g, " ")
-      .trim().length === 0
-  );
-}
-
-/**
- * Liste les sections obligatoires encore vides.
- *
- * Signer engage la responsabilité du radiologue : le contrôle est fait
- * ici, à l'écran, pour qu'il soit expliqué avant l'envoi — et refait côté
- * serveur, parce qu'un contrôle d'interface n'est pas une garantie.
- *
- * @param sections Contenu courant du compte-rendu.
- * @returns Les intitulés manquants, dans l'ordre du document.
- */
-export function missingRequiredSections(sections: ReportSections): string[] {
-  return REPORT_SECTIONS.filter(
-    (section) => section.required && isSectionEmpty(sections[section.key]),
-  ).map((section) => section.title);
-}
-
-/** État de la sauvegarde automatique, tel qu'affiché à l'utilisateur. */
-export type SaveState = "idle" | "saving" | "saved" | "offline";
-
-/**
- * Extensions communes à toutes les sections.
- *
- * Volontairement réduites. Un compte-rendu médical est un document
- * normalisé : titres, polices et couleurs libres produiraient des
- * documents hétérogènes là où l'uniformité fait la lisibilité — et le
- * PDF final impose de toute façon sa mise en page.
- *
- * Tout ce que la barre d'outils n'expose pas est désactivé — titres,
- * blocs de code, citations, liens, barré. Ces marques resteraient
- * atteignables au collage ou au raccourci clavier, et produiraient des
- * comptes-rendus qu'on ne saurait ni relire ni convertir en PDF de façon
- * homogène.
- *
- * Le soulignement, lui, n'est **pas** ajouté ici : StarterKit le fournit
- * déjà. L'importer en plus déclare deux extensions du même nom, ce que
- * Tiptap signale et qui déstabilise l'éditeur.
- *
- * @param placeholder Texte de substitution propre à la section.
- */
-export function sectionExtensions(placeholder = "") {
-  return [
-    StarterKit.configure({
-      heading: false,
-      codeBlock: false,
-      code: false,
-      horizontalRule: false,
-      blockquote: false,
-      link: false,
-      strike: false,
-    }),
-    // L'alignement ne porte que sur les paragraphes : c'est le seul bloc
-    // que le document autorise.
-    TextAlign.configure({ types: ["paragraph"], defaultAlignment: "left" }),
-    Placeholder.configure({ placeholder }),
-    CharacterCount,
-  ];
-}
+/** État de la sauvegarde automatique — voir `useAutosave`. */
+export type SaveState = AutosaveState;
 
 /**
  * Une section du compte-rendu.
@@ -147,24 +73,44 @@ export function sectionExtensions(placeholder = "") {
  * obligerait à analyser des titres pour retrouver les mêmes découpages.
  */
 function Section({
+  id,
   title,
   placeholder,
   required,
+  language,
   value,
   readOnly,
   onFocus,
   onChange,
+  onReady,
+  onLeave,
 }: {
+  id: string;
+  /** Intitulé, dans la langue du compte-rendu. */
   title: string;
+  /** Texte de substitution, dans la langue de l'utilisateur. */
   placeholder: string;
   required: boolean;
+  /** Langue du compte-rendu : celle du correcteur du navigateur. */
+  language: Locale;
   value: string;
   readOnly: boolean;
   onFocus: (editor: Editor) => void;
   onChange: (html: string) => void;
+  /** Reçoit l'éditeur une fois créé, `null` à sa destruction. */
+  onReady: (editor: Editor | null) => void;
+  /** Le curseur quitte la section par un bord — voir `navigation.ts`. */
+  onLeave: (direction: Direction, reason: LeaveReason) => boolean;
 }) {
+  const t = useMessages();
+  const locale = useLocale();
   const editor = useEditor({
-    extensions: sectionExtensions(placeholder),
+    extensions: sectionExtensions({
+      placeholder,
+      commands: !readOnly,
+      locale,
+      reportLanguage: language,
+    }),
     content: value,
     editable: !readOnly,
     // Le rendu initial se fait côté client : Tiptap manipule le DOM, et
@@ -174,17 +120,7 @@ function Section({
       attributes: {
         class: cn(
           "outline-none",
-          // Mesure de ligne limitée : au-delà d'environ 70 caractères,
-          // l'œil perd la ligne suivante en revenant à la marge.
-          "max-w-[68ch]",
-          "text-[0.9375rem] leading-[1.75]",
-          "[&_p]:min-h-[1.75em]",
-          // Un interligne entre paragraphes, jamais d'alinéa : c'est la
-          // convention du document administratif et médical français.
-          "[&_p+p]:mt-3",
-          "[&_strong]:font-semibold",
-          "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1",
-          "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1",
+          DOCUMENT_TEXT_CLASSES,
           // Le texte de substitution disparaît dès la première frappe.
           "[&_p.is-editor-empty:first-child::before]:pointer-events-none",
           "[&_p.is-editor-empty:first-child::before]:float-left",
@@ -192,6 +128,12 @@ function Section({
           "[&_p.is-editor-empty:first-child::before]:text-tertiary",
           "[&_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]",
         ),
+        // Correcteur du navigateur, dans la langue du compte-rendu : une
+        // faute d'orthographe dans un document signé engage aussi son
+        // signataire.
+        spellcheck: "true",
+        lang: language,
+        "aria-label": title,
       },
     },
     onFocus: ({ editor: focused }) => onFocus(focused),
@@ -209,17 +151,32 @@ function Section({
     editor.setEditable(!readOnly, false);
   }, [editor, readOnly]);
 
+  React.useEffect(() => {
+    if (!editor) return;
+    onReady(editor);
+    return () => onReady(null);
+  }, [editor, onReady]);
+
+  React.useEffect(() => {
+    if (!editor) return;
+    bindSectionLeave(editor, onLeave);
+    return () => bindSectionLeave(editor, null);
+  }, [editor, onLeave]);
+
   const empty = editor?.isEmpty ?? true;
 
   return (
-    <section className="border-b border-border-subtle px-10 py-6 last:border-b-0">
+    <section
+      id={id}
+      className="scroll-mt-4 border-b border-border-subtle px-5 py-5 last:border-b-0 sm:px-10 sm:py-6"
+    >
       <h3 className="label-eyebrow mb-2 flex items-center gap-1.5">
         {title}
         {required && empty && (
           <span
             className="size-1 rounded-full bg-urgent"
-            title="Section obligatoire pour signer"
-            aria-label="Section obligatoire, actuellement vide"
+            title={t.reading.editor.requiredTitle}
+            aria-label={t.reading.editor.requiredLabel}
           />
         )}
       </h3>
@@ -230,24 +187,34 @@ function Section({
 
 /** Témoin de sauvegarde, discret mais toujours présent. */
 function SaveIndicator({ state }: { state: SaveState }) {
+  const t = useMessages();
   const content = {
     idle: null,
     saving: (
       <>
         <Loader2 className="size-3 animate-spin" aria-hidden />
-        Enregistrement…
+        {t.common.actions.saving}
       </>
     ),
     saved: (
       <>
         <Check className="size-3 text-done" aria-hidden />
-        Enregistré
+        {t.common.actions.saved}
       </>
     ),
+    // Vrai désormais : la copie de secours est écrite dans le navigateur
+    // à chaque échec, et renvoyée dès que le service répond — voir
+    // `ReportWorkspace`.
     offline: (
       <>
         <CloudOff className="size-3 text-progress" aria-hidden />
-        Hors ligne, conservé sur ce poste
+        {t.reading.editor.offline}
+      </>
+    ),
+    conflict: (
+      <>
+        <AlertTriangle className="size-3 text-urgent" aria-hidden />
+        {t.reading.editor.conflict}
       </>
     ),
   }[state];
@@ -268,24 +235,151 @@ function SaveIndicator({ state }: { state: SaveState }) {
 }
 
 /**
+ * Sommaire du compte-rendu : une pastille par section.
+ *
+ * Il répond d'un coup d'œil à la question qu'on se pose avant de signer —
+ * *qu'est-ce qui manque ?* — et sert de navigation : un clic amène la
+ * section à l'écran. Une section obligatoire encore vide est marquée en
+ * rouge, la seule teinte réservée à ce qui bloque.
+ */
+function Outline({
+  sections,
+  titles,
+  idPrefix,
+}: {
+  sections: ReportSections;
+  /** Intitulés des sections, dans la langue du compte-rendu. */
+  titles: Record<SectionKey, string>;
+  idPrefix: string;
+}) {
+  const labels = useMessages().reading.editor.outline;
+  // `relative` : les mentions `sr-only` des pastilles sont positionnées en
+  // absolu ; sans ancêtre positionné, elles échappaient au défilement de
+  // la barre et faisaient déborder toute la page.
+  return (
+    <nav
+      aria-label={labels.label}
+      className="relative flex shrink-0 gap-1.5 overflow-x-auto border-b border-border-subtle bg-surface-base px-3 py-2 sm:px-5"
+    >
+      {REPORT_SECTIONS.map((section) => {
+        const filled = !isSectionEmpty(sections[section.key]);
+        const blocking = section.required && !filled;
+        return (
+          <a
+            key={section.key}
+            href={`#${idPrefix}-${section.key}`}
+            onClick={(event) => {
+              // Défilement dans le volet, sans toucher à l'adresse.
+              event.preventDefault();
+              document
+                .getElementById(`${idPrefix}-${section.key}`)
+                ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+            className={cn(
+              "flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-2xs font-medium transition-colors",
+              filled
+                ? "border-done/25 bg-done-muted text-done"
+                : blocking
+                  ? "border-urgent/25 text-urgent hover:bg-urgent-muted"
+                  : "border-border-subtle text-tertiary hover:bg-surface-hover",
+            )}
+          >
+            {filled ? (
+              <Check className="size-3" aria-hidden />
+            ) : (
+              <span
+                className={cn(
+                  "size-1.5 rounded-full",
+                  blocking ? "bg-urgent" : "bg-border-strong",
+                )}
+                aria-hidden
+              />
+            )}
+            {titles[section.key]}
+            <span className="sr-only">
+              {filled
+                ? labels.filled
+                : blocking
+                  ? labels.requiredEmpty
+                  : labels.optionalEmpty}
+            </span>
+          </a>
+        );
+      })}
+    </nav>
+  );
+}
+
+/** Bouton d'outil de l'éditeur, à droite de la barre. */
+function EditorAction({
+  icon: Icon,
+  label,
+  onClick,
+  pressed,
+  badge = 0,
+}: {
+  icon: typeof Keyboard;
+  label: string;
+  onClick: () => void;
+  pressed?: boolean;
+  /** Pastille de compte — masquée à zéro. */
+  badge?: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={pressed}
+      title={label}
+      className={cn(
+        "relative flex size-8 shrink-0 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-hover hover:text-primary",
+        pressed && "bg-accent-muted text-accent",
+      )}
+    >
+      <Icon className="size-4" aria-hidden />
+      {badge > 0 && (
+        <span
+          className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-progress px-1 text-[0.625rem] font-semibold text-surface-base tabular-nums"
+          aria-hidden
+        >
+          {badge}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/**
  * Éditeur de compte-rendu.
  *
  * **Le document est sombre, et c'est délibéré.** Un traitement de texte
  * classique offre une page blanche ; ici elle éblouirait un radiologue
  * installé dans une pièce assombrie, et dégraderait sa lecture de l'image
- * voisine. Le caractère « document » ne vient pas de la couleur du
- * papier : il vient des marges généreuses, de la mesure de ligne limitée
- * et du soin typographique — c'est ce qui est reproduit ici.
+ * voisine. Le caractère « document » vient des marges, de la mesure de
+ * ligne limitée et du soin typographique, pas de la couleur du papier.
  *
- * La mise en forme reste minimale et la structure fixe : un compte-rendu
- * est un document normalisé, et le PDF final impose sa propre mise en
- * page. Ce que le radiologue contrôle, c'est l'emphase et l'alignement
- * de son texte — pas la maquette.
+ * **Tout pour rédiger, rien qui ne survive pas à la signature.** La
+ * palette — voir `sectionExtensions` — est celle d'un traitement de
+ * texte : emphase, surlignage, exposants, sous-titres, listes, tableaux
+ * de mesures, signes médicaux, phrases types au « / ». Chaque format a
+ * son rendu dans le PDF. La structure, elle, reste fixe : un
+ * compte-rendu est un document normalisé.
+ *
+ * Autour du texte : sommaire des sections (ce qui manque avant de
+ * signer), compteur de mots, aide des raccourcis, et un mode plein écran
+ * pour rédiger sans le volet d'images.
+ *
+ * **Deux langues.** Les intitulés des sections sont un aperçu du document
+ * imprimé : ils suivent la langue du compte-rendu (`language`, celle du
+ * contrat de la clinique). Tout le reste, textes de substitution, outils
+ * et messages, suit la langue de l'utilisateur.
  *
  * @example
  * ```tsx
  * <ReportEditor
  *   sections={sections}
+ *   language="en"
  *   saveState={saveState}
  *   onChange={(key, html) => patch({ [key]: html })}
  * />
@@ -293,49 +387,291 @@ function SaveIndicator({ state }: { state: SaveState }) {
  */
 export function ReportEditor({
   sections,
+  revision = 0,
   saveState = "idle",
   readOnly = false,
+  language,
   onChange,
   footer,
 }: {
   sections: ReportSections;
+  /**
+   * Révision du contenu. Chaque section ne lit `sections` qu'à sa
+   * création : le parent incrémente ce compteur quand il remplace le
+   * texte autrement que par la frappe (modèle, copie de secours), et les
+   * sections sont recréées sur le nouveau contenu. Les synchroniser à
+   * chaque rendu ferait perdre des frappes, une valeur en retard d'un
+   * rendu écrasant le texte tout juste saisi.
+   */
+  revision?: number;
   saveState?: SaveState;
   /** Un compte-rendu signé est verrouillé, en base comme à l'écran. */
   readOnly?: boolean;
+  /**
+   * Langue du compte-rendu, celle des intitulés imprimés. Par défaut,
+   * celle de l'utilisateur.
+   */
+  language?: Locale;
   onChange?: (key: SectionKey, html: string) => void;
   footer?: React.ReactNode;
 }) {
   // La barre de mise en forme agit sur la section qui a le focus. On
   // retient donc l'éditeur actif plutôt que d'en dupliquer une par
   // section, ce qui encombrerait le document.
-  const [active, setActive] = React.useState<Editor | null>(null);
+  const t = useMessages();
+  const locale = useLocale();
+  const reportLanguage = language ?? locale;
+  const titles = messagesFor(reportLanguage).reading.sections.titles;
+  const labels = t.reading.editor;
+  const [focused, setActive] = React.useState<Editor | null>(null);
+  // Un éditeur recréé — voir `revision` — laisse l'ancien détruit : la
+  // barre ne doit pas agir dessus.
+  const active = focused && !focused.isDestroyed ? focused : null;
+  const [focusMode, setFocusMode] = React.useState(false);
+  const [helpOpen, setHelpOpen] = React.useState(false);
+  const [reviewOpen, setReviewOpen] = React.useState(false);
+  // `null` : barre fermée ; sinon, ouverte avec ou sans remplacement.
+  const [find, setFind] = React.useState<null | { replace: boolean }>(null);
+  const idPrefix = React.useId().replace(/:/g, "");
+
+  // Les éditeurs des sections, pour la recherche et la navigation au
+  // clavier d'une section à l'autre.
+  const editorsRef = React.useRef(new Map<SectionKey, Editor>());
+  const readyHandlers = React.useMemo(
+    () =>
+      Object.fromEntries(
+        REPORT_SECTIONS.map((section) => [
+          section.key,
+          (editor: Editor | null) => {
+            if (editor) editorsRef.current.set(section.key, editor);
+            else editorsRef.current.delete(section.key);
+          },
+        ]),
+      ) as Record<SectionKey, (editor: Editor | null) => void>,
+    [],
+  );
+  const orderedEditors = React.useCallback(
+    () =>
+      REPORT_SECTIONS.map((section) =>
+        editorsRef.current.get(section.key),
+      ).filter((editor): editor is Editor => Boolean(editor)),
+    [],
+  );
+
+  /**
+   * Passe à la section voisine. Par Tab, on s'arrête sur son premier
+   * champ à compléter s'il y en a un — sur le dernier en remontant —,
+   * sinon en fin de texte, prêt à écrire. Par les flèches, on arrive au
+   * bord voisin, comme dans une page continue.
+   */
+  const leaveHandlers = React.useMemo(
+    () =>
+      Object.fromEntries(
+        REPORT_SECTIONS.map((section, index) => [
+          section.key,
+          (direction: Direction, reason: LeaveReason) => {
+            const target =
+              REPORT_SECTIONS[direction === "next" ? index + 1 : index - 1];
+            const editor = target && editorsRef.current.get(target.key);
+            if (!editor) return false;
+            focusNow(editor);
+            if (reason === "tab") {
+              const field = adjacentField(
+                editor,
+                direction,
+                direction === "next" ? 0 : editor.state.doc.content.size,
+              );
+              if (field) selectField(editor, field);
+              else editor.chain().focus("end").scrollIntoView().run();
+            } else {
+              editor
+                .chain()
+                .focus(direction === "next" ? "start" : "end")
+                .scrollIntoView()
+                .run();
+            }
+            return true;
+          },
+        ]),
+      ) as Record<
+        SectionKey,
+        (direction: Direction, reason: LeaveReason) => boolean
+      >,
+    [],
+  );
+
+  const findings = React.useMemo(() => reviewReport(sections), [sections]);
+
+  /** Amène une section à l'écran et y place le curseur. */
+  const goToSection = React.useCallback(
+    (key: SectionKey) => {
+      setReviewOpen(false);
+      document
+        .getElementById(`${idPrefix}-${key}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      editorsRef.current.get(key)?.commands.focus("end");
+    },
+    [idPrefix],
+  );
+
+  // Ctrl/⌘ F : rechercher ; Ctrl+H : remplacer. Interceptés seulement
+  // quand le focus est dans le compte-rendu — ailleurs, la recherche du
+  // navigateur garde son rôle.
+  const onKeyDownCapture = (event: React.KeyboardEvent) => {
+    // Sans Maj : Ctrl+Maj+H surligne, il ne doit pas ouvrir le remplacement.
+    if (
+      readOnly ||
+      !(event.metaKey || event.ctrlKey) ||
+      event.altKey ||
+      event.shiftKey
+    )
+      return;
+    const key = event.key.toLowerCase();
+    if (key === "f" || (key === "h" && event.ctrlKey && !event.metaKey)) {
+      event.preventDefault();
+      setFind({ replace: key === "h" });
+    }
+  };
+
+  const words = REPORT_SECTIONS.reduce(
+    (total, section) => total + countWords(sections[section.key] ?? ""),
+    0,
+  );
+
+  // Échap quitte le plein écran — sauf si un menu ou une boîte de
+  // dialogue est ouvert : c'est alors à lui de se fermer.
+  React.useEffect(() => {
+    if (!focusMode) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      if (document.querySelector("[role=dialog], [role=menu], [role=listbox]"))
+        return;
+      setFocusMode(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [focusMode]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-surface-base">
-      <FormatToolbar editor={readOnly ? null : active}>
-        <SaveIndicator state={saveState} />
-        {footer}
-      </FormatToolbar>
+    <div
+      onKeyDownCapture={onKeyDownCapture}
+      className={cn(
+        "flex min-h-0 flex-1 flex-col bg-surface-base",
+        // Plein écran : le document seul, au-dessus de tout le reste.
+        focusMode && "fixed inset-0 z-40",
+      )}
+    >
+      {!readOnly && (
+        <FormatToolbar editor={active}>
+          <SaveIndicator state={saveState} />
+          {footer}
+          <span className="hidden px-1.5 text-2xs text-tertiary tabular-nums xl:inline">
+            {labels.words(words)}
+          </span>
+          <EditorAction
+            icon={Search}
+            label={labels.find}
+            pressed={find !== null}
+            onClick={() =>
+              setFind((open) => (open ? null : { replace: false }))
+            }
+          />
+          <EditorAction
+            icon={ClipboardCheck}
+            label={labels.reviewButton(findings.length)}
+            badge={findings.length}
+            onClick={() => setReviewOpen(true)}
+          />
+          <EditorAction
+            icon={Keyboard}
+            label={labels.shortcuts}
+            onClick={() => setHelpOpen(true)}
+          />
+          <EditorAction
+            icon={focusMode ? Minimize2 : Maximize2}
+            label={focusMode ? labels.focusExit : labels.focusEnter}
+            pressed={focusMode}
+            onClick={() => setFocusMode((value) => !value)}
+          />
+        </FormatToolbar>
+      )}
+      {!readOnly && find && (
+        <FindBar
+          editors={orderedEditors}
+          withReplace={find.replace}
+          onToggleReplace={() =>
+            setFind((open) => open && { replace: !open.replace })
+          }
+          onClose={() => {
+            setFind(null);
+            // Retour au texte, là où l'on rédigeait.
+            active?.commands.focus();
+          }}
+        />
+      )}
+      {!readOnly && (
+        <Outline sections={sections} titles={titles} idPrefix={idPrefix} />
+      )}
 
-      <div className="min-h-0 flex-1 overflow-auto px-5 py-6">
+      <div className="min-h-0 flex-1 overflow-auto px-3 py-4 sm:px-5 sm:py-6">
         {/* La « feuille » : une surface élevée, centrée, détachée de son
             fond sur les quatre côtés. C'est ce détachement, autant que
             les marges intérieures, qui donne l'impression de document. */}
         <div className="mx-auto max-w-3xl rounded-xl border border-border-subtle bg-surface-raised shadow-raised">
           {REPORT_SECTIONS.map((section) => (
             <Section
-              key={section.key}
-              title={section.title}
-              placeholder={section.placeholder}
+              key={`${section.key}:${revision}`}
+              id={`${idPrefix}-${section.key}`}
+              title={titles[section.key]}
+              placeholder={t.reading.sections.placeholders[section.key]}
               required={section.required}
+              language={reportLanguage}
               value={sections[section.key] ?? ""}
               readOnly={readOnly}
               onFocus={setActive}
               onChange={(html) => onChange?.(section.key, html)}
+              onReady={readyHandlers[section.key]}
+              onLeave={leaveHandlers[section.key]}
             />
           ))}
         </div>
+        {!readOnly && (
+          <p className="mx-auto mt-3 max-w-3xl px-1 text-2xs text-tertiary">
+            {labels.hint.type}{" "}
+            <kbd className="rounded border border-border-subtle px-1 font-sans">
+              /
+            </kbd>{" "}
+            {labels.hint.slash}{" "}
+            <kbd className="rounded border border-border-subtle px-1 font-sans">
+              Tab
+            </kbd>{" "}
+            {labels.hint.tab}
+          </p>
+        )}
       </div>
+
+      <ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />
+
+      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{labels.review.title}</DialogTitle>
+            <DialogDescription>
+              {findings.length
+                ? labels.review.withFindings
+                : labels.review.clean}
+            </DialogDescription>
+          </DialogHeader>
+          {findings.length > 0 && (
+            <ReviewList
+              findings={findings}
+              sectionTitles={titles}
+              onGo={goToSection}
+              className="max-h-[60vh] overflow-auto px-3 pb-4"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

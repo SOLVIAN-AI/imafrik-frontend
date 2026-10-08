@@ -1,28 +1,38 @@
 "use client";
 
 import {
+  Activity,
+  BarChart3,
   Building2,
   Check,
   ChevronsUpDown,
   FileStack,
   FileText,
+  Gauge,
   Hospital,
+  Inbox,
   LayoutDashboard,
   LayoutList,
   Loader2,
   LogOut,
+  Receipt,
+  ScrollText,
+  Server,
   Settings,
+  SlidersHorizontal,
   Stethoscope,
   Upload,
   User,
+  UserCog,
   Users,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
+import { toast } from "sonner";
 
-import { BrandLockup } from "@/components/layout/brand";
+import { BrandLockup } from "@/components/brand/brand";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,10 +42,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/components/providers/session-provider";
-import { ROLE_LABELS, type Membership } from "@/lib/session/types";
-import { navigationFor, type NavItem } from "@/lib/navigation";
+import { formatPersonName } from "@/lib/format";
+import { clearLocalData } from "@/lib/local-data";
+import {
+  isActive,
+  navigationFor,
+  type NavCounts,
+  type NavItem,
+} from "@/lib/navigation";
 import { setActiveMembership, signOut } from "@/lib/session/actions";
+import type { Membership } from "@/lib/session/types";
 import { cn } from "@/lib/utils";
+import { useMessages } from "@/i18n/client";
 
 /**
  * Icônes de navigation, résolues par clé.
@@ -45,7 +63,7 @@ import { cn } from "@/lib/utils";
  * table est ce qui permet de décrire un menu sans importer d'icônes là
  * où on décrit des routes.
  */
-const NAV_ICONS = {
+export const NAV_ICONS = {
   worklist: LayoutList,
   studies: Stethoscope,
   reports: FileText,
@@ -54,6 +72,16 @@ const NAV_ICONS = {
   send: Upload,
   team: Users,
   settings: Settings,
+  inbox: Inbox,
+  cockpit: Gauge,
+  analytics: BarChart3,
+  flow: Activity,
+  organizations: Building2,
+  users: UserCog,
+  billing: Receipt,
+  system: Server,
+  audit: ScrollText,
+  controls: SlidersHorizontal,
 } satisfies Record<string, LucideIcon>;
 
 export type NavIconKey = keyof typeof NAV_ICONS;
@@ -79,6 +107,7 @@ const ORG_ICONS = {
  */
 function OrganisationSwitcher() {
   const { memberships, active } = useSession();
+  const t = useMessages();
   const [pending, startTransition] = React.useTransition();
   const ActiveIcon = ORG_ICONS[active.organizationKind];
 
@@ -87,7 +116,7 @@ function OrganisationSwitcher() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label="Changer d’organisation"
+          aria-label={t.nav.switchOrganisation}
           className={cn(
             "group mx-2 flex h-11 items-center gap-2.5 rounded-lg px-2.5",
             "border border-border-subtle bg-surface-base/60",
@@ -104,7 +133,7 @@ function OrganisationSwitcher() {
               {active.organizationName}
             </span>
             <span className="w-full truncate text-2xs text-tertiary">
-              {ROLE_LABELS[active.role]}
+              {t.common.roles[active.role]}
             </span>
           </span>
           {pending ? (
@@ -122,14 +151,17 @@ function OrganisationSwitcher() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuLabel>Mes organisations</DropdownMenuLabel>
+        <DropdownMenuLabel>{t.nav.myOrganisations}</DropdownMenuLabel>
         {memberships.map((membership) => (
           <OrganisationItem
             key={membership.id}
             membership={membership}
             selected={membership.id === active.id}
             onSelect={() =>
-              startTransition(() => setActiveMembership(membership.id))
+              startTransition(async () => {
+                const result = await setActiveMembership(membership.id);
+                if (!result.ok) toast.error(result.error);
+              })
             }
           />
         ))}
@@ -148,6 +180,7 @@ function OrganisationItem({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const t = useMessages();
   const Icon = ORG_ICONS[membership.organizationKind];
 
   return (
@@ -158,7 +191,7 @@ function OrganisationItem({
           {membership.organizationName}
         </span>
         <span className="truncate text-2xs text-tertiary">
-          {ROLE_LABELS[membership.role]} · {membership.city}
+          {t.common.roles[membership.role]} · {membership.city}
         </span>
       </span>
       {selected && (
@@ -178,6 +211,7 @@ function OrganisationItem({
  */
 function UserCard() {
   const { user } = useSession();
+  const t = useMessages();
   const router = useRouter();
 
   const initials = user.fullName
@@ -193,7 +227,7 @@ function UserCard() {
         <button
           type="button"
           className={cn(
-            "mx-2 mb-2 flex h-11 w-[calc(100%-1rem)] items-center gap-2.5 rounded-lg px-2.5",
+            "mx-2 mb-2 flex h-12 w-[calc(100%-1rem)] items-center gap-2.5 rounded-lg px-2.5",
             "transition-colors duration-100 hover:bg-surface-hover",
             "data-[state=open]:bg-surface-hover",
           )}
@@ -208,29 +242,47 @@ function UserCard() {
           >
             {initials}
           </span>
-          <span className="min-w-0 flex-1 truncate text-left text-xs font-medium">
-            {user.fullName}
+          <span className="min-w-0 flex-1 text-left">
+            <span className="block truncate text-xs font-medium">
+              {formatPersonName(user.title, user.fullName)}
+            </span>
+            <span className="block truncate text-2xs text-tertiary">
+              {user.email}
+            </span>
           </span>
+          <ChevronsUpDown
+            className="size-3.5 shrink-0 text-tertiary"
+            aria-hidden
+          />
         </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start" side="top" className="w-56">
-        <DropdownMenuLabel>{user.fullName}</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          {formatPersonName(user.title, user.fullName)}
+        </DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <Link href="/parametres">
             <User className="size-3.5 text-tertiary" aria-hidden />
-            Mon profil
+            {t.nav.myProfile}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-urgent"
           onSelect={() => {
-            void signOut().then(() => router.push("/connexion"));
+            // Brouillons et copies de secours vivent dans le navigateur :
+            // sur un poste partagé, ils ne doivent pas survivre à la
+            // session de celui qui les a saisis.
+            clearLocalData();
+            void signOut().then(() => {
+              router.push("/connexion");
+              router.refresh();
+            });
           }}
         >
           <LogOut className="size-3.5" aria-hidden />
-          Se déconnecter
+          {t.nav.signOut}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -238,8 +290,20 @@ function UserCard() {
 }
 
 /** Une entrée de navigation. */
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+function NavLink({
+  item,
+  active,
+  counts,
+}: {
+  item: NavItem;
+  active: boolean;
+  counts: NavCounts | null;
+}) {
+  const t = useMessages();
   const Icon = NAV_ICONS[item.icon];
+  const count = item.count && counts ? counts[item.count] : 0;
+  const urgent =
+    item.urgentCount && counts ? counts[item.urgentCount] > 0 : false;
 
   return (
     <Link
@@ -270,15 +334,16 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
         )}
         aria-hidden
       />
-      <span className="flex-1 truncate">{item.label}</span>
-      {item.count !== undefined && item.count > 0 && (
+      <span className="flex-1 truncate">{t.nav.items[item.key]}</span>
+      {count > 0 && (
         <span
           className={cn(
             "rounded px-1.5 py-0.5 text-2xs font-medium tabular-nums",
-            item.urgent ? "bg-urgent-muted text-urgent" : "text-tertiary",
+            urgent ? "bg-urgent-muted text-urgent" : "text-tertiary",
           )}
+          aria-label={urgent ? t.nav.countWithUrgent(count) : String(count)}
         >
-          {item.count}
+          {count}
         </span>
       )}
     </Link>
@@ -295,23 +360,33 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
  *
  * Son contenu vient du **rôle dans l'organisation active** : la clinique
  * et le radiologue ne voient pas la même chose, et changer d'organisation
- * change le portail sans recharger la page.
+ * change le portail sans recharger la page. Les compteurs viennent du
+ * service, calculés sur le périmètre réel de l'utilisateur ; `null` quand
+ * il est injoignable — la navigation reste utilisable, sans chiffres.
  *
  * L'élément actif est signalé par un rail et une surface, jamais par un
  * aplat d'accent : une zone colorée dans le châssis entrerait en
  * concurrence avec les images médicales affichées à côté.
  */
-export function Sidebar() {
+export function Sidebar({
+  counts,
+  className,
+}: {
+  counts: NavCounts | null;
+  className?: string;
+}) {
   const pathname = usePathname();
   const { active } = useSession();
+  const t = useMessages();
   const groups = navigationFor(active.role);
 
   return (
     <nav
-      aria-label="Navigation principale"
+      aria-label={t.nav.mainNavigation}
       className={cn(
         "flex h-full w-60 shrink-0 flex-col",
         "border-r border-border-subtle",
+        className,
         // Dégradé très léger de haut en bas : la navigation paraît
         // éclairée par le haut, comme le reste de l'interface.
         "bg-linear-to-b from-surface-raised to-surface-base",
@@ -322,19 +397,19 @@ export function Sidebar() {
 
       <div className="mt-4 flex flex-1 flex-col gap-5 overflow-y-auto px-2">
         {groups.map((group, index) => (
-          <div key={group.label ?? index}>
-            {group.label && (
-              <p className="label-eyebrow mb-1 px-2.5">{group.label}</p>
+          <div key={group.key ?? index}>
+            {group.key && (
+              <p className="label-eyebrow mb-1 px-2.5">
+                {t.nav.groups[group.key]}
+              </p>
             )}
             <ul className="flex flex-col gap-0.5">
               {group.items.map((item) => (
                 <li key={item.href}>
                   <NavLink
                     item={item}
-                    active={
-                      pathname === item.href ||
-                      pathname.startsWith(`${item.href}/`)
-                    }
+                    counts={counts}
+                    active={isActive(item, pathname)}
                   />
                 </li>
               ))}

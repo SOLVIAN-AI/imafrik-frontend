@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 
-import { getSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 import { stepsFor } from "@/lib/onboarding/steps";
+import { requireSession } from "@/lib/session/server";
 
 /**
  * Entrée du parcours de mise en service.
@@ -15,8 +16,7 @@ import { stepsFor } from "@/lib/onboarding/steps";
  * qui évite l'apparition fugace d'un écran vide.
  */
 export default async function OnboardingEntryPage() {
-  const session = await getSession();
-  if (!session) redirect("/connexion");
-
-  redirect(`/bienvenue/${stepsFor(session.active.role)[0].slug}`);
+  const session = await requireSession();
+  const { t } = await getMessages();
+  redirect(`/bienvenue/${stepsFor(session.active.role, t.onboarding)[0].slug}`);
 }

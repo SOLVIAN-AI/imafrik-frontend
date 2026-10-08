@@ -19,9 +19,17 @@ import * as React from "react";
  * `disableTransitionOnChange` évite qu'un basculement anime chaque
  * couleur de la page — spectaculaire une fois, pénible ensuite.
  */
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({
+  nonce,
+  children,
+}: {
+  /** Nonce CSP de la requête, porté par le script d'initialisation du thème. */
+  nonce?: string;
+  children: React.ReactNode;
+}) {
   return (
     <NextThemeProvider
+      nonce={nonce}
       attribute="class"
       defaultTheme="dark"
       enableSystem={false}

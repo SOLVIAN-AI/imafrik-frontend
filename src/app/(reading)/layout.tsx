@@ -1,7 +1,9 @@
-import { redirect } from "next/navigation";
-
+import { HtmlLang } from "@/components/i18n/html-lang";
+import { MaintenanceBanner } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
-import { getSession } from "@/lib/session/server";
+import { InactivityLock } from "@/components/session/inactivity-lock";
+import { getPlatformSettings } from "@/lib/data/control";
+import { requireSession } from "@/lib/session/server";
 
 /**
  * Ossature de l'écran de lecture.
@@ -20,18 +22,29 @@ import { getSession } from "@/lib/session/server";
  * pas pendant qu'on rédige une conclusion.
  *
  * Le retour à la liste reste à un clic, en tête de l'écran de lecture.
+ * Seule exception à la sobriété : le bandeau de maintenance, s'il y en a
+ * un.
  */
 export default async function ReadingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-  if (!session) redirect("/connexion");
+  const [session, settings] = await Promise.all([
+    requireSession(),
+    getPlatformSettings(),
+  ]);
 
   return (
     <SessionProvider session={session}>
+      <HtmlLang lang={session.locale} />
       <div className="flex h-dvh flex-col overflow-hidden bg-surface-base">
+        {/* Écran de lecture compris : c'est là qu'on laisse un examen
+            ouvert en partant. */}
+        {!session.isDemo && <InactivityLock />}
+        {settings?.maintenanceMessage && (
+          <MaintenanceBanner message={settings.maintenanceMessage} />
+        )}
         {children}
       </div>
     </SessionProvider>

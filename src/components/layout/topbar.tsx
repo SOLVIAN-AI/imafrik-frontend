@@ -1,44 +1,75 @@
 "use client";
 
-import { Bell, FlaskConical, Moon, Search, Sun } from "lucide-react";
+import { FlaskConical, Moon, Search, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import Link from "next/link";
+import * as React from "react";
 
+import { Wordmark } from "@/components/brand/brand";
+import {
+  CommandPalette,
+  usePaletteShortcut,
+} from "@/components/layout/command-palette";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { useSession } from "@/components/providers/session-provider";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { Button } from "@/components/ui/button";
+import type { NavCounts } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { useMessages } from "@/i18n/client";
 
 /**
- * Déclencheur de la palette de commandes.
+ * Accès à la palette de commandes, au centre de la barre.
  *
- * Placé au centre plutôt qu'en bout de barre : c'est le point d'entrée
- * principal d'un outil qu'on pilote au clavier. Il affiche son raccourci,
- * parce qu'une fonction que personne ne découvre n'existe pas.
+ * Il a l'apparence d'un champ de recherche parce que c'est l'usage qu'on
+ * en attend — trouver un patient — mais ouvre la palette, qui cherche
+ * aussi les écrans et les réglages. Le raccourci affiché est celui du
+ * système : ⌘K sur Mac, Ctrl K ailleurs. Il n'est connu qu'après
+ * l'hydratation ; avant, seul `/`, commun à tous, est affiché.
  */
-function CommandTrigger() {
+function SearchTrigger() {
+  const t = useMessages();
+  const [open, setOpen] = React.useState(false);
+  const hydrated = useHydrated();
+  const openPalette = React.useCallback(() => setOpen(true), []);
+  usePaletteShortcut(openPalette);
+
+  const mac = hydrated && /Mac|iPhone|iPad/.test(navigator.platform);
+
   return (
-    <button
-      type="button"
-      className={cn(
-        "group flex h-8 w-full max-w-md items-center gap-2 rounded-lg px-2.5",
-        "border border-border-subtle bg-surface-base/60 shadow-edge",
-        "text-xs text-tertiary transition-colors duration-100",
-        "hover:border-border-default hover:bg-surface-hover hover:text-secondary",
-      )}
-    >
-      <Search className="size-3.5 shrink-0" aria-hidden />
-      <span className="flex-1 text-left">
-        Rechercher un patient, un examen…
-      </span>
-      <kbd
+    <>
+      {/* Téléphone : une loupe suffit, le champ ne tiendrait pas. */}
+      <button
+        type="button"
+        onClick={openPalette}
+        aria-label={t.common.actions.search}
+        className="flex size-10 shrink-0 items-center justify-center rounded-lg text-secondary transition-colors hover:bg-surface-hover hover:text-primary sm:hidden"
+      >
+        <Search className="size-4.5" aria-hidden />
+      </button>
+      <button
+        type="button"
+        onClick={openPalette}
         className={cn(
-          "rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5",
-          "font-sans text-2xs text-tertiary",
+          "group hidden h-8 w-full max-w-md items-center gap-2 rounded-lg px-2.5 sm:flex",
+          "border border-border-subtle bg-surface-base/60 shadow-edge",
+          "text-xs text-tertiary transition-colors duration-100",
+          "hover:border-border-default hover:text-secondary",
         )}
       >
-        ⌘K
-      </kbd>
-    </button>
+        <Search className="size-3.5 shrink-0" aria-hidden />
+        <span className="min-w-0 flex-1 truncate text-left">
+          {t.nav.searchPlaceholder}
+        </span>
+        <kbd
+          className="rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-sans text-2xs text-tertiary"
+          aria-hidden
+        >
+          {hydrated ? (mac ? "⌘ K" : "Ctrl K") : "/"}
+        </kbd>
+      </button>
+      <CommandPalette open={open} onOpenChange={setOpen} />
+    </>
   );
 }
 
@@ -50,6 +81,7 @@ function CommandTrigger() {
  * un clignotement.
  */
 function ThemeToggle() {
+  const t = useMessages();
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useHydrated();
 
@@ -67,9 +99,9 @@ function ThemeToggle() {
       aria-label={
         mounted
           ? dark
-            ? "Passer en thème clair"
-            : "Passer en thème sombre"
-          : "Changer de thème"
+            ? t.nav.theme.toLight
+            : t.nav.theme.toDark
+          : t.nav.theme.toggle
       }
     >
       {mounted && (dark ? <Sun /> : <Moon />)}
@@ -88,10 +120,13 @@ function ThemeToggle() {
  * établissement qui verrait de vraies données là où il n'y en a pas —
  * ou l'inverse — perdrait confiance pour de bon.
  *
- * Il disparaît de lui-même dès que Supabase et l'API sont configurés.
+ * Il disparaît de lui-même dès que Supabase et l'API sont tous deux
+ * configurés — la même règle que celle qui fait servir le jeu de
+ * démonstration (`lib/demo/mode.ts`).
  */
 function DemoBadge() {
   const { isDemo } = useSession();
+  const t = useMessages();
   if (!isDemo) return null;
 
   return (
@@ -101,10 +136,11 @@ function DemoBadge() {
         "bg-progress-muted text-2xs font-medium text-progress",
         "ring-1 ring-progress/25 ring-inset",
       )}
-      title="Aucune donnée réelle : les patients et les examens affichés sont inventés."
+      title={t.nav.demo.hint}
     >
       <FlaskConical className="size-3" aria-hidden />
-      Démonstration
+      <span className="hidden sm:inline">{t.nav.demo.badge}</span>
+      <span className="sr-only sm:hidden">{t.nav.demo.badge}</span>
     </span>
   );
 }
@@ -112,36 +148,35 @@ function DemoBadge() {
 /**
  * Barre supérieure.
  *
- * Elle porte ce qui vaut pour toute l'application — recherche globale,
- * notifications, thème — par opposition à l'en-tête de page, qui porte
- * les actions de l'écran courant. Séparer les deux évite qu'un utilisateur
+ * Elle porte ce qui vaut pour toute l'application — palette de commandes,
+ * thème, mention de démonstration — par opposition à l'en-tête de page,
+ * qui porte les actions de l'écran courant. Séparer les deux évite qu'un utilisateur
  * cherche une action au mauvais endroit.
  */
-export function Topbar() {
+export function Topbar({ counts }: { counts: NavCounts | null }) {
+  const t = useMessages();
   return (
     <div
       className={cn(
-        "flex h-14 shrink-0 items-center gap-3 border-b border-border-subtle px-4",
+        "flex h-14 shrink-0 items-center gap-2 border-b border-border-subtle px-2 sm:gap-3 sm:px-4",
         "bg-surface-raised/40 backdrop-blur-sm",
       )}
     >
-      <div className="flex flex-1 justify-center">
-        <CommandTrigger />
+      {/* Téléphone et tablette : menu et marque, la barre latérale étant
+          repliée dans un tiroir. */}
+      <MobileNav counts={counts} />
+      <Link
+        href="/"
+        className="flex min-h-6 shrink-0 items-center py-1 lg:hidden"
+        aria-label={t.nav.home}
+      >
+        <Wordmark className="h-4" title="" />
+      </Link>
+      <div className="flex min-w-0 flex-1 justify-end sm:justify-center">
+        <SearchTrigger />
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <DemoBadge />
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Notifications"
-          className="relative"
-        >
-          <Bell />
-          <span
-            className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-accent"
-            aria-hidden
-          />
-        </Button>
         <ThemeToggle />
       </div>
     </div>

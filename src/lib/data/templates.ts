@@ -1,6 +1,10 @@
-import type { ReportSections } from "@/components/editor/report-editor";
-import { EMPTY_REPORT_SECTIONS } from "@/components/editor/report-editor";
-import { apiFetch, isApiConfigured } from "@/lib/api/client";
+import "server-only";
+
+import type { ReportSections } from "@/components/editor/sections";
+import { EMPTY_REPORT_SECTIONS } from "@/components/editor/sections";
+import { apiGet } from "@/lib/api/client";
+import { templateSchema } from "@/lib/api/contracts";
+import { isDemoMode } from "@/lib/demo/mode";
 import { z } from "zod";
 
 /**
@@ -15,27 +19,39 @@ import { z } from "zod";
 export interface ReportTemplate {
   id: string;
   name: string;
-  modality: string;
+  /** Modalité visée ; `null` pour un modèle valable quelle que soit la modalité. */
+  modality: string | null;
   bodyPart: string | null;
   sections: ReportSections;
-  /** Modèle fourni par IMAFRIK, par opposition à un modèle personnel. */
+  /**
+   * Modèle fourni par IMAFRIK à toutes les organisations, par opposition
+   * à un modèle propre à l'organisation active.
+   */
   shared: boolean;
 }
-
-const templateSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  modality: z.string(),
-  body_part: z.string().nullable().default(null),
-  sections: z.record(z.string(), z.string()),
-  is_shared: z.boolean().default(false),
-});
 
 /** Modèles de démonstration, un par modalité courante. */
 const DEMO_TEMPLATES: ReportTemplate[] = [
   {
+    // Modèle à champs : Tab parcourt [taille], [segment]… dans l'ordre.
+    id: "t-us-abdomen",
+    name: "Échographie abdominale avec mesures",
+    modality: "US",
+    bodyPart: "Abdomen",
+    shared: true,
+    sections: {
+      ...EMPTY_REPORT_SECTIONS,
+      technique:
+        "<p>Échographie abdominale par voie sous-costale et intercostale.</p>",
+      comparatif: "<p>Comparaison avec l’examen du [date].</p>",
+      resultats:
+        "<p>Foie de [taille] cm sur la ligne médio-claviculaire, d’échostructure [homogène]. Vésicule biliaire [alithiasique], paroi fine. Voies biliaires non dilatées.</p><p>Rein droit de [taille] mm, rein gauche de [taille] mm, sans dilatation des cavités. Rate de [taille] mm.</p>",
+      conclusion: "<p>[Conclusion].</p>",
+    },
+  },
+  {
     id: "t-ct-thorax",
-    name: "TDM thoracique — normal",
+    name: "TDM thoracique normale",
     modality: "CT",
     bodyPart: "Thorax",
     shared: true,
@@ -50,7 +66,7 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
   },
   {
     id: "t-mr-crane",
-    name: "IRM encéphalique — normale",
+    name: "IRM encéphalique normale",
     modality: "MR",
     bodyPart: "Crâne",
     shared: true,
@@ -65,7 +81,7 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
   },
   {
     id: "t-cr-thorax",
-    name: "Radiographie thoracique — normale",
+    name: "Radiographie thoracique normale",
     modality: "CR",
     bodyPart: "Thorax",
     shared: true,
@@ -82,23 +98,35 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
 /**
  * Modèles disponibles pour l'utilisateur courant.
  *
- * Les modèles partagés viennent d'IMAFRIK ; les modèles personnels
- * appartiennent au radiologue et ne sont visibles que de lui — les
- * politiques RLS s'en chargent.
+ * Les modèles partagés viennent d'IMAFRIK ; les autres appartiennent à
+ * l'organisation active — les politiques RLS s'en chargent.
+ *
+ * @param modality Restreint aux modèles de cette modalité, plus ceux
+ *                 valables pour toutes.
  */
-export async function listTemplates(): Promise<ReportTemplate[]> {
-  if (!isApiConfigured()) return DEMO_TEMPLATES;
+export async function listTemplates(
+  modality?: string,
+): Promise<ReportTemplate[]> {
+  if (isDemoMode()) {
+    return DEMO_TEMPLATES.filter(
+      (template) =>
+        !modality ||
+        template.modality === null ||
+        template.modality === modality,
+    );
+  }
 
-  const raw = await apiFetch<unknown>("/templates");
-  return z
-    .array(templateSchema)
-    .parse(raw)
+  const rows = await apiGet("/templates", z.array(templateSchema));
+  return rows
+    .filter(
+      (row) => !modality || row.modality === null || row.modality === modality,
+    )
     .map((row) => ({
       id: row.id,
       name: row.name,
       modality: row.modality,
       bodyPart: row.body_part,
-      shared: row.is_shared,
+      shared: row.organization_id === null,
       sections: { ...EMPTY_REPORT_SECTIONS, ...row.sections },
     }));
 }

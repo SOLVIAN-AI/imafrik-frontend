@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 
-import { isApiConfigured } from "@/lib/api/client";
+import { isApiConfigured } from "@/lib/api/config";
+import { LOCALES } from "@/lib/i18n/locale";
+import { INDEXABLE_PAGES, localizePath } from "@/lib/i18n/routes";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 /**
@@ -27,14 +29,17 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: [
-        "/",
-        "/securite",
-        "/contact",
-        "/mentions-legales",
-        "/confidentialite",
-        "/cgu",
-      ],
+      // « / » seul autoriserait tout : à longueur égale, la règle la plus
+      // permissive l'emporte sur `disallow: "/"`. L'accueil de chaque
+      // langue est donc autorisé à l'adresse exacte (`/$`, `/en$`) ; sans
+      // le `$`, `/en` ouvrirait toutes les adresses anglaises, vérification
+      // comprise. Les autres pages sont autorisées une à une.
+      allow: INDEXABLE_PAGES.flatMap((page) =>
+        LOCALES.map((locale) => {
+          const path = localizePath(page.path, locale);
+          return page.path === "/" ? `${path}$` : path;
+        }),
+      ),
       disallow: "/",
     },
     sitemap: process.env.NEXT_PUBLIC_SITE_URL

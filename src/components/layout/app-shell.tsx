@@ -1,13 +1,16 @@
 "use client";
 
+import { Megaphone } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
 import { Sidebar } from "@/components/layout/sidebar";
+import { InactivityLock } from "@/components/session/inactivity-lock";
 import { Topbar } from "@/components/layout/topbar";
 import { useSession } from "@/components/providers/session-provider";
-import { homeFor, isRouteAllowed } from "@/lib/navigation";
+import { homeFor, isRouteAllowed, type NavCounts } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { useMessages } from "@/i18n/client";
 
 /**
  * Ramène l'utilisateur chez lui quand il change de casquette.
@@ -19,6 +22,9 @@ import { cn } from "@/lib/utils";
  * La redirection remplace l'entrée d'historique au lieu d'en empiler une :
  * revenir en arrière doit ramener où l'on était *avant* la bascule, pas
  * rejouer une redirection en boucle.
+ *
+ * Ce n'est qu'un confort de navigation : le contrôle d'accès est fait côté
+ * serveur, par le proxy et par chaque page (`requireSession`).
  */
 function useRoleRouting() {
   const { active } = useSession();
@@ -54,7 +60,9 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <header className="relative flex shrink-0 items-end justify-between gap-4 px-6 pt-6 pb-5">
+    // Les actions passent sous le titre quand la largeur manque, au lieu
+    // de le recouvrir : `flex-wrap`, et une largeur de base au titre.
+    <header className="relative flex shrink-0 flex-wrap items-end justify-between gap-x-4 gap-y-3 px-4 pt-6 pb-5 sm:px-6">
       <div
         className="pointer-events-none absolute inset-x-0 -top-24 h-48 opacity-70"
         style={{
@@ -63,14 +71,16 @@ export function PageHeader({
         }}
         aria-hidden
       />
-      <div className="relative min-w-0">
+      <div className="relative min-w-0 flex-[1_1_16rem]">
         <h1 className="truncate text-2xl font-semibold">{title}</h1>
         {description && (
-          <p className="mt-1 truncate text-xs text-tertiary">{description}</p>
+          <p className="mt-1 text-xs text-tertiary sm:truncate">
+            {description}
+          </p>
         )}
       </div>
       {actions && (
-        <div className="relative flex shrink-0 items-center gap-2">
+        <div className="relative flex max-w-full flex-wrap items-center gap-2">
           {actions}
         </div>
       )}
@@ -118,16 +128,62 @@ export function Panel({
  * où une page se tromperait, l'utilisateur verrait une navigation qui ne
  * correspond pas à ses droits.
  */
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  counts,
+  banner = null,
+  children,
+}: {
+  /** Compteurs de navigation ; `null` si le service n'a pas répondu. */
+  counts: NavCounts | null;
+  /** Bandeau de maintenance, réglé par l'équipe IMAFRIK ; `null` sans bandeau. */
+  banner?: string | null;
+  children: React.ReactNode;
+}) {
   useRoleRouting();
+  const { isDemo } = useSession();
 
   return (
     <div className="flex h-dvh overflow-hidden bg-surface-base">
-      <Sidebar />
+      {/* Barre latérale fixe à partir de 1024 px ; en dessous, la même
+          navigation s'ouvre en tiroir depuis la barre supérieure. */}
+      <Sidebar counts={counts} className="hidden lg:flex" />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
+        <Topbar counts={counts} />
+        {banner && <MaintenanceBanner message={banner} />}
+        {/* Démonstration : aucune session réelle à fermer. */}
+        {!isDemo && <InactivityLock />}
         <main className="flex min-h-0 flex-1 flex-col">{children}</main>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Bandeau de maintenance, en tête de tous les écrans.
+ *
+ * Un `role="status"` plutôt qu'une alerte : l'information compte, mais
+ * n'interrompt pas un radiologue en pleine dictée. Le texte vient de la
+ * base et s'affiche comme texte — jamais comme du HTML.
+ *
+ * Affiché aussi sur l'écran de lecture, pourtant dépouillé de tout le
+ * reste : une maintenance annoncée est précisément ce qu'un radiologue
+ * doit savoir avant de commencer un compte-rendu.
+ */
+export function MaintenanceBanner({ message }: { message: string }) {
+  const t = useMessages();
+  return (
+    <div
+      role="status"
+      className="flex shrink-0 items-start gap-2.5 border-b border-progress/25 bg-progress-muted px-4 py-2 text-xs sm:items-center sm:px-6"
+    >
+      <Megaphone
+        className="mt-0.5 size-3.5 shrink-0 text-progress sm:mt-0"
+        aria-hidden
+      />
+      <p className="min-w-0 break-words">
+        <span className="sr-only">{t.nav.maintenance} </span>
+        {message}
+      </p>
     </div>
   );
 }

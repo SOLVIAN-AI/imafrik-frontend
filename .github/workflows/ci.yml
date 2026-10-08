@@ -1,15 +1,20 @@
 # Intégration continue du frontend IMAFRIK.
 #
-# Quatre contrôles, dans l'ordre du plus rapide au plus lent : rien ne
-# sert de compiler si le formatage est déjà en cause. Chacun échoue
-# séparément, pour que le journal dise *quoi* corriger sans avoir à le
-# lire en entier.
+# Contrôles ordonnés du plus rapide au plus lent : rien ne sert de
+# compiler si le formatage est déjà en cause. Chacun échoue séparément,
+# pour que le journal dise *quoi* corriger sans avoir à le lire en entier.
 #
-# Ce qui n'est pas ici, et pourquoi :
-#   • `api:check` compare le contrat au dépôt backend, absent de cette
-#     copie. Il tourne en local avant un changement de couche de données.
-#   • Les tests de bout en bout demandent un environnement complet
-#     (Supabase, API, Orthanc) ; ils viendront avec un compose dédié.
+# Le contrat d'API (`api:check`) se compare au schéma OpenAPI publié par
+# le dépôt backend, qui est privé : il est extrait avec un jeton en
+# lecture seule, `BACKEND_READ_TOKEN` (jeton « fine-grained » limité au
+# dépôt imafrik-backend, permission Contents: read). Sans ce secret, la
+# vérification est signalée comme manquante plutôt que réussie en
+# silence — les schémas zod restent de toute façon vérifiés à la
+# compilation contre les types générés.
+#
+# Ce qui n'est pas ici : les tests de bout en bout, qui demandent un
+# environnement complet (Supabase, API, Orthanc) et tournent sur la
+# préproduction.
 
 name: CI
 
@@ -24,23 +29,46 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: Vérifications
     runs-on: ubuntu-latest
+    # Exposé au niveau du job : la condition d'une étape ne voit pas les
+    # variables déclarées sur l'étape elle-même.
+    env:
+      BACKEND_READ_TOKEN: ${{ secrets.BACKEND_READ_TOKEN }}
+    defaults:
+      run:
+        working-directory: frontend
 
     steps:
+      # Le dépôt est extrait dans `frontend/` pour que le chemin relatif
+      # `../backend` de `api:check` fonctionne ici comme en local.
       - uses: actions/checkout@v4
+        with:
+          path: frontend
+
+      - name: Extraire le contrat du backend
+        if: ${{ env.BACKEND_READ_TOKEN != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: SOLVIAN-AI/imafrik-backend
+          token: ${{ secrets.BACKEND_READ_TOKEN }}
+          path: backend
+          sparse-checkout: services/api/openapi.json
+          sparse-checkout-cone-mode: false
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version-file: frontend/.nvmrc
           cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       # `npm ci` plutôt que `npm install` : il installe exactement ce que
-      # décrit le verrou et échoue si celui-ci n'est pas à jour. Une
-      # dépendance qui glisse en CI produirait un résultat vert
-      # impossible à reproduire en local.
+      # décrit le verrou et échoue si celui-ci n'est pas à jour.
       - name: Installer les dépendances
         run: npm ci
 
@@ -52,6 +80,17 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Tests unitaires
+        run: npm test
+
+      - name: Contrat d'API
+        run: |
+          if [ ! -f ../backend/services/api/openapi.json ]; then
+            echo "::warning title=Contrat d'API non vérifié::Secret BACKEND_READ_TOKEN absent."
+            exit 0
+          fi
+          npm run api:check
 
       - name: Compilation
         run: npm run build

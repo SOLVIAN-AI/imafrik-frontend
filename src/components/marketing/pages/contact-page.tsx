@@ -1,0 +1,299 @@
+"use client";
+
+import { CheckCircle2, Mail, MapPin } from "lucide-react";
+import * as React from "react";
+
+import { Button } from "@/components/ui/button";
+import { Field, Input, Textarea } from "@/components/ui/input";
+import { marketingCopy, fill } from "@/content/marketing";
+import { submitContact } from "@/lib/actions/contact";
+import type { Locale } from "@/lib/i18n/locale";
+import { cn } from "@/lib/utils";
+
+/**
+ * Demande de démonstration.
+ *
+ * **Le formulaire demande ce qui sert à préparer l'entretien, rien de
+ * plus.** Volume et modalités permettent d'arriver avec une grille
+ * chiffrée ; le reste se dit de vive voix. Chaque champ supplémentaire
+ * fait chuter le taux de remplissage, et un formulaire long sur une page
+ * publique ressemble à une collecte de données.
+ *
+ * Aucune donnée patient n'est demandée, et la page le dit — c'est le
+ * genre de précision qui rassure justement les gens qui font attention.
+ *
+ * La demande est enregistrée par le service, qui limite le débit par
+ * adresse ; l'équipe IMAFRIK la retrouve dans le back-office (« Demandes
+ * reçues »). Fonction, volume et modalités n'ont pas de colonne à eux : ils
+ * sont joints au message, en tête, pour préparer l'entretien. Ce contexte
+ * reste en français, la langue du back-office, et porte la langue du
+ * demandeur : l'équipe lui répond dans la sienne.
+ *
+ * @param locale Langue de la page.
+ */
+export function ContactPage({ locale }: { locale: Locale }) {
+  const t = marketingCopy(locale).contactPage;
+  const [sent, setSent] = React.useState(false);
+  const [pending, startTransition] = React.useTransition();
+  const [error, setError] = React.useState<string | null>(null);
+  const [trap, setTrap] = React.useState("");
+  const [form, setForm] = React.useState({
+    name: "",
+    organization: "",
+    role: "",
+    email: "",
+    phone: "",
+    volume: t.volumes[1],
+    message: "",
+  });
+  const [modalities, setModalities] = React.useState<string[]>([]);
+
+  const valid =
+    form.name.trim().length >= 3 &&
+    form.organization.trim().length >= 2 &&
+    form.email.includes("@");
+
+  const update = (key: keyof typeof form) => (value: string) =>
+    setForm((current) => ({ ...current, [key]: value }));
+
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!valid) return;
+    setError(null);
+    const context = [
+      `Langue : ${locale === "en" ? "anglais" : "français"}`,
+      form.role && `Fonction : ${form.role}`,
+      `Volume : ${form.volume}`,
+      modalities.length > 0 && `Modalités : ${modalities.join(", ")}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    startTransition(async () => {
+      const result = await submitContact({
+        fullName: form.name,
+        organization: form.organization,
+        email: form.email,
+        phone: form.phone,
+        message: form.message.trim()
+          ? `${context}\n\n${form.message.trim()}`
+          : context,
+        website: trap,
+        locale,
+      });
+      if (result.ok) setSent(true);
+      else setError(result.error);
+    });
+  };
+
+  return (
+    <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 md:py-24 lg:grid-cols-[1fr_1.2fr]">
+      <div>
+        <p className="label-eyebrow text-accent">{t.eyebrow}</p>
+        <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{t.title}</h1>
+        <p className="prose-justify mt-5 text-base leading-relaxed text-secondary">
+          {t.lead}
+        </p>
+
+        <dl className="mt-10 flex flex-col gap-5">
+          <div className="flex gap-3">
+            <Mail className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
+            <div>
+              <dt className="text-sm font-medium">contact@imafrik.tech</dt>
+              <dd className="mt-0.5 text-xs text-tertiary">{t.emailHint}</dd>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <MapPin
+              className="mt-0.5 size-4 shrink-0 text-accent"
+              aria-hidden
+            />
+            <div>
+              <dt className="text-sm font-medium">{t.location}</dt>
+              <dd className="mt-0.5 text-xs text-tertiary">SOLVIAN AI LLC</dd>
+            </div>
+          </div>
+        </dl>
+
+        <p className="prose-justify mt-10 rounded-xl border border-border-subtle bg-surface-raised px-4 py-3.5 text-xs leading-relaxed text-tertiary">
+          {t.testDataNotice}
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-border-subtle bg-surface-raised p-8 shadow-raised">
+        {sent ? (
+          <div className="flex flex-col items-start py-8">
+            <span
+              className="flex size-11 items-center justify-center rounded-xl bg-accent-muted ring-1 ring-accent/25 ring-inset"
+              aria-hidden
+            >
+              <CheckCircle2 className="size-5 text-accent" />
+            </span>
+            <h2 className="mt-5 text-xl font-semibold">{t.sentTitle}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-secondary">
+              {fill(t.sentText, {
+                name: form.name.trim().split(/\s+/)[0],
+                email: form.email.trim(),
+              })}
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="relative flex flex-col gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="name" label={t.fields.name}>
+                <Input
+                  id="name"
+                  value={form.name}
+                  onChange={(event) => update("name")(event.target.value)}
+                  autoComplete="name"
+                  className="h-10"
+                />
+              </Field>
+              <Field id="role" label={t.fields.role}>
+                <Input
+                  id="role"
+                  value={form.role}
+                  onChange={(event) => update("role")(event.target.value)}
+                  placeholder={t.fields.rolePlaceholder}
+                  className="h-10"
+                />
+              </Field>
+            </div>
+
+            <Field id="organization" label={t.fields.organization}>
+              <Input
+                id="organization"
+                value={form.organization}
+                onChange={(event) => update("organization")(event.target.value)}
+                autoComplete="organization"
+                className="h-10"
+              />
+            </Field>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="email" label={t.fields.email}>
+                <Input
+                  id="email"
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => update("email")(event.target.value)}
+                  autoComplete="email"
+                  className="h-10"
+                />
+              </Field>
+              <Field id="phone" label={t.fields.phone} hint={t.fields.optional}>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={(event) => update("phone")(event.target.value)}
+                  autoComplete="tel"
+                  className="h-10"
+                />
+              </Field>
+            </div>
+
+            <Field id="volume" label={t.fields.volume}>
+              <select
+                id="volume"
+                value={form.volume}
+                onChange={(event) => update("volume")(event.target.value)}
+                className={cn(
+                  "h-10 w-full rounded-md px-2.5 text-sm",
+                  "border border-border-default bg-surface-base",
+                  "transition-colors hover:border-border-strong",
+                  "focus:border-accent focus:outline-none",
+                )}
+              >
+                {t.volumes.map((volume) => (
+                  <option key={volume} value={volume}>
+                    {volume}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <fieldset>
+              <legend className="text-xs font-medium text-secondary">
+                {t.fields.modalities}
+              </legend>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {t.modalityOptions.map((modality) => {
+                  const selected = modalities.includes(modality);
+                  return (
+                    <button
+                      key={modality}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() =>
+                        setModalities((current) =>
+                          selected
+                            ? current.filter((item) => item !== modality)
+                            : [...current, modality],
+                        )
+                      }
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-xs transition-colors",
+                        selected
+                          ? "border-accent/40 bg-accent-muted text-accent"
+                          : "border-border-default text-secondary hover:border-border-strong hover:text-primary",
+                      )}
+                    >
+                      {modality}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <Field
+              id="message"
+              label={t.fields.message}
+              hint={t.fields.optional}
+            >
+              <Textarea
+                id="message"
+                rows={4}
+                value={form.message}
+                onChange={(event) => update("message")(event.target.value)}
+                placeholder={t.fields.messagePlaceholder}
+              />
+            </Field>
+
+            {/* Champ piège : invisible et ignoré par un humain, rempli par les
+                robots. Le service ignore alors la demande sans le leur dire. */}
+            <div
+              aria-hidden
+              className="absolute -left-[9999px] h-0 w-0 overflow-hidden"
+            >
+              <label htmlFor="website">Site web</label>
+              <input
+                id="website"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={trap}
+                onChange={(event) => setTrap(event.target.value)}
+              />
+            </div>
+
+            {error && (
+              <p role="alert" className="text-xs text-urgent">
+                {error}
+              </p>
+            )}
+
+            <Button
+              type="submit"
+              size="lg"
+              loading={pending}
+              disabled={!valid}
+              className="mt-2 h-10"
+            >
+              {t.submit}
+            </Button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}

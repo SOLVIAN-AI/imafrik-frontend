@@ -1,0 +1,2 @@
+# Fichier généré par `npm run api:types` : le reformater ferait échouer `npm run api:check`.
+src/lib/api/schema.d.ts

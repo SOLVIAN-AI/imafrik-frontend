@@ -1,11 +1,17 @@
+import "server-only";
+
 import type { StudyStatus } from "@/components/domain/study-status";
-import { apiFetch, isApiConfigured } from "@/lib/api/client";
+import { ApiError, apiFetch, apiGet } from "@/lib/api/client";
 import {
-  studyListSchema,
+  studyPageSchema,
   studySchema,
+  viewerTokenSchema,
   type ApiStudy,
 } from "@/lib/api/contracts";
-import { DEMO_STUDIES, type DemoStudy } from "@/lib/demo/studies";
+import { isDemoMode } from "@/lib/demo/mode";
+import type { Locale } from "@/lib/i18n/locale";
+import { DEMO_STUDIES, DEMO_USER_ID } from "@/lib/demo/studies";
+import { isConfiguredViewer } from "@/lib/security/urls";
 import { getSession } from "@/lib/session/server";
 
 /**
@@ -19,18 +25,52 @@ import { getSession } from "@/lib/session/server";
 export interface Study {
   id: string;
   studyInstanceUid: string;
+  /** Nom au format DICOM, `NOM^Prénom`. Vide si la console ne l'a pas transmis. */
   patientName: string;
+  /** Identifiant patient propre à la clinique. */
   patientId: string;
+  /** Sexe DICOM : `M`, `F`, `O`, ou `null` s'il n'a pas été transmis. */
+  patientSex: string | null;
+  /** Date de naissance, `AAAA-MM-JJ`, si la console l'a transmise. */
+  patientBirthDate: string | null;
   modality: string;
   bodyPart: string | null;
-  description: string | null;
+  /** Renseignement clinique saisi par la clinique. */
+  clinicalInfo: string | null;
   clinic: string;
+  clinicId: string;
   status: StudyStatus;
   urgent: boolean;
   seriesCount: number;
   instanceCount: number;
   receivedAt: Date;
+  /** Profil du radiologue qui a pris l'examen en charge. */
   assignedTo: string | null;
+  /** Son nom, quand l'utilisateur a le droit de le voir. */
+  assignedToName: string | null;
+  /** Compte-rendu visible par l'utilisateur, s'il existe. */
+  reportId: string | null;
+  /** Date de signature du compte-rendu. */
+  reportedAt: Date | null;
+  /**
+   * Purge des images du PACS central au terme de la durée contractuelle ;
+   * la clinique garde ses originaux. `null` : images disponibles.
+   */
+  imagesPurgedAt?: Date | null;
+  /** Signataire, figé à la signature. */
+  reportedBy: string | null;
+  /**
+   * Langue des intitulés du compte-rendu PDF : celle de la clinique,
+   * fixée à son contrat. L'éditeur l'affiche, pour que le radiologue
+   * rédige dans cette langue.
+   */
+  reportLanguage: Locale;
+  /**
+   * Échéance du compte-rendu : réception plus le délai promis pour sa
+   * priorité. Calculée par le service, seul à connaître les délais en
+   * vigueur.
+   */
+  dueAt: Date;
 }
 
 /** Traduit la forme de l'API vers celle de l'interface. */
@@ -38,31 +78,51 @@ function toStudy(row: ApiStudy): Study {
   return {
     id: row.id,
     studyInstanceUid: row.study_instance_uid,
-    patientName: row.patient_name,
-    patientId: row.patient_id,
-    modality: row.modality,
+    patientName: row.patient_name ?? "",
+    patientId: row.patient_id_local ?? "",
+    patientSex: row.patient_sex,
+    patientBirthDate: row.patient_birthdate,
+    modality: row.modality ?? "—",
     bodyPart: row.body_part,
-    description: row.description,
+    clinicalInfo: row.clinical_info,
     clinic: row.clinic_name,
+    clinicId: row.organization_id,
     status: row.status,
-    urgent: row.urgent,
+    urgent: row.priority === "urgent",
     seriesCount: row.series_count,
     instanceCount: row.instance_count,
-    receivedAt: row.received_at,
+    receivedAt: new Date(row.received_at),
     assignedTo: row.assigned_to,
+    assignedToName: row.assigned_to_name,
+    reportId: row.report_id,
+    reportedAt: row.reported_at ? new Date(row.reported_at) : null,
+    reportedBy: row.reported_by_name,
+    imagesPurgedAt: row.images_purged_at
+      ? new Date(row.images_purged_at)
+      : null,
+    dueAt: new Date(row.due_at),
+    reportLanguage: row.report_language,
   };
-}
-
-/** Le jeu de démonstration porte déjà la forme de l'interface. */
-function fromDemo(study: DemoStudy): Study {
-  return study;
 }
 
 export interface StudyQuery {
   status?: StudyStatus[];
-  /** Recherche libre : nom, identifiant patient, modalité. */
+  /** Recherche libre : nom ou identifiant du patient, modalité. */
   search?: string;
+  /** Seulement les examens que l'utilisateur a pris en charge. */
+  mine?: boolean;
+  /**
+   * `recent` (défaut) : urgences puis plus récents — écrans de suivi.
+   * `deadline` : échéance la plus proche d'abord — file de lecture.
+   */
+  order?: "recent" | "deadline";
   limit?: number;
+}
+
+/** Une page d'examens, et le nombre total de ceux qui correspondent. */
+export interface StudyPage {
+  studies: Study[];
+  total: number;
 }
 
 /**
@@ -77,58 +137,71 @@ export interface StudyQuery {
  * @param query Filtres facultatifs.
  */
 export async function listStudies(query: StudyQuery = {}): Promise<Study[]> {
-  if (!isApiConfigured()) {
-    return filterDemo(await demoScope(), query);
+  return (await listStudyPage(query)).studies;
+}
+
+/**
+ * Comme {@link listStudies}, avec le nombre total d'examens qui
+ * correspondent : un écran qui n'en reçoit qu'une partie doit pouvoir le
+ * dire, plutôt que de laisser croire que la liste est complète.
+ *
+ * @param query Filtres facultatifs.
+ */
+export async function listStudyPage(
+  query: StudyQuery = {},
+): Promise<StudyPage> {
+  if (isDemoMode()) {
+    const all = filterDemo(await demoScope(), { ...query, limit: undefined });
+    return {
+      studies: query.limit ? all.slice(0, query.limit) : all,
+      total: all.length,
+    };
   }
 
   const params = new URLSearchParams();
   for (const status of query.status ?? []) params.append("status", status);
   if (query.search) params.set("q", query.search);
-  if (query.limit) params.set("limit", String(query.limit));
+  if (query.mine) params.set("mine", "true");
+  if (query.order) params.set("order", query.order);
+  params.set("limit", String(query.limit ?? STUDY_PAGE_LIMIT));
 
-  const raw = await apiFetch<unknown>(`/studies?${params.toString()}`);
-  return studyListSchema.parse(raw).items.map(toStudy);
+  const page = await apiGet(`/studies?${params.toString()}`, studyPageSchema);
+  return { studies: page.items.map(toStudy), total: page.total };
 }
+
+/** Taille de page maximale acceptée par le service. */
+export const STUDY_PAGE_LIMIT = 200;
 
 /**
  * Un examen précis.
  *
  * @returns L'examen, ou `null` s'il n'existe pas — ou s'il appartient à
- *          une organisation que l'utilisateur ne sert pas, cas que la
- *          base rend indiscernable du précédent, à dessein.
+ *          une organisation que l'utilisateur ne sert pas, cas que l'API
+ *          rend indiscernable du précédent, à dessein.
+ * @throws ApiError pour toute autre erreur : une panne doit s'afficher
+ *         comme une panne, pas comme un examen introuvable.
  */
 export async function getStudy(id: string): Promise<Study | null> {
-  if (!isApiConfigured()) {
-    const visible = await demoScope();
-    return visible.find((study) => study.id === id) ?? null;
+  if (isDemoMode()) {
+    return (await demoScope()).find((study) => study.id === id) ?? null;
   }
-
-  try {
-    const raw = await apiFetch<unknown>(`/studies/${id}`);
-    return toStudy(studySchema.parse(raw));
-  } catch {
-    return null;
-  }
+  const row = await apiGet(`/studies/${encodeURIComponent(id)}`, studySchema, {
+    notFoundAsNull: true,
+  });
+  return row ? toStudy(row) : null;
 }
 
 /**
  * Restreint le jeu de démonstration à ce que verrait l'organisation
- * active.
- *
- * **Simule ce que font les politiques RLS**, et rien de plus : une
- * clinique ne voit que ses propres examens, un cabinet de radiologie
- * voit ceux des établissements qu'il sert. Sans cette restriction, la
- * démonstration montrerait à une clinique les patients d'une autre — ce
- * qui donnerait une idée fausse du produit, et une très mauvaise idée
- * des garanties.
+ * active — **simule les politiques RLS**, et rien de plus. Sans cette
+ * restriction, la démonstration montrerait à une clinique les patients
+ * d'une autre, ce qui donnerait une idée fausse des garanties.
  */
 async function demoScope(): Promise<Study[]> {
   const session = await getSession();
-  const studies = DEMO_STUDIES.map(fromDemo);
-
-  if (session?.active.organizationKind !== "clinic") return studies;
-  return studies.filter(
-    (study) => study.clinic === session.active.organizationName,
+  if (session?.active?.organizationKind !== "clinic") return DEMO_STUDIES;
+  return DEMO_STUDIES.filter(
+    (study) => study.clinic === session.active?.organizationName,
   );
 }
 
@@ -139,15 +212,64 @@ function filterDemo(studies: Study[], query: StudyQuery): Study[] {
   if (query.status?.length) {
     result = result.filter((study) => query.status!.includes(study.status));
   }
-
+  if (query.mine) {
+    result = result.filter((study) => study.assignedTo === DEMO_USER_ID);
+  }
   if (query.search) {
     const needle = query.search.toLowerCase();
     result = result.filter((study) =>
-      `${study.patientName} ${study.patientId} ${study.modality} ${study.bodyPart ?? ""}`
+      `${study.patientName} ${study.patientId} ${study.modality}`
         .toLowerCase()
         .includes(needle),
     );
   }
-
+  if (query.order === "deadline") {
+    result = [...result].sort(
+      (a, b) =>
+        a.dueAt.getTime() - b.dueAt.getTime() ||
+        a.receivedAt.getTime() - b.receivedAt.getTime(),
+    );
+  }
   return query.limit ? result.slice(0, query.limit) : result;
+}
+
+/**
+ * Adresse du viewer pour un examen, avec un jeton de visualisation neuf.
+ *
+ * Le jeton est **à durée de vie courte et n'est jamais persisté** : il
+ * vit quinze minutes dans le cache du service, et c'est lui que le plugin
+ * d'autorisation d'Orthanc vérifie à chaque requête d'image. Une adresse
+ * copiée cesse donc de fonctionner d'elle-même. Le service trace chaque
+ * émission dans le journal d'audit : ouvrir les images d'un examen est un
+ * accès à des données de santé.
+ *
+ * @returns L'adresse, ou `null` si le jeton n'a pas pu être obtenu — le
+ *          volet d'images affiche alors un état explicite plutôt qu'un
+ *          cadre vide.
+ */
+export async function getViewerUrl(studyId: string): Promise<string | null> {
+  if (isDemoMode()) return null;
+  try {
+    const response = await apiFetch(
+      `/studies/${encodeURIComponent(studyId)}/viewer-token`,
+      {
+        method: "POST",
+      },
+    );
+    const url = viewerTokenSchema.parse(await response.json()).viewer_url;
+    if (!isConfiguredViewer(url, process.env.NEXT_PUBLIC_VIEWER_URL)) {
+      // Le jeton ne part pas vers une origine que la CSP refuserait.
+      console.error(
+        "Viewer renvoyé par le service hors de l’origine configurée",
+      );
+      return null;
+    }
+    return url;
+  } catch (error) {
+    // 409 : images archivées au terme de la conservation contractuelle —
+    // un état connu, affiché comme tel, pas une panne à journaliser.
+    if (!(error instanceof ApiError && error.status === 409))
+      console.error("Jeton de visualisation indisponible", error);
+    return null;
+  }
 }

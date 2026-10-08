@@ -1,12 +1,35 @@
 import type { Metadata } from "next";
 
 import { StatusScreen } from "@/components/layout/status-screen";
-import { missingProductionConfig } from "@/lib/deployment";
+import { messagesFor, type AppMessages } from "@/i18n";
+import {
+  missingProductionConfig,
+  REPORT_BACKUP_SECRET_MIN_LENGTH,
+  type DeploymentPurpose,
+} from "@/lib/deployment";
+import { requestLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Configuration requise",
-  robots: { index: false, follow: false },
-};
+/** Titre de l'onglet, dans la langue de la requête ; page non indexée. */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = messagesFor(await requestLocale());
+  return {
+    title: t.session.configuration.metaTitle,
+    robots: { index: false, follow: false },
+  };
+}
+
+/**
+ * Texte du rôle d'une variable, dans la langue du visiteur.
+ *
+ * @param t       Textes de l'application.
+ * @param purpose Clé du rôle, fournie par `missingProductionConfig`.
+ */
+function purposeText(t: AppMessages, purpose: DeploymentPurpose): string {
+  const purposes = t.session.configuration.purposes;
+  return purpose === "backupSecret"
+    ? purposes.backupSecret(REPORT_BACKUP_SECRET_MIN_LENGTH)
+    : purposes[purpose];
+}
 
 /**
  * Déploiement de production non configuré.
@@ -21,31 +44,38 @@ export const metadata: Metadata = {
  * Il nomme donc **exactement** ce qui manque, et à quoi chaque variable
  * sert. Une liste figée finirait par mentir le jour où l'une d'elles
  * changerait de nom.
+ *
+ * La langue est celle de la requête, et non celle d'un profil : sur un
+ * déploiement à moitié configuré, l'écran ne doit dépendre d'aucun appel
+ * à Supabase.
  */
-export default function ConfigurationRequiredPage() {
+export default async function ConfigurationRequiredPage() {
+  const locale = await requestLocale();
+  const t = messagesFor(locale);
   const missing = missingProductionConfig();
 
   return (
     <StatusScreen
       code="503"
       tone="urgent"
-      title="Ce déploiement n’est pas configuré"
+      locale={locale}
+      title={t.session.configuration.title}
       detail={
         <>
-          <p>
-            Le service refuse de servir plutôt que de présenter des données de
-            démonstration sous une adresse de production.
-          </p>
+          <p>{t.session.configuration.lead}</p>
 
           {missing.length > 0 && (
             <dl className="mt-6 divide-y divide-border-subtle overflow-hidden rounded-xl border border-border-subtle bg-surface-raised text-left">
               {missing.map((variable) => (
-                <div key={variable.name} className="px-4 py-3">
+                <div
+                  key={`${variable.name}:${variable.purpose}`}
+                  className="px-4 py-3"
+                >
                   <dt className="font-mono text-xs text-primary">
                     {variable.name}
                   </dt>
                   <dd className="mt-1 text-2xs text-tertiary">
-                    {variable.purpose}
+                    {purposeText(t, variable.purpose)}
                   </dd>
                 </div>
               ))}
@@ -53,8 +83,7 @@ export default function ConfigurationRequiredPage() {
           )}
 
           <p className="mt-6 text-xs text-tertiary">
-            À déclarer dans les variables d’environnement du déploiement, puis
-            redéployer.
+            {t.session.configuration.footer}
           </p>
         </>
       }

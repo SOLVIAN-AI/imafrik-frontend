@@ -4,24 +4,13 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
+import { LanguageSwitch } from "@/components/marketing/language-switch";
 import { Button } from "@/components/ui/button";
+import { marketingCopy } from "@/content/marketing";
+import type { Locale } from "@/lib/i18n/locale";
+import { localizePath } from "@/lib/i18n/routes";
 import { cn } from "@/lib/utils";
-
-/**
- * Sections de la vitrine.
- *
- * Quatre entrées, pas davantage. Un menu public qui déploie une
- * douzaine de liens donne l'impression d'un site institutionnel ; ici
- * chaque entrée répond à une question qu'un directeur d'établissement se
- * pose vraiment.
- */
-const LINKS = [
-  { href: "/#fonctionnement", label: "Fonctionnement" },
-  { href: "/#profils", label: "Cliniques & radiologues" },
-  { href: "/securite", label: "Sécurité" },
-  { href: "/#tarifs", label: "Tarifs" },
-] as const;
 
 /**
  * Barre de navigation publique.
@@ -31,24 +20,36 @@ const LINKS = [
  * remonter. Le flou plutôt qu'un aplat opaque — le contenu qui passe
  * dessous reste deviné, ce qui rattache la barre à la page plutôt que de
  * la poser dessus.
+ *
+ * Quatre entrées, pas davantage : un menu public qui déploie une douzaine
+ * de liens donne l'impression d'un site institutionnel ; ici chaque entrée
+ * répond à une question qu'un directeur d'établissement se pose vraiment.
+ *
+ * @param locale Langue de la page.
  */
-export function MarketingNav() {
+export function MarketingNav({ locale }: { locale: Locale }) {
   const [open, setOpen] = React.useState(false);
+  const t = marketingCopy(locale).nav;
+  const links = t.links.map((link) => ({
+    ...link,
+    href: localizePath(link.href, locale),
+  }));
 
   return (
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface-base/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <Mark className="size-7" />
-          <span className="text-base font-semibold tracking-[-0.01em]">
-            IMAFRIK
-          </span>
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:gap-8">
+        <Link
+          href={localizePath("/", locale)}
+          aria-label={t.home}
+          className="flex min-h-6 shrink-0 items-center gap-2.5"
+        >
+          <Wordmark className="h-6" />
         </Link>
 
-        <nav className="hidden flex-1 items-center gap-7 md:flex">
-          {LINKS.map((link) => (
+        <nav className="hidden flex-1 items-center gap-7 lg:flex">
+          {links.map((link) => (
             <Link
-              key={link.href}
+              key={link.label}
               href={link.href}
               className="text-sm text-secondary transition-colors hover:text-primary"
             >
@@ -57,24 +58,32 @@ export function MarketingNav() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 md:ml-0">
+        <div className="ml-auto flex items-center gap-2 lg:ml-0">
+          <LanguageSwitch locale={locale} className="hidden sm:flex" />
           <Button
             variant="ghost"
             size="sm"
             asChild
             className="hidden sm:inline-flex"
           >
-            <Link href="/connexion">Se connecter</Link>
+            <Link href="/connexion" prefetch={false}>
+              {t.signIn}
+            </Link>
           </Button>
           <Button size="sm" asChild>
-            <Link href="/contact">Demander une démonstration</Link>
+            <Link href={localizePath("/contact", locale)}>
+              {/* Libellé court sur téléphone : le long ne tient pas à côté
+                  du logo et du menu. */}
+              <span className="sm:hidden">{t.demoShort}</span>
+              <span className="hidden sm:inline">{t.demoLong}</span>
+            </Link>
           </Button>
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}
-            aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-label={open ? t.closeMenu : t.openMenu}
             aria-expanded={open}
-            className="flex size-8 items-center justify-center rounded-md text-secondary md:hidden"
+            className="flex size-9 items-center justify-center rounded-md text-secondary transition-colors hover:bg-surface-hover hover:text-primary lg:hidden"
           >
             {open ? <X className="size-4" /> : <Menu className="size-4" />}
           </button>
@@ -82,10 +91,10 @@ export function MarketingNav() {
       </div>
 
       {open && (
-        <nav className="flex flex-col gap-1 border-t border-border-subtle px-6 py-3 md:hidden">
-          {LINKS.map((link) => (
+        <nav className="flex flex-col gap-1 border-t border-border-subtle px-4 py-3 sm:px-6 lg:hidden">
+          {links.map((link) => (
             <Link
-              key={link.href}
+              key={link.label}
               href={link.href}
               onClick={() => setOpen(false)}
               className={cn(
@@ -98,11 +107,16 @@ export function MarketingNav() {
           ))}
           <Link
             href="/connexion"
+            prefetch={false}
             onClick={() => setOpen(false)}
             className="rounded-md px-2 py-2 text-sm text-secondary transition-colors hover:bg-surface-hover hover:text-primary sm:hidden"
           >
-            Se connecter
+            {t.signIn}
           </Link>
+          <LanguageSwitch
+            locale={locale}
+            className="mt-2 self-start sm:hidden"
+          />
         </nav>
       )}
     </header>

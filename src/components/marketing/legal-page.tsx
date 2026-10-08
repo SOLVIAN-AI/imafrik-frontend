@@ -1,15 +1,12 @@
-import type { Metadata } from "next";
+import { fill, marketingCopy } from "@/content/marketing";
+import type { Locale } from "@/lib/i18n/locale";
+import { legalUpdatedAt } from "@/lib/legal";
 
-/**
- * Fabrique les métadonnées d'une page légale.
- *
- * Ces pages sont publiques et doivent être indexables — c'est même une
- * obligation pratique : une mention légale introuvable ne remplit pas sa
- * fonction.
- */
-export function legalMetadata(title: string, description: string): Metadata {
-  return { title, description, robots: { index: true, follow: true } };
-}
+/** Étiquette au-dessus du titre, dans chaque langue. */
+const EYEBROW: Record<Locale, string> = {
+  fr: "Informations légales",
+  en: "Legal information",
+};
 
 /**
  * Gabarit d'une page de texte long.
@@ -20,26 +17,39 @@ export function legalMetadata(title: string, description: string): Metadata {
  * descendants plutôt que classe par classe — c'est le seul endroit de
  * l'application où le contenu est rédigé plutôt que composé.
  *
- * @param updatedAt Date de dernière mise à jour, en toutes lettres. Une
- *                  page de conditions sans date ne vaut rien : on ne
- *                  peut pas savoir à quoi on a consenti.
+ * Ces pages sont publiques et indexables : une mention légale introuvable
+ * ne remplit pas sa fonction. Une page de conditions porte toujours sa
+ * date de mise à jour, sans laquelle on ne peut pas savoir à quoi on a
+ * consenti.
+ *
+ * Une traduction rappelle, sous le titre, que la version française fait
+ * foi : c'est elle que le contrat désigne.
+ *
+ * @param locale Langue de la page.
+ * @param title  Titre du document.
  */
 export function LegalPage({
+  locale,
   title,
-  updatedAt,
   children,
 }: {
+  locale: Locale;
   title: string;
-  updatedAt: string;
   children: React.ReactNode;
 }) {
+  const t = marketingCopy(locale).legal;
   return (
     <article className="mx-auto max-w-3xl px-6 py-16 md:py-24">
-      <p className="label-eyebrow text-accent">Informations légales</p>
+      <p className="label-eyebrow text-accent">{EYEBROW[locale]}</p>
       <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{title}</h1>
       <p className="mt-3 text-xs text-tertiary">
-        Dernière mise à jour : {updatedAt}
+        {fill(t.updatedAt, { date: legalUpdatedAt(locale) })}
       </p>
+      {t.translationNotice && (
+        <p className="mt-6 rounded-xl border border-border-subtle bg-surface-raised px-4 py-3 text-xs leading-relaxed text-secondary">
+          {t.translationNotice}
+        </p>
+      )}
 
       <div
         className={[
@@ -51,6 +61,9 @@ export function LegalPage({
           "[&_li]:list-disc",
           "[&_strong]:font-medium [&_strong]:text-primary",
           "[&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2",
+          // Jamais de césure dans un lien : « contact@ima-frik.tech »,
+          // recopié tel quel, n'arriverait nulle part.
+          "[&_a]:[hyphens:none]",
         ].join(" ")}
       >
         {children}

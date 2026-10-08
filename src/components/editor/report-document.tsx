@@ -3,11 +3,17 @@
 import { EditorContent, useEditor } from "@tiptap/react";
 
 import {
+  DOCUMENT_TEXT_CLASSES,
+  sectionExtensions,
+} from "@/components/editor/extensions";
+import {
   REPORT_SECTIONS,
   isSectionEmpty,
-  sectionExtensions,
   type ReportSections,
-} from "@/components/editor/report-editor";
+} from "@/components/editor/sections";
+import { messagesFor } from "@/i18n";
+import { useLocale } from "@/i18n/client";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
 /**
@@ -28,18 +34,15 @@ function DocumentSection({ title, html }: { title: string; html: string }) {
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: cn(
-          "max-w-[68ch] text-[0.9375rem] leading-[1.75]",
-          "[&_p+p]:mt-3 [&_strong]:font-semibold",
-          "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1",
-          "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1",
-        ),
+        // Mêmes classes que l'éditeur : un document signé a exactement
+        // l'allure qu'il avait pendant sa rédaction.
+        class: DOCUMENT_TEXT_CLASSES,
       },
     },
   });
 
   return (
-    <section className="border-b border-border-subtle px-10 py-6 last:border-b-0">
+    <section className="border-b border-border-subtle px-5 py-5 last:border-b-0 sm:px-10 sm:py-6">
       <h3 className="label-eyebrow mb-2">{title}</h3>
       <EditorContent editor={editor} />
     </section>
@@ -58,14 +61,25 @@ function DocumentSection({ title, html }: { title: string; html: string }) {
  * apparaît sans contenu donne l'impression d'un document incomplet,
  * alors que l'absence de comparatif est une information en soi, que le
  * radiologue écrit quand elle compte.
+ *
+ * Les intitulés suivent la langue du compte-rendu quand elle est connue
+ * (`language`, celle du contrat de la clinique), comme sur le PDF ; à
+ * défaut, celle de l'utilisateur.
+ *
+ * @param sections Contenu du compte-rendu.
+ * @param language Langue du compte-rendu.
  */
 export function ReportDocument({
   sections,
+  language,
   className,
 }: {
   sections: ReportSections;
+  language?: Locale;
   className?: string;
 }) {
+  const locale = useLocale();
+  const titles = messagesFor(language ?? locale).reading.sections.titles;
   return (
     <article
       className={cn(
@@ -79,7 +93,7 @@ export function ReportDocument({
       ).map((section) => (
         <DocumentSection
           key={section.key}
-          title={section.title}
+          title={titles[section.key]}
           html={sections[section.key]}
         />
       ))}

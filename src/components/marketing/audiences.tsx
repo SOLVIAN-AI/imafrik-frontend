@@ -3,6 +3,9 @@ import Link from "next/link";
 
 import { Section } from "@/components/marketing/section";
 import { Button } from "@/components/ui/button";
+import { marketingCopy } from "@/content/marketing";
+import type { Locale } from "@/lib/i18n/locale";
+import { ANCHORS, localizePath } from "@/lib/i18n/routes";
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,48 +17,29 @@ import { cn } from "@/lib/utils";
  * lecture qui ne lui coûte pas de temps. Les mélanger produirait une
  * liste où chacun ne lit que la moitié.
  */
-const AUDIENCES = [
-  {
-    key: "clinics",
-    eyebrow: "Pour les cliniques",
-    title: "Un service de radiologie, sans radiologue sur place",
-    points: [
-      "Passerelle logicielle installée sur un de vos postes, sans matériel à acheter",
-      "Rien à administrer : ni serveur, ni licence, ni sauvegarde",
-      "Vos examens restent consultables sur place, même Internet coupé",
-      "Suivi de chaque examen envoyé, jusqu’au compte-rendu signé",
-      "Continuité la nuit, le week-end et pendant les congés",
-    ],
-    cta: { label: "Demander une démonstration", href: "/contact" },
-    featured: true,
-  },
-  {
-    key: "radiologists",
-    eyebrow: "Pour les radiologues",
-    title: "Lire depuis là où vous êtes, avec un outil qui suit",
-    points: [
-      "File de travail commune, urgences signalées",
-      "Images et compte-rendu en écran scindé",
-      "Modèles par modalité et par région anatomique",
-      "Signature nominative, document verrouillé après signature",
-      "Lecture depuis n’importe quel poste, sans installation",
-    ],
-    cta: { label: "Rejoindre le réseau", href: "/contact" },
-    featured: false,
-  },
-] as const;
 
-/** Section « à qui s'adresse le service ». */
-export function Audiences() {
+/**
+ * Section « à qui s'adresse le service ».
+ *
+ * La colonne des cliniques est mise en avant : c'est elle qui achète.
+ *
+ * @param locale Langue de la page.
+ */
+export function Audiences({ locale }: { locale: Locale }) {
+  const t = marketingCopy(locale).audiences;
+  const audiences = [
+    { key: "clinics", ...t.clinics, featured: true },
+    { key: "radiologists", ...t.radiologists, featured: false },
+  ];
   return (
     <Section
-      id="profils"
-      eyebrow="Deux métiers"
-      title="Le même service, vu des deux côtés"
-      lead="Une clinique et un radiologue n’attendent pas la même chose d’une plateforme. Chacun dispose de son propre portail."
+      id={ANCHORS.profils[locale]}
+      eyebrow={t.eyebrow}
+      title={t.title}
+      lead={t.lead}
     >
       <div className="mt-12 grid gap-5 lg:grid-cols-2">
-        {AUDIENCES.map((audience) => (
+        {audiences.map((audience) => (
           <div
             key={audience.key}
             className={cn(
@@ -103,7 +87,9 @@ export function Audiences() {
               className="relative mt-8 self-start"
               asChild
             >
-              <Link href={audience.cta.href}>{audience.cta.label}</Link>
+              <Link href={localizePath("/contact", locale)}>
+                {audience.cta}
+              </Link>
             </Button>
           </div>
         ))}

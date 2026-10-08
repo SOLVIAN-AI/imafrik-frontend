@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   Clock,
   FileCheck,
+  Hourglass,
   Inbox,
   PenLine,
   Send,
@@ -123,7 +124,7 @@ export function MetricCard({ metric }: { metric: Metric }) {
   return (
     <div
       className={cn(
-        "group flex items-center gap-3.5 rounded-xl px-4 py-3.5",
+        "group flex items-start gap-3 rounded-xl px-3.5 py-3.5 sm:items-center sm:gap-3.5 sm:px-4",
         "border border-border-subtle bg-surface-raised shadow-raised",
         // Le soulèvement est d'un demi-pixel de repère : assez pour que
         // la carte réponde, trop peu pour distraire quelqu'un qui
@@ -134,7 +135,7 @@ export function MetricCard({ metric }: { metric: Metric }) {
     >
       <span
         className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-lg",
+          "flex size-9 shrink-0 items-center justify-center rounded-lg sm:size-10",
           "transition-transform duration-200 ease-(--ease-out-quart)",
           "group-hover:scale-105",
           tone.halo,
@@ -145,19 +146,16 @@ export function MetricCard({ metric }: { metric: Metric }) {
       </span>
 
       <div className="min-w-0">
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-3xl font-semibold tracking-[-0.03em] tabular-nums">
+        <div className="flex items-baseline gap-2">
+          {/* Une valeur ne se coupe jamais : « 1 h » sur deux lignes se lit
+              « 1 », puis une lettre orpheline. */}
+          <span className="text-2xl font-semibold tracking-[-0.03em] whitespace-nowrap tabular-nums sm:text-3xl">
             {metric.value}
           </span>
-          {metric.hint && (
-            <span className="truncate text-2xs text-tertiary">
-              {metric.hint}
-            </span>
-          )}
           {metric.trend && (
             <span
               className={cn(
-                "flex items-center gap-0.5 text-2xs font-medium",
+                "flex items-center gap-0.5 text-2xs font-medium whitespace-nowrap",
                 metric.trend.good ? "text-done" : "text-urgent",
               )}
               title={metric.trend.label}
@@ -167,7 +165,20 @@ export function MetricCard({ metric }: { metric: Metric }) {
             </span>
           )}
         </div>
-        <p className="label-eyebrow mt-0.5 truncate">{metric.label}</p>
+        {/* Deux lignes plutôt qu'un libellé tronqué, à toute largeur : une
+            mesure dont on ne lit pas le nom ne sert à rien, et quatre
+            cartes côte à côte à 1024 px n'ont pas la place d'une ligne. */}
+        <p className="label-eyebrow mt-0.5 line-clamp-2">{metric.label}</p>
+        {/* La précision vient sous le libellé, pas à côté du chiffre : à
+            côté, elle lui disputait la largeur et finissait tronquée. */}
+        {metric.hint && (
+          <p
+            className="line-clamp-2 text-2xs text-tertiary"
+            title={metric.hint}
+          >
+            {metric.hint}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -179,6 +190,7 @@ export const METRIC_ICONS = {
   urgent: AlertTriangle,
   writing: PenLine,
   wait: Clock,
+  deadline: Hourglass,
   sent: Send,
   ready: FileCheck,
   done: CheckCircle2,

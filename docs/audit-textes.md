@@ -4,7 +4,7 @@ Inventaire de tout ce qu'un utilisateur lit à l'écran. **775 chaînes
 distinctes** dans 60 fichiers.
 
 > **État : corrigé.** Les sections A, B, C, E et G ont été traitées. Ce
-> qui reste ouvert est signalé comme tel — mentions légales à faire
+> qui reste ouvert est signalé comme tel : mentions légales à faire
 > relire, et deux valeurs à confirmer.
 
 Le classement est par gravité, pas par écran : ce qui est **faux** se
@@ -12,7 +12,7 @@ corrige avant ce qui est **maladroit**.
 
 ---
 
-## A. Affirmations fausses — 1 cas
+## A. Affirmations fausses (1 cas)
 
 ### A1. La reprise après coupure
 
@@ -34,7 +34,7 @@ fois qu'elle existe, elle devient vraie et devient un argument de vente.
 
 ---
 
-## B. Affirmations invérifiables — 9 cas
+## B. Affirmations invérifiables (9 cas)
 
 Ni fausses ni vraies : rien ne permet aujourd'hui de les tenir. Chacune
 est un engagement contractuel déguisé en argument.
@@ -51,13 +51,13 @@ est un engagement contractuel déguisé en argument.
 | « Support pendant les heures ouvrées » | tarifs | Aucun support n'existe. |
 | « le lien expire au bout de sept jours » / « dans une heure » | invitation, mot de passe | À vérifier contre la configuration Supabase réelle. |
 
-**Ce qu'il faut en faire :** soit les tenir — et alors elles se
-décident, pas se rédigent —, soit les formuler comme un objectif
+**Ce qu'il faut en faire :** soit les tenir (et alors elles se
+décident, pas se rédigent), soit les formuler comme un objectif
 (« notre engagement de service : … ») plutôt que comme un constat.
 
 ---
 
-## C. Valeurs fictives affichées comme réelles — 4 cas
+## C. Valeurs fictives affichées comme réelles (4 cas)
 
 | Valeur | Où | Risque |
 | --- | --- | --- |
@@ -68,19 +68,19 @@ décident, pas se rédigent —, soit les formuler comme un objectif
 
 ---
 
-## D. Mentions légales incomplètes — 3 pages
+## D. Mentions légales incomplètes (3 pages)
 
 `mentions-legales`, `confidentialite`, `cgu` portent des `[crochets]`
 visibles : forme juridique, immatriculation, siège, hébergeur,
 autorité de contrôle, droit applicable, durées de conservation.
 
-Volontaire — un crochet se remarque, une page incomplète mise en ligne
+Volontaire : un crochet se remarque, une page incomplète mise en ligne
 ne se remarque pas. Mais ces pages sont **indexables** dès que le
 service passe en production.
 
 ---
 
-## E. Le tiret cadratin — 16 emplois
+## E. Le tiret cadratin (16 emplois)
 
 Il est correct en français, et j'en ai fait un tic. Dans la moitié des
 cas une virgule ou un deux-points dit la même chose plus sobrement.
@@ -103,7 +103,7 @@ cas une virgule ou un deux-points dit la même chose plus sobrement.
 
 ---
 
-## F. Textes trop longs — 45 dépassent 140 signes
+## F. Textes trop longs (45 dépassent 140 signes)
 
 Un paragraphe d'aide de trois lignes dans un formulaire n'est pas lu.
 Les plus lourds, à réduire de moitié :
@@ -147,7 +147,7 @@ fois serait du gâchis.
 | --- | --- | --- |
 | Reprise après coupure | « le PACS conserve la file » *(faux)* | « la passerelle le conserve et le transfère dès que la liaison revient » |
 | Délais | présentés comme des faits | présentés comme **engagements de délai**, avec la mention « fixés au contrat » |
-| Radiologues | « Radiologues inscrits à l'Ordre » *(aucun recruté)* | « Chaque compte-rendu porte le nom et le numéro d'ordre de son auteur » — vrai par construction |
+| Radiologues | « Radiologues inscrits à l'Ordre » *(aucun recruté)* | « Chaque compte-rendu porte le nom et le numéro d'ordre de son auteur », vrai par construction |
 | Téléphone | `+228 00 00 00 00` publié | retiré ; courriel et formulaire seulement |
 | Paramètres DICOM | `dicom.imafrik.com:11112` *(n'existe pas)* | adresse locale de la passerelle, `192.168.10.20:104` |
 | Délais de support | « réponse sous un jour ouvré », « sous 48 h », « demi-journée » | retirés |
@@ -160,6 +160,6 @@ fois serait du gâchis.
    faire relire par un conseil avant toute mise en production.
 2. **`contact@imafrik.com`** doit exister avant la mise en ligne : un
    courriel de prospect perdu est un client perdu.
-3. **Les délais annoncés** — 2 h, 30 min, 7 j/7 — sont des engagements
+3. **Les délais annoncés** (2 h, 30 min, 7 j/7) sont des engagements
    contractuels. Ils tiennent tant qu'une garde est organisée ; à revoir
    après les premiers mois d'exploitation.

@@ -1,17 +1,24 @@
 import { AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 
+import { Segmented } from "@/components/admin/control-ui";
 import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
   UrgentMarker,
 } from "@/components/domain/study-status";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
-import { listAllStudies } from "@/lib/data/admin";
+import { ListToolbar } from "@/components/domain/list-toolbar";
+import { listStudies } from "@/lib/data/studies";
+import { readListSearch } from "@/lib/search/server";
+import { requireSession } from "@/lib/session/server";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Tous les examens" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.admin.studies.metaTitle };
+}
 
 /**
  * Tous les examens de la plateforme.
@@ -21,12 +28,31 @@ export const metadata: Metadata = { title: "Tous les examens" };
  * qu'un examen « n'est pas arrivé », il faut pouvoir répondre sans
  * ouvrir un client SQL.
  *
- * Elle est réservée au rôle `platform_admin`, et son usage est tracé
- * comme tout accès à un examen — c'est précisément ce qu'un audit
- * viendra vérifier.
+ * Elle est réservée au rôle `platform_admin` : c'est la policy RLS
+ * `study_select_admin` qui ouvre ce périmètre, sur la même route
+ * `GET /studies` que tout le monde. Les images, elles, ne s'ouvrent pas
+ * d'ici : regarder un examen reste un acte de lecture, tracé comme tel.
  */
-export default async function AdminStudiesPage() {
-  const studies = await listAllStudies();
+export default async function AdminStudiesPage({
+  searchParams,
+}: PageProps<"/admin/examens">) {
+  const session = await requireSession(["platform_admin"]);
+  const { t } = await getMessages();
+  const text = t.admin.studies;
+  const { urgent } = await searchParams;
+  const search = await readListSearch("admin-examens", session);
+  // `?urgent=1` : les urgences pas encore rendues — la destination de
+  // l'alerte « urgences en retard » du cockpit.
+  const urgentOnly = urgent === "1";
+  const all = await listStudies({ search });
+  const studies = urgentOnly
+    ? all.filter(
+        (study) =>
+          study.urgent &&
+          study.status !== "reported" &&
+          study.status !== "delivered",
+      )
+    : all;
   const stuck = studies.filter(
     (study) => study.status === "received" && study.urgent,
   );
@@ -34,46 +60,113 @@ export default async function AdminStudiesPage() {
   return (
     <>
       <PageHeader
-        title="Examens"
-        description={`${studies.length} examens, toutes organisations confondues`}
+        title={t.admin.shared.examinations}
+        description={
+          urgentOnly
+            ? text.urgentDescription(studies.length)
+            : text.allDescription(studies.length)
+        }
+        actions={
+          <>
+            <Segmented
+              label={t.admin.shared.filter}
+              options={[
+                {
+                  label: t.admin.shared.all,
+                  href: "/admin/examens",
+                  active: !urgentOnly,
+                },
+                {
+                  label: text.openUrgent,
+                  href: "/admin/examens?urgent=1",
+                  active: urgentOnly,
+                },
+              ]}
+            />
+            <ListToolbar scope="admin-examens" search={search} />
+          </>
+        }
       />
 
       {stuck.length > 0 && (
-        <div className="mx-6 mb-4 flex items-center gap-2.5 rounded-xl bg-urgent-muted px-4 py-3 text-xs text-urgent">
+        <div className="mx-4 mb-4 flex sm:mx-6 items-center gap-2.5 rounded-xl bg-urgent-muted px-4 py-3 text-xs text-urgent">
           <AlertTriangle className="size-4 shrink-0" aria-hidden />
-          <span>
-            {stuck.length} examen{stuck.length > 1 ? "s" : ""} urgent
-            {stuck.length > 1 ? "s" : ""} en attente de prise en charge.
-          </span>
+          <span>{text.stuck(stuck.length)}</span>
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <div className="min-h-0 flex-1 overflow-auto">
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        <Panel className="flex min-h-0 flex-col overflow-hidden">
+          {/* Téléphone : une carte par examen, comme dans les portails. */}
+          <ul className="min-h-0 flex-1 divide-y divide-border-subtle overflow-auto lg:hidden">
+            {studies.map((study) => (
+              <li
+                key={study.id}
+                className={cn(
+                  "flex items-start gap-3 px-4 py-3",
+                  study.urgent && "rail-urgent",
+                )}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm font-medium">
+                      {formatPatientName(study.patientName)}
+                    </span>
+                    {study.urgent && <UrgentMarker />}
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-secondary">
+                    <span className="font-medium text-primary">
+                      {study.modality}
+                    </span>
+                    {study.bodyPart && ` · ${study.bodyPart}`} · {study.clinic}
+                  </p>
+                  <p className="mt-0.5 truncate text-2xs text-tertiary">
+                    {study.assignedToName ?? t.admin.shared.unassigned}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  <StudyAge
+                    date={study.receivedAt}
+                    muted={study.status === "delivered"}
+                  />
+                  <StudyStatusChip status={study.status} />
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden min-h-0 flex-1 overflow-auto lg:block">
             <table className="w-full border-separate border-spacing-0 text-sm">
               <thead className="sticky top-0 z-10">
                 <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
                   <th scope="col" className="w-[24%]">
-                    <span className="label-eyebrow">Patient</span>
+                    <span className="label-eyebrow">
+                      {text.columns.patient}
+                    </span>
                   </th>
                   <th scope="col" className="w-[14%]">
-                    <span className="label-eyebrow">Examen</span>
+                    <span className="label-eyebrow">{text.columns.study}</span>
                   </th>
                   <th scope="col" className="w-[20%]">
-                    <span className="label-eyebrow">Établissement</span>
+                    <span className="label-eyebrow">
+                      {text.columns.facility}
+                    </span>
                   </th>
                   <th scope="col" className="w-[14%]">
-                    <span className="label-eyebrow">Statut</span>
+                    <span className="label-eyebrow">{text.columns.status}</span>
                   </th>
                   <th scope="col" className="w-[14%]">
-                    <span className="label-eyebrow">Radiologue</span>
+                    <span className="label-eyebrow">
+                      {text.columns.radiologist}
+                    </span>
                   </th>
                   <th scope="col" className="w-[14%]">
-                    <span className="label-eyebrow">UID</span>
+                    <span className="label-eyebrow">{text.columns.uid}</span>
                   </th>
                   <th scope="col" className="w-[8%] text-right">
-                    <span className="label-eyebrow">Attente</span>
+                    <span className="label-eyebrow">
+                      {text.columns.waiting}
+                    </span>
                   </th>
                 </tr>
               </thead>
@@ -96,11 +189,11 @@ export default async function AdminStudiesPage() {
                         {study.urgent && <UrgentMarker />}
                       </div>
                       <span className="font-mono text-2xs text-tertiary">
-                        {study.patientId}
+                        {study.patientId || "—"}
                       </span>
                     </td>
 
-                    <td>
+                    <td className="whitespace-nowrap">
                       <span className="font-medium">{study.modality}</span>
                       {study.bodyPart && (
                         <span className="text-secondary">
@@ -117,7 +210,7 @@ export default async function AdminStudiesPage() {
                     </td>
 
                     <td className="truncate text-secondary">
-                      {study.assignedTo ?? (
+                      {study.assignedToName ?? (
                         <span className="text-tertiary">—</span>
                       )}
                     </td>

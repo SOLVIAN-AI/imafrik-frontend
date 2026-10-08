@@ -2,33 +2,18 @@
 
 import { redirect } from "next/navigation";
 
+import { authCopy } from "@/content/auth";
+import { isDemoMode } from "@/lib/demo/mode";
+import { writeLanguageCookie } from "@/lib/i18n/cookie";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locale";
 import { homeFor } from "@/lib/navigation";
-import { getSession } from "@/lib/session/server";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { safeRedirect } from "@/lib/security/redirect";
+import { getAuthState } from "@/lib/session/server";
 import { createClient } from "@/lib/supabase/server";
 
 /** Résultat d'une tentative d'authentification. */
 export interface AuthState {
   error?: string;
-}
-
-/**
- * Vérifie qu'une destination de retour est interne.
- *
- * Un paramètre d'URL contrôlé par l'appelant ne doit jamais servir de
- * cible de redirection sans contrôle : `?suite=https://exemple.test`
- * transformerait la page de connexion en tremplin d'hameçonnage — on
- * arrive sur le vrai domaine, on se connecte, et on repart sur un faux.
- *
- * @param target Valeur reçue du paramètre.
- * @returns Le chemin, s'il est interne ; `null` sinon.
- */
-function safeRedirect(target: string | null): string | null {
-  if (!target) return null;
-  // Une barre unique, jamais deux : « //exemple.test » est une adresse
-  // absolue pour le navigateur.
-  if (!target.startsWith("/") || target.startsWith("//")) return null;
-  return target;
 }
 
 /**
@@ -39,6 +24,10 @@ function safeRedirect(target: string | null): string | null {
  * permettrait de découvrir qui possède un compte, donc qui travaille
  * dans quel établissement.
  *
+ * La destination de retour (`suite`) est validée par `safeRedirect` :
+ * un paramètre d'URL ne doit jamais pouvoir renvoyer hors de
+ * l'application après la connexion.
+ *
  * @param _previous État précédent, imposé par `useActionState`.
  * @param formData  Champs du formulaire.
  */
@@ -48,36 +37,41 @@ export async function signIn(
 ): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const suite = safeRedirect(String(formData.get("suite") ?? "") || null);
+  const suite = safeRedirect(String(formData.get("suite") ?? ""));
+  // Langue de l'écran de connexion, pour la langue des messages.
+  const locale = formData.get("locale");
+  const errors = authCopy(isLocale(locale) ? locale : DEFAULT_LOCALE).signIn
+    .errors;
 
   if (!email.includes("@") || password.length === 0) {
-    return { error: "Renseignez votre adresse et votre mot de passe." };
+    return { error: errors.missing };
   }
 
-  if (isSupabaseConfigured()) {
+  if (!isDemoMode()) {
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
-    if (error) {
-      return { error: "Adresse ou mot de passe incorrect." };
-    }
+    if (error) return { error: errors.invalid };
   }
 
-  const session = await getSession();
-  if (!session) {
-    // Compte valide mais sans appartenance : c'est le cas d'un radiologue
-    // dont le dossier attend encore sa validation.
-    return {
-      error:
-        "Votre compte n’est rattaché à aucune organisation. Si vous venez " +
-        "de déposer votre dossier, il est en cours de vérification.",
-    };
-  }
+  const state = await getAuthState();
+  if (state === "anonymous") return { error: errors.invalid };
+  // Second facteur à enrôler ou vérifier : l'écran dédié, en gardant la
+  // destination demandée pour y revenir ensuite.
+  if (state === "mfa-required")
+    redirect(
+      suite
+        ? `/double-authentification?suite=${encodeURIComponent(suite)}`
+        : "/double-authentification",
+    );
+  // Compte valide sans organisation active : écran dédié, qui l'explique.
+  if (state === "no-membership") redirect("/en-attente");
 
-  redirect(suite ?? homeFor(session.active.role));
+  // L'application s'ouvre dans la langue du profil, `<html lang>` compris.
+  await writeLanguageCookie(state.locale);
+  redirect(suite ?? homeFor(state.active.role));
 }
 
 /**
@@ -85,33 +79,16 @@ export async function signIn(
  *
  * La réponse est la même que l'adresse existe ou non, pour la raison
  * exposée plus haut. L'appelant affiche donc toujours la confirmation.
+ *
+ * Le lien envoyé ramène à `/auth/callback`, qui ouvre la session puis
+ * conduit au choix du nouveau mot de passe.
  */
 export async function requestPasswordReset(email: string): Promise<void> {
-  if (!isSupabaseConfigured()) return;
+  if (isDemoMode() || !email.includes("@")) return;
 
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const supabase = await createClient();
-  await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/auth/callback?suite=/nouveau-mot-de-passe`,
+  await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: `${site}/auth/callback?suite=/nouveau-mot-de-passe`,
   });
-}
-
-/**
- * Enregistre un nouveau mot de passe.
- *
- * Suppose une session ouverte par le lien de réinitialisation : c'est le
- * lien lui-même qui authentifie, et il n'est valable qu'une fois.
- */
-export async function updatePassword(
-  _previous: AuthState,
-  formData: FormData,
-): Promise<AuthState> {
-  const password = String(formData.get("password") ?? "");
-
-  if (isSupabaseConfigured()) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.updateUser({ password });
-    if (error) return { error: error.message };
-  }
-
-  redirect("/connexion");
 }

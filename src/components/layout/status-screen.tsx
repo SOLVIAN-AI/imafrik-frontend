@@ -1,7 +1,9 @@
 import Link from "next/link";
 
-import { Mark } from "@/components/layout/brand";
+import { Wordmark } from "@/components/brand/brand";
 import { Button } from "@/components/ui/button";
+import { messagesFor } from "@/i18n";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
 /**
@@ -16,24 +18,32 @@ import { cn } from "@/lib/utils";
  * Le ton reste factuel. Ni excuses appuyées, ni humour : quelqu'un qui
  * cherchait un examen urgent n'a pas envie d'être diverti.
  *
- * @param code    Repère court — « 404 », « 403 ». Affiché discrètement :
- *                il sert au support, pas à l'utilisateur.
+ * @param code    Repère court — « 404 », « 403 ». Affiché discrètement,
+ *                précédé de « Erreur » : il sert au support, pas à
+ *                l'utilisateur.
+ * @param eyebrow Repère affiché à la place de « Erreur {code} », pour un
+ *                écran qui ne signale pas une erreur (compte en attente).
  * @param title   Ce qui s'est passé, en langage d'utilisateur.
  * @param detail  Ce que cela implique, et pourquoi.
  * @param actions Les sorties possibles.
+ * @param locale  Langue du repère « Erreur » ; le français par défaut.
  */
 export function StatusScreen({
   code,
+  eyebrow,
   title,
   detail,
   actions,
   tone = "neutral",
+  locale = DEFAULT_LOCALE,
 }: {
   code: string;
+  eyebrow?: string;
   title: string;
   detail: React.ReactNode;
   actions?: React.ReactNode;
   tone?: "neutral" | "urgent";
+  locale?: Locale;
 }) {
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-surface-base px-6 py-16 text-center">
@@ -53,10 +63,7 @@ export function StatusScreen({
 
       <div className="relative max-w-md">
         <Link href="/" className="inline-flex items-center gap-2.5">
-          <Mark className="size-7" />
-          <span className="text-base font-semibold tracking-[-0.01em]">
-            IMAFRIK
-          </span>
+          <Wordmark className="h-6" />
         </Link>
 
         <p
@@ -65,7 +72,7 @@ export function StatusScreen({
             tone === "urgent" ? "text-urgent" : "text-accent",
           )}
         >
-          Erreur {code}
+          {eyebrow ?? messagesFor(locale).session.statusScreen.error(code)}
         </p>
         <h1 className="mt-3 text-2xl font-semibold md:text-3xl">{title}</h1>
         <div className="mt-4 text-sm leading-relaxed text-secondary">
@@ -82,15 +89,28 @@ export function StatusScreen({
   );
 }
 
-/** Retour à l'accueil, sortie par défaut de tous ces écrans. */
+/**
+ * Retour à l'accueil, sortie par défaut de tous ces écrans.
+ *
+ * @param label  Libellé du bouton ; à défaut, « Retour à l'accueil » dans
+ *               la langue `locale`.
+ * @param href   Accueil visé ; celui du site anglais est `/en`.
+ * @param locale Langue du libellé par défaut ; le français par défaut.
+ */
 export function BackHomeButton({
-  label = "Retour à l’accueil",
+  label,
+  href = "/",
+  locale = DEFAULT_LOCALE,
 }: {
   label?: string;
+  href?: string;
+  locale?: Locale;
 }) {
   return (
     <Button variant="secondary" size="lg" asChild>
-      <Link href="/">{label}</Link>
+      <Link href={href}>
+        {label ?? messagesFor(locale).session.statusScreen.backHome}
+      </Link>
     </Button>
   );
 }

@@ -30,7 +30,7 @@ Posés dans `vercel.json`, pour tout le domaine :
 ## Deux pièges rencontrés
 
 **Le premier déploiement d'un projet part en production**, quelle que
-soit la commande. `vercel deploy` sans `--prod` produit bien un aperçu —
+soit la commande. `vercel deploy` sans `--prod` produit bien un aperçu,
 mais seulement à partir du deuxième. Sur un projet neuf, il faut donc
 soit retirer l'alias de production immédiatement, soit accepter que la
 première mise en ligne soit publique.
@@ -46,7 +46,7 @@ avec un statut 503 et l'indication des variables manquantes.
 
 Ce n'est pas une précaution théorique : servir le jeu de démonstration
 sous une adresse de production présenterait de faux patients à de vrais
-utilisateurs. Le refus est donc net — mais lisible, là où une exception
+utilisateurs. Le refus est donc net, mais lisible, là où une exception
 aurait produit un 500 muet.
 
 ## Variables d'environnement
@@ -58,16 +58,20 @@ chaque environnement où elles s'appliquent.
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | staging | production | Publique. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | staging | production | Publique ; encadrée par RLS. |
-| `NEXT_PUBLIC_API_URL` | API de staging | API de production | Sans elle, jeu de démonstration. |
-| `NEXT_PUBLIC_SITE_URL` | URL du déploiement | domaine final | Sert aux liens des courriels. |
+| `NEXT_PUBLIC_API_URL` | API de staging | API de production | Sans elle, jeu de démonstration, et une production refuse de servir. |
+| `NEXT_PUBLIC_SITE_URL` | URL du déploiement | domaine final | Liens des courriels et lien de vérification. |
+| `NEXT_PUBLIC_VIEWER_URL` | viewer de staging | viewer de production | Seul cadre autorisé par la CSP ; sans elle, pas d'images. Doit être une **autre origine** que le site (`viewer.imafrik.tech`), sans quoi la production refuse de servir. |
+| `REPORT_BACKUP_SECRET` | secret de staging | secret de production | **Serveur uniquement.** Chiffre les copies de secours des brouillons sur le poste ; 32 caractères au moins (`openssl rand -base64 48`), un secret distinct par environnement. |
+| `IMAFRIK_ENV` | — | `production` hors Vercel | Sur Vercel, `VERCEL_ENV` suffit. Sur tout autre hébergement, sans elle, une production incomplète servirait la démonstration. |
 
 > ⚠️ **Jamais** la clé `service_role` : elle contourne les politiques
 > RLS, et toute variable `NEXT_PUBLIC_*` part dans le navigateur.
 
-Un déploiement de **production** sans les variables Supabase **échoue au
-démarrage**, volontairement : servir le jeu de démonstration sous un
-domaine de production afficherait de faux patients à de vrais
-utilisateurs.
+Un déploiement de **production** auquel il manque l'une de ces variables
+**refuse de servir**, volontairement : chaque adresse répond 503 avec
+l'écran `/configuration-requise`, qui nomme ce qui manque. Servir le jeu
+de démonstration sous un domaine de production afficherait de faux
+patients à de vrais utilisateurs.
 
 ## Adresses de redirection Supabase
 
@@ -94,5 +98,5 @@ de projet.
 2. Confirmer ou revoir les engagements de délai affichés sur l'accueil.
 3. Renouveler les identifiants R2 et le mot de passe de base exposés en
    août 2026 (voir le `CHANGELOG.md` du dépôt backend).
-4. Créer le projet Supabase de production — celui de staging ne doit
+4. Créer le projet Supabase de production : celui de staging ne doit
    jamais recevoir de données réelles.

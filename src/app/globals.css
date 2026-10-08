@@ -221,6 +221,10 @@
   --glow-accent: oklch(0.768 0.145 174 / 0.18);
   --glow-brand: oklch(0.516 0.243 264 / 0.22);
 
+  /* Coupe lue du logotype : le turquoise de la marque, plus soutenu en
+     thème clair pour garder son contraste sur fond blanc. */
+  --brand-signal: #3ff2d0;
+
   color-scheme: dark;
 }
 
@@ -268,6 +272,8 @@
 
   --glow-accent: oklch(0.655 0.128 175 / 0.1);
   --glow-brand: oklch(0.516 0.243 264 / 0.12);
+
+  --brand-signal: #0fae96;
 
   color-scheme: light;
 }
@@ -367,6 +373,18 @@
     border-radius: var(--radius-xs);
   }
 
+  /* Sur téléphone, Safari agrandit la page dès qu'un champ de moins de
+     16 px reçoit le focus — et ne la rétablit pas en sortant. La mise en
+     page saute à chaque saisie. 16 px sur petit écran l'en empêche, sans
+     toucher à la densité du poste de travail. */
+  @media (max-width: 639px) {
+    input:not([type="checkbox"], [type="radio"]),
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+
   ::selection {
     background-color: var(--accent-muted);
     color: var(--text-primary);
@@ -409,6 +427,30 @@
      quarante examens. */
   .rail-urgent {
     box-shadow: inset 2px 0 0 0 var(--urgent);
+  }
+
+  /* Éditeur de compte-rendu — décorations, jamais enregistrées.
+
+     Occurrences de la recherche : un fond ambre discret ; l'occurrence
+     active, pleine, comme dans tout traitement de texte. */
+  .search-match {
+    border-radius: 2px;
+    background-color: color-mix(in oklch, var(--progress) 28%, transparent);
+  }
+  .search-match-active {
+    background-color: var(--progress);
+    color: var(--surface-base);
+  }
+
+  /* Champ à compléter d'un modèle : « [taille] » se lit comme un champ,
+     pointillé, à remplir — on le voit avant de l'imprimer. */
+  .report-field {
+    border-radius: 3px;
+    padding-inline: 1px;
+    color: var(--accent);
+    background-color: color-mix(in oklch, var(--accent) 12%, transparent);
+    outline: 1px dashed color-mix(in oklch, var(--accent) 55%, transparent);
+    outline-offset: -1px;
   }
 
   /* Prose justifiée, avec césure.
@@ -469,7 +511,7 @@
 /* ══════════════════════════════════════════════════════════════════════
    Animations
 
-   Trois seulement, courtes. Elles servent à situer d'où vient un élément
+   Peu nombreuses, courtes. Elles servent à situer d'où vient un élément
    qui apparaît — une modale surgie sans transition donne l'impression
    d'un changement de page.
    ══════════════════════════════════════════════════════════════════════ */
@@ -484,6 +526,25 @@
   from {
     opacity: 0;
     transform: translate(-50%, calc(-50% + 4px)) scale(0.985);
+  }
+}
+
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px) scale(0.985);
+  }
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
   }
 }
 

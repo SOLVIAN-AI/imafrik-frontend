@@ -1,4 +1,4 @@
-# IMAFRIK — frontend
+# IMAFRIK : frontend
 
 Interface de la plateforme de téléradiologie. Next.js 16, React 19,
 TypeScript, Tailwind 4. Déployé sur Vercel.
@@ -7,8 +7,30 @@ TypeScript, Tailwind 4. Déployé sur Vercel.
 
 ```bash
 npm install
+cp .env.local.example .env.local   # vide : l'application tourne sur le jeu de démonstration
 npm run dev        # http://localhost:3000
 ```
+
+Renseigner `.env.local` (Supabase, API, viewer, adresse du site) branche
+l'interface sur un backend réel. Voir
+[`docs/configuration.md`](docs/configuration.md) ; une production à
+laquelle manque une variable refuse de servir plutôt que d'afficher des
+données inventées.
+
+## Vérifier
+
+```bash
+npm run format:check && npm run typecheck && npm run lint
+npm test           # tests unitaires (Vitest)
+npm run api:check  # contrat d'API, si le dépôt backend est voisin
+npm run build
+```
+
+L'intégration continue ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
+lance exactement ces commandes. Les tests unitaires couvrent la logique
+pure dont dépend la sécurité : destinations de redirection, accès aux
+écrans par rôle, politique de sécurité du contenu, variables
+obligatoires, contrat d'API.
 
 ## Le système de design en trois principes
 
@@ -20,7 +42,7 @@ pour exploiter la plage dynamique de son écran. Une interface claire à
 côté d'une image en niveaux de gris dégrade réellement sa perception : la
 pupille s'adapte au blanc du châssis et l'image perd son contraste
 apparent. Le thème clair existe pour le personnel des cliniques, en
-bureau éclairé — pas comme préférence esthétique.
+bureau éclairé, pas comme préférence esthétique.
 
 **Rien de saturé près de l'image.** Par contraste simultané, une teinte
 vive adjacente à un gris en décale la perception. Le châssis reste neutre
@@ -28,7 +50,7 @@ avec une légère dominante froide, celle d'un moniteur diagnostique
 calibré. L'accent ne colore jamais une surface : il ne marque que
 l'interactif.
 
-**La couleur porte du sens.** Un statut, une teinte, sans recouvrement —
+**La couleur porte du sens.** Un statut, une teinte, sans recouvrement ;
 et le rouge ne dit qu'une chose : urgent. Un bouton de suppression ne
 mérite pas le même signal qu'un examen vital.
 
@@ -46,7 +68,7 @@ Les échelles de gris restent donc perceptuellement régulières.
 ## Conventions
 
 **Les composants consomment des rôles, jamais des couleurs brutes.**
-`bg-surface-raised`, `text-secondary`, `text-urgent` — jamais
+`bg-surface-raised`, `text-secondary`, `text-urgent`, jamais
 `bg-ink-900`. Un composant qui code une teinte en dur ne fonctionne que
 dans un thème.
 
@@ -61,21 +83,33 @@ clavier qu'à la souris, et l'anneau de focus n'est jamais supprimé.
 
 **Deux signaux, jamais un seul.** Les statuts combinent couleur, pastille
 et texte. Une pastille qui ne reposerait que sur la couleur serait
-illisible pour un daltonien — environ un homme sur douze.
+illisible pour un daltonien (environ un homme sur douze).
 
 ## Structure
 
 ```
 src/
 ├── app/               routes (App Router)
-│   ├── (app)/           portail authentifié
+│   ├── (marketing)/     vitrine publique et vérification d'un compte-rendu
+│   ├── (auth)/          connexion, mot de passe
+│   ├── (onboarding)/    mise en service
+│   ├── (app)/           portails clinique, radiologue et administration
+│   ├── (reading)/       écran de lecture
 │   └── globals.css      système de design — source de vérité
+├── proxy.ts           CSP, session, tri des accès — avant tout rendu
 ├── components/
 │   ├── ui/              primitives génériques
-│   ├── domain/          composants métier : statuts, worklist
+│   ├── domain/          composants métier
+│   ├── editor/          rédaction et signature des comptes-rendus
 │   ├── layout/          ossature de l'application
-│   └── providers/       thème, requêtes
-└── lib/                 utilitaires
+│   └── providers/       thème
+├── hooks/
+└── lib/
+    ├── api/             client serveur, contrat zod, types générés
+    ├── data/            lectures (composants serveur)
+    ├── actions/         écritures (actions serveur → ActionResult)
+    ├── session/         session, rôles, démonstration
+    └── security/        CSP, redirections, mots de passe
 ```
 
 ## Contrat d'API

@@ -1,36 +1,38 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { PageHeader, Panel } from "@/components/layout/app-shell";
-import { WorklistTable } from "@/components/domain/worklist-table";
+import { ReadingTable } from "@/components/domain/reading-table";
+import { useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
 
 /**
  * Vue des examens pris en charge.
  *
- * Même table que la file commune : ce sont les mêmes colonnes qu'on y
- * cherche, et un second tableau au dessin différent obligerait à
- * réapprendre où regarder.
+ * Même tableau que la file de lecture : ce sont les mêmes colonnes qu'on
+ * y cherche, échéance en tête, et un second tableau au dessin différent
+ * obligerait à réapprendre où regarder.
  */
 export function MyStudiesView({ studies }: { studies: Study[] }) {
-  const router = useRouter();
-
+  const t = useMessages();
   return (
-    <>
+    // Même défilement que la file : la page sur téléphone, le tableau au-delà.
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden">
       <PageHeader
-        title="Mes examens"
-        description="Examens que vous avez pris en charge et qui restent à rendre"
+        title={t.nav.items.myStudies}
+        description={t.worklist.myStudies.description}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <WorklistTable
-            studies={studies}
-            onOpen={(study) => router.push(`/lecture/${study.id}`)}
+      {/* Compressible à partir de 1024 px seulement : sur téléphone, la
+          page défile et le tableau garde sa hauteur naturelle. */}
+      <div className="flex flex-col px-4 pb-6 sm:px-6 lg:min-h-0 lg:flex-1">
+        <Panel className="flex flex-col overflow-hidden lg:min-h-0">
+          <ReadingTable
+            groups={[{ key: "mine", studies, follow: "status" }]}
+            hrefFor={(study) => `/lecture/${study.id}`}
+            empty={t.worklist.myStudies.empty}
           />
         </Panel>
       </div>
-    </>
+    </div>
   );
 }

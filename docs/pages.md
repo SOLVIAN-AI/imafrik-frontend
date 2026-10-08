@@ -23,7 +23,7 @@ Chaque écran porte une **phase** :
 
 Une seule application Next.js, un seul domaine, une seule
 authentification. Ce que voit l'utilisateur dépend de son **rôle dans
-l'organisation active** — pas d'un sous-domaine ni d'un déploiement
+l'organisation active**, pas d'un sous-domaine ni d'un déploiement
 séparé.
 
 Trois raisons :
@@ -53,9 +53,39 @@ src/app/
 └── (admin)/         back-office IMAFRIK
 ```
 
+### Application bilingue
+
+Chaque écran de l'application existe en français et en anglais. Deux
+langues distinctes cohabitent :
+
+- **La langue de l'utilisateur** (`profiles.locale`), choisie dans
+  Paramètres ou par la palette de commandes : celle des écrans, des
+  messages du service (`Accept-Language`) et des courriels de son compte.
+  La connexion la reporte dans le cookie `imafrik-langue`, que lit le
+  rendu serveur.
+- **La langue des comptes-rendus d'une clinique**
+  (`organizations.report_language`), fixée au contrat par l'équipe
+  IMAFRIK (fiche de la clinique, ou `make clinic … LANGUE=en`) : celle du
+  PDF signé, de sa page de vérification, des titres de section dans
+  l'éditeur et des phrases types du menu « / ». Quand elle diffère de
+  celle de l'écran, l'écran de lecture le signale.
+
+Les textes vivent dans `src/i18n/messages/{fr,en}/`, un fichier par
+zone. Le français est la référence : le type `AppMessages` en est déduit,
+et une clé manquante en anglais est une erreur de compilation. Un
+composant serveur lit `getMessages()`, un composant client
+`useMessages()` ; les formats (dates, nombres, durées) prennent la
+langue. Une date anglaise écrit son mois en lettres : `06/10/2026` se lit
+le 10 juin aux États-Unis.
+
+Le test `src/i18n/no-hardcoded-text.test.ts` refuse toute phrase
+française écrite en dur hors des dictionnaires ; les données de
+démonstration (patients, comptes-rendus, organisations fictives) en sont
+exclues, ce sont des données.
+
 ---
 
-## 2. Vitrine publique — `(marketing)`
+## 2. Vitrine publique : `(marketing)`
 
 Aucun compte requis. C'est ce que voit une clinique de Lomé qui découvre
 le produit, et c'est là que se joue la crédibilité d'un service qui
@@ -69,37 +99,86 @@ manipule des données de santé.
 | `/tarifs` | Grille tarifaire. Un service de santé qui cache ses prix inquiète. | V2 |
 | `/securite` | Hébergement, chiffrement, journalisation, localisation des données, sous-traitance. **Page commerciale, pas juridique** : c'est la première question d'un directeur d'établissement. | V1 |
 | `/contact` | Demande de démonstration. | V1 |
-| `/verifier/[jeton]` | **Vérification publique d'un compte-rendu signé.** Le PDF porte un code ; le scanner mène ici, qui confirme l'authenticité du document, son signataire et sa date. Aucun compte requis, aucune donnée patient affichée. Sert l'API `GET /verify/{verify_token}`. | V1 |
+| `/verifier/[jeton]` | **Vérification publique d'un compte-rendu signé.** Le PDF porte un code ; le scanner mène ici, qui confirme l'authenticité du document, son signataire et sa date. Aucun compte requis ; du patient, seule l'initiale du nom est affichée. Sert l'API `GET /verify/{verify_token}`. | V1 |
 | `/mentions-legales` | Éditeur, hébergeur, directeur de publication. | V1 |
 | `/confidentialite` | Politique de confidentialité et traitement des données de santé. | V1 |
 | `/cgu` | Conditions d'utilisation et contrat de service. | V1 |
 
-**10 écrans.**
+**10 écrans**, chacun en français et en anglais pour ce qui est en ligne.
+
+### Version anglaise
+
+Le site public existe aussi en anglais, pour les établissements
+anglophones (Ghana, Nigeria, Liberia, Sierra Leone, Gambie). Chaque page a
+son adresse dans sa langue :
+
+| Français | Anglais |
+| --- | --- |
+| `/` | `/en` |
+| `/securite` | `/en/security` |
+| `/contact` | `/en/contact` |
+| `/verifier/[jeton]` | `/en/verify/[jeton]` |
+| `/mentions-legales` | `/en/legal-notice` |
+| `/confidentialite` | `/en/privacy` |
+| `/cgu` | `/en/terms` |
+
+- **Les textes** vivent dans `src/content/marketing/fr.ts` et `en.ts`,
+  deux objets du même type (`MarketingCopy`) : une entrée oubliée dans
+  une langue est une erreur de compilation. Les pages juridiques, rédigées
+  plutôt que composées, ont une version par langue dans
+  `src/components/marketing/legal/`, et les faits qu'elles citent
+  (sous-traitants, durées) sont bilingues dans `lib/legal.ts`.
+- **Les adresses** se correspondent dans `lib/i18n/routes.ts`, seule
+  table de correspondance : le sélecteur « FR | EN » mène à la même page
+  dans l'autre langue, et chaque page déclare son équivalent (`hreflang`).
+- **La langue de la page** est déduite de l'adresse par le proxy, qui la
+  transmet à la disposition racine pour `<html lang>`.
+- **Aucune redirection automatique** selon la langue du navigateur : elle
+  empêcherait de partager une page dans l'autre langue, et d'indexer les
+  deux.
+- **La version française fait foi** pour les documents juridiques ; la
+  traduction le rappelle en tête de page.
+- **La connexion suit la langue choisie.** Chaque page du site mémorise
+  sa langue dans un cookie (`imafrik-langue`, un code de langue et rien
+  d'autre) ; la connexion et la demande de réinitialisation s'affichent
+  dans cette langue et portent elles aussi le sélecteur. Le changement de
+  langue recharge la page entière (`?langue=en`, que le proxy retire
+  après avoir posé le cookie), en conservant la destination demandée.
+- **L'application suit la langue de l'utilisateur**, choisie dans
+  Paramètres et enregistrée sur son compte (`profiles.locale`) : voir
+  « Application bilingue » ci-dessous. Chaque disposition déclare sa
+  langue (`HtmlLang`), pour que `<html lang>` reste juste après une
+  navigation interne d'une langue à l'autre.
 
 > La vitrine vit dans la même application que le produit. Elle partage le
 > système de design, se déploie d'un coup et évite un second dépôt à
-> maintenir. Le coût — un déploiement du produit pour changer un
-> paragraphe d'accueil — est négligeable sur Vercel.
+> maintenir. Le coût (un déploiement du produit pour changer un
+> paragraphe d'accueil) est négligeable sur Vercel.
 
 ---
 
-## 3. Authentification — `(auth)`
+## 3. Authentification : `(auth)`
 
 | Route | Écran | Phase |
 | --- | --- | --- |
 | `/connexion` | Identifiant et mot de passe. | V1 |
-| `/invitation/[jeton]` | Rejoindre une organisation sur invitation : le destinataire choisit son mot de passe et entre directement dans l'application. | V1 |
 | `/mot-de-passe-oublie` | Demande de lien de réinitialisation. | V1 |
 | `/nouveau-mot-de-passe` | Saisie du nouveau mot de passe, après le lien reçu. | V1 |
 | `/rejoindre` | **Candidature d'un radiologue.** Pas une inscription : un dossier, soumis à validation. Voir la décision n° 1. | V2 |
-| `/verification` | Second facteur (code à usage unique). Voir la décision n° 4. | V2 |
+| `/double-authentification` | **Second facteur** : enrôlement d'une application TOTP (QR code, clé de secours) ou saisie du code. Obligatoire pour radiologues et administration : imposé au jeton (voir AD-8 du dépôt backend). | V1, fait |
 
-**6 écrans**, plus deux gestionnaires de route sans interface :
-`/auth/callback` (retour Supabase) et `/deconnexion`.
+| `/en-attente` | Compte valide rattaché à aucune organisation active : candidature en cours d'examen ou organisation suspendue. | V1 |
+
+**6 écrans**, plus un gestionnaire de route sans interface :
+`/auth/callback`, retour des liens Supabase. Une **invitation** passe par
+lui : le courriel envoyé par l'API ramène à
+`/auth/callback?suite=/nouveau-mot-de-passe`, où l'invité choisit son mot
+de passe. La **déconnexion** est une action serveur, qui révoque d'abord
+les jetons de visualisation puis ferme la session.
 
 ---
 
-## 4. Mise en service — `(onboarding)`
+## 4. Mise en service : `(onboarding)`
 
 Une seule coquille, des étapes matérialisées par des segments d'URL :
 l'utilisateur peut revenir en arrière, fermer l'onglet et reprendre au
@@ -111,7 +190,7 @@ travail au premier rechargement.
 | Route | Étape | Phase |
 | --- | --- | --- |
 | `/bienvenue/etablissement` | Raison sociale, adresse, contact médical responsable. | V1 |
-| `/bienvenue/connexion-pacs` | Paramètres d'envoi DICOM : AET, adresse, port, avec les valeurs à recopier dans la console du PACS. L'étape la plus délicate — elle se fait souvent au téléphone avec le technicien. | V1 |
+| `/bienvenue/connexion-pacs` | Paramètres d'envoi DICOM : AET, adresse, port, avec les valeurs à recopier dans la console du PACS. L'étape la plus délicate : elle se fait souvent au téléphone avec le technicien. | V1 |
 | `/bienvenue/premier-envoi` | Attente et confirmation du premier examen reçu. Rien ne rassure autant qu'une image qui arrive. | V1 |
 | `/bienvenue/equipe` | Invitation des collègues. | V2 |
 | `/bienvenue/termine` | Récapitulatif et entrée dans le portail. | V1 |
@@ -130,7 +209,7 @@ travail au premier rechargement.
 
 ---
 
-## 5. Portail clinique — `(app)`
+## 5. Portail clinique : `(app)`
 
 Ce que doit avoir sous la main quelqu'un qui envoie des examens et
 attend des comptes-rendus.
@@ -139,7 +218,7 @@ attend des comptes-rendus.
 | --- | --- | --- |
 | `/tableau-de-bord` | Envoyés aujourd'hui, en cours de lecture, prêts à récupérer, délai moyen. La question du matin. | V1 |
 | `/examens` | Tous les examens envoyés, avec leur état d'avancement. | V1 |
-| `/examens/[id]` | Fiche d'un examen : images en consultation, état, compte-rendu dès qu'il est signé, téléchargement du PDF. Écran partagé — le radiologue y accède aussi, et y trouve le bouton qui ouvre la lecture. | V1 |
+| `/examens/[id]` | Fiche d'un examen : images en consultation, état, compte-rendu dès qu'il est signé, téléchargement du PDF. Écran partagé : le radiologue y accède aussi, et y trouve le bouton qui ouvre la lecture. | V1 |
 | `/envoyer` | Envoi manuel de fichiers DICOM depuis le navigateur, et rappel des paramètres d'envoi automatique. Voir la décision n° 2. | V1 |
 | `/comptes-rendus` | Comptes-rendus reçus, recherche par patient ou par date. | V1 |
 | `/equipe` | Membres, rôles, invitations. | V2 |
@@ -151,7 +230,7 @@ attend des comptes-rendus.
 
 ---
 
-## 6. Portail radiologue — `(app)` et `(reading)`
+## 6. Portail radiologue : `(app)` et `(reading)`
 
 | Route | Écran | Phase |
 | --- | --- | --- |
@@ -169,23 +248,28 @@ attend des comptes-rendus.
 
 ---
 
-## 7. Back-office IMAFRIK — `(admin)`
+## 7. Back-office IMAFRIK : `(admin)`
 
-Réservé à l'équipe Solvian AI. Tant qu'il n'existe pas, ces opérations
-se font en SQL — tenable pour une clinique, intenable pour dix.
+Réservé à l'équipe IMAFRIK : la tour de contrôle. Aucune donnée de
+patient dans les vues de pilotage (AD-13 du dépôt backend).
 
-| Route | Écran | Phase |
+| Route | Écran | État |
 | --- | --- | --- |
-| `/admin/organisations` | Cliniques et cabinets, création, suspension. | V1 |
-| `/admin/examens` | Recherche globale, réattribution, déblocage. | V1 |
-| `/admin/radiologues` | Validation des candidatures et des pièces justificatives. | V2 |
-| `/admin/contrats` | Qui sert qui : table `service_contracts`, qui détermine la visibilité inter-organisations. | V2 |
-| `/admin/facturation` | Facturation des cliniques, rémunération des radiologues. | V2 |
-| `/admin/audit` | Journal d'accès. Table `audit_log` déjà en base. Obligatoire dès qu'un litige survient. | V2 |
-| `/admin` | Vue d'ensemble : volumes, délais, incidents. | V3 |
-| `/admin/parametres` | Paramètres de la plateforme. | V3 |
+| `/admin` | **Cockpit** : alertes, files en direct, délais promis tenus, réseau, exploitation. | Fait |
+| `/admin/activite` | Volumes, délais (médiane, 9 sur 10), étapes du parcours, heures d'arrivée, par clinique (débit), modalité, radiologue. Période et clinique dans l'adresse. | Fait |
+| `/admin/flux` | Flux d'images examen par examen : débit de réception, frise acquisition → remise. | Fait |
+| `/admin/organisations` | Volumes sur 30 jours, dernier envoi, suspension, invitation. | Fait |
+| `/admin/organisations/[id]` | Mise en service d'une clinique, activité, **durée de conservation des images**. | Fait |
+| `/admin/utilisateurs` | Comptes : rattachement des radiologues en attente, double authentification, réinitialisation. | Fait |
+| `/admin/examens` | Recherche globale, urgences en cours. | Fait |
+| `/admin/demandes` | Demandes reçues par le site, suivi et notes. | Fait |
+| `/admin/facturation` | Actes du mois par clinique et modalité, export CSV protégé contre l'injection de formules. | Fait |
+| `/admin/systeme` | Dépendances, PACS, version, filets de sécurité (sauvegardes, exercices, réconciliation, conservation). | Fait |
+| `/admin/audit` | Journal d'audit, filtré par action, paginé par curseur. | Fait |
+| `/admin/reglages` | Délais promis, bandeau de maintenance. | Fait |
+| `/admin/contrats` | Qui sert qui (`service_contracts`). | V2 (en SQL pour l'instant) |
 
-**8 écrans.**
+**13 écrans.**
 
 ---
 
@@ -195,7 +279,7 @@ se font en SQL — tenable pour une clinique, intenable pour dix.
 | --- | --- | --- |
 | `not-found.tsx` | Page inconnue. | V1 |
 | `error.tsx` | Erreur inattendue, avec un moyen de repartir. | V1 |
-| `forbidden.tsx` | Accès refusé — cas fréquent ici : un examen appartenant à une autre organisation. Le message doit dire quoi faire, pas seulement refuser. | V1 |
+| `forbidden.tsx` | Accès refusé, cas fréquent ici : un examen appartenant à une autre organisation. Le message doit dire quoi faire, pas seulement refuser. | V1 |
 
 **3 écrans.**
 
@@ -216,22 +300,22 @@ se font en SQL — tenable pour une clinique, intenable pour dix.
 
 ### Fait
 
-- **Vitrine** — accueil, sécurité, contact, vérification publique d'un
+- **Vitrine** : accueil, sécurité, contact, vérification publique d'un
   compte-rendu, mentions légales, protection des données, conditions
   d'utilisation.
-- **Authentification** — connexion, mot de passe oublié, nouveau mot de
+- **Authentification** : connexion, mot de passe oublié, nouveau mot de
   passe, invitation. Session Supabase en rendu serveur, cookies
   `httpOnly`, intergiciel de protection, retour des liens par courriel.
-- **Mise en service** — les deux parcours complets, état dans l'URL,
+- **Mise en service** : les deux parcours complets, état dans l'URL,
   brouillon persisté, validation par section.
-- **Portail clinique** — tableau de bord, envoi (dépôt manuel et
+- **Portail clinique** : tableau de bord, envoi (dépôt manuel et
   paramètres PACS), suivi des examens, fiche d'examen, comptes-rendus,
   équipe, paramètres.
-- **Portail radiologue** — file de travail, écran de lecture, mes
+- **Portail radiologue** : file de travail, écran de lecture, mes
   examens, comptes-rendus, compte-rendu signé, modèles, paramètres.
-- **Back-office** — organisations, examens toutes organisations
+- **Back-office** : organisations, examens toutes organisations
   confondues.
-- **Système** — 404, 403, erreur.
+- **Système** : 404, 403, erreur.
 
 ### Reste à faire
 
@@ -239,25 +323,24 @@ se font en SQL — tenable pour une clinique, intenable pour dix.
 | --- | --- | --- |
 | `/cliniques`, `/radiologues`, `/tarifs` | V2 | L'accueil couvre les deux publics ; ces pages n'ont d'intérêt qu'avec du contenu commercial propre. |
 | `/rejoindre` (candidature radiologue) | V2 | Dépend du parcours de validation côté back-office. |
-| `/verification` (second facteur) | V2 | Décision n° 4 non tranchée. |
 | `/patients` (clinique) | V3 | Confort ; la recherche par patient existe déjà dans les comptes-rendus. |
 | `/facturation`, `/honoraires` | V2 | Décision n° 3 non tranchée : la rémunération passe-t-elle par l'application ? |
 | `/activite` (radiologue) | V3 | Analyse ; sans valeur avant plusieurs mois d'exploitation. |
-| `/admin/radiologues`, `/contrats`, `/facturation`, `/audit`, `/admin` | V2–V3 | Aucune route d'administration côté service ; se font en SQL pour l'instant. |
+| `/admin/contrats` | V2 | Les contrats de service se créent en SQL ; tenable tant que le réseau compte quelques groupes. |
 
 ## 10. Ce qui n'est pas un écran
 
 À ne pas compter, et surtout à ne pas transformer en page :
 
-- **Les modales** — signature d'un compte-rendu, invitation d'un membre,
+- **Les modales** : signature d'un compte-rendu, invitation d'un membre,
   confirmation de suppression. Elles gardent le contexte visible.
-- **Les panneaux latéraux** — aperçu d'un examen depuis la liste, détail
+- **Les panneaux latéraux** : aperçu d'un examen depuis la liste, détail
   d'une facture.
-- **La palette de commandes** (⌘K) — recherche et navigation, présente
+- **La palette de commandes** (⌘K) : recherche et navigation, présente
   partout.
-- **Les gestionnaires de route** — `/auth/callback`, `/deconnexion`,
-  téléchargement de PDF : ils redirigent ou renvoient un fichier, ils
-  n'affichent rien.
+- **Les gestionnaires de route** (`/auth/callback`) : il redirige, il
+  n'affiche rien. Le PDF d'un compte-rendu est servi par un lien signé
+  de courte durée, obtenu par une action serveur.
 
 ---
 
@@ -279,22 +362,23 @@ ici pour être tranchées explicitement.
 3. **La rémunération des radiologues passe-t-elle par l'application ?**
    Si oui, `/honoraires` et `/admin/facturation` deviennent structurants
    et il faut un modèle tarifaire par acte en base.
-4. **Second facteur d'authentification ?** Recommandation : oui pour les
-   comptes qui accèdent aux images, au moins en option, avant la
-   première mise en production réelle.
+4. ~~**Second facteur d'authentification ?**~~ **Tranché (8 octobre
+   2026)** : obligatoire pour les radiologues et l'administration, imposé
+   à l'émission du jeton ; facultatif pour les établissements, et alors
+   exigé à chaque connexion. Voir AD-8 du dépôt backend.
 
 ---
 
 ## 12. Ordre de construction proposé
 
-1. **Les deux portails** — clinique et radiologue, avec des données de
+1. **Les deux portails** : clinique et radiologue, avec des données de
    démonstration. C'est là que se juge le produit.
-2. **La mise en service** — les deux parcours, qui décident de la
+2. **La mise en service** : les deux parcours, qui décident de la
    première impression.
-3. **L'authentification** — Supabase en rendu serveur, cookies
+3. **L'authentification** : Supabase en rendu serveur, cookies
    `httpOnly`, protection des routes.
-4. **Le branchement de l'API** — client généré depuis `openapi.json`,
+4. **Le branchement de l'API** : client généré depuis `openapi.json`,
    remplacement du jeu de démonstration.
-5. **La vitrine et les pages légales** — indispensables le jour de la
+5. **La vitrine et les pages légales** : indispensables le jour de la
    mise en ligne, sans valeur avant.
-6. **Le back-office** — le jour où le SQL manuel devient un risque.
+6. **Le back-office** : le jour où le SQL manuel devient un risque.

@@ -1,3 +1,6 @@
+import { Wordmark } from "@/components/brand/brand";
+import { marketingCopy } from "@/content/marketing";
+import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
 /**
@@ -13,40 +16,35 @@ import { cn } from "@/lib/utils";
 const ROWS = [
   {
     name: "KOFFI Ama",
-    exam: "CT · Thorax",
-    state: "À lire",
+    state: "toRead",
     tone: "wait",
     urgent: true,
     age: "8 min",
   },
   {
     name: "MENSAH Kodjo",
-    exam: "MR · Crâne",
-    state: "En cours",
+    state: "inProgress",
     tone: "progress",
     urgent: false,
     age: "47 min",
   },
   {
     name: "SOGLO Yawa",
-    exam: "CR · Thorax",
-    state: "À lire",
+    state: "toRead",
     tone: "wait",
     urgent: false,
     age: "1 h",
   },
   {
     name: "AGBEKO Selom",
-    exam: "CT · Abdomen",
-    state: "Rendu",
+    state: "reported",
     tone: "done",
     urgent: false,
     age: "3 h",
   },
   {
     name: "DOSSEH Afi",
-    exam: "US · Pelvis",
-    state: "Attribué",
+    state: "assigned",
     tone: "wait",
     urgent: false,
     age: "2 h",
@@ -66,8 +64,21 @@ const TONES = {
  * L'aperçu est légèrement incliné et débordant du cadre, posé sur un
  * halo — il donne le ton sans prétendre être une capture exhaustive, et
  * l'inclinaison décourage d'essayer d'en lire le détail.
+ *
+ * Ses libellés suivent la langue de la page : une illustration dans une
+ * autre langue que le texte qui l'entoure se lirait comme une erreur.
+ *
+ * @param locale    Langue de la page.
+ * @param className Classes de placement.
  */
-export function AppPreview({ className }: { className?: string }) {
+export function AppPreview({
+  locale,
+  className,
+}: {
+  locale: Locale;
+  className?: string;
+}) {
+  const t = marketingCopy(locale).appPreview;
   return (
     <div className={cn("relative", className)}>
       <div
@@ -95,13 +106,16 @@ export function AppPreview({ className }: { className?: string }) {
           <span className="size-2 rounded-full bg-border-strong" />
           <span className="size-2 rounded-full bg-border-strong" />
           <span className="size-2 rounded-full bg-border-strong" />
-          <span className="ml-3 text-2xs text-tertiary">
-            IMAFRIK · file de lecture
-          </span>
+          {/* Le logotype lui-même, pas le nom composé en texte : l'aperçu
+              doit montrer l'application telle qu'elle est, marque comprise. */}
+          <Wordmark title="" className="ml-3 h-2.5" />
+          <span className="text-2xs text-tertiary">· {t.windowLabel}</span>
         </div>
 
         <div className="flex">
           <div className="hidden w-40 shrink-0 flex-col gap-1 border-r border-border-subtle p-3 sm:flex">
+            {/* Comme la barre latérale réelle : le logotype en tête. */}
+            <Wordmark title="" className="mb-2 h-3.5 self-start px-2" />
             <div className="flex h-7 items-center gap-2 rounded-md bg-accent-muted px-2">
               <span className="size-3 rounded-xs bg-accent/70" />
               <span className="h-1.5 w-14 rounded-full bg-accent/50" />
@@ -120,9 +134,14 @@ export function AppPreview({ className }: { className?: string }) {
           <div className="min-w-0 flex-1">
             <div className="grid grid-cols-3 gap-3 border-b border-border-subtle p-3">
               {[
-                { value: "3", label: "À lire", tone: "text-accent" },
-                { value: "2", label: "Urgences", tone: "text-urgent" },
-                { value: "1 h 50", label: "Délai moyen", tone: "text-primary" },
+                { value: "3", label: t.metrics.toRead, tone: "text-accent" },
+                { value: "2", label: t.metrics.urgent, tone: "text-urgent" },
+                {
+                  value: t.turnaroundValue,
+                  label: t.metrics.turnaround,
+                  short: t.metrics.turnaroundShort,
+                  tone: "text-primary",
+                },
               ].map((metric) => (
                 <div
                   key={metric.label}
@@ -131,13 +150,24 @@ export function AppPreview({ className }: { className?: string }) {
                   <p className={cn("text-lg font-semibold", metric.tone)}>
                     {metric.value}
                   </p>
-                  <p className="label-eyebrow mt-0.5">{metric.label}</p>
+                  {/* Libellé court sur téléphone : trois tuiles d'un tiers
+                      de 360 px ne laissent pas la place à « Délai moyen ». */}
+                  <p className="label-eyebrow mt-0.5 truncate">
+                    {"short" in metric ? (
+                      <>
+                        <span className="sm:hidden">{metric.short}</span>
+                        <span className="hidden sm:inline">{metric.label}</span>
+                      </>
+                    ) : (
+                      metric.label
+                    )}
+                  </p>
                 </div>
               ))}
             </div>
 
             <ul>
-              {ROWS.map((row) => (
+              {ROWS.map((row, index) => (
                 <li
                   key={row.name}
                   className={cn(
@@ -149,7 +179,7 @@ export function AppPreview({ className }: { className?: string }) {
                     {row.name}
                   </span>
                   <span className="hidden w-28 truncate text-xs text-secondary sm:block">
-                    {row.exam}
+                    {t.exams[index]}
                   </span>
                   <span
                     className={cn(
@@ -157,7 +187,7 @@ export function AppPreview({ className }: { className?: string }) {
                       TONES[row.tone],
                     )}
                   >
-                    {row.state}
+                    {t.states[row.state]}
                   </span>
                   <span className="ml-auto text-2xs text-tertiary tabular-nums">
                     {row.age}

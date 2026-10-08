@@ -1,14 +1,15 @@
 "use client";
 
-import { Download, FileText, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { FileText, Search, SearchX } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Input } from "@/components/ui/input";
 import { useSession } from "@/components/providers/session-provider";
 import { DateTime } from "@/components/domain/date-time";
-import type { Report } from "@/lib/data/reports";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -23,36 +24,33 @@ import { cn } from "@/lib/utils";
  *
  * La recherche est immédiate et locale : sur des dizaines de documents,
  * un aller-retour serveur à chaque frappe serait plus lent que le filtre
- * lui-même. Elle passera côté serveur le jour où la liste sera paginée.
+ * lui-même.
+ *
+ * Chaque examen arrive avec son compte-rendu résumé — identifiant,
+ * signataire, date — : la liste ne coûte qu'un appel, quel que soit le
+ * nombre de documents.
+ *
+ * @param studies Examens rendus, chacun avec son compte-rendu signé.
  */
-/** Un compte-rendu et l'examen dont il parle. */
-export interface ReportRow {
-  report: Report;
-  study: Study;
-}
-
-export function ReportsView({ rows: allRows }: { rows: ReportRow[] }) {
-  const router = useRouter();
+export function ReportsView({ studies }: { studies: Study[] }) {
   const { active } = useSession();
+  const t = useMessages().clinic.reports;
   const [query, setQuery] = React.useState("");
 
   const isClinic = active.role === "clinic_staff";
 
-  const rows = allRows.filter((row) => {
+  const rows = studies.filter((study) => {
+    if (!study.reportId) return false;
     const haystack =
-      `${row.study.patientName} ${row.study.patientId} ${row.study.modality} ${row.study.bodyPart ?? ""}`.toLowerCase();
+      `${study.patientName} ${study.patientId} ${study.modality} ${study.bodyPart ?? ""}`.toLowerCase();
     return haystack.includes(query.toLowerCase());
   });
 
   return (
     <>
       <PageHeader
-        title="Comptes-rendus"
-        description={
-          isClinic
-            ? "Documents signés et transmis à votre établissement"
-            : "Les comptes-rendus que vous avez signés"
-        }
+        title={t.title}
+        description={isClinic ? t.descriptionClinic : t.descriptionRadiologist}
         actions={
           <div className="relative w-64">
             <Search
@@ -62,38 +60,32 @@ export function ReportsView({ rows: allRows }: { rows: ReportRow[] }) {
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Patient, identifiant, modalité…"
-              aria-label="Rechercher un compte-rendu"
+              placeholder={t.searchPlaceholder}
+              aria-label={t.searchLabel}
               className="pl-8"
             />
           </div>
         }
       />
 
-      <div className="flex min-h-0 flex-1 flex-col px-6 pb-6">
-        <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        <Panel className="flex min-h-0 flex-col overflow-hidden">
           {rows.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-2 py-20">
-              <FileText className="size-5 text-tertiary" aria-hidden />
-              <p className="text-sm font-medium">
-                {query ? "Aucun résultat" : "Aucun compte-rendu"}
-              </p>
-              <p className="text-xs text-tertiary">
-                {query
-                  ? "Essayez un autre nom ou un autre identifiant."
-                  : "Les comptes-rendus signés apparaissent ici."}
-              </p>
-            </div>
+            <EmptyState
+              icon={query ? SearchX : FileText}
+              title={query ? t.noResult : t.empty}
+              detail={query ? t.noResultDetail : t.emptyDetail}
+            />
           ) : (
             <ul className="min-h-0 flex-1 divide-y divide-border-subtle overflow-auto">
-              {rows.map(({ report, study }) => (
-                <li key={report.id}>
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/comptes-rendus/${report.id}`)}
+              {rows.map((study) => (
+                <li key={study.reportId}>
+                  <Link
+                    href={`/comptes-rendus/${study.reportId}`}
                     className={cn(
                       "flex w-full items-center gap-4 px-4 py-3 text-left",
                       "transition-colors hover:bg-surface-hover",
+                      "focus-visible:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
                     )}
                   >
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-done-muted">
@@ -110,25 +102,36 @@ export function ReportsView({ rows: allRows }: { rows: ReportRow[] }) {
                     </span>
 
                     <span className="min-w-0 flex-1 truncate text-xs text-secondary">
-                      {study.modality} · {study.bodyPart}
+                      {study.modality}
+                      {study.bodyPart && ` · ${study.bodyPart}`}
                     </span>
 
                     <span className="min-w-0 flex-1 truncate text-xs text-secondary">
-                      {isClinic ? (report.signedBy ?? "—") : study.clinic}
+                      {isClinic ? (study.reportedBy ?? "—") : study.clinic}
                     </span>
 
-                    {report.signedAt && (
+                    {study.reportedAt && (
                       <DateTime
-                        date={report.signedAt}
+                        date={study.reportedAt}
                         className="shrink-0 text-2xs text-tertiary tabular-nums"
                       />
                     )}
 
-                    <Download
-                      className="size-3.5 shrink-0 text-tertiary"
-                      aria-hidden
-                    />
-                  </button>
+                    {isClinic && (
+                      <span
+                        className={cn(
+                          "w-24 shrink-0 text-right text-2xs font-medium",
+                          study.status === "reported"
+                            ? "text-accent"
+                            : "text-tertiary",
+                        )}
+                      >
+                        {study.status === "reported"
+                          ? t.toDownload
+                          : t.downloaded}
+                      </span>
+                    )}
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -1,13 +1,16 @@
+import "server-only";
+
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+import { SESSION_COOKIE_OPTIONS } from "@/lib/supabase/cookies";
 import { supabaseEnv } from "@/lib/supabase/env";
 
 /**
  * Client Supabase côté serveur.
  *
  * **Les jetons vivent dans des cookies `httpOnly`, jamais dans le
- * stockage local.** Un jeton lisible par du script est un jeton qu'une
+ * stockage local** — voir `SESSION_COOKIE_OPTIONS`. Un jeton lisible par du script est un jeton qu'une
  * seule faille d'injection suffit à voler — et il ouvrirait ici l'accès
  * à des images médicales. Le prix à payer est ce client, qui doit être
  * recréé à chaque requête pour lire les cookies de *cette* requête ; il
@@ -23,6 +26,7 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(url, anonKey, {
+    cookieOptions: SESSION_COOKIE_OPTIONS,
     cookies: {
       getAll() {
         return cookieStore.getAll();

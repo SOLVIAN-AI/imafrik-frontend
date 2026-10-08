@@ -1,33 +1,29 @@
 import type { Metadata } from "next";
 
-import { ReportsView, type ReportRow } from "@/components/domain/reports-view";
-import { getReportForStudy } from "@/lib/data/reports";
+import { ReportsView } from "@/components/domain/reports-view";
 import { listStudies } from "@/lib/data/studies";
+import { requireSession } from "@/lib/session/server";
+import { getMessages } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Comptes-rendus" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getMessages()).t.clinic.reports.title };
+}
 
 /**
  * Comptes-rendus signés.
  *
- * La liste part des examens rendus ou livrés, puis résout leur
- * compte-rendu : c'est l'examen qui porte le contexte — patient,
- * modalité, établissement — et un compte-rendu sans ce contexte ne veut
- * rien dire.
+ * La liste part des examens rendus ou livrés : c'est l'examen qui porte
+ * le contexte — patient, modalité, établissement — et le service le
+ * renvoie avec le résumé de son compte-rendu, en un seul appel.
  *
- * La recherche reste côté client tant que la liste tient en une page ;
- * elle passera au serveur avec la pagination.
+ * Pour un radiologue, seulement ceux qu'il a signés (`mine`) : l'écran
+ * l'annonce, et la liste montrait jusqu'ici tout le pool.
  */
 export default async function ReportsPage() {
-  const studies = await listStudies({ status: ["reported", "delivered"] });
-
-  const rows = (
-    await Promise.all(
-      studies.map(async (study) => {
-        const report = await getReportForStudy(study.id);
-        return report ? ({ report, study } satisfies ReportRow) : null;
-      }),
-    )
-  ).filter((row): row is ReportRow => row !== null);
-
-  return <ReportsView rows={rows} />;
+  const session = await requireSession(["clinic_staff", "radiologist"]);
+  const studies = await listStudies({
+    status: ["reported", "delivered"],
+    mine: session.active.role === "radiologist",
+  });
+  return <ReportsView studies={studies} />;
 }
