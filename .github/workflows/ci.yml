@@ -23,6 +23,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Lancement à la main, sur n'importe quelle branche (Actions → CI → Run
+  # workflow, ou `gh workflow run ci.yml --ref <branche>`) : utile pour
+  # vérifier une branche avant d'ouvrir sa pull request.
+  workflow_dispatch:
 
 # Un push qui en suit un autre annule la vérification devenue inutile :
 # c'est le dernier état de la branche qui compte.
