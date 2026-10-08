@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 
 import { getMessages } from "@/i18n/server";
 import { WorklistView } from "@/components/domain/worklist-view";
@@ -12,9 +13,47 @@ import {
   splitWorklist,
 } from "@/lib/worklist";
 
-/** Titre de l'onglet, dans la langue de l'utilisateur. */
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getMessages()).t.nav.items.worklist };
+/**
+ * File de lecture ouverte : ce qui reste à rendre, par échéance.
+ *
+ * Mise en cache le temps d'une requête (`cache` de React) : la page et ses
+ * métadonnées la lisent toutes deux, l'API n'est appelée qu'une fois.
+ *
+ * @param search Recherche en cours, relue du cookie lié au compte.
+ */
+const loadQueue = cache((search: string | undefined) =>
+  listStudyPage({
+    status: ["received", "assigned", "in_progress"],
+    search,
+    order: "deadline",
+    limit: STUDY_PAGE_LIMIT,
+  }),
+);
+
+/**
+ * Titre de l'onglet : « (2) À lire » quand des urgences attendent qu'on
+ * les prenne, pour qu'un radiologue les voie arriver depuis un autre
+ * onglet ou depuis le viewer.
+ *
+ * Calculé ici plutôt que dans le navigateur : Next écrit lui-même le titre
+ * d'après les métadonnées, après l'hydratation et à chaque actualisation de
+ * la file ; un compte posé à la main dans `document.title` disparaissait
+ * aussitôt. Même filtre que l'écran : les urgences libres visibles.
+ */
+export async function generateMetadata({
+  searchParams,
+}: PageProps<"/worklist">): Promise<Metadata> {
+  const { t } = await getMessages();
+  const session = await requireSession(["radiologist"]);
+  const filters = parseFilters(await searchParams);
+  const search = await readListSearch("worklist", session);
+  const { studies } = await loadQueue(search);
+  const urgent = splitWorklist(
+    applyFilters(studies, filters),
+    session.user.id,
+  ).open.filter((study) => study.urgent).length;
+  const title = t.nav.items.worklist;
+  return { title: urgent > 0 ? `(${urgent}) ${title}` : title };
 }
 
 /**
@@ -39,12 +78,7 @@ export default async function WorklistPage({
   const filters = parseFilters(await searchParams);
   const search = await readListSearch("worklist", session);
 
-  const { studies, total } = await listStudyPage({
-    status: ["received", "assigned", "in_progress"],
-    search,
-    order: "deadline",
-    limit: STUDY_PAGE_LIMIT,
-  });
+  const { studies, total } = await loadQueue(search);
 
   return (
     <WorklistView

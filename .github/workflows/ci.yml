@@ -12,9 +12,10 @@
 # silence — les schémas zod restent de toute façon vérifiés à la
 # compilation contre les types générés.
 #
-# Ce qui n'est pas ici : les tests de bout en bout, qui demandent un
-# environnement complet (Supabase, API, Orthanc) et tournent sur la
-# préproduction.
+# Les parcours de bout en bout (job `e2e`) tournent ici contre le mode
+# démonstration : une compilation de production sans Supabase ni API,
+# servie par `next start`. Ceux qui demandent un environnement complet
+# (Supabase, API, Orthanc) tournent sur la préproduction.
 
 name: CI
 
@@ -22,6 +23,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Lancement à la main, sur n'importe quelle branche (Actions → CI → Run
+  # workflow, ou `gh workflow run ci.yml --ref <branche>`) : utile pour
+  # vérifier une branche avant d'ouvrir sa pull request.
+  workflow_dispatch:
 
 # Un push qui en suit un autre annule la vérification devenue inutile :
 # c'est le dernier état de la branche qui compte.
@@ -94,3 +99,51 @@ jobs:
 
       - name: Compilation
         run: npm run build
+
+  e2e:
+    name: Parcours de bout en bout
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Mode démonstration : ces variables vides font servir le jeu de
+    # démonstration intégré, à la compilation comme au démarrage.
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ""
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ""
+      NEXT_PUBLIC_API_URL: ""
+      NEXT_PUBLIC_SITE_URL: ""
+      NEXT_PUBLIC_VIEWER_URL: ""
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Installer Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Compiler en mode démonstration
+        run: npm run build
+
+      # La compilation est faite : le serveur de test démarre sans la refaire.
+      - name: Parcours de bout en bout
+        run: npm run test:e2e
+        env:
+          E2E_SKIP_BUILD: "1"
+
+      - name: Publier le rapport
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-playwright
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
