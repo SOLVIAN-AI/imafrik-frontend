@@ -57,6 +57,9 @@ export function InviteDialog({
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
+  // Rôle choisi : un radiologue appelle un rappel sur la validation de son
+  // numéro d'ordre.
+  const [role, setRole] = React.useState<UserRole>(roles[0]);
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -122,7 +125,12 @@ export function InviteDialog({
             </Field>
             {roles.length > 1 ? (
               <Field id="invite-role" label={messages.role}>
-                <Select id="invite-role" name="role" defaultValue={roles[0]}>
+                <Select
+                  id="invite-role"
+                  name="role"
+                  value={role}
+                  onChange={(event) => setRole(event.target.value as UserRole)}
+                >
                   {roles.map((role) => (
                     <option key={role} value={role}>
                       {t.common.roles[role]}
@@ -132,6 +140,11 @@ export function InviteDialog({
               </Field>
             ) : (
               <input type="hidden" name="role" value={roles[0]} />
+            )}
+            {role === "radiologist" && (
+              <p className="rounded-lg bg-progress-muted px-3 py-2.5 text-2xs leading-relaxed text-progress">
+                {messages.radiologistNote}
+              </p>
             )}
             {error && (
               <p role="alert" className="text-xs text-urgent">

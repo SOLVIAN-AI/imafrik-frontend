@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Section } from "@/components/marketing/section";
 import { Button } from "@/components/ui/button";
 import { marketingCopy } from "@/content/marketing";
+import { REQUESTER_PARAM } from "@/lib/contact-form";
 import type { Locale } from "@/lib/i18n/locale";
 import { ANCHORS, localizePath } from "@/lib/i18n/routes";
 import { cn } from "@/lib/utils";
@@ -28,8 +29,18 @@ import { cn } from "@/lib/utils";
 export function Audiences({ locale }: { locale: Locale }) {
   const t = marketingCopy(locale).audiences;
   const audiences = [
-    { key: "clinics", ...t.clinics, featured: true },
-    { key: "radiologists", ...t.radiologists, featured: false },
+    {
+      key: "clinics",
+      ...t.clinics,
+      featured: true,
+      requester: REQUESTER_PARAM.clinic,
+    },
+    {
+      key: "radiologists",
+      ...t.radiologists,
+      featured: false,
+      requester: REQUESTER_PARAM.radiologist,
+    },
   ];
   return (
     <Section
@@ -87,7 +98,10 @@ export function Audiences({ locale }: { locale: Locale }) {
               className="relative mt-8 self-start"
               asChild
             >
-              <Link href={localizePath("/contact", locale)}>
+              {/* Le formulaire s'ouvre sur le bon demandeur. */}
+              <Link
+                href={`${localizePath("/contact", locale)}?profil=${audience.requester}`}
+              >
                 {audience.cta}
               </Link>
             </Button>

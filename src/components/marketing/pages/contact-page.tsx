@@ -1,12 +1,20 @@
 "use client";
 
 import { CheckCircle2, Mail, MapPin } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { marketingCopy, fill } from "@/content/marketing";
 import { submitContact } from "@/lib/actions/contact";
+import {
+  type ContactFieldError,
+  LICENSE_NUMBER_MAX_LENGTH,
+  requesterFromSearch,
+  validateContactForm,
+} from "@/lib/contact-form";
+import { REQUESTER_KINDS, type RequesterKind } from "@/lib/contact-status";
 import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +37,19 @@ import { cn } from "@/lib/utils";
  * reste en français, la langue du back-office, et porte la langue du
  * demandeur : l'équipe lui répond dans la sienne.
  *
+ * **Qui écrit ?** La première question, obligatoire : un établissement de
+ * santé ou un radiologue. Les deux demandes ne suivent pas le même chemin.
+ * Un établissement se nomme, décrit son volume ; un radiologue déclare son
+ * numéro d'ordre, que l'équipe IMAFRIK vérifie auprès de l'Ordre avant de
+ * lui ouvrir le moindre accès, et l'établissement où il exerce devient
+ * facultatif. Les boutons « Rejoindre le réseau » et « Demander une
+ * démonstration » de l'accueil présélectionnent la réponse
+ * (`?profil=radiologue`).
+ *
+ * Les erreurs s'affichent sous chaque champ au premier envoi, puis se
+ * mettent à jour pendant la correction ; le focus va au premier champ à
+ * corriger.
+ *
  * @param locale Langue de la page.
  */
 export function ContactPage({ locale }: { locale: Locale }) {
@@ -37,41 +58,69 @@ export function ContactPage({ locale }: { locale: Locale }) {
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
   const [trap, setTrap] = React.useState("");
+  // Choix explicite de la personne ; à défaut, celui de l'adresse
+  // (`?profil=radiologue`), posé par les boutons de l'accueil.
+  const searchParams = useSearchParams();
+  const [chosenKind, setRequesterKind] = React.useState<RequesterKind | null>(
+    null,
+  );
+  const requesterKind =
+    chosenKind ?? requesterFromSearch(searchParams.toString());
   const [form, setForm] = React.useState({
     name: "",
     organization: "",
     role: "",
     email: "",
     phone: "",
+    licenseNumber: "",
     volume: t.volumes[1],
     message: "",
   });
   const [modalities, setModalities] = React.useState<string[]>([]);
+  // Les erreurs ne s'affichent qu'après une première tentative d'envoi :
+  // un champ signalé avant même d'avoir été rempli décourage.
+  const [showErrors, setShowErrors] = React.useState(false);
+  const formRef = React.useRef<HTMLFormElement>(null);
 
-  const valid =
-    form.name.trim().length >= 3 &&
-    form.organization.trim().length >= 2 &&
-    form.email.includes("@");
+  const radiologist = requesterKind === "radiologist";
+  const invalid = validateContactForm({
+    requesterKind,
+    name: form.name,
+    organization: form.organization,
+    email: form.email,
+    licenseNumber: form.licenseNumber,
+  });
+  const fieldError = (field: ContactFieldError) =>
+    showErrors && invalid.includes(field) ? t.errors[field] : undefined;
 
   const update = (key: keyof typeof form) => (value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!valid) return;
+    if (requesterKind === null || invalid.length > 0) {
+      setShowErrors(true);
+      // Le focus va au premier champ à corriger : son message est lu.
+      formRef.current
+        ?.querySelector<HTMLElement>(`[data-field="${invalid[0]}"]`)
+        ?.focus();
+      return;
+    }
     setError(null);
     const context = [
       `Langue : ${locale === "en" ? "anglais" : "français"}`,
-      form.role && `Fonction : ${form.role}`,
-      `Volume : ${form.volume}`,
+      !radiologist && form.role && `Fonction : ${form.role}`,
+      !radiologist && `Volume : ${form.volume}`,
       modalities.length > 0 && `Modalités : ${modalities.join(", ")}`,
     ]
       .filter(Boolean)
       .join("\n");
     startTransition(async () => {
       const result = await submitContact({
+        requesterKind,
         fullName: form.name,
         organization: form.organization,
+        licenseNumber: radiologist ? form.licenseNumber : "",
         email: form.email,
         phone: form.phone,
         message: form.message.trim()
@@ -130,53 +179,178 @@ export function ContactPage({ locale }: { locale: Locale }) {
             </span>
             <h2 className="mt-5 text-xl font-semibold">{t.sentTitle}</h2>
             <p className="mt-2 text-sm leading-relaxed text-secondary">
-              {fill(t.sentText, {
+              {fill(radiologist ? t.sentTextRadiologist : t.sentText, {
                 name: form.name.trim().split(/\s+/)[0],
                 email: form.email.trim(),
               })}
             </p>
           </div>
         ) : (
-          <form onSubmit={submit} className="relative flex flex-col gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field id="name" label={t.fields.name}>
+          <form
+            ref={formRef}
+            onSubmit={submit}
+            noValidate
+            className="relative flex flex-col gap-4"
+          >
+            <fieldset
+              aria-describedby={
+                fieldError("requesterKind") ? "requesterKind-error" : undefined
+              }
+            >
+              <legend className="text-xs font-medium text-secondary">
+                {t.requester.legend}
+              </legend>
+              <div
+                role="radiogroup"
+                aria-required="true"
+                className="mt-2 grid gap-2 sm:grid-cols-2"
+              >
+                {REQUESTER_KINDS.map((kind, index) => {
+                  const selected = requesterKind === kind;
+                  return (
+                    <label
+                      key={kind}
+                      className={cn(
+                        "flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 transition-colors duration-100",
+                        selected
+                          ? "border-accent/40 bg-accent-muted"
+                          : fieldError("requesterKind")
+                            ? "border-urgent/50 hover:bg-surface-hover"
+                            : "border-border-default hover:border-border-strong hover:bg-surface-hover",
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="requesterKind"
+                        value={kind}
+                        checked={selected}
+                        onChange={() => setRequesterKind(kind)}
+                        // Le focus d'erreur va à la première option.
+                        data-field={index === 0 ? "requesterKind" : undefined}
+                        className="mt-0.5 size-4 shrink-0 accent-[var(--accent)]"
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium">
+                          {t.requester[kind]}
+                        </span>
+                        <span className="mt-1 block text-xs leading-relaxed text-tertiary">
+                          {kind === "clinic"
+                            ? t.requester.clinicDetail
+                            : t.requester.radiologistDetail}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              {fieldError("requesterKind") && (
+                <p
+                  id="requesterKind-error"
+                  className="mt-1.5 text-2xs text-urgent"
+                >
+                  {fieldError("requesterKind")}
+                </p>
+              )}
+            </fieldset>
+
+            <div className={cn("grid gap-4", !radiologist && "sm:grid-cols-2")}>
+              <Field id="name" label={t.fields.name} error={fieldError("name")}>
                 <Input
                   id="name"
+                  data-field="name"
                   value={form.name}
                   onChange={(event) => update("name")(event.target.value)}
                   autoComplete="name"
+                  required
+                  aria-invalid={Boolean(fieldError("name"))}
+                  aria-describedby={
+                    fieldError("name") ? "name-description" : undefined
+                  }
                   className="h-10"
                 />
               </Field>
-              <Field id="role" label={t.fields.role}>
-                <Input
-                  id="role"
-                  value={form.role}
-                  onChange={(event) => update("role")(event.target.value)}
-                  placeholder={t.fields.rolePlaceholder}
-                  className="h-10"
-                />
-              </Field>
+              {!radiologist && (
+                <Field id="role" label={t.fields.role}>
+                  <Input
+                    id="role"
+                    value={form.role}
+                    onChange={(event) => update("role")(event.target.value)}
+                    placeholder={t.fields.rolePlaceholder}
+                    className="h-10"
+                  />
+                </Field>
+              )}
             </div>
 
-            <Field id="organization" label={t.fields.organization}>
+            {radiologist && (
+              <Field
+                id="licenseNumber"
+                label={t.fields.licenseNumber}
+                hint={t.fields.licenseNumberHint}
+                error={fieldError("licenseNumber")}
+              >
+                <Input
+                  id="licenseNumber"
+                  data-field="licenseNumber"
+                  value={form.licenseNumber}
+                  onChange={(event) =>
+                    update("licenseNumber")(event.target.value)
+                  }
+                  maxLength={LICENSE_NUMBER_MAX_LENGTH}
+                  autoComplete="off"
+                  required
+                  aria-invalid={Boolean(fieldError("licenseNumber"))}
+                  aria-describedby="licenseNumber-description"
+                  className="h-10"
+                />
+              </Field>
+            )}
+
+            <Field
+              id="organization"
+              label={
+                radiologist
+                  ? t.fields.organizationRadiologist
+                  : t.fields.organization
+              }
+              hint={radiologist ? t.fields.optional : undefined}
+              error={fieldError("organization")}
+            >
               <Input
                 id="organization"
+                data-field="organization"
                 value={form.organization}
                 onChange={(event) => update("organization")(event.target.value)}
                 autoComplete="organization"
+                required={!radiologist}
+                aria-invalid={Boolean(fieldError("organization"))}
+                aria-describedby={
+                  radiologist || fieldError("organization")
+                    ? "organization-description"
+                    : undefined
+                }
                 className="h-10"
               />
             </Field>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field id="email" label={t.fields.email}>
+              <Field
+                id="email"
+                label={t.fields.email}
+                error={fieldError("email")}
+              >
                 <Input
                   id="email"
+                  data-field="email"
                   type="email"
                   value={form.email}
                   onChange={(event) => update("email")(event.target.value)}
                   autoComplete="email"
+                  required
+                  aria-invalid={Boolean(fieldError("email"))}
+                  aria-describedby={
+                    fieldError("email") ? "email-description" : undefined
+                  }
                   className="h-10"
                 />
               </Field>
@@ -187,30 +361,33 @@ export function ContactPage({ locale }: { locale: Locale }) {
                   value={form.phone}
                   onChange={(event) => update("phone")(event.target.value)}
                   autoComplete="tel"
+                  aria-describedby="phone-description"
                   className="h-10"
                 />
               </Field>
             </div>
 
-            <Field id="volume" label={t.fields.volume}>
-              <select
-                id="volume"
-                value={form.volume}
-                onChange={(event) => update("volume")(event.target.value)}
-                className={cn(
-                  "h-10 w-full rounded-md px-2.5 text-sm",
-                  "border border-border-default bg-surface-base",
-                  "transition-colors hover:border-border-strong",
-                  "focus:border-accent focus:outline-none",
-                )}
-              >
-                {t.volumes.map((volume) => (
-                  <option key={volume} value={volume}>
-                    {volume}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            {!radiologist && (
+              <Field id="volume" label={t.fields.volume}>
+                <select
+                  id="volume"
+                  value={form.volume}
+                  onChange={(event) => update("volume")(event.target.value)}
+                  className={cn(
+                    "h-10 w-full rounded-md px-2.5 text-sm",
+                    "border border-border-default bg-surface-base",
+                    "transition-colors hover:border-border-strong",
+                    "focus:border-accent focus:outline-none",
+                  )}
+                >
+                  {t.volumes.map((volume) => (
+                    <option key={volume} value={volume}>
+                      {volume}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
 
             <fieldset>
               <legend className="text-xs font-medium text-secondary">
@@ -286,7 +463,6 @@ export function ContactPage({ locale }: { locale: Locale }) {
               type="submit"
               size="lg"
               loading={pending}
-              disabled={!valid}
               className="mt-2 h-10"
             >
               {t.submit}

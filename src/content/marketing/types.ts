@@ -154,11 +154,25 @@ export interface MarketingCopy {
     sentTitle: string;
     /** `{name}` et `{email}` sont remplacés. */
     sentText: string;
+    /** Variante pour un radiologue ; `{name}` et `{email}` sont remplacés. */
+    sentTextRadiologist: string;
+    /** Choix « Je suis », obligatoire. */
+    requester: {
+      legend: string;
+      clinic: string;
+      clinicDetail: string;
+      radiologist: string;
+      radiologistDetail: string;
+    };
     fields: {
       name: string;
       role: string;
       rolePlaceholder: string;
       organization: string;
+      /** Établissement, pour un radiologue : facultatif. */
+      organizationRadiologist: string;
+      licenseNumber: string;
+      licenseNumberHint: string;
       email: string;
       phone: string;
       optional: string;
@@ -171,7 +185,10 @@ export interface MarketingCopy {
     modalityOptions: string[];
     submit: string;
     errors: {
+      requesterKind: string;
       name: string;
+      organization: string;
+      licenseNumber: string;
       email: string;
       rateLimited: string;
       unavailable: string;

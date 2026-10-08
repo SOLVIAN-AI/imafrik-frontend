@@ -279,7 +279,9 @@ function CredentialRow({ user, t }: { user: AdminUser; t: AppMessages }) {
   });
   return (
     <div
-      className="col-span-2 flex flex-wrap items-center gap-x-3 gap-y-2 md:col-span-4"
+      // Dernière rangée de la ligne, sous les actions de la double
+      // authentification placées en dernière colonne à partir de 768 px.
+      className="order-last col-span-2 flex flex-wrap items-center gap-x-3 gap-y-2 md:col-span-4"
       data-credentials-row={status}
     >
       <CredentialChip status={status} label={text.status[status]} />

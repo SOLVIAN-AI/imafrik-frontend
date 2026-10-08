@@ -177,6 +177,9 @@ export const clinic = {
     email: "Adresse électronique",
     role: "Rôle",
     submit: "Envoyer l’invitation",
+    /** Rappel quand le rôle choisi est celui de radiologue. */
+    radiologistNote:
+      "Un radiologue n’accède aux examens qu’après la vérification de son numéro d’ordre par l’équipe IMAFRIK. Il le renseigne lui-même à sa première connexion.",
     added: (name: string, organization: string) =>
       `${name} a été ajouté(e) à ${organization}.`,
   },

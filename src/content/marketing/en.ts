@@ -239,6 +239,11 @@ export const en: MarketingCopy = {
           "A named radiologist, registered with a professional medical council, whose registration number appears on the document. Responsibility for the interpretation lies with them, just as it would for an examination read on site. IMAFRIK ensures transmission and traceability.",
       },
       {
+        question: "Who creates accounts, and how are radiologists admitted?",
+        answer:
+          "Your facility creates the accounts for its own staff from its portal. A radiologist who wishes to read for the network applies through the contact form, giving their registration number. The IMAFRIK team checks it with the medical council: until this is done, no examinations are accessible to them, even if a clinic has invited them.",
+      },
+      {
         question: "Where are our patients’ images stored?",
         answer:
           "On the gateway in your facility, and on our servers in the European Union, encrypted. They remain the property of your facility, which receives a full export on request. How long they are kept on our servers is set in the contract.",
@@ -333,11 +338,26 @@ export const en: MarketingCopy = {
     sentTitle: "Request sent",
     sentText:
       "Thank you, {name}. We will get back to you at {email} to suggest a time.",
+    sentTextRadiologist:
+      "Thank you, {name}. The IMAFRIK team will check your registration number with the medical council, then get back to you at {email}. Access to examinations opens once this check is complete.",
+    requester: {
+      legend: "I am",
+      clinic: "A healthcare facility",
+      clinicDetail:
+        "Clinic, hospital or imaging centre: you would like your examinations to be read.",
+      radiologist: "A radiologist",
+      radiologistDetail:
+        "You would like to read examinations for the network. Your registration number is verified before any access.",
+    },
     fields: {
       name: "Full name",
       role: "Job title",
       rolePlaceholder: "Director, radiographer, radiologist…",
       organization: "Facility",
+      organizationRadiologist: "Where you practise",
+      licenseNumber: "Registration number",
+      licenseNumberHint:
+        "Your medical council registration number, as it will appear below your signature.",
       email: "Email address",
       phone: "Phone",
       optional: "Optional.",
@@ -357,7 +377,12 @@ export const en: MarketingCopy = {
     modalityOptions: ["CT", "MRI", "X-ray (CR/DX)", "Ultrasound (US)"],
     submit: "Send request",
     errors: {
+      requesterKind:
+        "Please say whether you are writing for a healthcare facility or as a radiologist.",
       name: "Please enter your name.",
+      organization: "Please enter the name of your facility.",
+      licenseNumber:
+        "Please enter your registration number (50 characters at most).",
       email: "Please enter a valid email address.",
       rateLimited:
         "Too many requests from this connection. Please try again in an hour, or email us at contact@imafrik.tech",
