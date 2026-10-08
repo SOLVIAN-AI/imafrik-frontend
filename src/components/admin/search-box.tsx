@@ -31,9 +31,11 @@ export function SearchBox({
   const [pending, startTransition] = React.useTransition();
 
   return (
+    // Largeur minimale : sur téléphone, à côté d'un sélecteur à segments,
+    // le champ passe à la ligne plutôt que de se réduire à trois lettres.
     <form
       role="search"
-      className="min-w-0 flex-1 sm:flex-none"
+      className="min-w-40 flex-1 sm:flex-none"
       onSubmit={(event) => {
         event.preventDefault();
         const value = String(new FormData(event.currentTarget).get("q") ?? "")

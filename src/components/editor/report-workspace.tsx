@@ -353,6 +353,12 @@ export function ReportWorkspace({
         return "saved";
       }
       if (result?.status === 409) return "conflict";
+      // Refus explicite du service (numéro d'ordre dont la validation a
+      // été retirée, par exemple) : son message est dit une fois, pas à
+      // chaque tentative. Le texte reste gardé sur le poste.
+      if (result && !result.ok && result.status === 403) {
+        toast.error(result.error, { id: "report-save-forbidden" });
+      }
       const key = await backupKey;
       if (key) {
         await writeReportBackup(key, author.reportId, {

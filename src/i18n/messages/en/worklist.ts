@@ -70,6 +70,20 @@ export const worklist: AppMessages["worklist"] = {
       detail: "Claim an examination from the “To read” worklist.",
     },
   },
+  credentials: {
+    missing: {
+      title: "Add your registration number",
+      detail:
+        "Examinations will be shown once you have added your registration number in your settings and the IMAFRIK team has verified it.",
+      action: "Open settings",
+    },
+    pending: {
+      title: "Registration number being verified",
+      detail:
+        "The IMAFRIK team is checking your registration number with the medical council. Examinations will appear here once it is verified.",
+    },
+    why: "A signed report commits a physician: their right to practise is checked before any access to examinations.",
+  },
   filters: {
     modalities: "Modalities",
     clinic: "Clinic",

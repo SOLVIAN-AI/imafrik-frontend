@@ -19,15 +19,24 @@ import {
 
 /** Pages auditées, par portail ; `null` pour le site public. */
 const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
-  { membership: null, paths: ["/", "/en/security", "/connexion"] },
+  {
+    membership: null,
+    paths: ["/", "/en/security", "/connexion", "/contact?profil=radiologue"],
+  },
   {
     membership: "m-radio",
-    paths: ["/worklist", "/lecture/1", "/comptes-rendus"],
+    paths: ["/worklist", "/lecture/1", "/comptes-rendus", "/parametres"],
   },
   { membership: "m-clinic", paths: ["/tableau-de-bord", "/examens/1"] },
   {
     membership: "m-admin",
-    paths: ["/admin", "/admin/activite", "/admin/facturation"],
+    paths: [
+      "/admin",
+      "/admin/activite",
+      "/admin/facturation",
+      "/admin/utilisateurs?validation=attente",
+      "/admin/demandes?etat=all",
+    ],
   },
 ];
 

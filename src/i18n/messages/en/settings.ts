@@ -15,7 +15,23 @@ export const settings: AppMessages["settings"] = {
       "Printed before your name, for example “Dr” or “Prof”.",
     titleHintStaff: "Your position in the facility.",
     license: "Registration number",
-    licenseHint: "Printed below your signature.",
+    licenseHint:
+      "Printed below your signature. The IMAFRIK team verifies it before giving access to examinations.",
+    licenseStatus: {
+      verified: "Verified by IMAFRIK",
+      pending: "Being verified",
+      missing: "Not provided",
+    },
+    licenseChangeWarning:
+      "A new number has to be verified again by the IMAFRIK team. Until then, you will no longer have access to examinations.",
+    licenseChangeConfirm: {
+      title: "Change your registration number?",
+      description: (previous: string, next: string) =>
+        next
+          ? `Number ${previous} will be replaced by ${next}. The IMAFRIK team will have to verify the new number: until then, you will no longer have access to examinations, and those you have claimed may be passed to a colleague.`
+          : `Number ${previous} will be removed from your profile. Without a registration number, you will no longer have access to examinations.`,
+      submit: "Save and request verification",
+    },
     saved: "Profile saved.",
     nameRequired: "Your name is required",
   },

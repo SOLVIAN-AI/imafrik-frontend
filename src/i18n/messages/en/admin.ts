@@ -368,6 +368,46 @@ export const admin: AppMessages["admin"] = {
     mfaRequired: "Required for radiologists and administrators",
     mfaMissing: "MFA missing",
     mfaNone: "No MFA",
+    unverifiedFilter: "To verify",
+    unverifiedTitle: "Registration numbers to verify",
+    unverifiedDescription:
+      "Radiologists whose registration number is awaiting verification by the IMAFRIK team: until then, they cannot see any examinations.",
+    noUnverified: "No registration numbers to verify",
+    unverifiedHint:
+      "A radiologist appears here once attached to an organisation, and again if they change their registration number.",
+  },
+
+  credentials: {
+    status: {
+      verified: "Number verified",
+      pending: "To verify",
+      missing: "Number missing",
+    },
+    verifiedOn: "Verified on",
+    licenseLabel: "Reg. no.",
+    verify: {
+      trigger: "Verify registration number",
+      title: (name: string) => `Verify ${name}’s registration number`,
+      description:
+        "Check with the medical council that this number is registered to this person and allows them to practise. Verification gives immediate access to examinations; it is recorded in the audit log together with the number checked.",
+      numberLabel:
+        "Number to check, as it will be printed below their signature",
+      submit: "Verify this number",
+      done: (name: string) => `${name}’s registration number verified.`,
+      missing:
+        "No registration number provided: the radiologist must enter it in their settings before it can be verified.",
+    },
+    revoke: {
+      trigger: "Withdraw verification",
+      title: (name: string) => `Withdraw ${name}’s verification`,
+      description:
+        "This person immediately loses access to examinations. Those they have claimed but not yet signed return to the pool, and their drafts for these examinations are deleted. Reports already signed are not affected.",
+      submit: "Withdraw verification",
+      done: (name: string, released: number) =>
+        released === 0
+          ? `${name}’s verification withdrawn.`
+          : `${name}’s verification withdrawn: ${released} examination${released === 1 ? "" : "s"} returned to the pool.`,
+    },
   },
 
   grant: {
@@ -416,6 +456,18 @@ export const admin: AppMessages["admin"] = {
     notesLabel: "Team notes",
     notesPlaceholder: "Notes: call-back scheduled, quote sent…",
     saved: "Follow-up saved.",
+    requester: "Requester",
+    allRequesters: "All",
+    requesterKind: {
+      clinic: "Healthcare facility",
+      radiologist: "Radiologist",
+    },
+    requesterKindPlural: {
+      clinic: "Facilities",
+      radiologist: "Radiologists",
+    },
+    license: "Declared registration number",
+    licenseMissing: "Registration number not provided",
   },
 
   billing: {
@@ -503,6 +555,8 @@ export const admin: AppMessages["admin"] = {
       "organization.report_language_changed": "Report language changed",
       "organization.exported": "Organisation data exported",
       "user.mfa_reset": "Two-factor authentication reset",
+      "user.credentials_verified": "Registration number verified",
+      "user.credentials_revoked": "Registration number verification withdrawn",
       "platform.settings_changed": "Settings changed",
       "contact_request.tracked": "Contact request followed up",
     },
@@ -577,6 +631,7 @@ export const admin: AppMessages["admin"] = {
     grant: "Attaching an account",
     tracking: "Following up on requests",
     mfaReset: "Resetting two-factor authentication",
+    credentials: "Verifying registration numbers",
     retention: "Changing the retention period",
     reportLanguage: "Changing the report language",
     suspension: "Suspending an organisation",
@@ -592,6 +647,10 @@ export const admin: AppMessages["admin"] = {
       clinicSilent: (clinic: string, hours: number) =>
         `${clinic} has sent nothing for ${hours} h: check the gateway`,
       hostWatchFailed: "Host monitoring failed: /var disk at 83%",
+      unverifiedRadiologists: (count: number) =>
+        count === 1
+          ? "1 radiologist is awaiting verification of their registration number"
+          : `${count} radiologists are awaiting verification of their registration number`,
       newRequests: (count: number) =>
         `${count} contact request${count === 1 ? " is" : "s are"} awaiting a reply`,
     },

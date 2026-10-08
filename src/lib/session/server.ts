@@ -85,7 +85,9 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
   const [{ data: profile }, { data: rows }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, title, active_membership_id, locale")
+      .select(
+        "full_name, title, license_number, credentials_verified_at, active_membership_id, locale",
+      )
       .eq("id", user.id)
       .single(),
     supabase
@@ -139,6 +141,8 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
       email: user.email ?? "",
       fullName: profile?.full_name ?? user.email ?? "",
       title: profile?.title ?? "",
+      hasLicenseNumber: Boolean(profile?.license_number?.trim()),
+      credentialsVerified: Boolean(profile?.credentials_verified_at),
     },
     memberships,
     active,

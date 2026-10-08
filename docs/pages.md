@@ -199,11 +199,11 @@ travail au premier rechargement.
 
 | Route | Étape | Phase |
 | --- | --- | --- |
-| `/bienvenue/profil` | Identité, spécialité, sur-spécialités lues. | V1 |
+| `/bienvenue/profil` | Identité et numéro d'ordre (obligatoire, vérifié par l'équipe IMAFRIK avant tout accès aux examens). **Fait.** | V1 |
 | `/bienvenue/qualifications` | Numéro d'ordre, diplômes, assurance en responsabilité civile professionnelle. Pièces jointes. | V2 |
 | `/bienvenue/signature` | Bloc de signature apposé au bas des comptes-rendus : titre, mention légale, image de signature. | V1 |
 | `/bienvenue/preferences` | Modalités et régions lues, disponibilités, notifications. Alimente l'affectation des examens. | V2 |
-| `/bienvenue/validation` | Écran d'attente pendant l'examen du dossier par IMAFRIK. | V2 |
+| `/bienvenue/validation` | Écran d'attente pendant l'examen du dossier par IMAFRIK. Pour l'instant, l'étape `/bienvenue/termine` explique l'attente de validation du numéro d'ordre. | V2 |
 
 **10 étapes, une coquille.**
 
@@ -260,9 +260,9 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | `/admin/flux` | Flux d'images examen par examen : débit de réception, frise acquisition → remise. | Fait |
 | `/admin/organisations` | Volumes sur 30 jours, dernier envoi, suspension, invitation. | Fait |
 | `/admin/organisations/[id]` | Mise en service d'une clinique, activité, **durée de conservation des images**. | Fait |
-| `/admin/utilisateurs` | Comptes : rattachement des radiologues en attente, double authentification, réinitialisation. | Fait |
+| `/admin/utilisateurs` | Comptes : rattachement, **validation des numéros d'ordre** (filtre « À valider », `?validation=attente`), double authentification, réinitialisation. | Fait |
 | `/admin/examens` | Recherche globale, urgences en cours. | Fait |
-| `/admin/demandes` | Demandes reçues par le site, suivi et notes. | Fait |
+| `/admin/demandes` | Demandes reçues par le site (établissement ou radiologue, numéro d'ordre déclaré), suivi et notes. | Fait |
 | `/admin/facturation` | Actes du mois par clinique et modalité, export CSV protégé contre l'injection de formules. | Fait |
 | `/admin/systeme` | Dépendances, PACS, version, filets de sécurité (sauvegardes, exercices, réconciliation, conservation). | Fait |
 | `/admin/audit` | Journal d'audit, filtré par action, paginé par curseur. | Fait |
@@ -270,6 +270,40 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | `/admin/contrats` | Qui sert qui (`service_contracts`). | V2 (en SQL pour l'instant) |
 
 **13 écrans.**
+
+### Qui crée les comptes, et la validation des radiologues
+
+- **Personnel d'une clinique** : créé par la clinique elle-même, depuis
+  `/equipe` (invitation par courriel). L'équipe IMAFRIK n'intervient pas.
+- **Radiologues** : un radiologue fait sa demande par le formulaire de
+  contact du site (« Je suis : un radiologue »), avec son numéro d'ordre,
+  ou il est invité par la clinique qui l'emploie ou par l'équipe IMAFRIK.
+  Dans tous les cas, **il n'accède à aucun examen tant que l'équipe
+  IMAFRIK n'a pas validé son numéro d'ordre** : la base lui masque tous
+  les examens et le service refuse prise en charge, rendu, brouillon,
+  enregistrement, signature et addenda (403, message explicite).
+
+Le parcours :
+
+1. Le radiologue renseigne son numéro d'ordre : étape « profil » de la
+   mise en service (champ obligatoire), ou `/parametres`. La dernière
+   étape de la mise en service, sa file et « Mes examens » lui disent
+   ensuite que la vérification est en cours, et pourquoi.
+2. Le cockpit signale les radiologues en attente (alerte
+   `unverified_radiologists`), qui mène à `/admin/utilisateurs?validation=attente`.
+3. L'équipe vérifie le numéro **auprès de l'Ordre des médecins**, hors de
+   la plateforme, puis le valide : la confirmation affiche le numéro
+   exact, celui qui sera imprimé sous la signature. Le geste est tracé
+   (`user.credentials_verified`, avec le numéro).
+4. Retirer la validation (`user.credentials_revoked`) coupe l'accès à la
+   requête suivante et rend au pool les examens en cours de ce
+   radiologue ; ses brouillons sur ces examens sont effacés.
+5. Un radiologue qui change de numéro perd sa validation (déclencheur en
+   base) : les paramètres l'en avertissent et demandent confirmation.
+
+En démonstration, deux radiologues attendent leur validation (l'un sans
+numéro), l'alerte du cockpit est présente, et les gestes de validation
+répondent « indisponible en démonstration ».
 
 ---
 

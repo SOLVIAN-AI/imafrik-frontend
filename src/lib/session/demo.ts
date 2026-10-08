@@ -41,6 +41,9 @@ export const DEMO_MEMBERSHIPS: Membership[] = [
   },
 ];
 
+/** Numéro d'ordre de la radiologue de démonstration, validé. */
+export const DEMO_LICENSE_NUMBER = "TG-RAD-0142";
+
 /**
  * Qui l'on incarne dans chaque portail.
  *
@@ -56,18 +59,24 @@ const PERSONAS: Record<string, Session["user"]> = {
     email: "a.kponton@imafrik.tech",
     fullName: "Adjo Kponton",
     title: "Dr",
+    hasLicenseNumber: true,
+    credentialsVerified: true,
   },
   "m-admin": {
     id: DEMO_USER_ID,
     email: "operations@imafrik.tech",
     fullName: "Edem Agbodjan",
     title: "",
+    hasLicenseNumber: false,
+    credentialsVerified: false,
   },
   "m-clinic": {
     id: DEMO_USER_ID,
     email: "accueil@cliniquesaintjoseph.tg",
     fullName: "Akouvi Mensah",
     title: "",
+    hasLicenseNumber: false,
+    credentialsVerified: false,
   },
 };
 

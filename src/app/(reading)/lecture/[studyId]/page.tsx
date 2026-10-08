@@ -13,6 +13,7 @@ import {
   type Study,
 } from "@/lib/data/studies";
 import { listTemplates } from "@/lib/data/templates";
+import { credentialBlock } from "@/lib/credentials";
 import { reportBackupKey } from "@/lib/editor/backup-key";
 import { formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
@@ -35,6 +36,20 @@ function workspaceMode(
 ): WorkspaceMode {
   if (session.active.role !== "radiologist") return { kind: "readonly" };
   if (report?.status === "signed") return { kind: "readonly" };
+
+  // Numéro d'ordre non validé : ni prise en charge ni rédaction. La base
+  // masque déjà les examens et le service refuse ces gestes ; l'écran ne
+  // propose donc pas un bouton voué au refus, il dit pourquoi.
+  const block = credentialBlock(session);
+  if (block) {
+    return {
+      kind: "readonly",
+      notice:
+        block === "missing"
+          ? t.reading.page.credentialsMissing
+          : t.reading.page.credentialsPending,
+    };
+  }
 
   const mine = study.assignedTo === session.user.id;
   if (mine && report && report.authorId === session.user.id) {

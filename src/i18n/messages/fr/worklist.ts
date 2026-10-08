@@ -86,6 +86,24 @@ export const worklist = {
       detail: "Prenez un examen en charge depuis la file « À lire ».",
     },
   },
+  /**
+   * Bandeau du radiologue dont le numéro d'ordre n'est pas encore validé
+   * par l'équipe IMAFRIK : il ne voit aucun examen d'ici là.
+   */
+  credentials: {
+    missing: {
+      title: "Renseignez votre numéro d’ordre",
+      detail:
+        "Les examens s’afficheront une fois votre numéro d’ordre renseigné dans vos paramètres, puis vérifié par l’équipe IMAFRIK.",
+      action: "Ouvrir les paramètres",
+    },
+    pending: {
+      title: "Numéro d’ordre en cours de vérification",
+      detail:
+        "L’équipe IMAFRIK vérifie votre numéro d’ordre auprès de l’Ordre. Les examens apparaîtront ici dès sa validation.",
+    },
+    why: "Un compte-rendu signé engage un médecin : son droit d’exercer est vérifié avant tout accès aux examens.",
+  },
   filters: {
     modalities: "Modalités",
     clinic: "Clinique",

@@ -151,6 +151,8 @@ export const clinic: AppMessages["clinic"] = {
     email: "Email address",
     role: "Role",
     submit: "Send invitation",
+    radiologistNote:
+      "A radiologist can only access examinations once the IMAFRIK team has verified their registration number. They enter it themselves when they first sign in.",
     added: (name: string, organization: string) =>
       `${name} has been added to ${organization}.`,
   },

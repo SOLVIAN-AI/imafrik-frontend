@@ -56,12 +56,32 @@ jobs:
         with:
           path: frontend
 
+      # Une fonctionnalité qui touche aux deux dépôts porte le même nom de
+      # branche des deux côtés : son contrat est alors celui de la branche
+      # homonyme du backend, pas celui de `main`, qui ne l'a pas encore.
+      # Sans branche homonyme, c'est `main` (ou la branche par défaut).
+      - name: Choisir la version du contrat
+        id: backend-ref
+        if: ${{ env.BACKEND_READ_TOKEN != '' }}
+        working-directory: .
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if git ls-remote --exit-code --heads \
+            "https://x-access-token:${BACKEND_READ_TOKEN}@github.com/SOLVIAN-AI/imafrik-backend.git" \
+            "refs/heads/${BRANCH}" > /dev/null; then
+            echo "ref=${BRANCH}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Extraire le contrat du backend
         if: ${{ env.BACKEND_READ_TOKEN != '' }}
         uses: actions/checkout@v4
         with:
           repository: SOLVIAN-AI/imafrik-backend
           token: ${{ secrets.BACKEND_READ_TOKEN }}
+          ref: ${{ steps.backend-ref.outputs.ref }}
           path: backend
           sparse-checkout: services/api/openapi.json
           sparse-checkout-cone-mode: false

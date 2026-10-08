@@ -388,6 +388,52 @@ export const admin = {
     mfaRequired: "Exigée pour les radiologues et les administrateurs",
     mfaMissing: "MFA manquante",
     mfaNone: "Sans MFA",
+    /** Filtre et section des radiologues dont le numéro d'ordre attend sa validation. */
+    unverifiedFilter: "À valider",
+    unverifiedTitle: "Numéros d’ordre à valider",
+    unverifiedDescription:
+      "Radiologues dont le numéro d’ordre attend la vérification de l’équipe IMAFRIK : ils ne voient aucun examen d’ici là.",
+    noUnverified: "Aucun numéro d’ordre à valider",
+    unverifiedHint:
+      "Un radiologue apparaît ici dès son rattachement, et de nouveau s’il change de numéro d’ordre.",
+  },
+
+  /**
+   * Validation du numéro d'ordre d'un radiologue par l'équipe IMAFRIK.
+   * La vérification elle-même (inscription à l'Ordre, droit d'exercer) se
+   * fait hors de la plateforme ; le geste en enregistre le résultat.
+   */
+  credentials: {
+    status: {
+      verified: "Numéro validé",
+      pending: "À valider",
+      missing: "Numéro manquant",
+    },
+    verifiedOn: "Validé le",
+    licenseLabel: "N° d’ordre",
+    verify: {
+      trigger: "Valider le numéro d’ordre",
+      title: (name: string) => `Valider le numéro d’ordre de ${name}`,
+      description:
+        "Vérifiez auprès de l’Ordre des médecins que ce numéro est inscrit au nom de cette personne et l’autorise à exercer. La validation ouvre aussitôt l’accès aux examens ; elle est tracée dans le journal d’audit, avec le numéro vérifié.",
+      numberLabel:
+        "Numéro à vérifier, tel qu’il sera imprimé sous sa signature",
+      submit: "Valider ce numéro",
+      done: (name: string) => `Numéro d’ordre de ${name} validé.`,
+      missing:
+        "Aucun numéro d’ordre renseigné : le radiologue doit le saisir dans ses paramètres avant d’être validé.",
+    },
+    revoke: {
+      trigger: "Retirer la validation",
+      title: (name: string) => `Retirer la validation de ${name}`,
+      description:
+        "Cette personne perd aussitôt l’accès aux examens. Ceux qu’elle a pris en charge et pas encore signés retournent au pool, et ses brouillons sur ces examens sont effacés. Les comptes-rendus déjà signés ne changent pas.",
+      submit: "Retirer la validation",
+      done: (name: string, released: number) =>
+        released === 0
+          ? `Validation de ${name} retirée.`
+          : `Validation de ${name} retirée : ${released} examen${released > 1 ? "s rendus" : " rendu"} au pool.`,
+    },
   },
 
   /** Rattachement d'un compte à une organisation. */
@@ -441,6 +487,20 @@ export const admin = {
     notesLabel: "Notes de l’équipe",
     notesPlaceholder: "Notes : rappel prévu, devis envoyé…",
     saved: "Suivi enregistré.",
+    /** Qui écrit : un établissement de santé ou un radiologue. */
+    requester: "Demandeur",
+    allRequesters: "Tous",
+    requesterKind: {
+      clinic: "Établissement",
+      radiologist: "Radiologue",
+    },
+    requesterKindPlural: {
+      clinic: "Établissements",
+      radiologist: "Radiologues",
+    },
+    /** Numéro d'ordre déclaré par un radiologue, à vérifier. */
+    license: "N° d’ordre déclaré",
+    licenseMissing: "N° d’ordre non communiqué",
   },
 
   billing: {
@@ -535,6 +595,8 @@ export const admin = {
         "Langue des comptes-rendus modifiée",
       "organization.exported": "Données de l’organisation exportées",
       "user.mfa_reset": "Double authentification réinitialisée",
+      "user.credentials_verified": "Numéro d’ordre validé",
+      "user.credentials_revoked": "Validation du numéro d’ordre retirée",
       "platform.settings_changed": "Réglages modifiés",
       "contact_request.tracked": "Demande reçue suivie",
     },
@@ -611,6 +673,7 @@ export const admin = {
     grant: "Le rattachement",
     tracking: "Le suivi des demandes",
     mfaReset: "La réinitialisation",
+    credentials: "La validation des numéros d’ordre",
     retention: "La durée de conservation",
     reportLanguage: "La langue des comptes-rendus",
     suspension: "La suspension",
@@ -630,6 +693,10 @@ export const admin = {
       clinicSilent: (clinic: string, hours: number) =>
         `${clinic} n’a rien envoyé depuis ${hours} h : passerelle à vérifier`,
       hostWatchFailed: "Surveillance de l’hôte en échec : disque /var à 83 %",
+      unverifiedRadiologists: (count: number) =>
+        count > 1
+          ? `${count} radiologues attendent la validation de leur numéro d’ordre`
+          : `${count} radiologue attend la validation de son numéro d’ordre`,
       newRequests: (count: number) =>
         `${count} demande${count > 1 ? "s reçues" : " reçue"} par le site ${count > 1 ? "attendent" : "attend"} une réponse`,
     },

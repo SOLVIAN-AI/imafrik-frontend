@@ -45,8 +45,11 @@ const CLINIC_STEPS: StepDefinition[] = [
  * Parcours d'un radiologue.
  *
  * Un radiologue arrive ici invité par IMAFRIK ou par la clinique qui
- * l'emploie : son accès est déjà ouvert. Il ne lui reste qu'à vérifier ce
- * qui sera imprimé sous sa signature.
+ * l'emploie. L'étape « profil » recueille ce qui sera imprimé sous sa
+ * signature, dont son numéro d'ordre, obligatoire : l'équipe IMAFRIK le
+ * vérifie auprès de l'Ordre avant d'ouvrir le moindre accès aux examens.
+ * La dernière étape explique cette attente tant que la validation n'est
+ * pas faite.
  */
 const RADIOLOGIST_STEPS: StepDefinition[] = [
   { slug: "profil" },

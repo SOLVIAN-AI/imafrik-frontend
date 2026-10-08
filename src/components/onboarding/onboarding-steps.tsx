@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Clock, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { useMessages } from "@/i18n/client";
 import { hasReceivedStudy } from "@/lib/actions/onboarding";
 import { setOpenToPool } from "@/lib/actions/organization";
 import { updateProfile } from "@/lib/actions/profile";
+import { credentialBlock } from "@/lib/credentials";
 import type { Profile } from "@/lib/data/profile";
 import { homeFor } from "@/lib/navigation";
 import type { OnboardingStep } from "@/lib/onboarding/steps";
@@ -277,11 +278,20 @@ export function TeamStep({ step, previousSlug, nextSlug }: StepProps) {
   );
 }
 
-/** Dernière étape, commune aux deux parcours. */
+/**
+ * Dernière étape, commune aux deux parcours.
+ *
+ * Pour un radiologue dont le numéro d'ordre n'est pas encore validé, elle
+ * explique l'attente : sa file restera vide jusqu'à la vérification de
+ * l'équipe IMAFRIK, et il n'a rien d'autre à faire. Sans cette phrase, la
+ * file vide qui suit passerait pour une panne.
+ */
 export function DoneStep({ step, previousSlug }: StepProps) {
   const advance = useAdvance(undefined);
-  const { active } = useSession();
+  const session = useSession();
+  const { active } = session;
   const t = useMessages().onboarding.done;
+  const block = credentialBlock(session);
 
   return (
     <StepShell
@@ -299,10 +309,28 @@ export function DoneStep({ step, previousSlug }: StepProps) {
         advance();
       }}
     >
-      <p className="flex items-center gap-2 text-sm text-done">
-        <CheckCircle2 className="size-4" aria-hidden />
-        {t.ready}
-      </p>
+      {block ? (
+        <div
+          role="status"
+          data-credentials={block}
+          className="flex items-start gap-3 rounded-xl border border-progress/30 bg-progress-muted px-4 py-3"
+        >
+          <Clock className="mt-0.5 size-4 shrink-0 text-progress" aria-hidden />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-primary">
+              {block === "pending" ? t.pendingTitle : t.missingTitle}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-secondary">
+              {block === "pending" ? t.pendingDetail : t.missingDetail}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <p className="flex items-center gap-2 text-sm text-done">
+          <CheckCircle2 className="size-4" aria-hidden />
+          {t.ready}
+        </p>
+      )}
     </StepShell>
   );
 }

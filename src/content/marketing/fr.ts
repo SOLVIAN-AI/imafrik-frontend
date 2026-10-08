@@ -238,6 +238,12 @@ export const fr: MarketingCopy = {
           "Un radiologue nommément identifié, inscrit à un ordre professionnel, dont le numéro figure sur le document. La responsabilité de l’interprétation lui incombe, comme pour un examen lu sur place. IMAFRIK assure la transmission et la traçabilité.",
       },
       {
+        question:
+          "Qui crée les comptes, et comment un radiologue est-il admis ?",
+        answer:
+          "Votre établissement crée lui-même les comptes de son personnel, depuis son portail. Un radiologue qui souhaite lire pour le réseau en fait la demande par le formulaire de contact, avec son numéro d’ordre. L’équipe IMAFRIK le vérifie auprès de l’Ordre des médecins : tant que ce n’est pas fait, aucun examen ne lui est accessible, y compris s’il a été invité par une clinique.",
+      },
+      {
         question: "Où sont stockées les images de nos patients ?",
         answer:
           "Sur la passerelle de votre établissement, et sur nos serveurs dans l’Union européenne, chiffrées. Elles restent la propriété de l’établissement, qui en reçoit l’export complet sur simple demande. Leur durée de conservation sur nos serveurs est fixée au contrat.",
@@ -327,11 +333,26 @@ export const fr: MarketingCopy = {
     sentTitle: "Demande envoyée",
     sentText:
       "Merci {name}. Nous revenons vers vous à l’adresse {email} avec une proposition de créneau.",
+    sentTextRadiologist:
+      "Merci {name}. L’équipe IMAFRIK vérifie votre numéro d’ordre auprès de l’Ordre, puis revient vers vous à l’adresse {email}. L’accès aux examens s’ouvre une fois cette vérification faite.",
+    requester: {
+      legend: "Je suis",
+      clinic: "Un établissement de santé",
+      clinicDetail:
+        "Clinique, hôpital, centre d’imagerie : vous souhaitez faire lire vos examens.",
+      radiologist: "Un radiologue",
+      radiologistDetail:
+        "Vous souhaitez lire des examens pour le réseau. Votre numéro d’ordre est vérifié avant tout accès.",
+    },
     fields: {
       name: "Nom complet",
       role: "Fonction",
       rolePlaceholder: "Directeur, manipulateur, radiologue…",
       organization: "Établissement",
+      organizationRadiologist: "Établissement où vous exercez",
+      licenseNumber: "Numéro d’ordre",
+      licenseNumberHint:
+        "Celui de votre inscription à l’Ordre des médecins, tel qu’il figurera sous votre signature.",
       email: "Adresse électronique",
       phone: "Téléphone",
       optional: "Facultatif.",
@@ -356,7 +377,12 @@ export const fr: MarketingCopy = {
     ],
     submit: "Envoyer la demande",
     errors: {
+      requesterKind:
+        "Indiquez si vous écrivez pour un établissement de santé ou en tant que radiologue.",
       name: "Indiquez votre nom.",
+      organization: "Indiquez le nom de votre établissement.",
+      licenseNumber:
+        "Indiquez votre numéro d’ordre (50 caractères au maximum).",
       email: "Adresse électronique invalide.",
       rateLimited:
         "Trop de demandes depuis cette connexion. Réessayez dans une heure, ou écrivez-nous : contact@imafrik.tech",

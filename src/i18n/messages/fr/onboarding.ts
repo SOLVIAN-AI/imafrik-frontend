@@ -30,11 +30,11 @@ export const onboarding = {
     radiologist: {
       profil: {
         title: "Votre profil",
-        lead: "Ce qui sera imprimé sous votre signature, sur chaque compte-rendu.",
+        lead: "Ce qui sera imprimé sous votre signature, et le numéro d’ordre que l’équipe IMAFRIK vérifiera.",
       },
       termine: {
         title: "Terminé",
-        lead: "Votre file de lecture vous attend.",
+        lead: "Votre profil est enregistré.",
       },
     },
     admin: {
@@ -56,7 +56,8 @@ export const onboarding = {
       "Imprimé devant votre nom, par exemple « Dr » ou « Pr ».",
     titleHintStaff: "Votre fonction dans l’établissement.",
     license: "Numéro d’ordre",
-    licenseHint: "Imprimé sous votre signature.",
+    licenseHint:
+      "Imprimé sous votre signature. L’équipe IMAFRIK le vérifie auprès de l’Ordre avant d’ouvrir l’accès aux examens.",
   },
   reading: {
     legend: "Qui lit vos examens",
@@ -83,5 +84,12 @@ export const onboarding = {
     openWorklist: "Ouvrir la file de lecture",
     openControlTower: "Ouvrir la tour de contrôle",
     ready: "Tout est en place.",
+    /** Radiologue dont le numéro d'ordre attend la validation. */
+    pendingTitle: "Votre numéro d’ordre est en cours de vérification.",
+    pendingDetail:
+      "L’équipe IMAFRIK le vérifie auprès de l’Ordre avant d’ouvrir votre file de lecture : un compte-rendu signé engage un médecin. Les examens apparaîtront dès sa validation ; vous n’avez rien d’autre à faire.",
+    missingTitle: "Votre numéro d’ordre reste à renseigner.",
+    missingDetail:
+      "Sans lui, l’équipe IMAFRIK ne peut pas valider votre accès aux examens. Revenez à l’étape précédente, ou renseignez-le plus tard dans vos paramètres.",
   },
 };

@@ -156,6 +156,19 @@ cassé découvert par un utilisateur. Chaque schéma zod de
 type généré correspondant : un champ ajouté d'un côté seulement ne
 compile pas.
 
+Les deux scripts lisent `../backend/services/api/openapi.json` par
+défaut. Pour régénérer depuis une autre copie du backend (une branche
+extraite dans un autre dossier, par exemple), la variable
+`IMAFRIK_OPENAPI` désigne le fichier :
+
+```bash
+IMAFRIK_OPENAPI=../backend-valid/services/api/openapi.json npm run api:types
+```
+
+En CI, une fonctionnalité qui touche aux deux dépôts porte le même nom
+de branche des deux côtés : le contrat est alors extrait de la branche
+homonyme du backend, et de sa branche par défaut sinon.
+
 ### Validation au passage de la frontière
 
 Les charges reçues sont validées par des schémas zod

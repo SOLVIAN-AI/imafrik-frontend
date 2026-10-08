@@ -2,13 +2,17 @@ import { ShieldAlert, ShieldCheck, UserRoundSearch } from "lucide-react";
 import type { Metadata } from "next";
 
 import { ControlBody, Section, Segmented } from "@/components/admin/control-ui";
+import { CredentialsActions } from "@/components/admin/credentials-actions";
 import { GrantDialog } from "@/components/admin/grant-dialog";
 import { MfaResetButton } from "@/components/admin/mfa-reset-button";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { SearchBox } from "@/components/admin/search-box";
+import { CredentialChip } from "@/components/domain/credential-chip";
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
+import { parseUserFilter, userListHref } from "@/lib/admin-params";
+import { credentialStatus } from "@/lib/credentials";
 import { listOrganizations } from "@/lib/data/admin";
 import { type AdminUser, listUsers } from "@/lib/data/control";
 import { formatPersonName } from "@/lib/format";
@@ -24,11 +28,14 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Tous les comptes de la plateforme.
  *
- * Deux usages. **Valider** : un radiologue inscrit n'est rattaché à
- * rien, donc ne voit rien, tant que son dossier n'est pas vérifié — le
- * filtre « En attente » les isole, et un geste les rattache. **Vérifier**
- * : qui a accès à quoi, qui n'a pas activé la double authentification,
- * qui ne s'est pas connecté depuis des mois.
+ * Trois usages. **Rattacher** : un compte inscrit n'est rattaché à rien,
+ * donc ne voit rien ; le filtre « En attente » les isole, et un geste les
+ * rattache. **Valider** : un radiologue ne voit aucun examen tant que
+ * l'équipe IMAFRIK n'a pas vérifié son numéro d'ordre auprès de l'Ordre ;
+ * le filtre « À valider » (`?validation=attente`, l'adresse de l'alerte
+ * du cockpit) les isole, et la validation se fait depuis la ligne.
+ * **Vérifier** : qui a accès à quoi, qui n'a pas activé la double
+ * authentification, qui ne s'est pas connecté depuis des mois.
  */
 export default async function UsersPage({
   searchParams,
@@ -38,13 +45,19 @@ export default async function UsersPage({
   const text = t.admin.users;
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q : undefined;
-  const pending = params.attente === "1";
+  const filter = parseUserFilter(params);
 
-  const [users, pendingCount, organizations] = await Promise.all([
-    listUsers({ query, pending }),
-    listUsers({ pending: true }).then((rows) => rows.length),
-    listOrganizations(),
-  ]);
+  const [users, pendingCount, unverifiedCount, organizations] =
+    await Promise.all([
+      listUsers({
+        query,
+        pending: filter === "pending",
+        unverified: filter === "unverified",
+      }),
+      listUsers({ pending: true }).then((rows) => rows.length),
+      listUsers({ unverified: true }).then((rows) => rows.length),
+      listOrganizations(),
+    ]);
   const grantable = organizations
     .filter((org) => org.active)
     .map((org) => ({ id: org.id, name: org.name, kind: org.kind }));
@@ -52,13 +65,28 @@ export default async function UsersPage({
     (user) => user.mfaEnabled === false && needsMfa(user),
   ).length;
 
-  const href = (nextPending: boolean) => {
-    const next = new URLSearchParams();
-    if (query) next.set("q", query);
-    if (nextPending) next.set("attente", "1");
-    const search = next.toString();
-    return search ? `/admin/utilisateurs?${search}` : "/admin/utilisateurs";
-  };
+  const counted = (label: string, count: number) =>
+    count ? `${label} · ${count}` : label;
+  const section = {
+    all: {
+      title: text.allTitle,
+      description: text.allDescription,
+      empty: text.noneFound,
+      hint: undefined,
+    },
+    pending: {
+      title: text.pendingTitle,
+      description: text.pendingDescription,
+      empty: text.noPending,
+      hint: text.pendingHint,
+    },
+    unverified: {
+      title: text.unverifiedTitle,
+      description: text.unverifiedDescription,
+      empty: text.noUnverified,
+      hint: text.unverifiedHint,
+    },
+  }[filter];
 
   return (
     <>
@@ -77,13 +105,18 @@ export default async function UsersPage({
               options={[
                 {
                   label: t.admin.shared.all,
-                  href: href(false),
-                  active: !pending,
+                  href: userListHref("all", query),
+                  active: filter === "all",
                 },
                 {
-                  label: `${text.pendingFilter}${pendingCount ? ` · ${pendingCount}` : ""}`,
-                  href: href(true),
-                  active: pending,
+                  label: counted(text.unverifiedFilter, unverifiedCount),
+                  href: userListHref("unverified", query),
+                  active: filter === "unverified",
+                },
+                {
+                  label: counted(text.pendingFilter, pendingCount),
+                  href: userListHref("pending", query),
+                  active: filter === "pending",
                 },
               ]}
             />
@@ -95,18 +128,12 @@ export default async function UsersPage({
         }
       />
       <ControlBody>
-        <Section
-          title={pending ? text.pendingTitle : text.allTitle}
-          description={pending ? text.pendingDescription : text.allDescription}
-          flush
-        >
+        <Section title={section.title} description={section.description} flush>
           {users.length === 0 ? (
             <EmptyState
               icon={UserRoundSearch}
-              title={pending ? text.noPending : text.noneFound}
-              detail={
-                query ? text.tryAnother : pending ? text.pendingHint : undefined
-              }
+              title={section.empty}
+              detail={query ? text.tryAnother : section.hint}
             />
           ) : (
             <ul className="divide-y divide-border-subtle">
@@ -138,6 +165,17 @@ function needsMfa(user: AdminUser): boolean {
   );
 }
 
+/**
+ * Un compte concerné par la validation du numéro d'ordre : radiologue
+ * dans une organisation, ou inscrit qui a déclaré un numéro.
+ */
+function isRadiologistAccount(user: AdminUser): boolean {
+  return (
+    user.licenseNumber !== null ||
+    user.memberships.some((membership) => membership.role === "radiologist")
+  );
+}
+
 /** Une ligne de compte. */
 function UserRow({
   user,
@@ -154,6 +192,7 @@ function UserRow({
 }) {
   const text = t.admin.users;
   const unattached = user.memberships.length === 0;
+  const radiologist = isRadiologistAccount(user);
   return (
     <li className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 px-4 py-3 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)_9rem_auto] md:items-center">
       <div className="min-w-0">
@@ -162,7 +201,6 @@ function UserRow({
         </p>
         <p className="truncate text-2xs text-tertiary">
           {user.email ?? text.unknownEmail}
-          {user.licenseNumber && ` · ${user.licenseNumber}`}
         </p>
       </div>
 
@@ -223,7 +261,51 @@ function UserRow({
           </>
         )}
       </p>
+
+      {radiologist && <CredentialRow user={user} t={t} />}
     </li>
+  );
+}
+
+/**
+ * Validation du numéro d'ordre : état, numéro déclaré, date de
+ * validation, et le geste qui valide ou retire la validation.
+ */
+function CredentialRow({ user, t }: { user: AdminUser; t: AppMessages }) {
+  const text = t.admin.credentials;
+  const status = credentialStatus({
+    hasLicenseNumber: Boolean(user.licenseNumber?.trim()),
+    credentialsVerified: user.credentialsVerifiedAt !== null,
+  });
+  return (
+    <div
+      // Dernière rangée de la ligne, sous les actions de la double
+      // authentification placées en dernière colonne à partir de 768 px.
+      className="order-last col-span-2 flex flex-wrap items-center gap-x-3 gap-y-2 md:col-span-4"
+      data-credentials-row={status}
+    >
+      <CredentialChip status={status} label={text.status[status]} />
+      {user.licenseNumber && (
+        <span className="text-2xs text-secondary">
+          {text.licenseLabel}{" "}
+          <span className="font-mono text-primary">{user.licenseNumber}</span>
+        </span>
+      )}
+      {status === "verified" && user.credentialsVerifiedAt && (
+        <span className="text-2xs text-tertiary">
+          {text.verifiedOn}{" "}
+          <DateTime date={user.credentialsVerifiedAt} withTime={false} />
+        </span>
+      )}
+      <div className="ml-auto">
+        <CredentialsActions
+          profileId={user.id}
+          fullName={formatPersonName(user.title, user.fullName)}
+          licenseNumber={user.licenseNumber}
+          verified={status === "verified"}
+        />
+      </div>
+    </div>
   );
 }
 

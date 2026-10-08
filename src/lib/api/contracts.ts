@@ -193,6 +193,9 @@ export const profileSchema = z.object({
   title: z.string().nullable().optional(),
   license_number: z.string().nullable().optional(),
   locale: z.enum(["fr", "en"]),
+  // Validation du numéro d'ordre par l'équipe IMAFRIK : sans elle, un
+  // radiologue n'accède à aucun examen.
+  credentials_verified: z.boolean(),
 });
 const _profile: Matches<
   z.input<typeof profileSchema>,
@@ -290,6 +293,9 @@ export const contactRequestSchema = z.object({
   email: z.string(),
   phone: z.string().nullable(),
   message: z.string().nullable(),
+  // Nul pour les demandes antérieures à la question « Je suis ».
+  requester_kind: z.enum(["clinic", "radiologist"]).nullable().optional(),
+  license_number: z.string().nullable().optional(),
   status: z.enum(["new", "contacted", "converted", "dismissed"]),
   notes: z.string().nullable(),
   handled_at: isoDate.nullable(),
@@ -559,6 +565,8 @@ export const adminUserSchema = z.object({
   created_at: isoDate,
   last_sign_in_at: isoDate.nullable(),
   mfa_enabled: z.boolean().nullable(),
+  // Validation du numéro d'ordre ; nul tant qu'elle reste à faire.
+  credentials_verified_at: isoDate.nullable().optional(),
   memberships: z.array(userMembershipSchema),
 });
 const _adminUser: Matches<
@@ -616,6 +624,16 @@ const _mfaReset: Matches<
   Schemas["MfaReset"]
 > = true;
 
+export const credentialsStateSchema = z.object({
+  license_number: z.string().nullable(),
+  credentials_verified_at: isoDate.nullable(),
+  released_studies: z.number().int(),
+});
+const _credentialsState: Matches<
+  z.input<typeof credentialsStateSchema>,
+  Schemas["CredentialsState"]
+> = true;
+
 /**
  * Les vérifications de type ci-dessus n'ont aucun effet à l'exécution ;
  * cette référence évite seulement qu'un outil les signale comme mortes.
@@ -655,6 +673,7 @@ export const CONTRACT_CHECKS = [
   _clinicDetail,
   _contactTracking,
   _mfaReset,
+  _credentialsState,
 ] as const;
 
 export type ApiStudy = z.output<typeof studySchema>;

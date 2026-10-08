@@ -13,7 +13,25 @@ export const settings = {
       "Imprimé devant votre nom, par exemple « Dr » ou « Pr ».",
     titleHintStaff: "Fonction dans l’établissement.",
     license: "Numéro d’ordre",
-    licenseHint: "Imprimé sous votre signature.",
+    licenseHint:
+      "Imprimé sous votre signature. L’équipe IMAFRIK le vérifie avant d’ouvrir l’accès aux examens.",
+    /** Validation du numéro d'ordre, affichée à côté du champ. */
+    licenseStatus: {
+      verified: "Validé par IMAFRIK",
+      pending: "En cours de vérification",
+      missing: "À renseigner",
+    },
+    /** Avertissement quand le numéro saisi remplace un numéro existant. */
+    licenseChangeWarning:
+      "Un nouveau numéro doit être vérifié de nouveau par l’équipe IMAFRIK. D’ici là, vous n’aurez plus accès aux examens.",
+    licenseChangeConfirm: {
+      title: "Changer de numéro d’ordre ?",
+      description: (previous: string, next: string) =>
+        next
+          ? `Le numéro ${previous} sera remplacé par ${next}. L’équipe IMAFRIK devra vérifier ce nouveau numéro : d’ici là, vous n’aurez plus accès aux examens, et ceux que vous avez pris en charge pourront être confiés à un confrère.`
+          : `Le numéro ${previous} sera retiré de votre profil. Sans numéro d’ordre, vous n’aurez plus accès aux examens.`,
+      submit: "Enregistrer et faire vérifier",
+    },
     saved: "Profil enregistré.",
     nameRequired: "Le nom est requis",
   },

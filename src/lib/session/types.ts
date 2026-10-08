@@ -38,6 +38,19 @@ export interface Session {
     email: string;
     fullName: string;
     title: string;
+    /**
+     * Numéro d'ordre renseigné au profil (`profiles.license_number`) :
+     * un radiologue sans numéro ne peut pas être validé.
+     */
+    hasLicenseNumber: boolean;
+    /**
+     * Numéro d'ordre validé par l'équipe IMAFRIK
+     * (`profiles.credentials_verified_at`). Sans cette validation, un
+     * radiologue n'accède à aucun examen : la base les lui masque et le
+     * service refuse prise en charge, rédaction et signature. Sans objet
+     * pour les autres rôles.
+     */
+    credentialsVerified: boolean;
   };
   memberships: Membership[];
   active: Membership;
