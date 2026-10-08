@@ -341,7 +341,12 @@ function EndContractDialog({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                // `onOpenChange` ne voit pas une fermeture commandée par
+                // l'écran : la saisie est effacée ici aussi.
+                setOpen(false);
+                reset();
+              }}
             >
               {t.common.actions.cancel}
             </Button>
