@@ -179,15 +179,13 @@ export function ProfileForm({
                   aria-describedby="licenseNumber-status licenseNumber-description"
                   className="sm:flex-1"
                 />
+                {/* Relié au champ : un lecteur d'écran l'annonce avec lui. */}
                 <CredentialChip
+                  id="licenseNumber-status"
                   status={status}
                   label={text.licenseStatus[status]}
                   className="self-start sm:self-center"
                 />
-                {/* Le libellé de la pastille, relié au champ pour un lecteur d'écran. */}
-                <span id="licenseNumber-status" className="sr-only">
-                  {text.licenseStatus[status]}
-                </span>
               </div>
             </Field>
             {resetsValidation && (
