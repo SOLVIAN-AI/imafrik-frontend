@@ -384,6 +384,10 @@ export const fr: MarketingCopy = {
       "Aucun compte-rendu signé ne correspond à ce code. Vérifiez que l’adresse est complète ; le plus sûr est de scanner le QR code du document. Si elle l’est, le document ne provient pas d’IMAFRIK.",
     submittedCode: "Code soumis : {code}",
     report: "Signaler un document suspect",
+    unavailableTitle: "Vérification momentanément indisponible",
+    unavailableText:
+      "Le service de vérification ne répond pas pour l’instant. Cela ne dit rien de l’authenticité du document : réessayez dans quelques minutes. Si le problème persiste, écrivez-nous à {email}.",
+    retry: "Réessayer",
   },
   hashCheck: {
     title: "Vérifier un fichier PDF",
