@@ -185,20 +185,15 @@ test("la file se relit au plus une fois toutes les trente secondes", async ({
 });
 
 /**
- * Anomalie connue : le compte des urgences libres, ajouté au titre de
- * l'onglet par `useUrgentArrivals` (`components/domain/worklist-view.tsx`),
- * est effacé quelques millisecondes plus tard, quand Next réinsère le
- * `<title>` de ses métadonnées après l'hydratation. L'effet ne se relance
- * pas, puisque le nombre d'urgences n'a pas changé : l'onglet n'affiche
- * plus « (2) À lire ». À réactiver une fois l'anomalie corrigée.
+ * Le compte des urgences libres reste dans le titre de l'onglet : Next
+ * réécrit `<title>` après l'hydratation, et le compte disparaissait
+ * aussitôt (`useUrgentTitle`, `components/domain/worklist-view.tsx`).
  */
-test.fixme("le titre de l'onglet compte les urgences libres", async ({
-  page,
-}) => {
+test("le titre de l'onglet compte les urgences libres", async ({ page }) => {
   await page.goto("/worklist");
   await waitForHydration(page);
   await expect(page).toHaveTitle(/^\(2\) À lire/);
-  // Toujours là après une relecture du routeur.
+  // Toujours là après un rechargement complet.
   await page.reload();
   await waitForHydration(page);
   await expect(page).toHaveTitle(/^\(2\) À lire/);

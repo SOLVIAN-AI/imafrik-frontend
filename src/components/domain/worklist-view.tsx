@@ -115,8 +115,12 @@ function describeScope(
 }
 
 /**
- * Alerte à l'arrivée d'une urgence libre, et compte des urgences libres
- * dans le titre de l'onglet, visible depuis un autre onglet ou le viewer.
+ * Alerte à l'arrivée d'une urgence libre.
+ *
+ * Le compte des urgences libres dans le titre de l'onglet est calculé par
+ * la page, dans ses métadonnées (`app/(app)/worklist/page.tsx`) : écrit ici
+ * dans `document.title`, il était effacé par Next aussitôt après
+ * l'hydratation.
  *
  * Le premier relevé n'alerte de rien : ce qui est déjà là à l'ouverture de
  * l'écran n'est pas une arrivée. Les identifiants vus survivent aux
@@ -152,15 +156,6 @@ function useUrgentArrivals(open: Study[]) {
       );
     }
   }, [open, router, t]);
-
-  const urgentCount = open.filter((study) => study.urgent).length;
-  React.useEffect(() => {
-    const base = document.title.replace(/^\(\d+\)\s*/, "");
-    document.title = urgentCount > 0 ? `(${urgentCount}) ${base}` : base;
-    return () => {
-      document.title = document.title.replace(/^\(\d+\)\s*/, "");
-    };
-  }, [urgentCount]);
 }
 
 /**
