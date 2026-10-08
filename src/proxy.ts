@@ -44,6 +44,13 @@ import { supabaseEnv } from "@/lib/supabase/env";
 const MFA_SCREEN = "/double-authentification";
 
 /**
+ * Accueil d'une personne invitée. Ouvert avant la double
+ * authentification : l'invité choisit son mot de passe, puis enrôle son
+ * second facteur. L'écran ne montre aucune donnée médicale.
+ */
+const INVITATION_SCREEN = "/invitation";
+
+/**
  * Mémorise la langue choisie sur le site public.
  *
  * `httpOnly` : seul le serveur la lit. Elle ne contient qu'un code de
@@ -182,10 +189,13 @@ export async function proxy(request: NextRequest) {
   }
 
   // Second facteur à enrôler ou vérifier : le jeton n'ouvre aucune
-  // donnée (hook Supabase) ; un seul écran, celui qui permet d'en sortir.
+  // donnée (hook Supabase) ; deux écrans seulement, celui qui permet d'en
+  // sortir et l'accueil de l'invité, qui y conduit.
   const mfaScreen = pathname === MFA_SCREEN;
   if (claims.mfa_required === true) {
-    return mfaScreen ? withCsp(response) : redirectTo(MFA_SCREEN, true);
+    return mfaScreen || pathname === INVITATION_SCREEN
+      ? withCsp(response)
+      : redirectTo(MFA_SCREEN, true);
   }
 
   // Connecté, mais rattaché à aucune organisation active : un seul écran.

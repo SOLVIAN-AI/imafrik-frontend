@@ -8,6 +8,12 @@ describe("safeRedirect", () => {
     expect(safeRedirect("/examens?q=koffi#x")).toBe("/examens?q=koffi#x");
   });
 
+  it("accepte les destinations des liens envoyés par courriel", () => {
+    // Invitation et réinitialisation : `/auth/callback?suite=…`.
+    expect(safeRedirect("/invitation")).toBe("/invitation");
+    expect(safeRedirect("/nouveau-mot-de-passe")).toBe("/nouveau-mot-de-passe");
+  });
+
   it.each([
     ["absent", null],
     ["vide", ""],

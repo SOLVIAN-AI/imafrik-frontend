@@ -30,6 +30,8 @@ describe("isPublicRoute", () => {
       "/admin",
       "/contactez",
       "/verifierx",
+      // L'accueil d'un invité exige la session ouverte par son lien.
+      "/invitation",
     ]) {
       expect(isPublicRoute(path)).toBe(false);
     }
@@ -46,7 +48,7 @@ describe("isRouteAllowed", () => {
     expect(isRouteAllowed("clinic_staff", "/admin/organisations")).toBe(false);
   });
 
-  it("partage la mise en service et le mot de passe entre les rôles", () => {
+  it("partage la mise en service, l'accueil et le mot de passe entre les rôles", () => {
     for (const role of [
       "radiologist",
       "clinic_staff",
@@ -54,6 +56,7 @@ describe("isRouteAllowed", () => {
     ] as const) {
       expect(isRouteAllowed(role, "/bienvenue/profil")).toBe(true);
       expect(isRouteAllowed(role, "/nouveau-mot-de-passe")).toBe(true);
+      expect(isRouteAllowed(role, "/invitation")).toBe(true);
       expect(isRouteAllowed(role, homeFor(role))).toBe(true);
     }
   });

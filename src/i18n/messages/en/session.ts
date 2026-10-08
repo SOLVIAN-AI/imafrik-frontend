@@ -48,6 +48,49 @@ export const session: AppMessages["session"] = {
     mismatch: "The two entries do not match.",
     submit: "Save password",
   },
+  invitation: {
+    metaTitle: "Invitation",
+    eyebrow: "Invitation",
+    welcome: (organization: string) => `Welcome to ${organization}`,
+    intro:
+      "Your IMAFRIK account is ready. Check who invited you below, then choose your password.",
+    detailsLabel: "Your invitation",
+    role: "Role",
+    city: "City",
+    invitedBy: "Invited by",
+    sentOn: "Sent on",
+    roleNames: {
+      clinic_staff: "Facility staff",
+      radiologist: "Radiologist",
+      platform_admin: "IMAFRIK team",
+    },
+    roleDetails: {
+      clinic_staff:
+        "You send your facility’s examinations and collect the signed reports.",
+      radiologist:
+        "You read and sign the examinations entrusted to the group, under your name and registration number.",
+      platform_admin:
+        "You administer the platform: connected facilities, accounts and operations.",
+    },
+    organizationKinds: {
+      clinic: "Healthcare facility",
+      radiology_group: "Radiology group",
+    },
+    notExpectedBefore:
+      "Were you not expecting this invitation? Close this page and email us at ",
+    notExpectedAfter: ".",
+    stepsLabel: "Getting started",
+    steps: {
+      password: "Password",
+      mfa: "Two-factor authentication",
+      onboarding: "First steps",
+    },
+    passwordTitle: "Choose your password",
+    nextMfa:
+      "Next, you will set up two-factor authentication, which your role requires.",
+    nextOnboarding: "Next, a few steps to get to know your workspace.",
+    submit: "Save and continue",
+  },
   inactivity: {
     title: "Your session is about to close",
     detailBefore: (minutes: number) =>

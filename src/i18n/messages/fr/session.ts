@@ -52,6 +52,57 @@ export const session = {
     mismatch: "Les deux saisies diffèrent.",
     submit: "Enregistrer le mot de passe",
   },
+  /**
+   * Accueil d'une personne invitée : qui l'accueille, pour quel rôle, puis
+   * le choix du mot de passe. Atteint par le lien du courriel d'invitation.
+   */
+  invitation: {
+    metaTitle: "Invitation",
+    eyebrow: "Invitation",
+    welcome: (organization: string) => `Bienvenue chez ${organization}`,
+    intro:
+      "Votre compte IMAFRIK est prêt. Vérifiez ci-dessous qui vous invite, puis choisissez votre mot de passe.",
+    detailsLabel: "Votre invitation",
+    role: "Rôle",
+    city: "Ville",
+    invitedBy: "Invitation de",
+    sentOn: "Envoyée le",
+    /** Le rôle en clair, tel que l'invité le comprend. */
+    roleNames: {
+      clinic_staff: "Personnel de l’établissement",
+      radiologist: "Radiologue",
+      platform_admin: "Équipe IMAFRIK",
+    },
+    /** Ce que le rôle permet, en une phrase. */
+    roleDetails: {
+      clinic_staff:
+        "Vous envoyez les examens de l’établissement et récupérez les comptes-rendus signés.",
+      radiologist:
+        "Vous lisez et signez les examens confiés au groupe, sous votre nom et votre numéro d’ordre.",
+      platform_admin:
+        "Vous administrez la plateforme : établissements raccordés, comptes, exploitation.",
+    },
+    organizationKinds: {
+      clinic: "Établissement de santé",
+      radiology_group: "Groupe de radiologie",
+    },
+    /** Avant l'adresse de contact, présentée comme un lien. */
+    notExpectedBefore:
+      "Vous n’attendiez pas cette invitation ? Fermez cette page et écrivez-nous à ",
+    notExpectedAfter: ".",
+    stepsLabel: "Étapes de votre arrivée",
+    steps: {
+      password: "Mot de passe",
+      mfa: "Double authentification",
+      onboarding: "Prise en main",
+    },
+    passwordTitle: "Choisissez votre mot de passe",
+    nextMfa:
+      "Ensuite, vous configurerez la double authentification, exigée pour votre rôle.",
+    nextOnboarding:
+      "Ensuite, quelques étapes pour prendre en main votre espace.",
+    submit: "Enregistrer et continuer",
+  },
   inactivity: {
     title: "Session bientôt fermée",
     /** Début du préavis, avant le compte à rebours. */
