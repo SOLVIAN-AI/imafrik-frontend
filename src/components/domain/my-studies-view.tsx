@@ -1,6 +1,7 @@
 "use client";
 
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import { CredentialsBanner } from "@/components/domain/credentials-banner";
 import { ReadingTable } from "@/components/domain/reading-table";
 import { useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
@@ -21,6 +22,7 @@ export function MyStudiesView({ studies }: { studies: Study[] }) {
         title={t.nav.items.myStudies}
         description={t.worklist.myStudies.description}
       />
+      <CredentialsBanner className="mx-4 mb-4 sm:mx-6" />
 
       {/* Compressible à partir de 1024 px seulement : sur téléphone, la
           page défile et le tableau garde sa hauteur naturelle. */}

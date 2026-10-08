@@ -13,6 +13,11 @@ export const reading = {
     loading: "Ouverture de l’examen",
     claimedBy: (name: string) => `Examen pris en charge par ${name}.`,
     claimedByOther: "Examen pris en charge par un autre radiologue.",
+    /** Radiologue dont le numéro d'ordre n'est pas validé : consultation seule. */
+    credentialsMissing:
+      "Renseignez votre numéro d’ordre dans vos paramètres : la prise en charge s’ouvrira après sa validation par l’équipe IMAFRIK.",
+    credentialsPending:
+      "Votre numéro d’ordre est en cours de vérification : la prise en charge s’ouvrira après sa validation par l’équipe IMAFRIK.",
   },
   /**
    * Langue du compte-rendu, quand elle diffère de celle de l'écran.

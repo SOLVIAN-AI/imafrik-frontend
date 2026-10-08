@@ -6,6 +6,10 @@ export const reading: AppMessages["reading"] = {
     loading: "Opening the examination",
     claimedBy: (name: string) => `Examination claimed by ${name}.`,
     claimedByOther: "Examination claimed by another radiologist.",
+    credentialsMissing:
+      "Add your registration number in your settings: you will be able to claim examinations once the IMAFRIK team has verified it.",
+    credentialsPending:
+      "Your registration number is being verified: you will be able to claim examinations once the IMAFRIK team has verified it.",
   },
   reportLanguage: {
     chip: {

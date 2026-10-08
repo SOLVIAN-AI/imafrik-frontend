@@ -5,6 +5,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import { CredentialsBanner } from "@/components/domain/credentials-banner";
 import { ListToolbar } from "@/components/domain/list-toolbar";
 import {
   METRIC_ICONS,
@@ -209,6 +210,8 @@ export function WorklistView({
         description={describeScope(all, t, locale)}
         actions={<ListToolbar scope="worklist" search={search} urgentFilter />}
       />
+      {/* Numéro d'ordre non validé : la file est vide, le bandeau dit pourquoi. */}
+      <CredentialsBanner className="mx-4 mb-4 sm:mx-6" />
       <MetricGrid
         metrics={buildMetrics(sections, now, t, locale)}
         className="px-4 pb-4 sm:px-6"

@@ -4,16 +4,31 @@ import { AlertTriangle } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { CredentialChip } from "@/components/domain/credential-chip";
 import { Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Field, Input } from "@/components/ui/input";
 import { useLocale, useMessages } from "@/i18n/client";
 import { setOpenToPool } from "@/lib/actions/organization";
 import {
   changePassword,
+  type ProfileInput,
   setLanguage,
   updateProfile,
 } from "@/lib/actions/profile";
+import {
+  credentialStatus,
+  licenseChangeResetsValidation,
+  normalizeLicenseNumber,
+} from "@/lib/credentials";
 import type { Profile } from "@/lib/data/profile";
 import { LOCALES, LOCALE_NAMES, type Locale } from "@/lib/i18n/locale";
 import { PASSWORD_RULES } from "@/lib/security/password";
@@ -66,10 +81,15 @@ function Section({
 }
 
 /**
- * Profil : nom, titre et — pour un radiologue — numéro d'ordre.
+ * Profil : nom, titre et, pour un radiologue, numéro d'ordre.
  *
  * Ces informations sont imprimées sur les comptes-rendus signés
  * **ensuite** ; ceux déjà signés gardent l'identité figée à leur signature.
+ *
+ * Le numéro d'ordre d'un radiologue est vérifié par l'équipe IMAFRIK avant
+ * tout accès aux examens. Son état est affiché à côté du champ, et le
+ * remplacer par un autre annule la validation côté serveur : l'écran le
+ * dit pendant la saisie, puis le fait confirmer avant d'enregistrer.
  */
 export function ProfileForm({
   profile,
@@ -78,68 +98,159 @@ export function ProfileForm({
   profile: Profile;
   isRadiologist: boolean;
 }) {
-  const t = useMessages().settings.profile;
+  const t = useMessages();
+  const text = t.settings.profile;
   const [pending, startTransition] = React.useTransition();
+  const [license, setLicense] = React.useState(profile.licenseNumber);
+  // Saisie retenue le temps de la confirmation d'un changement de numéro.
+  const [awaiting, setAwaiting] = React.useState<ProfileInput | null>(null);
 
-  const submit = (form: FormData) =>
+  const status = credentialStatus({
+    hasLicenseNumber: normalizeLicenseNumber(profile.licenseNumber) !== "",
+    credentialsVerified: profile.credentialsVerified,
+  });
+  const resetsValidation =
+    isRadiologist &&
+    licenseChangeResetsValidation(profile.licenseNumber, license);
+
+  const save = (input: ProfileInput) =>
     startTransition(async () => {
-      const result = await updateProfile({
-        fullName: String(form.get("fullName") ?? ""),
-        title: String(form.get("title") ?? ""),
-        licenseNumber: String(form.get("licenseNumber") ?? ""),
-      });
-      if (result.ok) toast.success(t.saved);
+      const result = await updateProfile(input);
+      setAwaiting(null);
+      if (result.ok) toast.success(text.saved);
       else toast.error(result.error);
     });
 
+  const submit = (form: FormData) => {
+    const input: ProfileInput = {
+      fullName: String(form.get("fullName") ?? ""),
+      title: String(form.get("title") ?? ""),
+      licenseNumber: String(form.get("licenseNumber") ?? ""),
+    };
+    if (resetsValidation) setAwaiting(input);
+    else save(input);
+  };
+
   return (
-    <Section
-      title={t.title}
-      description={
-        isRadiologist ? t.descriptionRadiologist : t.descriptionStaff
-      }
-      onSubmit={submit}
-      pending={pending}
-    >
-      <Field id="fullName" label={t.fullName}>
-        <Input
-          id="fullName"
-          name="fullName"
-          defaultValue={profile.fullName}
-          required
-          maxLength={200}
-        />
-      </Field>
-      <Field
-        id="title"
-        label={t.titleField}
-        hint={isRadiologist ? t.titleHintRadiologist : t.titleHintStaff}
+    <>
+      <Section
+        title={text.title}
+        description={
+          isRadiologist ? text.descriptionRadiologist : text.descriptionStaff
+        }
+        onSubmit={submit}
+        pending={pending}
       >
-        <Input
-          id="title"
-          name="title"
-          defaultValue={profile.title}
-          maxLength={100}
-        />
-      </Field>
-      {isRadiologist && (
-        <Field id="licenseNumber" label={t.license} hint={t.licenseHint}>
+        <Field id="fullName" label={text.fullName}>
           <Input
-            id="licenseNumber"
-            name="licenseNumber"
-            defaultValue={profile.licenseNumber}
-            maxLength={50}
+            id="fullName"
+            name="fullName"
+            defaultValue={profile.fullName}
+            required
+            maxLength={200}
           />
         </Field>
-      )}
-      {!isRadiologist && (
-        <input
-          type="hidden"
-          name="licenseNumber"
-          value={profile.licenseNumber}
-        />
-      )}
-    </Section>
+        <Field
+          id="title"
+          label={text.titleField}
+          hint={isRadiologist ? text.titleHintRadiologist : text.titleHintStaff}
+        >
+          <Input
+            id="title"
+            name="title"
+            defaultValue={profile.title}
+            maxLength={100}
+          />
+        </Field>
+        {isRadiologist && (
+          <div className="flex flex-col gap-1.5">
+            <Field
+              id="licenseNumber"
+              label={text.license}
+              hint={text.licenseHint}
+            >
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Input
+                  id="licenseNumber"
+                  name="licenseNumber"
+                  value={license}
+                  onChange={(event) => setLicense(event.target.value)}
+                  maxLength={50}
+                  aria-describedby="licenseNumber-status licenseNumber-description"
+                  className="sm:flex-1"
+                />
+                <CredentialChip
+                  status={status}
+                  label={text.licenseStatus[status]}
+                  className="self-start sm:self-center"
+                />
+                {/* Le libellé de la pastille, relié au champ pour un lecteur d'écran. */}
+                <span id="licenseNumber-status" className="sr-only">
+                  {text.licenseStatus[status]}
+                </span>
+              </div>
+            </Field>
+            {resetsValidation && (
+              <p
+                role="status"
+                className="flex items-start gap-2 rounded-lg bg-progress-muted px-3 py-2.5 text-2xs leading-relaxed text-progress"
+              >
+                <AlertTriangle
+                  className="mt-px size-3.5 shrink-0"
+                  aria-hidden
+                />
+                {text.licenseChangeWarning}
+              </p>
+            )}
+          </div>
+        )}
+        {!isRadiologist && (
+          <input
+            type="hidden"
+            name="licenseNumber"
+            value={profile.licenseNumber}
+          />
+        )}
+      </Section>
+
+      <Dialog
+        open={awaiting !== null}
+        onOpenChange={(open) => {
+          if (!open && !pending) setAwaiting(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{text.licenseChangeConfirm.title}</DialogTitle>
+            <DialogDescription>
+              {text.licenseChangeConfirm.description(
+                normalizeLicenseNumber(profile.licenseNumber),
+                normalizeLicenseNumber(awaiting?.licenseNumber ?? ""),
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={pending}
+              onClick={() => setAwaiting(null)}
+            >
+              {t.common.actions.cancel}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              loading={pending}
+              onClick={() => awaiting && save(awaiting)}
+            >
+              {text.licenseChangeConfirm.submit}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
