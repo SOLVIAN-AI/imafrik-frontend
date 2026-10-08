@@ -385,6 +385,10 @@ export const en: MarketingCopy = {
       "No signed report matches this code. Check that the address is complete; the most reliable way is to scan the QR code on the document. If the address is complete, the document did not come from IMAFRIK.",
     submittedCode: "Code submitted: {code}",
     report: "Report a suspicious document",
+    unavailableTitle: "Verification temporarily unavailable",
+    unavailableText:
+      "The verification service is not responding at the moment. This says nothing about whether the document is authentic: please try again in a few minutes. If the problem persists, write to us at {email}.",
+    retry: "Try again",
   },
   hashCheck: {
     title: "Check a PDF file",

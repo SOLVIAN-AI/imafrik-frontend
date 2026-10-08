@@ -1,5 +1,6 @@
 import {
   CalendarCheck,
+  CloudOff,
   FileCheck2,
   ShieldCheck,
   Stethoscope,
@@ -9,7 +10,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PdfHashCheck } from "@/components/marketing/pdf-hash-check";
 import { fill, marketingCopy } from "@/content/marketing";
-import { verifyReport } from "@/lib/data/verification";
+import { ApiError } from "@/lib/api/client";
+import { verifyReport, type Verification } from "@/lib/data/verification";
+import { PUBLISHER } from "@/lib/legal";
 import { formatDate, formatDateTime } from "@/lib/format";
 import type { Locale } from "@/lib/i18n/locale";
 import { localizePath } from "@/lib/i18n/routes";
@@ -28,8 +31,12 @@ import { localizePath } from "@/lib/i18n/routes";
  * compte-rendu PDF est un fichier que tout le monde peut imiter.
  *
  * Rendue côté serveur : la vérification ne doit pas dépendre de
- * l’exécution de script chez celui qui vérifie. Elle appellera
- * `GET /verify/{verify_token}`, qui existe déjà côté API.
+ * l’exécution de script chez celui qui vérifie (`GET /verify/{token}`).
+ *
+ * **Trois issues, jamais confondues.** Document authentique ; code
+ * inconnu, qui signale un document qui ne vient pas d’IMAFRIK ; service
+ * injoignable, qui ne dit rien du document. Une panne présentée comme un
+ * code inconnu ferait passer un vrai compte-rendu pour un faux.
  *
  * @param token  Code lu sur le document.
  * @param locale Langue de la page.
@@ -42,7 +49,14 @@ export async function VerifyPage({
   locale: Locale;
 }) {
   const t = marketingCopy(locale).verifyPage;
-  const attestation = await verifyReport(token);
+  let attestation: Verification | null;
+  try {
+    attestation = await verifyReport(token);
+  } catch (error) {
+    if (!(error instanceof ApiError)) throw error;
+    console.error("Vérification publique indisponible", error.status);
+    return <Unavailable token={token} locale={locale} />;
+  }
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center px-6 py-20 text-center md:py-28">
@@ -129,6 +143,34 @@ export async function VerifyPage({
           </Button>
         </>
       )}
+    </div>
+  );
+}
+
+/**
+ * Le service de vérification ne répond pas.
+ *
+ * Le lien « Réessayer » recharge la même adresse : la page est rendue au
+ * serveur, sans script nécessaire chez celui qui vérifie.
+ */
+function Unavailable({ token, locale }: { token: string; locale: Locale }) {
+  const t = marketingCopy(locale).verifyPage;
+  const path = localizePath(`/verifier/${encodeURIComponent(token)}`, locale);
+  return (
+    <div className="mx-auto flex max-w-xl flex-col items-center px-6 py-20 text-center md:py-28">
+      <span
+        className="flex size-14 items-center justify-center rounded-2xl bg-surface-active ring-1 ring-border-subtle ring-inset"
+        aria-hidden
+      >
+        <CloudOff className="size-6 text-secondary" />
+      </span>
+      <h1 className="mt-6 text-2xl font-semibold">{t.unavailableTitle}</h1>
+      <p className="mt-2 max-w-md text-sm leading-relaxed text-secondary">
+        {fill(t.unavailableText, { email: PUBLISHER.contact })}
+      </p>
+      <Button variant="secondary" size="sm" className="mt-8" asChild>
+        <a href={path}>{t.retry}</a>
+      </Button>
     </div>
   );
 }

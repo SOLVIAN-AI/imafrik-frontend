@@ -195,6 +195,14 @@ export interface MarketingCopy {
     invalidText: string;
     submittedCode: string;
     report: string;
+    /**
+     * Service de vérification injoignable. Distinct de « code inconnu » :
+     * une panne ne dit rien de l'authenticité du document.
+     * `{email}` est remplacé.
+     */
+    unavailableTitle: string;
+    unavailableText: string;
+    retry: string;
   };
   hashCheck: {
     title: string;
