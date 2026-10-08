@@ -639,6 +639,12 @@ export interface ClinicDetail {
    * mentions du document signé, page de vérification.
    */
   reportLanguage: Locale;
+  /**
+   * Fin du contrat ; `null` tant que la clinique est sous contrat. Une
+   * clinique dont le contrat est terminé est suspendue, retirée du pool,
+   * et sa fiche ne se lit plus qu'en lecture seule.
+   */
+  contractEndedAt: Date | null;
   onboarding: OnboardingStep[];
 }
 
@@ -671,6 +677,7 @@ export async function getClinic(id: string): Promise<ClinicDetail | null> {
     imageRetentionDays: raw.image_retention_days,
     imagesPurged: raw.images_purged,
     reportLanguage: raw.report_language,
+    contractEndedAt: toDate(raw.contract_ended_at ?? null),
     onboarding: raw.onboarding.map((step) => ({
       key: step.key,
       done: step.done,

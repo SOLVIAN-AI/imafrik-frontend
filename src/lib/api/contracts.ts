@@ -585,6 +585,8 @@ export const clinicDetailSchema = z.object({
   image_retention_days: z.number().int().nullable(),
   images_purged: count,
   report_language: z.enum(["fr", "en"]),
+  // Absent d'une réponse antérieure à la fin de contrat encadrée.
+  contract_ended_at: isoDate.nullable().optional(),
   onboarding: z.array(
     z.object({
       key: z.enum([
@@ -604,6 +606,37 @@ export const clinicDetailSchema = z.object({
 const _clinicDetail: Matches<
   z.input<typeof clinicDetailSchema>,
   Schemas["ClinicDetail"]
+> = true;
+
+/**
+ * Effet de la fin de contrat d'une clinique : date, examens abandonnés,
+ * et commande d'export à lancer sur le serveur.
+ */
+export const contractEndResultSchema = z.object({
+  contract_ended_at: isoDate,
+  abandoned_studies: count,
+  export_command: z.string(),
+});
+const _contractEndResult: Matches<
+  z.input<typeof contractEndResultSchema>,
+  Schemas["ContractEndResult"]
+> = true;
+
+/**
+ * Accueil d'un invité : l'organisation qui l'accueille, son rôle, et qui
+ * l'a invité. Lisible avant la double authentification.
+ */
+export const invitationWelcomeSchema = z.object({
+  organization_name: z.string(),
+  organization_kind: kindSchema,
+  city: z.string().nullable(),
+  role: roleSchema,
+  invited_by_name: z.string().nullable(),
+  invited_at: isoDate,
+});
+const _invitationWelcome: Matches<
+  z.input<typeof invitationWelcomeSchema>,
+  Schemas["InvitationWelcome"]
 > = true;
 
 export const contactTrackingSchema = z.object({
@@ -671,6 +704,8 @@ export const CONTRACT_CHECKS = [
   _userMembership,
   _adminUser,
   _clinicDetail,
+  _contractEndResult,
+  _invitationWelcome,
   _contactTracking,
   _mfaReset,
   _credentialsState,
@@ -693,5 +728,9 @@ export type ApiPlatformSettings = z.output<typeof platformSettingsSchema>;
 export type ApiAuditEntry = z.output<typeof auditEntrySchema>;
 export type ApiAdminUser = z.output<typeof adminUserSchema>;
 export type ApiClinicDetail = z.output<typeof clinicDetailSchema>;
+export type ApiContractEndResult = z.output<typeof contractEndResultSchema>;
+export type ApiInvitationWelcome = z.output<typeof invitationWelcomeSchema>;
+/** Corps de `POST /admin/clinics/{id}/end-contract`, tel que le contrat le décrit. */
+export type ApiContractEnd = Schemas["ContractEnd"];
 export type ApiOpsRun = z.output<typeof opsRunSchema>;
 export type ApiAlert = z.output<typeof alertSchema>;
