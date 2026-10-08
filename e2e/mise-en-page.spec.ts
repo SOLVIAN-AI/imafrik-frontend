@@ -21,7 +21,14 @@ import {
 const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
   {
     membership: null,
-    paths: ["/", "/en/security", "/connexion", "/contact?profil=radiologue"],
+    paths: [
+      "/",
+      "/en/security",
+      "/connexion",
+      "/contact?profil=radiologue",
+      // Accueil d'un invité : invitation de démonstration.
+      "/invitation",
+    ],
   },
   {
     membership: "m-radio",
@@ -36,6 +43,8 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       "/admin/facturation",
       "/admin/utilisateurs?validation=attente",
       "/admin/demandes?etat=all",
+      // Fiche d'une clinique, zone de danger de la fin de contrat comprise.
+      "/admin/organisations/org-stj",
     ],
   },
 ];
