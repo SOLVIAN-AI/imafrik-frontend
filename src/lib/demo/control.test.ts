@@ -4,9 +4,12 @@ import {
   demoAnalytics,
   demoBilling,
   demoClinic,
+  demoContactRequests,
   demoOverview,
   demoPipeline,
   demoSystem,
+  demoUsers,
+  isUnverifiedRadiologist,
 } from "@/lib/demo/control";
 
 /** Instant fixe : les tests ne dépendent pas de l'heure de leur exécution. */
@@ -126,6 +129,26 @@ describe("réseau de démonstration", () => {
     });
     expect(demoClinic("org-esp", NOW)!.onboarding[0].label).toBe(
       "Organisation créée",
+    );
+  });
+});
+
+describe("validation des numéros d’ordre en démonstration", () => {
+  it("signale au cockpit les radiologues à valider", () => {
+    const unverified = demoUsers(NOW).filter(isUnverifiedRadiologist);
+    expect(unverified.map((user) => user.full_name)).toEqual([
+      "Kossi Amegah",
+      "Afi Lawson",
+    ]);
+    const alert = demoOverview(NOW).alerts.find(
+      (candidate) => candidate.code === "unverified_radiologists",
+    );
+    expect(alert?.href).toBe("/admin/utilisateurs?validation=attente");
+    expect(alert?.message).toContain("2");
+    // Le compte des demandes nouvelles du cockpit suit la liste.
+    expect(demoOverview(NOW).network.new_requests).toBe(
+      demoContactRequests(NOW).filter((request) => request.status === "new")
+        .length,
     );
   });
 });

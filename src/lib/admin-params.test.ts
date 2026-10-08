@@ -5,7 +5,9 @@ import {
   parseCursor,
   parseMonth,
   parsePeriod,
+  parseUserFilter,
   shiftMonth,
+  userListHref,
 } from "@/lib/admin-params";
 
 describe("paramètres d'adresse de la tour de contrôle", () => {
@@ -42,5 +44,34 @@ describe("paramètres d'adresse de la tour de contrôle", () => {
     expect(parseCursor("-3")).toBeUndefined();
     expect(parseCursor("12abc")).toBeUndefined();
     expect(parseCursor("99999999999999999999")).toBeUndefined();
+  });
+});
+
+describe("filtre de la liste des comptes", () => {
+  it("lit l’adresse ouverte par l’alerte du cockpit", () => {
+    expect(parseUserFilter({ validation: "attente" })).toBe("unverified");
+    expect(parseUserFilter({ attente: "1" })).toBe("pending");
+    expect(parseUserFilter({ attente: "1", validation: "attente" })).toBe(
+      "unverified",
+    );
+    expect(parseUserFilter({ validation: "autre" })).toBe("all");
+    expect(parseUserFilter({})).toBe("all");
+  });
+
+  it("garde la recherche d’un filtre à l’autre", () => {
+    expect(userListHref("unverified")).toBe(
+      "/admin/utilisateurs?validation=attente",
+    );
+    expect(userListHref("pending", "kossi")).toBe(
+      "/admin/utilisateurs?q=kossi&attente=1",
+    );
+    expect(userListHref("all")).toBe("/admin/utilisateurs");
+    // Aller-retour : l'adresse produite se relit en le même filtre.
+    for (const filter of ["all", "pending", "unverified"] as const) {
+      const params = Object.fromEntries(
+        new URL(userListHref(filter), "https://imafrik.test").searchParams,
+      );
+      expect(parseUserFilter(params)).toBe(filter);
+    }
   });
 });

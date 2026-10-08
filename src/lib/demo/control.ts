@@ -424,6 +424,9 @@ function demoOps(now: number, locale: Locale): ApiOpsRun[] {
   ];
 }
 
+/** Demandes nouvelles du jeu de démonstration (voir `demoContactRequests`). */
+const DEMO_NEW_REQUESTS = 3;
+
 /**
  * Cockpit : l'état de la plateforme à l'instant.
  *
@@ -493,10 +496,18 @@ export function demoOverview(
     message: text.hostWatchFailed,
     href: "/admin/systeme",
   });
+  const unverified = demoUsers(now).filter(isUnverifiedRadiologist).length;
+  if (unverified)
+    alerts.push({
+      code: "unverified_radiologists",
+      severity: "warning",
+      message: text.unverifiedRadiologists(unverified),
+      href: "/admin/utilisateurs?validation=attente",
+    });
   alerts.push({
     code: "new_requests",
     severity: "info",
-    message: text.newRequests(2),
+    message: text.newRequests(DEMO_NEW_REQUESTS),
     href: "/admin/demandes",
   });
 
@@ -526,7 +537,7 @@ export function demoOverview(
       clinics_active: DEMO_NETWORK.length,
       clinics_connected: DEMO_NETWORK.length,
       radiologists_active: READERS.length,
-      new_requests: 2,
+      new_requests: DEMO_NEW_REQUESTS,
     },
     received_14d: received14,
     sla_30d: sla(flows),
@@ -861,6 +872,7 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
     mfa: boolean,
     memberships: ApiAdminUser["memberships"],
     license: string | null = null,
+    verifiedDaysAgo: number | null = null,
   ): ApiAdminUser => ({
     id,
     full_name,
@@ -870,6 +882,8 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
     created_at: iso(now - createdDaysAgo * DAY),
     last_sign_in_at: ago(lastSignInHours),
     mfa_enabled: mfa,
+    credentials_verified_at:
+      verifiedDaysAgo === null ? null : iso(now - verifiedDaysAgo * DAY),
     memberships,
   });
   return [
@@ -883,6 +897,7 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       true,
       [group("radiologist")],
       "TG-RAD-0142",
+      419,
     ),
     user(
       READERS[1].id,
@@ -894,6 +909,7 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       true,
       [group("radiologist")],
       "TG-RAD-0187",
+      399,
     ),
     user(
       READERS[2].id,
@@ -905,6 +921,7 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       true,
       [group("radiologist")],
       "TG-RAD-0031",
+      259,
     ),
     user(
       READERS[3].id,
@@ -916,6 +933,7 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       false,
       [group("radiologist")],
       "SN-RAD-2210",
+      139,
     ),
     user(
       "demo-admin",
@@ -977,6 +995,22 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       false,
       [clinic(4)],
     ),
+    // Rattachés au groupe, pas encore validés : l'un attend la
+    // vérification de son numéro d'ordre, l'autre ne l'a pas renseigné.
+    user(
+      "demo-amegah",
+      "Kossi Amegah",
+      "Dr",
+      "k.amegah@exemple.tg",
+      3,
+      20,
+      true,
+      [{ ...group("radiologist"), membership_id: "m-radiologist-amegah" }],
+      "TG-RAD-0263",
+    ),
+    user("demo-lawson", "Afi Lawson", "Dr", "a.lawson@exemple.tg", 1, 5, true, [
+      { ...group("radiologist"), membership_id: "m-radiologist-lawson" },
+    ]),
     user(
       "demo-pending-1",
       "Moussa Traoré",
@@ -1000,6 +1034,19 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       "BJ-RAD-0477",
     ),
   ];
+}
+
+/**
+ * Radiologue dont le numéro d'ordre attend la validation de l'équipe
+ * IMAFRIK : même règle que le filtre `unverified` du service.
+ *
+ * @param user Compte, tel que le service le renvoie.
+ */
+export function isUnverifiedRadiologist(user: ApiAdminUser): boolean {
+  return (
+    user.memberships.some((membership) => membership.role === "radiologist") &&
+    !user.credentials_verified_at
+  );
 }
 
 /**
@@ -1122,6 +1169,15 @@ export function demoAudit(now = Date.now()): ApiAuditEntry[] {
           sla_urgent_minutes: 30,
         },
       );
+    if (index === 20)
+      push(
+        minutes,
+        "user.credentials_verified",
+        admin,
+        null,
+        ["profile", READERS[3].id],
+        { license_number: "SN-RAD-2210" },
+      );
     if (index === 30)
       push(
         minutes,
@@ -1148,7 +1204,11 @@ export function demoAudit(now = Date.now()): ApiAuditEntry[] {
   return rows.map((row, index) => ({ id: 10_000 - index, ...row }));
 }
 
-/** Demandes reçues par le site, à divers stades de suivi. */
+/**
+ * Demandes reçues par le site, à divers stades de suivi : des
+ * établissements, une radiologue (numéro d'ordre déclaré), et une
+ * demande antérieure à la question « Je suis » (`requester_kind` nul).
+ */
 export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
   const at = (hours: number) => iso(now - hours * HOUR);
   return [
@@ -1158,6 +1218,8 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
       organization: "Centre de santé de Tsévié",
       email: "direction@tsevie.example",
       phone: "+228 90 00 00 01",
+      requester_kind: "clinic",
+      license_number: null,
       message:
         "Nous avons un scanner 16 barrettes sans radiologue sur place. Pouvez-vous nous présenter l’offre et les délais de lecture ?",
       status: "new",
@@ -1166,11 +1228,28 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
       created_at: at(3),
     },
     {
+      id: "c-6",
+      full_name: "Dr Sena Akakpo",
+      organization: null,
+      email: "s.akakpo@exemple.tg",
+      phone: "+228 93 00 00 04",
+      requester_kind: "radiologist",
+      license_number: "TG-RAD-0318",
+      message:
+        "Radiologue inscrite à l’Ordre du Togo, je souhaite lire pour le réseau, notamment la nuit et le week-end.",
+      status: "new",
+      notes: null,
+      handled_at: null,
+      created_at: at(8),
+    },
+    {
       id: "c-2",
       full_name: "Mariam Sanni",
       organization: "Clinique Les Palmiers",
       email: "m.sanni@palmiers.example",
       phone: null,
+      requester_kind: "clinic",
+      license_number: null,
       message: "Demande de démonstration pour notre équipe d’imagerie.",
       status: "new",
       notes: null,
@@ -1183,6 +1262,8 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
       organization: "Hôpital de district de Notsé",
       email: "imagerie@notse.example",
       phone: "+228 91 00 00 02",
+      requester_kind: "clinic",
+      license_number: null,
       message: "Intéressés par la lecture des radiographies de nuit.",
       status: "contacted",
       notes: "Appelé le 2 oct. : visite prévue, devis à envoyer.",
@@ -1195,6 +1276,8 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
       organization: "Cabinet Espérance",
       email: "cabinet@esperance.example",
       phone: "+228 92 00 00 03",
+      requester_kind: "clinic",
+      license_number: null,
       message: "Nous souhaitons rejoindre le réseau.",
       status: "converted",
       notes: "Raccordé : kit installé, équipe invitée.",
@@ -1207,6 +1290,8 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
       organization: null,
       email: "offres@fournisseur.example",
       phone: null,
+      requester_kind: null,
+      license_number: null,
       message: "Proposition de partenariat publicitaire.",
       status: "dismissed",
       notes: "Hors sujet.",

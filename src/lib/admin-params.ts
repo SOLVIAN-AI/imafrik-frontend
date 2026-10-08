@@ -80,3 +80,44 @@ export function parseCursor(value: Param): number | undefined {
   const cursor = Number(raw);
   return Number.isSafeInteger(cursor) && cursor > 0 ? cursor : undefined;
 }
+
+/**
+ * Filtre de la liste des comptes :
+ *
+ * - `all` — tous les comptes ;
+ * - `pending` — rattachés à aucune organisation (`?attente=1`) ;
+ * - `unverified` — radiologues dont le numéro d'ordre attend la
+ *   validation de l'équipe IMAFRIK (`?validation=attente`, l'adresse que
+ *   l'alerte du cockpit ouvre).
+ */
+export type UserListFilter = "all" | "pending" | "unverified";
+
+/**
+ * Filtre de la liste des comptes, lu dans l'adresse.
+ *
+ * @param params Paramètres `attente` et `validation`.
+ * @returns Le filtre ; la validation l'emporte si les deux sont posés.
+ */
+export function parseUserFilter(params: {
+  attente?: Param;
+  validation?: Param;
+}): UserListFilter {
+  if (first(params.validation) === "attente") return "unverified";
+  if (first(params.attente) === "1") return "pending";
+  return "all";
+}
+
+/**
+ * Adresse de la liste des comptes pour un filtre, recherche conservée.
+ *
+ * @param filter Filtre voulu.
+ * @param query  Recherche en cours.
+ */
+export function userListHref(filter: UserListFilter, query?: string): string {
+  const next = new URLSearchParams();
+  if (query) next.set("q", query);
+  if (filter === "pending") next.set("attente", "1");
+  if (filter === "unverified") next.set("validation", "attente");
+  const search = next.toString();
+  return search ? `/admin/utilisateurs?${search}` : "/admin/utilisateurs";
+}

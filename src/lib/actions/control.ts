@@ -7,6 +7,7 @@ import { apiSend } from "@/lib/api/client";
 import {
   clinicDetailSchema,
   contactTrackingSchema,
+  credentialsStateSchema,
   mfaResetSchema,
   platformSettingsSchema,
 } from "@/lib/api/contracts";
@@ -218,6 +219,50 @@ export async function resetUserMfa(
     return body.removed_factors;
   });
   revalidatePath("/admin/utilisateurs");
+  return result;
+}
+
+/** Décision de l'équipe IMAFRIK sur un numéro d'ordre. */
+export type CredentialsDecision = "verify" | "revoke";
+
+/**
+ * Valide le numéro d'ordre d'un radiologue, ou retire la validation.
+ *
+ * La vérification (inscription à l'Ordre, droit d'exercer) se fait hors
+ * de la plateforme ; ce geste en enregistre le résultat. Le service le
+ * trace dans le journal d'audit avec le numéro vérifié, refuse de valider
+ * un compte sans numéro (422) et, au retrait, rend au pool les examens
+ * que le radiologue avait pris en charge.
+ *
+ * @param profileId Compte du radiologue.
+ * @param decision  `verify` ou `revoke`.
+ * @returns Le nombre d'examens rendus au pool (toujours 0 à la validation).
+ */
+export async function decideCredentials(
+  profileId: string,
+  decision: CredentialsDecision,
+): Promise<ActionResult<number>> {
+  const { t } = await getMessages();
+  if (isDemoMode()) {
+    return await demoUnavailable(t.admin.demoActions.credentials);
+  }
+  if (decision !== "verify" && decision !== "revoke") {
+    return { ok: false, error: t.common.errors.invalidRequest, status: 422 };
+  }
+  const invalid = await rejectInvalidIds(profileId);
+  if (invalid) return invalid;
+  const result = await run(async () => {
+    const body = await apiSend(
+      `/admin/users/${encodeURIComponent(profileId)}/credentials`,
+      "POST",
+      { decision },
+      credentialsStateSchema,
+    );
+    return body.released_studies;
+  });
+  revalidatePath("/admin/utilisateurs");
+  // L'alerte du cockpit compte les radiologues à valider.
+  revalidatePath("/admin");
   return result;
 }
 

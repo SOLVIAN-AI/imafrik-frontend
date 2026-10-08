@@ -13,7 +13,7 @@ import {
   demoContactRequests,
   demoFlows,
 } from "@/lib/demo/control";
-import type { ContactStatus } from "@/lib/contact-status";
+import type { ContactStatus, RequesterKind } from "@/lib/contact-status";
 import { isDemoMode } from "@/lib/demo/mode";
 import type { OrgKind } from "@/lib/session/types";
 
@@ -54,6 +54,13 @@ export interface ContactRequest {
   email: string;
   phone: string | null;
   message: string | null;
+  /**
+   * Établissement de santé ou radiologue ; `null` pour une demande
+   * antérieure à la question.
+   */
+  requesterKind: RequesterKind | null;
+  /** Numéro d'ordre déclaré par un radiologue, à vérifier auprès de l'Ordre. */
+  licenseNumber: string | null;
   status: ContactStatus;
   /** Notes de l'équipe IMAFRIK. */
   notes: string | null;
@@ -144,6 +151,8 @@ export async function listContactRequests(): Promise<ContactRequest[]> {
     email: row.email,
     phone: row.phone,
     message: row.message,
+    requesterKind: row.requester_kind ?? null,
+    licenseNumber: row.license_number ?? null,
     status: row.status,
     notes: row.notes,
     handledAt: row.handled_at ? new Date(row.handled_at) : null,

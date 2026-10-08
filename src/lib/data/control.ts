@@ -30,6 +30,7 @@ import {
   demoSettings,
   demoSystem,
   demoUsers,
+  isUnverifiedRadiologist,
 } from "@/lib/demo/control";
 import { isDemoMode } from "@/lib/demo/mode";
 import type { Locale } from "@/lib/i18n/locale";
@@ -539,6 +540,11 @@ export interface AdminUser {
   lastSignInAt: Date | null;
   /** `null` quand l'information n'est pas disponible. */
   mfaEnabled: boolean | null;
+  /**
+   * Validation du numéro d'ordre par l'équipe IMAFRIK ; `null` tant
+   * qu'elle reste à faire, ou depuis un changement de numéro.
+   */
+  credentialsVerifiedAt: Date | null;
   memberships: UserMembership[];
 }
 
@@ -548,6 +554,8 @@ export interface UserFilters {
   query?: string;
   /** Seulement les comptes sans appartenance. */
   pending?: boolean;
+  /** Seulement les radiologues dont le numéro d'ordre attend sa validation. */
+  unverified?: boolean;
 }
 
 /** Comptes de la plateforme, appartenances et dernière connexion. */
@@ -561,6 +569,7 @@ export async function listUsers(
     rows = demoUsers().filter(
       (user) =>
         (!filters.pending || user.memberships.length === 0) &&
+        (!filters.unverified || isUnverifiedRadiologist(user)) &&
         (!needle ||
           user.full_name.toLocaleLowerCase("fr").includes(needle) ||
           (user.email ?? "").toLocaleLowerCase("fr").includes(needle)),
@@ -569,6 +578,7 @@ export async function listUsers(
     const params = new URLSearchParams();
     if (query) params.set("q", query.slice(0, 100));
     if (filters.pending) params.set("pending", "true");
+    if (filters.unverified) params.set("unverified", "true");
     rows = await apiGet(`/admin/users?${params}`, z.array(adminUserSchema));
   }
   return rows.map((row) => ({
@@ -580,6 +590,7 @@ export async function listUsers(
     createdAt: new Date(row.created_at),
     lastSignInAt: toDate(row.last_sign_in_at),
     mfaEnabled: row.mfa_enabled,
+    credentialsVerifiedAt: toDate(row.credentials_verified_at ?? null),
     memberships: row.memberships.map((membership) => ({
       membershipId: membership.membership_id,
       organizationId: membership.organization_id,

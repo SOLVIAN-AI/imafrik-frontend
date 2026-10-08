@@ -42,7 +42,7 @@ export const DEMO_MEMBERSHIPS: Membership[] = [
 ];
 
 /** Numéro d'ordre de la radiologue de démonstration, validé. */
-export const DEMO_LICENSE_NUMBER = "TG-ONMT-0412";
+export const DEMO_LICENSE_NUMBER = "TG-RAD-0142";
 
 /**
  * Qui l'on incarne dans chaque portail.

@@ -1,4 +1,11 @@
-import { Inbox, Mail, Phone } from "lucide-react";
+import {
+  Building2,
+  IdCard,
+  Inbox,
+  Mail,
+  Phone,
+  Stethoscope,
+} from "lucide-react";
 import type { Metadata } from "next";
 
 import { ContactTracker } from "@/components/admin/contact-tracker";
@@ -6,7 +13,13 @@ import { ControlBody, Segmented } from "@/components/admin/control-ui";
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CONTACT_STATUSES, type ContactStatus } from "@/lib/contact-status";
+import {
+  CONTACT_STATUSES,
+  type ContactStatus,
+  isRequesterKind,
+  REQUESTER_KINDS,
+  type RequesterKind,
+} from "@/lib/contact-status";
 import { listContactRequests } from "@/lib/data/admin";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
@@ -24,6 +37,27 @@ const STATUS_STYLES: Record<ContactStatus, string> = {
   dismissed: "bg-surface-active text-tertiary",
 };
 
+/** Valeur d'adresse du filtre « demandeur », en français comme les autres. */
+const KIND_PARAMS: Record<RequesterKind, string> = {
+  clinic: "etablissement",
+  radiologist: "radiologue",
+};
+
+/**
+ * Adresse de la liste pour une étape et un demandeur.
+ *
+ * @param status Étape, ou toutes.
+ * @param kind   Demandeur, ou tous.
+ */
+function requestsHref(
+  status: ContactStatus | "all",
+  kind: RequesterKind | null,
+): string {
+  const params = new URLSearchParams({ etat: status });
+  if (kind) params.set("demandeur", KIND_PARAMS[kind]);
+  return `/admin/demandes?${params}`;
+}
+
 /**
  * Demandes envoyées par le formulaire de contact du site.
  *
@@ -31,6 +65,12 @@ const STATUS_STYLES: Record<ContactStatus, string> = {
  * « nouvelle » à « convertie » ou « écartée », avec les notes de qui l'a
  * traitée. Les nouvelles s'affichent par défaut — c'est ce qui attend une
  * réponse.
+ *
+ * Deux demandeurs, deux chemins : un établissement de santé signe un
+ * contrat, puis crée lui-même les comptes de son personnel ; un
+ * radiologue déclare son numéro d'ordre, que l'équipe IMAFRIK vérifie
+ * auprès de l'Ordre avant de lui ouvrir le moindre accès. Le filtre
+ * « Demandeur » sépare les deux files.
  */
 export default async function ContactRequestsPage({
   searchParams,
@@ -39,7 +79,15 @@ export default async function ContactRequestsPage({
   const { t } = await getMessages();
   const text = t.admin.requests;
   const params = await searchParams;
-  const requests = await listContactRequests();
+  const requestedKind = Object.entries(KIND_PARAMS).find(
+    ([, value]) => value === params.demandeur,
+  )?.[0];
+  const kind = isRequesterKind(requestedKind) ? requestedKind : null;
+  const all = await listContactRequests();
+  // Les étapes se comptent dans le périmètre du demandeur choisi.
+  const requests = kind
+    ? all.filter((request) => request.requesterKind === kind)
+    : all;
   const counts = Object.fromEntries(
     CONTACT_STATUSES.map((status) => [
       status,
@@ -67,21 +115,38 @@ export default async function ContactRequestsPage({
         title={t.nav.items.requests}
         description={text.description(requests.length, counts.new)}
         actions={
-          <Segmented
-            label={text.stage}
-            options={[
-              {
-                label: text.allFilter(requests.length),
-                href: "/admin/demandes?etat=all",
-                active: filter === "all",
-              },
-              ...CONTACT_STATUSES.map((status) => ({
-                label: `${text.statusPlural[status]} · ${counts[status]}`,
-                href: `/admin/demandes?etat=${status}`,
-                active: filter === status,
-              })),
-            ]}
-          />
+          <>
+            <Segmented
+              label={text.requester}
+              options={[
+                {
+                  label: text.allRequesters,
+                  href: requestsHref(filter, null),
+                  active: kind === null,
+                },
+                ...REQUESTER_KINDS.map((value) => ({
+                  label: `${text.requesterKindPlural[value]} · ${all.filter((request) => request.requesterKind === value).length}`,
+                  href: requestsHref(filter, value),
+                  active: kind === value,
+                })),
+              ]}
+            />
+            <Segmented
+              label={text.stage}
+              options={[
+                {
+                  label: text.allFilter(requests.length),
+                  href: requestsHref("all", kind),
+                  active: filter === "all",
+                },
+                ...CONTACT_STATUSES.map((status) => ({
+                  label: `${text.statusPlural[status]} · ${counts[status]}`,
+                  href: requestsHref(status, kind),
+                  active: filter === status,
+                })),
+              ]}
+            />
+          </>
         }
       />
       <ControlBody>
@@ -102,6 +167,19 @@ export default async function ContactRequestsPage({
                 <Panel className="px-4 py-3.5">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <p className="text-sm font-medium">{request.fullName}</p>
+                    {request.requesterKind && (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full border border-border-subtle px-2 py-0.5 text-2xs text-secondary"
+                        data-requester-kind={request.requesterKind}
+                      >
+                        {request.requesterKind === "radiologist" ? (
+                          <Stethoscope className="size-3" aria-hidden />
+                        ) : (
+                          <Building2 className="size-3" aria-hidden />
+                        )}
+                        {text.requesterKind[request.requesterKind]}
+                      </span>
+                    )}
                     {request.organization && (
                       <p className="text-xs text-secondary">
                         {request.organization}
@@ -138,6 +216,24 @@ export default async function ContactRequestsPage({
                       </a>
                     )}
                   </div>
+                  {request.requesterKind === "radiologist" && (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs text-secondary">
+                      <IdCard
+                        className="size-3.5 shrink-0 text-tertiary"
+                        aria-hidden
+                      />
+                      {request.licenseNumber ? (
+                        <span>
+                          {text.license}{" "}
+                          <span className="font-mono text-primary">
+                            {request.licenseNumber}
+                          </span>
+                        </span>
+                      ) : (
+                        text.licenseMissing
+                      )}
+                    </p>
+                  )}
                   {request.message && (
                     <p className="mt-2 text-xs break-words whitespace-pre-wrap text-secondary">
                       {request.message}
