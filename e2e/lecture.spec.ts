@@ -42,3 +42,32 @@ for (const { langue, pastille, absente } of [
     });
   });
 }
+
+/**
+ * Les surimpressions du viewer, aux quatre coins, ne se chevauchent jamais.
+ *
+ * Régression : chaque coin était limité à 45 % de la largeur, ce qui ne
+ * tenait qu'au-delà de 240 px. Sur un téléphone, pendant la mise en place
+ * du volet, le nom du patient recouvrait celui de la clinique. La zone est
+ * ici réduite à 160 px, bien en deçà de l'ancien seuil.
+ */
+test("les surimpressions du viewer ne se chevauchent pas, même étroites", async ({
+  page,
+}) => {
+  await page.goto("/lecture/1");
+  const corners = page.locator("div.pointer-events-none.absolute.font-mono");
+  await expect(corners).toHaveCount(4);
+
+  const overlaps = await corners.first().evaluate((corner) => {
+    const scan = corner.parentElement as HTMLElement;
+    scan.style.width = "160px";
+    const boxes = [
+      ...scan.querySelectorAll<HTMLElement>(":scope > div.pointer-events-none"),
+    ].map((element) => element.getBoundingClientRect());
+    const [topLeft, topRight, bottomLeft, bottomRight] = boxes;
+    const collide = (a: DOMRect, b: DOMRect) =>
+      a.right > b.left && a.left < b.right;
+    return [collide(topLeft, topRight), collide(bottomLeft, bottomRight)];
+  });
+  expect(overlaps).toEqual([false, false]);
+});
