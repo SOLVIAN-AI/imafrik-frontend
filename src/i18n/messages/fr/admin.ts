@@ -296,6 +296,7 @@ export const admin = {
     metaTitle: "Clinique",
     active: "active",
     suspended: "suspendue",
+    contractEnded: "contrat terminé",
     openToPool: "ouverte au pool",
     ownRadiologists: "radiologues attitrés",
     backToOrganisations: "Organisations",
@@ -359,6 +360,61 @@ export const admin = {
     explanation:
       "Les intitulés du compte-rendu PDF signé, ses mentions et la page de vérification suivent cette langue. Les comptes-rendus déjà signés ne changent pas. Les radiologues la voient dans l’éditeur.",
     saved: "Langue des comptes-rendus enregistrée.",
+  },
+
+  /**
+   * Contrat d'une clinique, et sa fin : un geste définitif, confirmé en
+   * saisissant le nom de la clinique.
+   */
+  contract: {
+    title: "Contrat",
+    underContract: "Sous contrat",
+    /** Avant la date de fin, affichée à part. */
+    endedOnBefore: "Contrat terminé le ",
+    endedOnAfter: "",
+    endedDetail:
+      "La clinique est suspendue et retirée du pool : ses membres n’ont plus accès à IMAFRIK. Les comptes-rendus signés restent conservés vingt ans et vérifiables par leur QR code. Cette fiche n’est plus qu’en lecture seule.",
+    readOnly: "Lecture seule : le contrat de cette clinique est terminé.",
+    dangerZone: "Zone de danger",
+    endTitle: "Mettre fin au contrat",
+    endDescription:
+      "Suspend la clinique, la retire du pool et ferme ses contrats de service. Ce geste est définitif.",
+    dialogTitle: (clinic: string) => `Mettre fin au contrat de ${clinic}`,
+    dialogDescription:
+      "Ce geste est définitif et tracé dans le journal d’audit. Il enclenche :",
+    consequences: [
+      "tous les membres de la clinique perdent l’accès à IMAFRIK, dès leur requête suivante ;",
+      "la clinique est retirée du pool et ses contrats de service sont fermés ;",
+      "les comptes-rendus signés restent conservés vingt ans et vérifiables par leur QR code ;",
+      "les images suivent la durée de conservation prévue au contrat ;",
+      "l’export complet des données est à lancer ensuite sur le serveur, puis à remettre à la clinique par un canal chiffré.",
+    ],
+    /** Avant le nom de la clinique, affiché à part. */
+    confirmBefore: "Pour confirmer, saisissez le nom de la clinique : ",
+    confirmLabel: "Nom de la clinique",
+    confirmHint: "Majuscules et espaces de bord mis à part, le nom exact.",
+    unreportedTitle: (count: number) =>
+      count > 1
+        ? `${count} examens ne sont pas encore rendus`
+        : "1 examen n’est pas encore rendu",
+    abandonLabel: "Abandonner ces examens",
+    abandonDetail:
+      "Ils ne seront pas lus pour cette clinique : les lectures en cours s’arrêtent et leurs brouillons sont effacés.",
+    submit: "Mettre fin au contrat",
+    done: (clinic: string) => `Contrat de ${clinic} terminé.`,
+    abandoned: (count: number) =>
+      count > 1
+        ? `${count} examens non rendus ont été abandonnés.`
+        : "1 examen non rendu a été abandonné.",
+    exportTitle: "Export des données de la clinique",
+    exportIntro:
+      "À lancer maintenant sur le serveur, depuis le poste d’exploitation :",
+    copy: "Copier la commande",
+    copied: "Commande copiée",
+    exportReminder:
+      "L’archive contient des données de santé nominatives : remettez-la à la clinique par un canal chiffré, puis effacez-la de la machine qui l’a produite.",
+    endedExportReminder:
+      "Si l’export n’a pas encore été remis à la clinique, lancez-le sur le serveur, remettez-le par un canal chiffré, puis effacez-le de la machine qui l’a produit.",
   },
 
   users: {
@@ -593,6 +649,7 @@ export const admin = {
       "organization.retention_changed": "Durée de conservation modifiée",
       "organization.report_language_changed":
         "Langue des comptes-rendus modifiée",
+      "organization.contract_ended": "Contrat de la clinique terminé",
       "organization.exported": "Données de l’organisation exportées",
       "user.mfa_reset": "Double authentification réinitialisée",
       "user.credentials_verified": "Numéro d’ordre validé",
@@ -667,6 +724,7 @@ export const admin = {
     stateInvalid: "État invalide.",
     emailInvalid: "Adresse invalide",
     nameRequired: "Le nom est requis",
+    confirmNameRequired: "Saisissez le nom de la clinique pour confirmer",
   },
   demoActions: {
     settings: "La modification des réglages",
@@ -676,6 +734,7 @@ export const admin = {
     credentials: "La validation des numéros d’ordre",
     retention: "La durée de conservation",
     reportLanguage: "La langue des comptes-rendus",
+    contractEnd: "La fin de contrat",
     suspension: "La suspension",
     invitation: "L’invitation",
   },
