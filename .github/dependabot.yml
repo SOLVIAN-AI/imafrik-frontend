@@ -1,0 +1,31 @@
+# Mises à jour de dépendances proposées automatiquement.
+#
+# Même rythme que le backend : hebdomadaire pour les paquets npm, mensuel
+# pour les actions. Les correctifs de sécurité, eux, sont proposés
+# immédiatement par GitHub, indépendamment de ce calendrier. Chaque
+# proposition passe la CI complète, parcours de bout en bout compris :
+# une montée qui casse un écran ne peut pas être fusionnée sans le voir.
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Une seule Pull Request pour les montées mineures et correctives :
+      # les relire une par une n'apporte rien. Les montées majeures (Next,
+      # React, Tailwind) arrivent chacune seule : elles se lisent.
+      mineures:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci(deps)"
