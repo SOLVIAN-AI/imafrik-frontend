@@ -1,9 +1,10 @@
 "use server";
 
+import { headers } from "next/headers";
 import { z } from "zod";
 
 import { marketingCopy } from "@/content/marketing";
-import { ApiError, apiSend } from "@/lib/api/client";
+import { ApiError, apiFetch } from "@/lib/api/client";
 import type { ActionResult } from "@/lib/actions/result";
 import { isDemoMode } from "@/lib/demo/mode";
 import {
@@ -12,13 +13,16 @@ import {
   validateContactForm,
 } from "@/lib/contact-form";
 import { REQUESTER_KINDS } from "@/lib/contact-status";
+import { visitorIpHeaders } from "@/lib/contact-visitor";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n/locale";
 
 /**
  * Formulaire de contact du site public.
  *
  * La demande est enregistrée par le service, qui limite le débit par
- * adresse ; l'équipe IMAFRIK la retrouve dans le back-office. Le champ
+ * adresse du visiteur, relayée et signée par cette fonction (voir
+ * `lib/contact-visitor.ts`) ; l'équipe IMAFRIK la retrouve dans le
+ * back-office. Le champ
  * `website` est un piège : invisible pour un humain, rempli par les
  * robots, il fait ignorer la demande sans le leur dire.
  *
@@ -90,17 +94,26 @@ export async function submitContact(
     website,
   } = parsed.data;
   try {
-    await apiSend("/contact", "POST", {
-      requester_kind: requesterKind,
-      full_name: fullName,
-      organization: organization || null,
-      // Le service l'ignore pour un établissement ; il n'est donc envoyé
-      // que pour un radiologue.
-      license_number: requesterKind === "radiologist" ? licenseNumber : null,
-      email,
-      phone: phone || null,
-      message: message || null,
-      website: website || null,
+    await apiFetch("/contact", {
+      method: "POST",
+      // Sans l'adresse du visiteur, le service compterait sa limite sur
+      // celle de ce serveur, commune à tous les visiteurs.
+      headers: visitorIpHeaders(
+        await headers(),
+        process.env.CONTACT_IP_SIGNING_SECRET,
+      ),
+      body: JSON.stringify({
+        requester_kind: requesterKind,
+        full_name: fullName,
+        organization: organization || null,
+        // Le service l'ignore pour un établissement ; il n'est donc envoyé
+        // que pour un radiologue.
+        license_number: requesterKind === "radiologist" ? licenseNumber : null,
+        email,
+        phone: phone || null,
+        message: message || null,
+        website: website || null,
+      }),
     });
     return { ok: true, data: undefined };
   } catch (error) {

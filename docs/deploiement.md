@@ -62,12 +62,14 @@ chaque environnement où elles s'appliquent.
 | `NEXT_PUBLIC_SITE_URL` | URL du déploiement | domaine final | Liens des courriels et lien de vérification. |
 | `NEXT_PUBLIC_VIEWER_URL` | viewer de staging | viewer de production | Seul cadre autorisé par la CSP ; sans elle, pas d'images. Doit être une **autre origine** que le site (`viewer.imafrik.tech`), sans quoi la production refuse de servir. |
 | `REPORT_BACKUP_SECRET` | secret de staging | secret de production | **Serveur uniquement.** Chiffre les copies de secours des brouillons sur le poste ; 32 caractères au moins (`openssl rand -base64 48`), un secret distinct par environnement. |
+| `CONTACT_IP_SIGNING_SECRET` | secret de staging | secret de production | **Serveur uniquement.** Signe l'adresse du visiteur relayée à l'API par le formulaire de contact (`openssl rand -hex 32`). **Même valeur** que `CONTACT_IP_SIGNING_SECRET` de l'API du même environnement. Absente ou différente, le formulaire fonctionne, mais sa limite de 5 demandes par heure devient commune à tous les visiteurs. |
 | `IMAFRIK_ENV` | — | `production` hors Vercel | Sur Vercel, `VERCEL_ENV` suffit. Sur tout autre hébergement, sans elle, une production incomplète servirait la démonstration. |
 
 > ⚠️ **Jamais** la clé `service_role` : elle contourne les politiques
 > RLS, et toute variable `NEXT_PUBLIC_*` part dans le navigateur.
 
 Un déploiement de **production** auquel il manque l'une de ces variables
+(hors `CONTACT_IP_SIGNING_SECRET`, dont l'absence dégrade sans casser)
 **refuse de servir**, volontairement : chaque adresse répond 503 avec
 l'écran `/configuration-requise`, qui nomme ce qui manque. Servir le jeu
 de démonstration sous un domaine de production afficherait de faux
