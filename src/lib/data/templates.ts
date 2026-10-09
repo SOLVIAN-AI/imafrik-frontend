@@ -130,3 +130,27 @@ export async function listTemplates(
       sections: { ...EMPTY_REPORT_SECTIONS, ...row.sections },
     }));
 }
+
+/**
+ * Modèles de l'écran de lecture, sans jamais le bloquer.
+ *
+ * Les modèles ne sont qu'une commodité : un service qui ne répond pas, ou
+ * un modèle de clinique mal formé, ne doit pas remplacer le brouillon d'un
+ * radiologue par une page d'erreur. L'échec est journalisé, et l'écran
+ * s'ouvre sans modèles.
+ *
+ * @param modality Restreint aux modèles de cette modalité, plus ceux
+ *                 valables pour toutes.
+ * @param load     Chargement des modèles ; remplaçable pour les tests.
+ */
+export async function listTemplatesOrNone(
+  modality?: string,
+  load: (modality?: string) => Promise<ReportTemplate[]> = listTemplates,
+): Promise<ReportTemplate[]> {
+  try {
+    return await load(modality);
+  } catch (error) {
+    console.error("Modèles de compte-rendu indisponibles", error);
+    return [];
+  }
+}
