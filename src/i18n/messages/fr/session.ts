@@ -14,8 +14,9 @@ export const session = {
     steps: {
       install:
         "Installez une application d’authentification sur votre téléphone : Google Authenticator, Microsoft Authenticator ou 2FAS.",
-      scan: "Scannez le QR code qui s’affichera.",
-      enterCode: "Saisissez le code à six chiffres qu’elle affiche.",
+      scan: "Ouvrez cette application, touchez « Ajouter un compte » ou « + », puis scannez avec elle le QR code qui s’affichera. L’appareil photo du téléphone ne suffit pas. Si vous ne pouvez pas scanner, une clé à saisir sera aussi proposée.",
+      enterCode:
+        "Saisissez ici le code à six chiffres que l’application affiche alors.",
     },
     setUp: "Configurer mon application",
     codeLabel: "Code à six chiffres",
@@ -24,8 +25,11 @@ export const session = {
     lostPhone: "Téléphone perdu ou changé ?",
     support:
       "Contactez l’équipe IMAFRIK : après vérification de votre identité, elle réinitialise l’accès et vous configurez un nouvel appareil.",
+    scanHint:
+      "Dans votre application d’authentification, touchez « Ajouter un compte » ou « + », puis scannez ce QR code. L’appareil photo du téléphone ne suffit pas : c’est l’application qui doit le lire.",
     qrAlt: "QR code à scanner avec votre application d’authentification",
-    cannotScan: "Impossible de scanner ? Saisissez cette clé :",
+    cannotScan:
+      "Impossible de scanner, ou application installée sur cet appareil ? Dans l’application, choisissez la saisie d’une clé et entrez celle-ci :",
     copyKey: "Copier la clé",
     /** Nom du facteur enregistré auprès du service d'authentification. */
     factorName: "Application d’authentification",

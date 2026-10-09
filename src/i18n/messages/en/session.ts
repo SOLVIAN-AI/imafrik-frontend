@@ -10,8 +10,8 @@ export const session: AppMessages["session"] = {
     steps: {
       install:
         "Install an authenticator app on your phone: Google Authenticator, Microsoft Authenticator or 2FAS.",
-      scan: "Scan the QR code that will appear.",
-      enterCode: "Enter the six-digit code the app displays.",
+      scan: "Open the app, tap “Add account” or “+”, then use it to scan the QR code that will appear. Your phone’s camera on its own will not work. If you cannot scan, a key you can type in will also be provided.",
+      enterCode: "Enter here the six-digit code the app then displays.",
     },
     setUp: "Set up my authenticator app",
     codeLabel: "Six-digit code",
@@ -20,8 +20,11 @@ export const session: AppMessages["session"] = {
     lostPhone: "Lost or changed your phone?",
     support:
       "Contact the IMAFRIK team: once they have verified your identity, they will reset your access and you can set up a new device.",
+    scanHint:
+      "In your authenticator app, tap “Add account” or “+”, then scan this QR code. Your phone’s camera on its own will not work: the code must be read by the app.",
     qrAlt: "QR code to scan with your authenticator app",
-    cannotScan: "Unable to scan it? Enter this key:",
+    cannotScan:
+      "Unable to scan, or is the app on this device? In the app, choose to enter a setup key and type in this one:",
     copyKey: "Copy key",
     factorName: "Authenticator app",
     errors: {
