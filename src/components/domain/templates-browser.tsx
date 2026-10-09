@@ -189,7 +189,7 @@ export function TemplatesBrowser({
               </p>
             </div>
             {selected.shared ? (
-              <span className="flex items-center gap-1.5 rounded-full bg-surface-active px-2.5 py-1 text-2xs text-tertiary">
+              <span className="flex items-center gap-1.5 rounded-full bg-surface-active px-2.5 py-1 text-2xs text-secondary">
                 <Lock className="size-3" aria-hidden />
                 {labels.providedByImafrik}
               </span>

@@ -52,7 +52,7 @@ const ROWS = [
 ] as const;
 
 const TONES = {
-  wait: "bg-surface-active text-tertiary",
+  wait: "bg-surface-active text-secondary",
   progress: "bg-progress-muted text-progress",
   done: "bg-done-muted text-done",
 } as const;
