@@ -85,11 +85,11 @@ test("un filtre est porté par l'adresse et survit au rechargement", async ({
   await waitForHydration(page);
   const modalites = page.getByRole("navigation", { name: "Modalités" });
   const ct = modalites.getByRole("link", { name: /^CT/ });
-  await expect(ct).toHaveAttribute("aria-pressed", "false");
+  await expect(ct).not.toHaveAttribute("aria-current");
 
   await ct.click();
   await expect(page).toHaveURL(/[?&]modalite=CT(&|$)/);
-  await expect(ct).toHaveAttribute("aria-pressed", "true");
+  await expect(ct).toHaveAttribute("aria-current", "true");
   const filtrees = await rowLinks(page).count();
   expect(filtrees).toBeGreaterThan(0);
   // Chaque ligne restante est un scanner.
@@ -99,7 +99,7 @@ test("un filtre est porté par l'adresse et survit au rechargement", async ({
 
   await page.reload();
   await expect(page).toHaveURL(/[?&]modalite=CT(&|$)/);
-  await expect(ct).toHaveAttribute("aria-pressed", "true");
+  await expect(ct).toHaveAttribute("aria-current", "true");
   await expect(rowLinks(page)).toHaveCount(filtrees);
 
   // La clinique s'ajoute au filtre de modalité.
@@ -112,7 +112,7 @@ test("un filtre est porté par l'adresse et survit au rechargement", async ({
 
   await page.getByRole("link", { name: "Retirer les filtres" }).click();
   await expect(page).toHaveURL("/worklist");
-  await expect(ct).toHaveAttribute("aria-pressed", "false");
+  await expect(ct).not.toHaveAttribute("aria-current");
 });
 
 test("la file se relit au plus une fois toutes les trente secondes", async ({

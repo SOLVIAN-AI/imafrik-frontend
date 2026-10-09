@@ -108,7 +108,7 @@ export default async function StudySheetPage({
                   {signed.signedAt && <DateTime date={signed.signedAt} />}
                   <Link
                     href={`/comptes-rendus/${signed.id}`}
-                    className="-my-1.5 ml-auto flex items-center gap-1.5 py-1.5 text-accent hover:underline"
+                    className="-my-1.5 ml-auto flex items-center gap-1.5 py-1.5 text-accent underline decoration-accent/40 underline-offset-2 transition-colors hover:decoration-accent"
                   >
                     <FileText className="size-3.5" aria-hidden />
                     {messages.fullDocument}

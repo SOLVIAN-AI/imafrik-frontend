@@ -79,7 +79,10 @@ export function WorklistFilterBar({
                 // La file se relit toutes les trente secondes : précharger
                 // chaque combinaison de filtres la ferait rendre d'autant.
                 prefetch={false}
-                aria-pressed={active}
+                // Un lien ne peut pas être « pressé » (`aria-pressed` est
+                // réservé aux boutons) : le filtre actif est l'élément
+                // courant de cette navigation.
+                aria-current={active ? "true" : undefined}
                 className={cn(
                   "inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs transition-colors",
                   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
