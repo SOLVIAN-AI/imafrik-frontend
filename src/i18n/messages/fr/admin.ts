@@ -318,7 +318,7 @@ export const admin = {
     stepUpcoming: " : à venir",
     pending: "En attente",
     retention: "Conservation des images",
-    contractTerm: "Durée du contrat",
+    noLimit: "Sans limite, aucune purge",
     retentionDays: (days: number) => `${days} jours après remise`,
     summary: "Synthèse sur trente jours",
     received30d: "Reçus · 30 jours",
@@ -346,12 +346,12 @@ export const admin = {
       "Les comptes-rendus restent ; la clinique garde ses originaux.",
     saved: "Durée de conservation enregistrée.",
     explanation:
-      "Durée prévue au contrat, après la remise du compte-rendu. Au-delà, les images quittent le PACS central ; la fiche de l’examen et le compte-rendu signé restent, et la clinique garde ses originaux. Vide : conservées pour toute la durée du contrat.",
+      "Durée prévue au contrat, après la remise du compte-rendu. Au-delà, les images quittent le PACS central ; la fiche de l’examen et le compte-rendu signé restent, et la clinique garde ses originaux. Vide : aucune purge automatique, les images sont conservées sans limite, y compris après la fin du contrat.",
     label: "Conservation des images (jours)",
     purgedHint: (count: number) =>
       `${count} examen${count > 1 ? "s" : ""} déjà purgé${count > 1 ? "s" : ""}. Entre 30 et 7 300 jours.`,
-    hint: "Entre 30 et 7 300 jours. Laissez vide pour conserver les images pendant toute la durée du contrat.",
-    contractTerm: "Durée du contrat",
+    hint: "Entre 30 et 7 300 jours. Laissez vide pour ne jamais purger les images automatiquement, même après la fin du contrat.",
+    noLimit: "Sans limite",
   },
 
   /** Langue des comptes-rendus d'une clinique. */
@@ -386,7 +386,7 @@ export const admin = {
       "tous les membres de la clinique perdent l’accès à IMAFRIK, dès leur requête suivante ;",
       "la clinique est retirée du pool et ses contrats de service sont fermés ;",
       "les comptes-rendus signés restent conservés vingt ans et vérifiables par leur QR code ;",
-      "les images suivent la durée de conservation prévue au contrat ;",
+      "les images ne sont pas purgées par la fin du contrat : elles suivent la durée de conservation fixée pour la clinique, et restent sans limite si aucune n’est fixée ;",
       "l’export complet des données est à lancer ensuite sur le serveur, puis à remettre à la clinique par un canal chiffré.",
     ],
     /** Avant le nom de la clinique, affiché à part. */
