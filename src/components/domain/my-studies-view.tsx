@@ -1,5 +1,7 @@
 "use client";
 
+import type * as React from "react";
+
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { CredentialsBanner } from "@/components/domain/credentials-banner";
 import { ReadingTable } from "@/components/domain/reading-table";
@@ -12,8 +14,17 @@ import type { Study } from "@/lib/data/studies";
  * Même tableau que la file de lecture : ce sont les mêmes colonnes qu'on
  * y cherche, échéance en tête, et un second tableau au dessin différent
  * obligerait à réapprendre où regarder.
+ *
+ * @param studies Examens pris en charge, page courante.
+ * @param footer  Pied de liste : pagination, rendue par la page serveur.
  */
-export function MyStudiesView({ studies }: { studies: Study[] }) {
+export function MyStudiesView({
+  studies,
+  footer,
+}: {
+  studies: Study[];
+  footer?: React.ReactNode;
+}) {
   const t = useMessages();
   return (
     // Même défilement que la file : la page sur téléphone, le tableau au-delà.
@@ -33,6 +44,7 @@ export function MyStudiesView({ studies }: { studies: Study[] }) {
             hrefFor={(study) => `/lecture/${study.id}`}
             empty={t.worklist.myStudies.empty}
           />
+          {footer}
         </Panel>
       </div>
     </div>

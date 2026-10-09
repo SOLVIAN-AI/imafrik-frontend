@@ -7,7 +7,7 @@ import { cache } from "react";
 import { isDemoMode } from "@/lib/demo/mode";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locale";
 import { LANGUAGE_COOKIE } from "@/lib/i18n/routes";
-import { homeFor, isRouteAllowed } from "@/lib/navigation";
+import { homeFor } from "@/lib/navigation";
 import { demoSession } from "@/lib/session/demo";
 import {
   needsSecondFactor,
@@ -46,7 +46,7 @@ interface MembershipRow {
 /**
  * État d'authentification de la requête courante.
  *
- * Trois cas, que l'interface traite différemment :
+ * Quatre cas, que l'interface traite différemment :
  *
  * - `"anonymous"` — personne n'est connecté : direction la connexion ;
  * - `"mfa-required"` — un compte qui doit encore enrôler ou vérifier son
@@ -322,17 +322,4 @@ export async function requireSession(
   if (roles && !roles.includes(state.active.role))
     redirect(homeFor(state.active.role));
   return state;
-}
-
-/**
- * Vérifie qu'une adresse appartient au portail de l'utilisateur, ou le
- * renvoie chez lui. Pour les écrans partagés entre plusieurs rôles.
- *
- * @param pathname Adresse de l'écran.
- */
-export async function requireRouteAccess(pathname: string): Promise<Session> {
-  const session = await requireSession();
-  if (!isRouteAllowed(session.active.role, pathname))
-    redirect(homeFor(session.active.role));
-  return session;
 }

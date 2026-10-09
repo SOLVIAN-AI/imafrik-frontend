@@ -206,8 +206,6 @@ export const clinic = {
     title: "Comptes-rendus",
     descriptionClinic: "Documents signés et transmis à votre établissement",
     descriptionRadiologist: "Les comptes-rendus que vous avez signés",
-    searchPlaceholder: "Patient, identifiant, modalité…",
-    searchLabel: "Rechercher un compte-rendu",
     noResult: "Aucun résultat",
     noResultDetail: "Essayez un autre nom ou un autre identifiant.",
     empty: "Aucun compte-rendu",

@@ -174,7 +174,11 @@ export const FILTER_PARAMS = {
   urgent: "urgent",
 } as const;
 
-/** Forme d'un code de modalité DICOM : deux à quatre lettres ou chiffres. */
+/**
+ * Forme d'un code de modalité DICOM : une à huit lettres capitales ou
+ * chiffres (`CT`, `MR`, `OPT`…), assez pour les codes définis par la
+ * norme sans accepter n'importe quelle chaîne venue de l'adresse.
+ */
 const MODALITY_PATTERN = /^[A-Z0-9]{1,8}$/;
 
 /**

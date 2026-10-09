@@ -177,8 +177,6 @@ export const clinic: AppMessages["clinic"] = {
     title: "Reports",
     descriptionClinic: "Signed documents sent to your facility",
     descriptionRadiologist: "The reports you have signed",
-    searchPlaceholder: "Patient, ID, modality…",
-    searchLabel: "Search reports",
     noResult: "No results",
     noResultDetail: "Try another name or ID.",
     empty: "No reports",

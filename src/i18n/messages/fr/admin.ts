@@ -638,6 +638,7 @@ export const admin = {
       "study.viewed": "Examen consulté",
       "study.claimed": "Examen pris en charge",
       "study.released": "Examen rendu au pool",
+      "study.updated": "Urgence ou renseignement clinique modifié",
       "study.images_purged": "Images purgées du PACS",
       "report.signed": "Compte-rendu signé",
       "report.addendum": "Addendum ajouté",
@@ -654,6 +655,8 @@ export const admin = {
       "organization.exported": "Données de l’organisation exportées",
       "user.mfa_reset_requested":
         "Réinitialisation de la double authentification demandée",
+
+      "profile.identity_changed": "Nom, titre ou numéro d’ordre modifié",
       "user.mfa_reset": "Double authentification réinitialisée",
       "user.credentials_verified": "Numéro d’ordre validé",
       "user.credentials_revoked": "Validation du numéro d’ordre retirée",

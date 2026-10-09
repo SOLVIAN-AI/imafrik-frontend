@@ -592,6 +592,7 @@ export const admin: AppMessages["admin"] = {
       "study.viewed": "Examination viewed",
       "study.claimed": "Examination claimed",
       "study.released": "Examination returned to the pool",
+      "study.updated": "Urgency or clinical information changed",
       "study.images_purged": "Images purged from the PACS",
       "report.signed": "Report signed",
       "report.addendum": "Addendum added",
@@ -606,6 +607,8 @@ export const admin: AppMessages["admin"] = {
       "organization.contract_ended": "Clinic contract ended",
       "organization.exported": "Organisation data exported",
       "user.mfa_reset_requested": "Two-factor authentication reset requested",
+
+      "profile.identity_changed": "Name, title or registration number changed",
       "user.mfa_reset": "Two-factor authentication reset",
       "user.credentials_verified": "Registration number verified",
       "user.credentials_revoked": "Registration number verification withdrawn",

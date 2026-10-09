@@ -19,27 +19,6 @@ import type { UserRole } from "@/lib/session/types";
 import { SESSION_COOKIE_OPTIONS } from "@/lib/supabase/cookies";
 import { supabaseEnv } from "@/lib/supabase/env";
 
-/**
- * Proxy : s'exécute avant chaque rendu.
- *
- * Quatre responsabilités, dans cet ordre :
- *
- * 1. **Refuser un déploiement de production incomplet** — avant de servir
- *    le moindre écran. Voir `lib/deployment.ts`.
- * 2. **Poser la politique de sécurité du contenu** avec un nonce propre à
- *    la requête. Voir `lib/security/csp.ts`.
- * 3. **Rafraîchir la session** : un composant serveur rendu ne peut plus
- *    écrire de cookie, et un jeton Supabase expire au bout d'une heure.
- * 4. **Trier les accès** : un visiteur anonyme ne dépasse pas les pages
- *    publiques, un compte dont le second facteur n'est pas vérifié ne
- *    dépasse pas l'écran de double authentification, et un utilisateur
- *    connecté ne dépasse pas son portail.
- *
- * Le tri par rôle repose sur les claims du jeton, vérifiés localement
- * (`getClaims`). C'est une première barrière, rapide ; chaque disposition
- * le refait sur la session relue en base, et les données restent de toute
- * façon protégées par le service et RLS.
- */
 /** Écran d'enrôlement et de vérification du second facteur. */
 const MFA_SCREEN = "/double-authentification";
 
@@ -70,6 +49,30 @@ function rememberLocale(
   });
 }
 
+/**
+ * Proxy : s'exécute avant chaque rendu.
+ *
+ * Quatre responsabilités, dans cet ordre :
+ *
+ * 1. **Refuser un déploiement de production incomplet** — avant de servir
+ *    le moindre écran. Voir `lib/deployment.ts`.
+ * 2. **Poser la politique de sécurité du contenu** avec un nonce propre à
+ *    la requête. Voir `lib/security/csp.ts`.
+ * 3. **Rafraîchir la session** : un composant serveur rendu ne peut plus
+ *    écrire de cookie, et un jeton Supabase expire au bout d'une heure.
+ * 4. **Trier les accès** : un visiteur anonyme ne dépasse pas les pages
+ *    publiques, un compte dont le second facteur n'est pas vérifié ne
+ *    dépasse pas l'écran de double authentification, et un utilisateur
+ *    connecté ne dépasse pas son portail.
+ *
+ * Le tri par rôle repose sur les claims du jeton, vérifiés localement
+ * (`getClaims`). C'est une première barrière, rapide. Le second contrôle
+ * est fait par **chaque page**, qui appelle `requireSession` avec ses
+ * rôles sur la session relue en base : les dispositions, elles, ne
+ * vérifient que la présence d'une session, sans rôle. Un nouvel écran doit
+ * donc déclarer ses rôles lui-même. Les données restent de toute façon
+ * protégées par le service et RLS.
+ */
 export async function proxy(request: NextRequest) {
   const nonce = createNonce();
   // Derrière Vercel, la requête arrive en HTTP interne : le protocole vu

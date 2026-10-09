@@ -299,9 +299,17 @@ export interface paths {
         put?: never;
         /**
          * Inviter une personne dans une organisation
-         * @description Invite une personne dans n'importe quelle organisation, à n'importe quel rôle.
+         * @description Invite une personne dans n'importe quelle organisation.
          *
-         *     C'est le seul chemin pour ajouter un radiologue à un groupe du pool.
+         *     Le rôle doit convenir à la nature de l'organisation, selon la règle
+         *     commune à tous les chemins d'ajout
+         *     (:data:`~app.models.ROLES_BY_ORGANIZATION_KIND`) : pas d'administrateur
+         *     IMAFRIK dans une clinique, pas de personnel de clinique dans un groupe.
+         *
+         *     C'est le chemin pour inviter une personne sans compte dans un groupe
+         *     du pool ; un compte existant peut aussi être rattaché d'ici (avec son
+         *     accord, recueilli par l'équipe), comme par ``POST
+         *     /admin/users/{id}/memberships``.
          *
          *     Args:
          *         organization_id: Organisation d'accueil.
@@ -313,6 +321,7 @@ export interface paths {
          *
          *     Raises:
          *         NotFound: Organisation inconnue.
+         *         Unprocessable: Rôle incompatible avec la nature de l'organisation.
          */
         post: operations["invite_admin_organizations__organization_id__invitations_post"];
         delete?: never;
@@ -393,6 +402,10 @@ export interface paths {
         /**
          * État technique
          * @description Dépendances, PACS, version déployée, exploitation.
+         *
+         *     Les noms des dépendances, leur état et les bilans d'exploitation
+         *     enregistrés par le service sont rendus dans la langue de la requête :
+         *     la page système les affiche tels quels.
          */
         get: operations["get_system_admin_system_get"];
         put?: never;
@@ -1296,26 +1309,40 @@ export interface paths {
         };
         /**
          * Lister les examens visibles
-         * @description Liste les examens visibles par l'appelant.
+         * @description Liste les examens visibles par l'appelant, page par page.
          *
          *     Le périmètre est décidé par RLS, pas par ce code : une clinique voit
          *     ses propres examens, un radiologue voit le pool des cliniques sous
          *     contrat avec son groupe. Chaque examen porte son échéance
          *     (``due_at``), calculée d'après les délais promis en vigueur.
          *
+         *     Pagination par curseur, comme le journal d'audit : la page suivante
+         *     reprend juste après la dernière ligne lue, sur la clé de tri complète
+         *     (identifiant compris). Un décalage numérique sauterait ou répéterait
+         *     des examens à chaque arrivée, dans une liste triée du plus récent au
+         *     plus ancien qui se remplit pendant qu'on la parcourt.
+         *
          *     Args:
          *         principal: Appelant disposant d'une organisation active.
          *         status_filter: Restreint aux statuts donnés. Plusieurs valeurs
          *             s'additionnent : ``?status=reported&status=delivered``.
+         *         priority: Restreint à une priorité : ``urgent`` pour la vue des
+         *             urgences de la tour de contrôle.
          *         q: Recherche libre, insensible à la casse. Le nom se cherche tel
          *             qu'il s'affiche (voir :func:`search_text`).
          *         mine: Restreint aux examens que l'appelant a pris en charge.
-         *         order: Ordre de tri — voir :data:`StudyOrder`.
+         *         order: Ordre de tri, voir :data:`StudyOrder`.
          *         limit: Nombre maximal d'examens renvoyés.
-         *         offset: Décalage, pour la pagination.
+         *         cursor: ``next_cursor`` de la page précédente ; absent pour la
+         *             première page.
          *
          *     Returns:
-         *         La page demandée et le nombre total d'examens correspondants.
+         *         La page demandée, le nombre total d'examens correspondant aux
+         *         filtres (compté par la base, toutes pages confondues) et le
+         *         curseur de la page suivante, ``None`` sur la dernière.
+         *
+         *     Raises:
+         *         Unprocessable: Curseur illisible, ou émis pour un autre ordre.
          */
         get: operations["list_studies_studies_get"];
         put?: never;
@@ -3325,11 +3352,16 @@ export interface components {
          *
          *     Attributes:
          *         items: Les examens de la page.
-         *         total: Nombre total d'examens correspondant aux filtres.
+         *         total: Nombre total d'examens correspondant aux filtres, toutes
+         *             pages confondues, compté par la base.
+         *         next_cursor: Curseur à renvoyer (``?cursor=``) pour lire la page
+         *             suivante ; ``None`` sur la dernière page.
          */
         StudyPage: {
             /** Items */
             items: components["schemas"]["Study"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
             /** Total */
             total: number;
         };
@@ -3683,7 +3715,8 @@ export interface operations {
     list_audit_admin_audit_get: {
         parameters: {
             query?: {
-                action?: string | null;
+                /** @description Seulement les entrées de cette action */
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credentials_verified" | "user.credentials_revoked" | "platform.settings_changed" | "contact_request.tracked") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -5115,14 +5148,17 @@ export interface operations {
             query?: {
                 /** @description Un ou plusieurs statuts ; vide = tous */
                 status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
                 /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
                 q?: string | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
-                /** @description recent : urgences puis plus récents ; deadline : échéance */
-                order?: "recent" | "deadline";
+                /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance */
+                order?: "recent" | "received" | "deadline";
                 limit?: number;
-                offset?: number;
+                /** @description Position après laquelle reprendre : next_cursor de la page précédente */
+                cursor?: string | null;
             };
             header?: {
                 authorization?: string | null;

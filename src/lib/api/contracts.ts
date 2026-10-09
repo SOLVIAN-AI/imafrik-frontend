@@ -87,6 +87,7 @@ const _study: Matches<z.input<typeof studySchema>, Schemas["Study"]> = true;
 export const studyPageSchema = z.object({
   items: z.array(studySchema),
   total: z.number().int(),
+  next_cursor: z.string().nullable().optional(),
 });
 const _studyPage: Matches<
   z.input<typeof studyPageSchema>,
