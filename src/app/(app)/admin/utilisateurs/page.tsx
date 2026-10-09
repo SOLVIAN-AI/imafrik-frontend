@@ -1,6 +1,7 @@
 import { ShieldAlert, ShieldCheck, UserRoundSearch } from "lucide-react";
 import type { Metadata } from "next";
 
+import { AnonymizeDialog } from "@/components/admin/anonymize-dialog";
 import { ControlBody, Section, Segmented } from "@/components/admin/control-ui";
 import { CredentialsActions } from "@/components/admin/credentials-actions";
 import { GrantDialog } from "@/components/admin/grant-dialog";
@@ -11,6 +12,7 @@ import { CredentialChip } from "@/components/domain/credential-chip";
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
+import { needsMembershipRemoval } from "@/lib/account-anonymization";
 import { parseUserFilter, userListHref } from "@/lib/admin-params";
 import { credentialStatus } from "@/lib/credentials";
 import { listOrganizations } from "@/lib/data/admin";
@@ -36,6 +38,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * du cockpit) les isole, et la validation se fait depuis la ligne.
  * **Vérifier** : qui a accès à quoi, qui n'a pas activé la double
  * authentification, qui ne s'est pas connecté depuis des mois.
+ * **Effacer** : une personne qui exerce son droit à l'effacement est
+ * anonymisée depuis sa ligne, après saisie de son nom.
  */
 export default async function UsersPage({
   searchParams,
@@ -207,7 +211,7 @@ function UserRow({
         </p>
       </div>
 
-      <div className="flex items-center justify-end md:order-last">
+      <div className="flex flex-wrap items-center justify-end gap-1 md:order-last">
         {unattached ? (
           <GrantDialog
             user={{
@@ -224,6 +228,15 @@ function UserRow({
               <MfaResetButton profileId={user.id} fullName={user.fullName} />
             )}
           </div>
+        )}
+        {/* Droit à l'effacement : nul n'anonymise son propre compte. */}
+        {!isSelf && (
+          <AnonymizeDialog
+            profileId={user.id}
+            fullName={user.fullName}
+            displayName={formatPersonName(user.title, user.fullName)}
+            activeMember={!unattached && needsMembershipRemoval(user)}
+          />
         )}
       </div>
 

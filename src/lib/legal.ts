@@ -144,9 +144,12 @@ export const RETENTION: Record<
   "accounts" | "accessLogs" | "prospects" | "technicalLogs" | "examinations",
   Localized
 > = {
+  // Appliqué par la tâche de conservation du service (anonymisation des
+  // comptes, `app.services.anonymization`) : la relation prend fin avec la
+  // dernière appartenance à une organisation active.
   accounts: {
-    fr: "Pendant la relation contractuelle, puis cinq ans à des fins de preuve.",
-    en: "For the duration of the contractual relationship, then five years for evidential purposes.",
+    fr: "Compte de connexion (adresse électronique, accès) : pendant la relation contractuelle, puis cinq ans à des fins de preuve, puis supprimé. L’identité des signataires et des auteurs d’accès reste attachée aux comptes-rendus signés et au journal d’audit aussi longtemps qu’eux.",
+    en: "Login account (email address, access): for the duration of the contractual relationship, then five years for evidential purposes, after which it is deleted. The identity of signatories and of those who accessed data remains attached to signed reports and to the audit log for as long as these are kept.",
   },
   accessLogs: {
     fr: "Aussi longtemps que les examens auxquels ils se rapportent : ils en sont la trace.",

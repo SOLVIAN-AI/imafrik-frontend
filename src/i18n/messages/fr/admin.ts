@@ -507,6 +507,38 @@ export const admin = {
       `${name} est rattaché(e) à ${organisation ?? "l’organisation"}.`,
   },
 
+  /**
+   * Anonymisation d'un compte : le droit à l'effacement, appliqué tout de
+   * suite. Le service fait la même chose, d'office, cinq ans après la fin
+   * de la relation.
+   */
+  anonymize: {
+    trigger: "Anonymiser",
+    title: "Droit à l’effacement",
+    dialogTitle: (name: string) => `Anonymiser le compte de ${name}`,
+    dialogDescription:
+      "Le geste qui répond à une demande d’effacement. Il est définitif et tracé dans le journal d’audit. Il enclenche :",
+    consequences: [
+      "le compte de connexion est supprimé : adresse électronique, mot de passe, double authentification et sessions ; la personne ne peut plus se connecter ;",
+      "ses examens en cours retournent au pool, et ses brouillons sur ces examens sont effacés ;",
+      "si elle a signé un compte-rendu, rédigé un addendum ou laissé une trace au journal d’audit, son nom, son titre et son numéro d’ordre restent attachés à ces documents ; sa signature et ses préférences sont effacées ;",
+      "sinon, son profil est supprimé entièrement.",
+    ],
+    /** Avant le nom du compte, affiché à part. */
+    confirmBefore: "Pour confirmer, saisissez le nom du compte : ",
+    confirmLabel: "Nom du compte",
+    confirmHint: "Majuscules et espaces de bord mis à part, le nom exact.",
+    activeTitle: "Ce compte est encore membre d’une organisation active",
+    removeLabel: "Retirer ses appartenances",
+    removeDetail:
+      "La personne perd aussitôt l’accès à toutes ses organisations, et ses jetons de visualisation et de dépôt sont révoqués.",
+    submit: "Anonymiser définitivement",
+    done: (name: string, kept: boolean) =>
+      kept
+        ? `Compte de ${name} anonymisé : son identité reste attachée aux documents signés et au journal d’audit.`
+        : `Compte de ${name} anonymisé et supprimé.`,
+  },
+
   /** Réinitialisation de la double authentification. */
   mfaReset: {
     confirm: (name: string) =>
@@ -660,6 +692,8 @@ export const admin = {
       "user.mfa_reset": "Double authentification réinitialisée",
       "user.credentials_verified": "Numéro d’ordre validé",
       "user.credentials_revoked": "Validation du numéro d’ordre retirée",
+      "user.anonymization_requested": "Anonymisation d’un compte demandée",
+      "user.anonymized": "Compte anonymisé",
       "platform.settings_changed": "Réglages modifiés",
       "contact_request.tracked": "Demande reçue suivie",
     },
@@ -731,6 +765,7 @@ export const admin = {
     emailInvalid: "Adresse invalide",
     nameRequired: "Le nom est requis",
     confirmNameRequired: "Saisissez le nom de la clinique pour confirmer",
+    confirmAccountNameRequired: "Saisissez le nom du compte pour confirmer",
   },
   demoActions: {
     settings: "La modification des réglages",
@@ -741,6 +776,7 @@ export const admin = {
     retention: "La durée de conservation",
     reportLanguage: "La langue des comptes-rendus",
     contractEnd: "La fin de contrat",
+    anonymize: "L’anonymisation",
     suspension: "La suspension",
     invitation: "L’invitation",
   },
@@ -773,7 +809,7 @@ export const admin = {
       reconciliationClean: "0 examen manquant",
       reconciliationCaught: "1 examen rattrapé",
       retention:
-        "3 examen(s) purgé(s) du PACS, 0 en échec, 0 demande(s) reçue(s) supprimée(s)",
+        "3 examen(s) purgé(s) du PACS, 0 en échec, 0 demande(s) reçue(s) supprimée(s), 0 compte(s) anonymisé(s), 0 reporté(s)",
       hostWatchFailed: "Disque /var à 83 % (seuil d’alerte : 80 %)",
       hostWatchOk: "Disque /var à 79 %",
     },

@@ -545,6 +545,12 @@ export interface AdminUser {
    * qu'elle reste à faire, ou depuis un changement de numéro.
    */
   credentialsVerifiedAt: Date | null;
+  /**
+   * Fin de la relation : depuis quand le compte n'a plus aucune
+   * appartenance à une organisation active ; `null` s'il en garde une.
+   * Point de départ des cinq ans de conservation du compte.
+   */
+  inactiveSince: Date | null;
   memberships: UserMembership[];
 }
 
@@ -591,6 +597,7 @@ export async function listUsers(
     lastSignInAt: toDate(row.last_sign_in_at),
     mfaEnabled: row.mfa_enabled,
     credentialsVerifiedAt: toDate(row.credentials_verified_at ?? null),
+    inactiveSince: toDate(row.inactive_since ?? null),
     memberships: row.memberships.map((membership) => ({
       membershipId: membership.membership_id,
       organizationId: membership.organization_id,

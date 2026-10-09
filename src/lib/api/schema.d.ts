@@ -444,6 +444,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/users/{profile_id}/anonymize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Anonymiser un compte (droit à l'effacement)
+         * @description Applique tout de suite l'anonymisation qui suit d'ordinaire cinq ans d'inactivité.
+         *
+         *     Le geste de l'équipe IMAFRIK quand une personne exerce son droit à
+         *     l'effacement. Le compte de connexion est supprimé (adresse, mot de
+         *     passe, double authentification, sessions) ; le profil est réduit au
+         *     nom, au titre et au numéro d'ordre s'il est référencé par un
+         *     compte-rendu, un addendum, un examen ou le journal d'audit, et
+         *     supprimé sinon. Voir :mod:`app.services.anonymization`.
+         *
+         *     Règles, de la plus sûre : nul n'anonymise son propre compte ; le nom
+         *     du compte est saisi pour confirmer ; un compte encore membre d'une
+         *     organisation active n'est anonymisé que si le retrait de ses
+         *     appartenances est explicitement confirmé (``remove_memberships``).
+         *     Ses examens en cours retournent alors au pool, et ses jetons sont
+         *     révoqués.
+         *
+         *     La trace est écrite en deux temps, comme pour la réinitialisation de
+         *     la double authentification : la demande
+         *     (``user.anonymization_requested``, avec son auteur) **avant** l'appel
+         *     au service d'authentification, puis l'anonymisation elle-même
+         *     (``user.anonymized``), écrite par la base dans la transaction qui
+         *     supprime le compte.
+         *
+         *     Raises:
+         *         Forbidden: Anonymisation de son propre compte.
+         *         NotFound: Compte introuvable.
+         *         Conflict: Compte déjà anonymisé, ou encore membre d'une
+         *             organisation active sans confirmation du retrait.
+         *         Unprocessable: Le nom saisi ne correspond pas au compte.
+         *         AuthServiceUnavailable: Service d'authentification injoignable ou
+         *             en refus ; rien n'a été modifié, le geste peut être refait.
+         */
+        post: operations["anonymize_user_admin_users__profile_id__anonymize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users/{profile_id}/credentials": {
         parameters: {
             query?: never;
@@ -1911,6 +1961,11 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Inactive Since
+             * @description Fin de la relation : depuis quand le compte n'a plus aucune appartenance à une organisation active. None s'il en a une.
+             */
+            inactive_since?: string | null;
             /** Last Sign In At */
             last_sign_in_at: string | null;
             /** License Number */
@@ -1941,6 +1996,35 @@ export interface components {
              * @enum {string}
              */
             severity: "critical" | "warning" | "info";
+        };
+        /**
+         * AnonymizationRequest
+         * @description Demande d'effacement d'un compte, confirmée par l'équipe IMAFRIK.
+         */
+        AnonymizationRequest: {
+            /**
+             * Confirm Name
+             * @description Nom du compte, saisi pour confirmer un geste irréversible.
+             */
+            confirm_name: string;
+            /**
+             * Remove Memberships
+             * @description Confirmer le retrait des appartenances du compte à des organisations actives. Sans cette confirmation, un compte encore membre est refusé.
+             * @default false
+             */
+            remove_memberships: boolean;
+        };
+        /**
+         * AnonymizationResult
+         * @description Issue d'une anonymisation.
+         */
+        AnonymizationResult: {
+            /**
+             * Outcome
+             * @description kept : profil réduit au nom, au titre et au numéro d'ordre, parce que des documents signés ou le journal d'audit le référencent ; deleted : profil supprimé entièrement.
+             * @enum {string}
+             */
+            outcome: "kept" | "deleted";
         };
         /**
          * AuditEntry
@@ -3716,7 +3800,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credentials_verified" | "user.credentials_revoked" | "platform.settings_changed" | "contact_request.tracked") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credentials_verified" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -4253,6 +4337,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminUser"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    anonymize_user_admin_users__profile_id__anonymize_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnonymizationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnonymizationResult"];
                 };
             };
             /** @description Validation Error */

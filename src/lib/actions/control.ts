@@ -5,7 +5,9 @@ import { z } from "zod";
 
 import { apiSend } from "@/lib/api/client";
 import {
+  type ApiAnonymizationRequest,
   type ApiContractEnd,
+  anonymizationResultSchema,
   clinicDetailSchema,
   contactTrackingSchema,
   contractEndResultSchema,
@@ -222,6 +224,92 @@ export async function resetUserMfa(
     return body.removed_factors;
   });
   revalidatePath("/admin/utilisateurs");
+  return result;
+}
+
+/**
+ * Schéma d'une anonymisation.
+ *
+ * Mêmes bornes que le service pour le nom saisi (1 à 200 caractères) ; la
+ * correspondance avec le nom du compte, elle, est vérifiée par le
+ * service, seul à faire foi.
+ *
+ * @param m Messages de validation, dans la langue de l'utilisateur.
+ */
+const anonymizationSchema = (m: Validation) =>
+  z.object({
+    confirmName: z
+      .string()
+      .trim()
+      .min(1, m.confirmAccountNameRequired)
+      .max(200, m.confirmAccountNameRequired),
+    removeMemberships: z.boolean(),
+  });
+
+/** Confirmation d'une anonymisation, telle que l'écran la saisit. */
+export type AnonymizationInput = z.input<
+  ReturnType<typeof anonymizationSchema>
+>;
+
+/**
+ * Issue d'une anonymisation : `kept` quand un profil minimal reste (nom,
+ * titre, numéro d'ordre, attachés aux documents signés et au journal
+ * d'audit), `deleted` quand le profil a été supprimé entièrement.
+ */
+export type AnonymizationOutcome = "kept" | "deleted";
+
+/**
+ * Anonymise un compte, à la demande de la personne (droit à
+ * l'effacement).
+ *
+ * Le service supprime le compte de connexion (adresse, mot de passe,
+ * double authentification, sessions), rend au pool les examens en cours,
+ * retire les appartenances, puis réduit le profil au nom, au titre et au
+ * numéro d'ordre s'il est référencé, ou le supprime. Le geste est tracé
+ * (`user.anonymization_requested`, puis `user.anonymized`). Il refuse :
+ *
+ * - son propre compte (403) ;
+ * - un nom qui ne correspond pas au compte (422) ;
+ * - un compte déjà anonymisé, ou encore membre d'une organisation active
+ *   sans confirmation du retrait de ses appartenances (409) ;
+ * - quand le service d'authentification est injoignable (503) : rien
+ *   n'est alors modifié, le geste peut être refait.
+ *
+ * @param profileId Compte visé.
+ * @param input     Nom saisi, et la confirmation du retrait des
+ *                  appartenances.
+ */
+export async function anonymizeUser(
+  profileId: string,
+  input: AnonymizationInput,
+): Promise<ActionResult<AnonymizationOutcome>> {
+  const { t } = await getMessages();
+  const parsed = anonymizationSchema(t.admin.validation).safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0].message, status: 422 };
+  }
+  if (isDemoMode()) return await demoUnavailable(t.admin.demoActions.anonymize);
+  const invalid = await rejectInvalidIds(profileId);
+  if (invalid) return invalid;
+
+  const body: ApiAnonymizationRequest = {
+    confirm_name: parsed.data.confirmName,
+    remove_memberships: parsed.data.removeMemberships,
+  };
+  const result = await run(async () => {
+    const done = await apiSend(
+      `/admin/users/${encodeURIComponent(profileId)}/anonymize`,
+      "POST",
+      body,
+      anonymizationResultSchema,
+    );
+    return done.outcome;
+  });
+  // Après un succès, ou un compte anonymisé entre-temps par une autre
+  // session : la liste change.
+  if (result.ok || result.status === 409) {
+    revalidatePath("/admin/utilisateurs");
+  }
   return result;
 }
 
