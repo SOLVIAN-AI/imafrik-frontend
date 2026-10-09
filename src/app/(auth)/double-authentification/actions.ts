@@ -8,7 +8,7 @@ import { isDemoMode } from "@/lib/demo/mode";
 import { homeFor } from "@/lib/navigation";
 import { safeRedirect } from "@/lib/security/redirect";
 import { normalizeOtp } from "@/lib/session/mfa";
-import { getAuthState } from "@/lib/session/server";
+import { tryGetAuthState } from "@/lib/session/server";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -50,7 +50,10 @@ export async function startEnrollment(): Promise<ActionResult<Enrollment>> {
   if (isDemoMode()) {
     return { ok: false, error: t.session.mfa.errors.demo, status: 503 };
   }
-  const state = await getAuthState();
+  const state = await tryGetAuthState();
+  if (state === "unavailable") {
+    return { ok: false, error: t.session.mfa.errors.serviceDown, status: 503 };
+  }
   if (state === "anonymous") {
     return { ok: false, error: t.common.errors.sessionExpired, status: 401 };
   }
@@ -148,7 +151,10 @@ export async function verifyCode(
   }
 
   // Le nouveau jeton (aal2) est posé ; l'état est relu avec lui.
-  const state = await getAuthState();
+  const state = await tryGetAuthState();
+  if (state === "unavailable") {
+    return { ok: false, error: t.session.mfa.errors.serviceDown, status: 503 };
+  }
   if (state === "anonymous") redirect("/connexion");
   if (state === "no-membership") redirect("/en-attente");
   if (state === "mfa-required") {

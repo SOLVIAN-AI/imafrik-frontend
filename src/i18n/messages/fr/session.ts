@@ -127,6 +127,10 @@ export const session = {
       "Vous êtes bien connecté, mais votre compte n’est rattaché à aucun établissement ni groupe de radiologie actif.",
     nextSteps: (email: string) =>
       `Si vous venez de déposer votre dossier, il est en cours de vérification. Si vous utilisiez déjà IMAFRIK, votre accès a pu être retiré par votre établissement : rapprochez-vous de lui, ou écrivez-nous à ${email}.`,
+    otherOrganizations:
+      "Votre organisation active n’est plus accessible, mais vous pouvez poursuivre dans l’une de vos autres organisations.",
+    openOrganization: (name: string) => `Continuer dans ${name}`,
+    resuming: "Mise à jour de votre accès…",
   },
   appError: {
     title: "Cet écran n’a pas pu s’afficher",

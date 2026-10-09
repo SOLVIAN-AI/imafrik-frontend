@@ -13,6 +13,11 @@ import {
   needsSecondFactor,
   passwordChangeNeedsSecondFactor,
 } from "@/lib/session/mfa";
+import {
+  isSignedOutError,
+  resolveActiveMembership,
+  SessionUnavailableError,
+} from "@/lib/session/resolve";
 import type { Membership, Session, UserRole } from "@/lib/session/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -47,15 +52,108 @@ interface MembershipRow {
  * - `"mfa-required"` — un compte qui doit encore enrôler ou vérifier son
  *   second facteur : radiologue, administrateur, ou quiconque l'a
  *   activé. Son jeton n'ouvre aucune donnée tant qu'il ne l'a pas fait ;
- * - `"no-membership"` — un compte valide, rattaché à aucune organisation
- *   active : c'est un radiologue dont le dossier attend sa validation, ou
- *   le membre d'une organisation suspendue. Il n'ouvre aucun portail, mais
- *   ce n'est pas une erreur de connexion — le renvoyer vers la connexion
- *   produisait une boucle, la connexion le renvoyant aussitôt ailleurs ;
+ * - `"no-membership"` — un compte valide dont l'organisation active
+ *   (`profiles.active_membership_id`) n'existe pas ou est suspendue :
+ *   c'est un radiologue dont le dossier attend sa validation, ou le membre
+ *   d'une organisation suspendue. Il n'ouvre aucun portail, mais ce n'est
+ *   pas une erreur de connexion (le renvoyer vers la connexion produisait
+ *   une boucle, la connexion le renvoyant aussitôt ailleurs). S'il a une
+ *   autre organisation active, `/en-attente` lui propose d'y basculer ;
  * - une {@link Session} — tout le reste.
  */
 export type AuthState =
   "anonymous" | "mfa-required" | "no-membership" | Session;
+
+/** Profil tel que la requête le renvoie. */
+interface ProfileRow {
+  full_name: string | null;
+  title: string | null;
+  license_number: string | null;
+  credentials_verified_at: string | null;
+  active_membership_id: string | null;
+  locale: string | null;
+}
+
+/** Compte connecté, relu en base : avant le choix de l'organisation active. */
+interface Account {
+  user: { id: string; email: string };
+  profile: ProfileRow | null;
+  /** Appartenances dont l'organisation est active. */
+  memberships: Membership[];
+}
+
+/**
+ * Compte connecté et ses appartenances, résolus une fois par requête.
+ *
+ * `getUser()` plutôt que `getSession()` : le second lit le cookie sans le
+ * vérifier. Ici, la réponse décide d'un accès à des images médicales.
+ *
+ * @returns Le compte, ou `"anonymous"` si aucune session valide n'existe.
+ * @throws SessionUnavailableError Service d'authentification ou base
+ *         indisponible : ce n'est ni une déconnexion ni une absence
+ *         d'appartenance (voir `lib/session/resolve.ts`).
+ */
+const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError) {
+    if (isSignedOutError(userError)) return "anonymous";
+    throw new SessionUnavailableError("auth", { cause: userError });
+  }
+  if (!user) return "anonymous";
+
+  const [profileResult, membershipsResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select(
+        "full_name, title, license_number, credentials_verified_at, active_membership_id, locale",
+      )
+      .eq("id", user.id)
+      .maybeSingle<ProfileRow>(),
+    supabase
+      .from("memberships")
+      .select(
+        "id, role, organizations(id, name, kind, city, report_language, is_active)",
+      )
+      .eq("profile_id", user.id)
+      .overrideTypes<MembershipRow[]>(),
+  ]);
+  if (profileResult.error)
+    throw new SessionUnavailableError("profile", {
+      cause: profileResult.error,
+    });
+  if (membershipsResult.error)
+    throw new SessionUnavailableError("memberships", {
+      cause: membershipsResult.error,
+    });
+
+  const memberships: Membership[] = (membershipsResult.data ?? []).flatMap(
+    (row) =>
+      row.organizations?.is_active
+        ? [
+            {
+              id: row.id,
+              organizationId: row.organizations.id,
+              organizationName: row.organizations.name,
+              organizationKind: row.organizations.kind,
+              role: row.role,
+              city: row.organizations.city ?? "",
+              reportLanguage: isLocale(row.organizations.report_language)
+                ? row.organizations.report_language
+                : DEFAULT_LOCALE,
+            },
+          ]
+        : [],
+  );
+  return {
+    user: { id: user.id, email: user.email ?? "" },
+    profile: profileResult.data,
+    memberships,
+  };
+});
 
 /**
  * État d'authentification, résolu une fois par requête.
@@ -64,8 +162,15 @@ export type AuthState =
  * navigation d'un même rendu : sans lui, chacune refaisait la vérification
  * du jeton et les deux requêtes de lecture.
  *
- * `getUser()` plutôt que `getSession()` : le second lit le cookie sans le
- * vérifier. Ici, la réponse décide d'un accès à des images médicales.
+ * L'organisation active suit **exactement** la règle du hook de jeton :
+ * celle de `profiles.active_membership_id`, si elle est active ; sinon
+ * `"no-membership"`, sans repli sur une autre appartenance. Le proxy, qui
+ * lit le jeton, et les écrans, qui lisent la base, tombent ainsi
+ * d'accord, et aucun ne renvoie vers un écran que l'autre refuse.
+ *
+ * @throws SessionUnavailableError Panne du service d'authentification
+ *         ou de la base : l'écran d'erreur s'affiche, avec « Réessayer »,
+ *         au lieu d'une redirection.
  */
 export const getAuthState = cache(async (): Promise<AuthState> => {
   if (isDemoMode()) {
@@ -79,57 +184,23 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
     );
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return "anonymous";
+  const account = await loadAccount();
+  if (account === "anonymous") return "anonymous";
+  const { user, profile, memberships } = account;
 
-  const [{ data: profile }, { data: rows }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select(
-        "full_name, title, license_number, credentials_verified_at, active_membership_id, locale",
-      )
-      .eq("id", user.id)
-      .single(),
-    supabase
-      .from("memberships")
-      .select(
-        "id, role, organizations(id, name, kind, city, report_language, is_active)",
-      )
-      .eq("profile_id", user.id)
-      .overrideTypes<MembershipRow[]>(),
-  ]);
-
-  const memberships: Membership[] = (rows ?? []).flatMap((row) =>
-    row.organizations?.is_active
-      ? [
-          {
-            id: row.id,
-            organizationId: row.organizations.id,
-            organizationName: row.organizations.name,
-            organizationKind: row.organizations.kind,
-            role: row.role,
-            city: row.organizations.city ?? "",
-            reportLanguage: isLocale(row.organizations.report_language)
-              ? row.organizations.report_language
-              : DEFAULT_LOCALE,
-          },
-        ]
-      : [],
+  const active = resolveActiveMembership(
+    memberships,
+    profile?.active_membership_id,
   );
-  if (memberships.length === 0) return "no-membership";
-
-  const active =
-    memberships.find(
-      (membership) => membership.id === profile?.active_membership_id,
-    ) ?? memberships[0];
+  if (!active) return "no-membership";
 
   // Niveau d'assurance lu dans le jeton de session, déjà vérifié par
   // `getUser()` ci-dessus. Même règle que le hook qui l'a émis.
-  const { data: level } =
+  const supabase = await createClient();
+  const { data: level, error: levelError } =
     await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (levelError)
+    throw new SessionUnavailableError("assurance", { cause: levelError });
   if (
     needsSecondFactor(active.role, {
       current: level?.currentLevel ?? null,
@@ -141,8 +212,8 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
   return {
     user: {
       id: user.id,
-      email: user.email ?? "",
-      fullName: profile?.full_name ?? user.email ?? "",
+      email: user.email,
+      fullName: profile?.full_name ?? user.email,
       title: profile?.title ?? "",
       hasLicenseNumber: Boolean(profile?.license_number?.trim()),
       credentialsVerified: Boolean(profile?.credentials_verified_at),
@@ -155,6 +226,46 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
 });
 
 /**
+ * Variante de {@link getAuthState} pour les actions serveur : une panne
+ * du service devient `"unavailable"`, que l'action traduit en message
+ * (« le service ne répond pas, réessayez ») au lieu de lever une erreur
+ * qui remplacerait le formulaire par l'écran d'erreur.
+ */
+export async function tryGetAuthState(): Promise<AuthState | "unavailable"> {
+  try {
+    return await getAuthState();
+  } catch (error) {
+    if (error instanceof SessionUnavailableError) {
+      console.error("Session indisponible", error.step, error.cause);
+      return "unavailable";
+    }
+    throw error;
+  }
+}
+
+/**
+ * Appartenances vers lesquelles l'utilisateur peut basculer : celles dont
+ * l'organisation est active, qu'une soit active ou non.
+ *
+ * Sert l'écran `/en-attente` (un compte dont l'organisation active est
+ * suspendue doit pouvoir en choisir une autre) et la bascule elle-même.
+ * Vide pour une personne non connectée. En démonstration, celles du jeu
+ * de démonstration.
+ *
+ * @throws SessionUnavailableError Voir {@link getAuthState}.
+ */
+export const getAvailableMemberships = cache(
+  async (): Promise<Membership[]> => {
+    if (isDemoMode()) {
+      const state = await getAuthState();
+      return typeof state === "string" ? [] : state.memberships;
+    }
+    const account = await loadAccount();
+    return account === "anonymous" ? [] : account.memberships;
+  },
+);
+
+/**
  * Indique si la session doit vérifier son second facteur avant tout
  * changement de mot de passe : compte doté d'un facteur vérifié, session
  * encore au premier niveau. Toujours faux en démonstration.
@@ -162,8 +273,11 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
 export const passwordNeedsSecondFactor = cache(async (): Promise<boolean> => {
   if (isDemoMode()) return false;
   const supabase = await createClient();
-  const { data: level } =
+  const { data: level, error } =
     await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  // Niveau illisible : on exige le second facteur plutôt que de
+  // laisser passer un changement de mot de passe à l'aveugle.
+  if (error) return true;
   return passwordChangeNeedsSecondFactor({
     current: level?.currentLevel ?? null,
     next: level?.nextLevel ?? null,

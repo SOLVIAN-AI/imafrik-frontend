@@ -112,6 +112,10 @@ export const session: AppMessages["session"] = {
       "You are signed in, but your account is not linked to any active facility or radiology group.",
     nextSteps: (email: string) =>
       `If you have just submitted your application, it is being reviewed. If you were already using IMAFRIK, your facility may have removed your access: please get in touch with them, or write to us at ${email}.`,
+    otherOrganizations:
+      "Your active organisation is no longer available, but you can continue in one of your other organisations.",
+    openOrganization: (name: string) => `Continue in ${name}`,
+    resuming: "Updating your access…",
   },
   appError: {
     title: "This screen could not be displayed",
