@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useMessages } from "@/i18n/client";
 import { inviteMember, removeMember } from "@/lib/actions/organization";
+import { ROLES_BY_KIND } from "@/lib/roles";
 
 /**
  * Bouton d'invitation de l'écran « Équipe ».
@@ -29,7 +30,7 @@ export function InviteMemberButton({
   return (
     <InviteDialog
       organizationName={organizationName}
-      roles={["clinic_staff", "radiologist"]}
+      roles={ROLES_BY_KIND.clinic}
       onInvite={(input) =>
         inviteMember({
           email: input.email,

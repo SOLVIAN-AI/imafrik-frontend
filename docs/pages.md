@@ -244,7 +244,7 @@ attend des comptes-rendus.
 | `/examens` | Tous les examens envoyés, avec leur état d'avancement. | V1 |
 | `/examens/[id]` | Fiche d'un examen : images en consultation, état, compte-rendu dès qu'il est signé, téléchargement du PDF. Écran partagé : le radiologue y accède aussi, et y trouve le bouton qui ouvre la lecture. | V1 |
 | `/envoyer` | Envoi manuel de fichiers DICOM depuis le navigateur, et rappel des paramètres d'envoi automatique. Voir la décision n° 2. | V1 |
-| `/comptes-rendus` | Comptes-rendus reçus, recherche par patient ou par date. | V1 |
+| `/comptes-rendus` | Comptes-rendus reçus, recherche par patient, identifiant ou modalité (faite par le service), liste paginée. | V1 |
 | `/equipe` | Membres, rôles, invitations. | V2 |
 | `/facturation` | Consommation, factures, contrat de service. | V2 |
 | `/patients` | Vue par patient : tous ses examens, tous ses comptes-rendus. | V3 |

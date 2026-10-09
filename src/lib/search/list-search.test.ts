@@ -7,6 +7,7 @@ import {
   LIST_SEARCH_MAX_LENGTH,
   listSearchCookie,
   normalizeListSearch,
+  searchableText,
 } from "@/lib/search/list-search";
 
 const owner = {
@@ -56,5 +57,24 @@ describe("recherche des listes d'examens", () => {
     expect(
       decodeListSearch(`${owner.userId}.${owner.membershipId}.%E0%A4%A`, owner),
     ).toBeUndefined();
+  });
+});
+
+describe("nom recherché tel qu’il s’affiche", () => {
+  it("rapproche le nom DICOM et le nom affiché", () => {
+    const stored = searchableText("KOFFI^Ama^^^");
+    for (const typed of [
+      "KOFFI Ama",
+      "koffi   ama",
+      " Koffi Ama ",
+      "KOFFI^Ama",
+    ]) {
+      expect(stored.includes(searchableText(typed))).toBe(true);
+    }
+    expect(stored.includes(searchableText("Ama KOFFI"))).toBe(false);
+  });
+
+  it("réduit une saisie blanche à rien", () => {
+    expect(searchableText("  ^ ")).toBe("");
   });
 });

@@ -16,6 +16,7 @@ import { useLocale, useMessages } from "@/i18n/client";
 import type { AppMessages } from "@/i18n";
 import { type UploadGrant, getUploadGrant } from "@/lib/actions/uploads";
 import { formatBytes } from "@/lib/format";
+import { type ItemState, sendFile } from "@/lib/upload";
 import { cn } from "@/lib/utils";
 
 /** Fichiers envoyés en parallèle : assez pour remplir le lien, pas assez pour l'engorger. */
@@ -24,14 +25,6 @@ const CONCURRENCY = 3;
 /** Marge avant l'expiration du jeton au-delà de laquelle on en redemande un. */
 const TOKEN_MARGIN_MS = 60_000;
 
-type ItemState =
-  | { kind: "waiting" }
-  | { kind: "sending"; progress: number }
-  | { kind: "stored" }
-  | { kind: "duplicate" }
-  | { kind: "ignored" }
-  | { kind: "failed"; reason: string };
-
 /** Textes du dépôt, dans la langue de l'utilisateur. */
 type UploaderMessages = AppMessages["clinic"]["uploader"];
 
@@ -39,62 +32,6 @@ interface UploadItem {
   id: string;
   file: File;
   state: ItemState;
-}
-
-/**
- * Envoie un fichier à l'API, avec sa progression.
- *
- * `XMLHttpRequest` plutôt que `fetch` : seul il expose la progression de
- * l'envoi, et sans retour visible un dépôt de deux mille coupes donne
- * l'impression que rien ne se passe.
- *
- * @param grant      Jeton et adresse de dépôt.
- * @param file       Fichier à envoyer.
- * @param onProgress Appelé à chaque progression, avec la fraction envoyée.
- * @param messages   Textes du dépôt, pour les motifs d'échec génériques.
- */
-function sendFile(
-  grant: UploadGrant,
-  file: File,
-  onProgress: (fraction: number) => void,
-  messages: UploaderMessages,
-): Promise<ItemState> {
-  return new Promise((resolve) => {
-    const request = new XMLHttpRequest();
-    const body = new FormData();
-    body.append("file", file, file.name);
-
-    request.open("POST", grant.endpoint);
-    request.setRequestHeader("X-Upload-Token", grant.token);
-    request.upload.onprogress = (event) => {
-      if (event.lengthComputable) onProgress(event.loaded / event.total);
-    };
-    request.onload = () => {
-      let detail = "";
-      try {
-        const payload = JSON.parse(request.responseText) as {
-          status?: string;
-          detail?: unknown;
-        };
-        if (request.status === 201 && payload.status) {
-          resolve({
-            kind: payload.status as "stored" | "duplicate" | "ignored",
-          });
-          return;
-        }
-        if (typeof payload.detail === "string") detail = payload.detail;
-      } catch {
-        // Corps illisible : message générique ci-dessous.
-      }
-      resolve({
-        kind: "failed",
-        reason: detail || messages.refused(request.status),
-      });
-    };
-    request.onerror = () =>
-      resolve({ kind: "failed", reason: messages.connectionLost });
-    request.send(body);
-  });
 }
 
 /**
@@ -166,6 +103,7 @@ export function StudyUploader() {
           item.file,
           (progress) => update(item.id, { kind: "sending", progress }),
           t,
+          locale,
         );
         update(item.id, outcome);
       }

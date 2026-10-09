@@ -3,16 +3,19 @@ import "server-only";
 import { messagesFor, type AppMessages } from "@/i18n";
 import type { Locale } from "@/lib/i18n/locale";
 import { requestLocale } from "@/lib/i18n/server";
-import { getAuthState } from "@/lib/session/server";
+import { tryGetAuthState } from "@/lib/session/server";
 
 /**
  * Langue de l'utilisateur, côté serveur.
  *
  * Celle de son profil quand une session est ouverte ; à défaut, celle de
- * la requête (cookie de langue, choisi sur le site public).
+ * la requête (cookie de langue, choisi sur le site public). Une panne du
+ * service ne doit pas empêcher d'écrire un message : la langue de la
+ * requête sert alors aussi, et l'écran qui a besoin de la session lève
+ * l'erreur de son côté.
  */
 export async function getLocale(): Promise<Locale> {
-  const state = await getAuthState();
+  const state = await tryGetAuthState();
   return typeof state === "string" ? requestLocale() : state.locale;
 }
 

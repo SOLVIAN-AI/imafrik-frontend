@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { apiSend } from "@/lib/api/client";
+import { type ClinicRole, ROLES_BY_KIND } from "@/lib/roles";
 import { memberSchema, organizationSchema } from "@/lib/api/contracts";
 import {
   type ActionResult,
@@ -14,7 +15,6 @@ import {
 import { type Member, toMember } from "@/lib/data/organization";
 import { isDemoMode } from "@/lib/demo/mode";
 import { getMessages } from "@/i18n/server";
-import type { UserRole } from "@/lib/session/types";
 
 /**
  * Réglages et équipe de l'organisation active.
@@ -33,7 +33,7 @@ import type { UserRole } from "@/lib/session/types";
 const invitationSchema = z.object({
   email: z.string().trim().email(),
   fullName: z.string().trim().min(1).max(200),
-  role: z.enum(["clinic_staff", "radiologist"]),
+  role: z.enum(ROLES_BY_KIND.clinic),
 });
 
 /**
@@ -60,15 +60,17 @@ async function invitationError(issue: z.ZodIssue): Promise<string> {
 export interface InvitationInput {
   email: string;
   fullName: string;
-  role: Extract<UserRole, "clinic_staff" | "radiologist">;
+  role: ClinicRole;
 }
 
 /**
  * Invite une personne dans la clinique active.
  *
- * Une personne qui a déjà un compte est rattachée directement ; les
- * autres reçoivent un courriel et choisissent elles-mêmes leur mot de
- * passe — personne d'autre ne le connaît jamais.
+ * Une personne sans compte reçoit un courriel et choisit elle-même son
+ * mot de passe : personne d'autre ne le connaît jamais. Une adresse qui a
+ * **déjà** un compte est refusée (409) : une clinique ne rattache pas
+ * d'office un compte existant, c'est l'équipe IMAFRIK qui le fait, après
+ * avoir recueilli l'accord de la personne.
  */
 export async function inviteMember(
   input: InvitationInput,

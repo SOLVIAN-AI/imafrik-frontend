@@ -40,8 +40,19 @@ export const reading = {
       "Du texte n’a pas pu être envoyé lors d’une coupure. Il est gardé sur ce poste.",
     backupRestore: "Reprendre",
     backupDiscard: "Écarter",
+    backupConflictFound:
+      "Une copie de votre texte est gardée sur ce poste, mais le brouillon enregistré a changé depuis : autre onglet, ou enregistrement dont la réponse s’est perdue. Reprendre la copie remplace le brouillon enregistré.",
+    conflictBanner:
+      "Ce brouillon a été modifié ailleurs. Votre texte reste gardé sur ce poste : enregistrez-le à la place de l’autre version, ou rechargez la version enregistrée (votre texte vous sera alors proposé).",
+    conflictKeepMine: "Garder mon texte",
+    conflictReload: "Recharger",
+    conflictKept: "Votre texte est enregistré.",
+    conflictKeepFailed:
+      "Votre texte n’a pas pu être enregistré. Il reste gardé sur ce poste : réessayez dans un instant.",
+    conflictSignedElsewhere:
+      "Ce compte-rendu a été signé entre-temps et n’est plus modifiable. Votre texte reste gardé sur ce poste.",
     conflictBeforeSign:
-      "Ce compte-rendu a été modifié dans un autre onglet. Rechargez la page avant de signer.",
+      "Ce compte-rendu a été modifié ailleurs. Gardez votre texte ou rechargez la page avant de signer.",
     saveFailedBeforeSign:
       "Le texte n’a pas pu être enregistré. Vérifiez la connexion, puis signez de nouveau.",
     signedToast: "Compte-rendu signé et transmis à la clinique.",
@@ -85,7 +96,7 @@ export const reading = {
     requiredTitle: "Section obligatoire pour signer",
     requiredLabel: "Section obligatoire, actuellement vide",
     offline: "Hors ligne : copie gardée sur ce poste",
-    conflict: "Modifié dans un autre onglet : rechargez la page",
+    conflict: "Modifié ailleurs : texte gardé sur ce poste",
     outline: {
       label: "Sections du compte-rendu",
       filled: ", rédigée",

@@ -103,8 +103,10 @@ export interface paths {
          *     Un geste daté et tracé, qui enchaîne : clinique suspendue (ses membres
          *     perdent l'accès à la requête suivante), retirée du pool, contrats de
          *     service fermés. Les comptes-rendus signés restent conservés (verrou R2
-         *     de 20 ans) et vérifiables par leur QR code ; les images suivent la
-         *     durée de conservation du contrat. L'export complet, promis au contrat,
+         *     de 20 ans) et vérifiables par leur QR code. Les images ne sont pas
+         *     touchées : la tâche de conservation continue d'appliquer la durée fixée
+         *     pour la clinique, et sans durée fixée rien n'est purgé, même après la
+         *     fin du contrat. L'export complet, promis au contrat,
          *     se lance ensuite sur le serveur : la commande est renvoyée.
          *
          *     Un examen reçu et pas encore rendu est celui d'un patient qui attend :
@@ -167,8 +169,9 @@ export interface paths {
          *
          *     Au-delà, la tâche quotidienne purge du PACS central les images des
          *     examens remis (``app.services.retention``) ; la fiche, le compte-rendu
-         *     et le journal d'audit restent. ``None`` revient à la conservation pour
-         *     la durée du contrat. Le changement est tracé.
+         *     et le journal d'audit restent. ``None`` supprime toute purge
+         *     automatique : les images sont conservées sans limite de durée, y
+         *     compris après la fin du contrat. Le changement est tracé.
          *
          *     Raises:
          *         NotFound: Clinique introuvable.
@@ -296,9 +299,17 @@ export interface paths {
         put?: never;
         /**
          * Inviter une personne dans une organisation
-         * @description Invite une personne dans n'importe quelle organisation, à n'importe quel rôle.
+         * @description Invite une personne dans n'importe quelle organisation.
          *
-         *     C'est le seul chemin pour ajouter un radiologue à un groupe du pool.
+         *     Le rôle doit convenir à la nature de l'organisation, selon la règle
+         *     commune à tous les chemins d'ajout
+         *     (:data:`~app.models.ROLES_BY_ORGANIZATION_KIND`) : pas d'administrateur
+         *     IMAFRIK dans une clinique, pas de personnel de clinique dans un groupe.
+         *
+         *     C'est le chemin pour inviter une personne sans compte dans un groupe
+         *     du pool ; un compte existant peut aussi être rattaché d'ici (avec son
+         *     accord, recueilli par l'équipe), comme par ``POST
+         *     /admin/users/{id}/memberships``.
          *
          *     Args:
          *         organization_id: Organisation d'accueil.
@@ -310,6 +321,7 @@ export interface paths {
          *
          *     Raises:
          *         NotFound: Organisation inconnue.
+         *         Unprocessable: Rôle incompatible avec la nature de l'organisation.
          */
         post: operations["invite_admin_organizations__organization_id__invitations_post"];
         delete?: never;
@@ -390,6 +402,10 @@ export interface paths {
         /**
          * État technique
          * @description Dépendances, PACS, version déployée, exploitation.
+         *
+         *     Les noms des dépendances, leur état et les bilans d'exploitation
+         *     enregistrés par le service sont rendus dans la langue de la requête :
+         *     la page système les affiche tels quels.
          */
         get: operations["get_system_admin_system_get"];
         put?: never;
@@ -513,10 +529,20 @@ export interface paths {
          *     Le geste est tracé, avec son auteur : c'est la seule porte de secours
          *     du second facteur, elle doit laisser une trace.
          *
+         *     La trace est écrite en deux temps. La demande
+         *     (``user.mfa_reset_requested``) est inscrite **avant** tout appel au
+         *     service d'authentification : si la suite échoue, ou si le processus
+         *     meurt, le geste et son auteur sont connus. Le résultat
+         *     (``user.mfa_reset``) est inscrit dès qu'un facteur a été supprimé,
+         *     même si la réinitialisation s'interrompt ensuite, avec le nombre de
+         *     facteurs supprimés et l'issue (``complete`` ou ``partial``).
+         *
          *     Raises:
          *         NotFound: Compte introuvable.
          *         AuthServiceUnavailable: Service d'authentification injoignable
          *             ou non configuré.
+         *         MfaResetIncomplete: Réinitialisation interrompue après la
+         *             suppression d'une partie des facteurs.
          */
         post: operations["reset_user_mfa_admin_users__profile_id__mfa_reset_post"];
         delete?: never;
@@ -539,8 +565,9 @@ export interface paths {
          * @description Enregistre une demande de contact.
          *
          *     Sans authentification : c'est le site public. Deux protections, sans
-         *     service tiers : une limite de débit par adresse IP, tenue dans Redis,
-         *     et un champ piège que seuls les robots remplissent.
+         *     service tiers : une limite de débit par adresse IP du visiteur
+         *     (:func:`visitor_address`), tenue dans Redis, et un champ piège que
+         *     seuls les robots remplissent.
          *
          *     Args:
          *         body: Demande.
@@ -722,11 +749,19 @@ export interface paths {
          * Profil et organisations de l'utilisateur
          * @description Renvoie l'état de la session courante.
          *
+         *     Même règle que :func:`read_invitation` : une session au premier
+         *     niveau d'un compte doté d'un second facteur ne lit rien. L'écran de
+         *     double authentification n'appelle pas cet endpoint ; l'interface ne
+         *     l'interroge qu'une fois la session ouverte (paramètres, accueil).
+         *
          *     Args:
          *         principal: Appelant authentifié.
          *
          *     Returns:
          *         Le profil, l'organisation active et la liste des appartenances.
+         *
+         *     Raises:
+         *         Forbidden: Session sans second facteur, pour un compte qui en a un.
          */
         get: operations["read_session_me_get"];
         put?: never;
@@ -738,7 +773,8 @@ export interface paths {
          * Modifier son profil
          * @description Met à jour les champs du profil fournis, et eux seuls.
          *
-         *     Un champ absent du corps n'est pas touché. Une signature déjà apposée
+         *     Un champ absent du corps n'est pas touché ; un titre ou un numéro
+         *     d'ordre vide est effacé (voir :class:`ProfileUpdate`). Une signature déjà apposée
          *     n'est pas affectée : l'identité du signataire est figée sur chaque
          *     compte-rendu au moment de la signature.
          *
@@ -942,6 +978,12 @@ export interface paths {
          *     L'écriture passe par RLS : la policy ``organization_update_own`` et le
          *     droit colonne par colonne n'autorisent que ``open_to_pool``, et pour sa
          *     propre clinique.
+         *
+         *     Fermer la clinique au pool révoque aussitôt les jetons de
+         *     visualisation que les radiologues externes tiennent sur ses examens :
+         *     RLS les leur cache, et leurs viewers déjà ouverts ne doivent pas
+         *     survivre quinze minutes de plus. Ceux des membres de la clinique
+         *     restent valables.
          *
          *     Args:
          *         body: Nouveaux réglages.
@@ -1216,7 +1258,9 @@ export interface paths {
          *
          *     **L'ordre des opérations n'est pas arbitraire.**
          *
-         *     1. Le brouillon est lu avec sa ``version``.
+         *     1. Le brouillon est lu avec sa ``version``, qui doit être celle que
+         *        le radiologue a relue (``expected_version``) : un enregistrement
+         *        venu d'un autre onglet entre sa relecture et son clic est refusé.
          *     2. Le PDF est rendu dans un thread — WeasyPrint est lent et
          *        synchrone, et ce processus sert aussi le chemin d'autorisation du
          *        viewer — puis déposé sur R2 sous une clé qui contient le jeton de
@@ -1235,6 +1279,7 @@ export interface paths {
          *
          *     Args:
          *         report_id: Compte-rendu à signer.
+         *         body: Version relue par le signataire.
          *         principal: Radiologue authentifié.
          *
          *     Returns:
@@ -1242,8 +1287,8 @@ export interface paths {
          *
          *     Raises:
          *         NotFound: Compte-rendu inaccessible.
-         *         Conflict: Déjà signé, modifié pendant la signature, ou examen
-         *             plus assigné au signataire.
+         *         Conflict: Déjà signé, modifié depuis la relecture ou pendant la
+         *             signature, ou examen plus assigné au signataire.
          *         Forbidden: L'appelant n'est pas l'auteur du brouillon, ou n'a plus
          *             l'examen en charge.
          *         Unprocessable: Une section obligatoire est vide.
@@ -1264,25 +1309,40 @@ export interface paths {
         };
         /**
          * Lister les examens visibles
-         * @description Liste les examens visibles par l'appelant.
+         * @description Liste les examens visibles par l'appelant, page par page.
          *
          *     Le périmètre est décidé par RLS, pas par ce code : une clinique voit
          *     ses propres examens, un radiologue voit le pool des cliniques sous
          *     contrat avec son groupe. Chaque examen porte son échéance
          *     (``due_at``), calculée d'après les délais promis en vigueur.
          *
+         *     Pagination par curseur, comme le journal d'audit : la page suivante
+         *     reprend juste après la dernière ligne lue, sur la clé de tri complète
+         *     (identifiant compris). Un décalage numérique sauterait ou répéterait
+         *     des examens à chaque arrivée, dans une liste triée du plus récent au
+         *     plus ancien qui se remplit pendant qu'on la parcourt.
+         *
          *     Args:
          *         principal: Appelant disposant d'une organisation active.
          *         status_filter: Restreint aux statuts donnés. Plusieurs valeurs
          *             s'additionnent : ``?status=reported&status=delivered``.
-         *         q: Recherche libre, insensible à la casse.
+         *         priority: Restreint à une priorité : ``urgent`` pour la vue des
+         *             urgences de la tour de contrôle.
+         *         q: Recherche libre, insensible à la casse. Le nom se cherche tel
+         *             qu'il s'affiche (voir :func:`search_text`).
          *         mine: Restreint aux examens que l'appelant a pris en charge.
-         *         order: Ordre de tri — voir :data:`StudyOrder`.
+         *         order: Ordre de tri, voir :data:`StudyOrder`.
          *         limit: Nombre maximal d'examens renvoyés.
-         *         offset: Décalage, pour la pagination.
+         *         cursor: ``next_cursor`` de la page précédente ; absent pour la
+         *             première page.
          *
          *     Returns:
-         *         La page demandée et le nombre total d'examens correspondants.
+         *         La page demandée, le nombre total d'examens correspondant aux
+         *         filtres (compté par la base, toutes pages confondues) et le
+         *         curseur de la page suivante, ``None`` sur la dernière.
+         *
+         *     Raises:
+         *         Unprocessable: Curseur illisible, ou émis pour un autre ordre.
          */
         get: operations["list_studies_studies_get"];
         put?: never;
@@ -1326,19 +1386,30 @@ export interface paths {
          * Compléter le renseignement clinique
          * @description La clinique complète le renseignement clinique ou signale une urgence.
          *
-         *     Le droit d'écrire — sa propre clinique, examen pas encore rendu — est
-         *     tenu par la policy ``study_update_clinic``.
+         *     Le droit d'écrire — personnel de la clinique émettrice, examen pas
+         *     encore rendu — est tenu par la policy ``study_update_clinic`` ; le
+         *     rôle est vérifié ici en plus, pour répondre 403 plutôt que 404 à un
+         *     radiologue. Le passage en urgence rapproche aussitôt l'échéance
+         *     (``due_at``) et place l'examen en tête de la file de lecture, y
+         *     compris s'il est déjà en cours de lecture.
+         *
+         *     Le geste est tracé (``study.updated``) avec les champs modifiés et la
+         *     priorité retenue, jamais avec le texte clinique : le journal d'audit
+         *     ne recopie pas de données de santé.
          *
          *     Args:
          *         study_id: Examen à compléter.
          *         body: Champs à modifier.
-         *         principal: Appelant disposant d'une organisation active.
+         *         principal: Membre du personnel d'une clinique.
          *
          *     Returns:
          *         L'examen mis à jour.
          *
          *     Raises:
-         *         NotFound: Examen inexistant, hors périmètre, ou déjà rendu.
+         *         NotFound: Examen inexistant ou hors du périmètre de l'appelant.
+         *         Conflict: Examen déjà rendu (``reported`` ou ``delivered``).
+         *         Forbidden: L'appelant n'est pas membre du personnel d'une
+         *             clinique.
          */
         patch: operations["update_study_studies__study_id__patch"];
         trace?: never;
@@ -1592,8 +1663,12 @@ export interface paths {
          * Déposer un fichier DICOM
          * @description Reçoit une instance DICOM et la transmet au PACS.
          *
+         *     Le jeton est vérifié avant la lecture du corps, et le corps est lu en
+         *     flux, borné à :data:`MAX_FILE_BYTES` (voir :func:`_receive_file`).
+         *
          *     Args:
-         *         file: Fichier déposé.
+         *         request: Requête portant le fichier, en ``multipart/form-data``
+         *             (champ ``file``).
          *         x_upload_token: Jeton de dépôt émis par ``POST /uploads/token``.
          *
          *     Returns:
@@ -1967,14 +2042,6 @@ export interface components {
             /** Urgent */
             urgent: number;
         };
-        /** Body_upload_uploads_post */
-        Body_upload_uploads_post: {
-            /**
-             * File
-             * @description Une instance DICOM
-             */
-            file: string;
-        };
         /**
          * ClinicActivity
          * @description Activité d'une clinique sur la période.
@@ -2024,7 +2091,7 @@ export interface components {
             id: string;
             /**
              * Image Retention Days
-             * @description Conservation des images après remise ; None : durée du contrat.
+             * @description Conservation des images après remise, en jours ; None : aucune purge automatique, images conservées sans limite, y compris après la fin du contrat.
              */
             image_retention_days: number | null;
             /**
@@ -2055,10 +2122,16 @@ export interface components {
          * ClinicalInfo
          * @description Renseignements que la clinique peut compléter après l'envoi.
          *
+         *     Seuls les champs **présents** dans le corps sont écrits : un champ
+         *     absent laisse la valeur existante inchangée.
+         *
          *     Attributes:
-         *         clinical_info: Contexte clinique de l'examen. Un champ absent
-         *             laisse la valeur existante inchangée.
-         *         priority: Passage en urgence, ou retour en routine.
+         *         clinical_info: Contexte clinique de l'examen, repris dans
+         *             l'indication du compte-rendu. Espaces de bord retirés ; un
+         *             texte vide ou ``null`` efface le renseignement.
+         *         priority: Passage en urgence, ou retour en routine. ``null``
+         *             équivaut à un champ absent : un examen a toujours une
+         *             priorité.
          */
         ClinicalInfo: {
             /** Clinical Info */
@@ -2069,6 +2142,10 @@ export interface components {
         /**
          * ContactForm
          * @description Demande envoyée par le formulaire du site.
+         *
+         *     Les textes sont pris sans leurs espaces de bord ; un nom fait
+         *     d'espaces est refusé en 422, comme un nom vide, avant d'atteindre la
+         *     contrainte de la table.
          *
          *     Attributes:
          *         full_name: Nom de la personne.
@@ -2867,6 +2944,13 @@ export interface components {
          *     ``authenticated`` ; tout autre champ — organisation active, rôle —
          *     passe par un chemin dédié qui vérifie l'appartenance.
          *
+         *     Un champ **absent** du corps n'est pas touché. Un champ présent est
+         *     écrit, espaces de bord retirés. Pour le titre et le numéro d'ordre,
+         *     facultatifs, une chaîne vide ou ``null`` **efface** la valeur : c'est
+         *     ainsi qu'un radiologue retire un titre erroné avant qu'il ne
+         *     s'imprime sur ses comptes-rendus. Le nom et la langue, obligatoires,
+         *     ne s'effacent pas : ``null`` les laisse inchangés.
+         *
          *     Attributes:
          *         full_name: Nom complet, tel qu'imprimé sur les comptes-rendus.
          *         title: Titre — « Dr », spécialité.
@@ -3038,7 +3122,7 @@ export interface components {
         RetentionUpdate: {
             /**
              * Image Retention Days
-             * @description Jours après remise du compte-rendu ; None : durée du contrat.
+             * @description Jours après remise du compte-rendu ; None : aucune purge automatique, images conservées sans limite, y compris après la fin du contrat.
              */
             image_retention_days?: number | null;
         };
@@ -3094,6 +3178,20 @@ export interface components {
             profile: components["schemas"]["Profile"] | null;
             /** Role */
             role: string | null;
+        };
+        /**
+         * SignRequest
+         * @description Demande de signature.
+         *
+         *     Attributes:
+         *         expected_version: Version du brouillon que le radiologue a relue
+         *             à l'écran au moment de signer. Si un autre onglet ou un autre
+         *             appareil a enregistré depuis, la signature est refusée : on ne
+         *             fige jamais un texte que le signataire n'a pas vu.
+         */
+        SignRequest: {
+            /** Expected Version */
+            expected_version: number;
         };
         /**
          * Sla
@@ -3254,11 +3352,16 @@ export interface components {
          *
          *     Attributes:
          *         items: Les examens de la page.
-         *         total: Nombre total d'examens correspondant aux filtres.
+         *         total: Nombre total d'examens correspondant aux filtres, toutes
+         *             pages confondues, compté par la base.
+         *         next_cursor: Curseur à renvoyer (``?cursor=``) pour lire la page
+         *             suivante ; ``None`` sur la dernière page.
          */
         StudyPage: {
             /** Items */
             items: components["schemas"]["Study"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
             /** Total */
             total: number;
         };
@@ -3612,7 +3715,8 @@ export interface operations {
     list_audit_admin_audit_get: {
         parameters: {
             query?: {
-                action?: string | null;
+                /** @description Seulement les entrées de cette action */
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credentials_verified" | "user.credentials_revoked" | "platform.settings_changed" | "contact_request.tracked") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -5013,7 +5117,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -5040,14 +5148,17 @@ export interface operations {
             query?: {
                 /** @description Un ou plusieurs statuts ; vide = tous */
                 status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
                 /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
                 q?: string | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
-                /** @description recent : urgences puis plus récents ; deadline : échéance */
-                order?: "recent" | "deadline";
+                /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance */
+                order?: "recent" | "received" | "deadline";
                 limit?: number;
-                offset?: number;
+                /** @description Position après laquelle reprendre : next_cursor de la page précédente */
+                cursor?: string | null;
             };
             header?: {
                 authorization?: string | null;
@@ -5425,7 +5536,10 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_upload_uploads_post"];
+                "multipart/form-data": {
+                    /** @description Une instance DICOM */
+                    file: string;
+                };
             };
         };
         responses: {

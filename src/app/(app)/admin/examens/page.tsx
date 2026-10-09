@@ -8,8 +8,14 @@ import {
   UrgentMarker,
 } from "@/components/domain/study-status";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import { ListPagination } from "@/components/domain/list-pagination";
 import { ListToolbar } from "@/components/domain/list-toolbar";
-import { listStudies } from "@/lib/data/studies";
+import {
+  listStudyPage,
+  listStudyPageAt,
+  STUDY_LIST_PAGE_SIZE,
+} from "@/lib/data/studies";
+import { pageHref, readCursor } from "@/lib/pagination";
 import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
 import { formatPatientName } from "@/lib/format";
@@ -39,23 +45,34 @@ export default async function AdminStudiesPage({
   const session = await requireSession(["platform_admin"]);
   const { t } = await getMessages();
   const text = t.admin.studies;
-  const { urgent } = await searchParams;
+  const params = await searchParams;
   const search = await readListSearch("admin-examens", session);
-  // `?urgent=1` : les urgences pas encore rendues — la destination de
-  // l'alerte « urgences en retard » du cockpit.
-  const urgentOnly = urgent === "1";
-  const all = await listStudies({ search });
-  const studies = urgentOnly
-    ? all.filter(
-        (study) =>
-          study.urgent &&
-          study.status !== "reported" &&
-          study.status !== "delivered",
-      )
-    : all;
-  const stuck = studies.filter(
-    (study) => study.status === "received" && study.urgent,
-  );
+  // `?urgent=1` : les urgences pas encore rendues, la destination de
+  // l'alerte « urgences en retard » du cockpit. Filtrées par le service,
+  // sur toute la base : filtrer ici une page des plus récents laissait de
+  // côté les urgences en retard, justement les plus anciennes.
+  const urgentOnly = params.urgent === "1";
+  const [{ studies, total, nextCursor }, stuck] = await Promise.all([
+    listStudyPageAt(
+      {
+        search,
+        limit: STUDY_LIST_PAGE_SIZE,
+        cursor: readCursor(params),
+        ...(urgentOnly && {
+          priority: "urgent",
+          status: ["received", "assigned", "in_progress"],
+          // Les plus anciennes, donc les plus en retard, d'abord.
+          order: "deadline",
+        }),
+      },
+      pageHref("/admin/examens", params, null),
+    ),
+    // Urgences que personne n'a prises : un compte exact, indépendant de
+    // la page et de la recherche affichées.
+    listStudyPage({ status: ["received"], priority: "urgent", limit: 1 }).then(
+      (page) => page.total,
+    ),
+  ]);
 
   return (
     <>
@@ -63,8 +80,8 @@ export default async function AdminStudiesPage({
         title={t.admin.shared.examinations}
         description={
           urgentOnly
-            ? text.urgentDescription(studies.length)
-            : text.allDescription(studies.length)
+            ? text.urgentDescription(total)
+            : text.allDescription(total)
         }
         actions={
           <>
@@ -88,10 +105,10 @@ export default async function AdminStudiesPage({
         }
       />
 
-      {stuck.length > 0 && (
+      {stuck > 0 && (
         <div className="mx-4 mb-4 flex sm:mx-6 items-center gap-2.5 rounded-xl bg-urgent-muted px-4 py-3 text-xs text-urgent">
           <AlertTriangle className="size-4 shrink-0" aria-hidden />
-          <span>{text.stuck(stuck.length)}</span>
+          <span>{text.stuck(stuck)}</span>
         </div>
       )}
 
@@ -235,6 +252,13 @@ export default async function AdminStudiesPage({
               </tbody>
             </table>
           </div>
+          <ListPagination
+            pathname="/admin/examens"
+            params={params}
+            shown={studies.length}
+            total={total}
+            nextCursor={nextCursor}
+          />
         </Panel>
       </div>
     </>

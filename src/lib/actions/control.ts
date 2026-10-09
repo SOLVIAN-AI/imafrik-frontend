@@ -299,7 +299,8 @@ const retentionSchema = (m: Validation) =>
 
 /**
  * Applique la durée de conservation des images prévue au contrat d'une
- * clinique ; `null` revient à la conservation pour la durée du contrat.
+ * clinique ; `null` supprime toute purge automatique : les images sont
+ * conservées sans limite, y compris après la fin du contrat.
  *
  * Au-delà, la tâche quotidienne du service purge du PACS central les
  * images des examens remis — la fiche et le compte-rendu restent. Le

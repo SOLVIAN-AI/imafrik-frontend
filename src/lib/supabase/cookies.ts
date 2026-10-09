@@ -24,3 +24,26 @@ export const SESSION_COOKIE_OPTIONS: CookieOptionsWithName = {
   sameSite: "lax",
   path: "/",
 };
+
+/**
+ * Nom d'un cookie de session Supabase : `sb-<projet>-auth-token`, ses
+ * morceaux (`.0`, `.1`… quand le jeton dépasse la taille d'un cookie) et
+ * le vérificateur PKCE (`-code-verifier`).
+ */
+const SESSION_COOKIE_NAME =
+  /^sb-[^.]+-auth-token(?:-code-verifier)?(?:\.\d+)?$/;
+
+/**
+ * Indique si un cookie porte la session Supabase (jeton d'accès, jeton
+ * de rafraîchissement, vérificateur PKCE).
+ *
+ * Sert à la déconnexion, qui efface ces cookies elle-même : la
+ * bibliothèque ne les retire pas quand le rafraîchissement du jeton
+ * échoue (service injoignable, jeton expiré), et le jeton de
+ * rafraîchissement survivrait sur un poste partagé.
+ *
+ * @param name Nom du cookie.
+ */
+export function isSessionCookie(name: string): boolean {
+  return SESSION_COOKIE_NAME.test(name);
+}

@@ -141,7 +141,7 @@ export default async function ClinicPage({
               title={text.retention}
               description={
                 clinic.imageRetentionDays === null
-                  ? text.contractTerm
+                  ? text.noLimit
                   : text.retentionDays(clinic.imageRetentionDays)
               }
             >

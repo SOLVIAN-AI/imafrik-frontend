@@ -24,6 +24,10 @@ describe("safeRedirect", () => {
     ["retour à la ligne", "/\n/exemple.test"],
     ["javascript", "javascript:alert(1)"],
     ["sans barre", "connexion"],
+    ["point puis double barre", "/.//exemple.test"],
+    ["point encodé puis double barre", "/%2e//exemple.test"],
+    ["remontée puis double barre", "/a/..//exemple.test"],
+    ["double point encodé puis double barre", "/x/%2e%2e//exemple.test"],
   ])("refuse une destination %s", (_label, target) => {
     expect(safeRedirect(target)).toBeNull();
   });

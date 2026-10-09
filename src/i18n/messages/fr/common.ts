@@ -47,6 +47,14 @@ export const common = {
   sex: { M: "Homme", F: "Femme", O: "Autre" },
   /** Initiales du sexe, pour les lignes compactes. */
   sexShort: { M: "H", F: "F", O: "A" },
+  /** Pied des listes paginées par le service. */
+  pagination: {
+    label: "Pages de la liste",
+    shown: (shown: number, total: number) =>
+      `${shown} affiché${shown > 1 ? "s" : ""} sur ${total}`,
+    first: "Revenir au début",
+    next: "Page suivante",
+  },
   units: {
     minute: "min",
     hour: "h",
