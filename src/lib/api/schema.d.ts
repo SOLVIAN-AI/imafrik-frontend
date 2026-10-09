@@ -451,10 +451,17 @@ export interface paths {
          *     chez quelqu'un qui ne peut plus le signer. Ses brouillons sur ces
          *     examens sont effacés, comme lorsqu'il rend un examen lui-même.
          *
+         *     La validation porte sur le numéro que l'administrateur a eu sous les
+         *     yeux (``expected_license_number``) : si le radiologue l'a changé entre
+         *     l'affichage et la décision, elle est refusée plutôt que d'approuver un
+         *     numéro que personne n'a vérifié. Nul ne valide son propre numéro.
+         *
          *     Raises:
          *         NotFound: Compte introuvable.
+         *         Forbidden: Validation de son propre numéro.
+         *         Conflict: Le numéro a changé depuis son affichage.
          *         Unprocessable: Validation demandée pour un compte sans numéro
-         *             d'ordre.
+         *             d'ordre, ou sans le numéro vérifié.
          */
         post: operations["decide_credentials_admin_users__profile_id__credentials_post"];
         delete?: never;
@@ -1020,7 +1027,8 @@ export interface paths {
          *     Le compte de la personne n'est pas supprimé : elle perd l'accès à
          *     cette clinique, et garde ses autres appartenances. L'accès se ferme à
          *     sa requête suivante, sans attendre l'expiration de son jeton —
-         *     ``auth_role()`` relit l'appartenance en base.
+         *     ``auth_role()`` relit l'appartenance en base, et ses jetons de
+         *     visualisation et de dépôt sont révoqués.
          *
          *     Args:
          *         membership_id: Appartenance à retirer.
@@ -2303,6 +2311,11 @@ export interface components {
              * @enum {string}
              */
             decision: "verify" | "revoke";
+            /**
+             * Expected License Number
+             * @description Numéro d'ordre que l'administrateur a vérifié, tel qu'affiché. Obligatoire pour verify : si le radiologue l'a changé entre-temps, la validation est refusée.
+             */
+            expected_license_number?: string | null;
         };
         /**
          * CredentialsState

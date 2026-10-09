@@ -154,4 +154,23 @@ test.describe("paramètres du radiologue", () => {
     await dialogue.getByRole("button", { name: "Annuler" }).click();
     await expect(dialogue).toHaveCount(0);
   });
+
+  test("un nouveau nom demande confirmation, lui aussi", async ({ page }) => {
+    await page.goto("/parametres");
+    const nom = page.getByLabel("Nom complet");
+    await nom.fill("Un Autre Nom");
+    await page
+      .locator("form")
+      .filter({ has: nom })
+      .getByRole("button", { name: "Enregistrer" })
+      .click();
+    const dialogue = page.getByRole("dialog");
+    await expect(
+      dialogue.getByRole("heading", {
+        name: "Modifier votre identité de signataire ?",
+      }),
+    ).toBeVisible();
+    await dialogue.getByRole("button", { name: "Annuler" }).click();
+    await expect(dialogue).toHaveCount(0);
+  });
 });
