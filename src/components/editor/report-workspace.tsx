@@ -42,6 +42,7 @@ import {
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { type SaveOutcome, useAutosave } from "@/hooks/use-autosave";
+import { WorkspaceSkeleton } from "@/components/editor/workspace-skeleton";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useLocale, useMessages } from "@/i18n/client";
 import {
@@ -319,7 +320,9 @@ export function ReportWorkspace({
   const { groupRef, onLayoutChanged } = usePersistedLayout();
   // Côte à côte à partir de 1024 px ; en dessous, chaque volet aurait
   // moins de 340 px — ni l'image ni le texte n'y sont exploitables.
-  const wide = useMediaQuery("(min-width: 1024px)", true);
+  // Inconnu au rendu serveur (`null`) : une forme neutre, juste à toute
+  // largeur, plutôt qu'une disposition devinée.
+  const wide = useMediaQuery("(min-width: 1024px)", null);
 
   const author = mode.kind === "author" ? mode : null;
   const locked = signed || !author;
@@ -577,7 +580,9 @@ export function ReportWorkspace({
     <div className="flex min-h-0 flex-1 flex-col">
       <StudyBar study={study} signed={signed} actions={actions} />
 
-      {wide ? (
+      {wide === null ? (
+        <WorkspaceSkeleton />
+      ) : wide ? (
         <Group
           orientation="horizontal"
           groupRef={groupRef}

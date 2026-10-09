@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import type { Page, TestInfo } from "@playwright/test";
+import { expect, type Page, type TestInfo } from "@playwright/test";
 import type { ImpactValue, Result } from "axe-core";
 
 /**
@@ -90,6 +90,9 @@ export async function auditAccessibility(
   testInfo: TestInfo,
   options: AuditOptions = {},
 ): Promise<string[]> {
+  // Un écran encore dans sa forme d'attente (`data-pending-layout`)
+  // n'est pas celui qu'on veut auditer.
+  await expect(page.locator("[data-pending-layout]")).toHaveCount(0);
   let builder = new AxeBuilder({ page }).withTags(WCAG_TAGS);
   if (options.include) builder = builder.include(options.include);
   for (const { selector } of EXCLUSIONS) builder = builder.exclude(selector);

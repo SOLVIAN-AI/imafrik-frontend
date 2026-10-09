@@ -509,6 +509,12 @@ function vessels(slice: number, lung: number): [number, number, number][] {
  * ne peuvent donc pas se rejoindre, quelle que soit la largeur. L'ancienne
  * limite (45 %) ne valait qu'au-delà de 240 px : sur un téléphone, pendant
  * la mise en place du volet, les coins se chevauchaient.
+ *
+ * Chaque ligne est elle aussi bornée à la largeur du coin (`max-w-full`) :
+ * dans un coin aligné à droite, une ligne n'est pas étirée, et sa largeur
+ * ne descendait pas sous son mot le plus long (« Saint-Joseph ») ; elle
+ * débordait vers le milieu et recouvrait le coin opposé dès que le volet
+ * des images était étroit.
  */
 function Overlay({
   className,
@@ -519,7 +525,7 @@ function Overlay({
 }) {
   return (
     <div
-      className={`pointer-events-none absolute flex max-w-[calc(50%-1.25rem)] flex-col gap-0.5 font-mono text-[11px] leading-tight text-ink-400 *:truncate ${className}`}
+      className={`pointer-events-none absolute flex max-w-[calc(50%-1.25rem)] flex-col gap-0.5 overflow-hidden font-mono text-[11px] leading-tight text-ink-400 *:max-w-full *:truncate ${className}`}
     >
       {children}
     </div>
