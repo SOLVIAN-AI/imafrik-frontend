@@ -243,7 +243,7 @@ export const admin = {
     urgentDescription: (count: number) =>
       `${count} urgence${count > 1 ? "s" : ""} pas encore rendue${count > 1 ? "s" : ""}`,
     allDescription: (count: number) =>
-      `${count} examens, toutes organisations confondues`,
+      `${count} examen${count > 1 ? "s" : ""}, toutes organisations confondues`,
     openUrgent: "Urgences en cours",
     stuck: (count: number) =>
       `${count} examen${count > 1 ? "s" : ""} urgent${count > 1 ? "s" : ""} en attente de prise en charge.`,
