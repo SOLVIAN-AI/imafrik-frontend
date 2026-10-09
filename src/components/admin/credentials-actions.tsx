@@ -34,17 +34,25 @@ import { decideCredentials } from "@/lib/actions/control";
  * @param fullName      Nom affiché dans les confirmations.
  * @param licenseNumber Numéro d'ordre déclaré, ou `null`.
  * @param verified      Vrai si le numéro est déjà validé.
+ * @param isSelf        Vrai sur son propre compte : nul ne valide son
+ *                      propre numéro (le service le refuse aussi).
+ *
+ * La validation envoie le numéro affiché : si le radiologue l'a changé
+ * entre-temps, le service refuse plutôt que de valider un numéro que
+ * personne n'a vu.
  */
 export function CredentialsActions({
   profileId,
   fullName,
   licenseNumber,
   verified,
+  isSelf = false,
 }: {
   profileId: string;
   fullName: string;
   licenseNumber: string | null;
   verified: boolean;
+  isSelf?: boolean;
 }) {
   const t = useMessages();
   const text = t.admin.credentials;
@@ -55,22 +63,29 @@ export function CredentialsActions({
   const copy = verified ? text.revoke : text.verify;
   const number = licenseNumber?.trim() ?? "";
 
-  if (!verified && !number) {
-    const reason = `credentials-missing-${profileId}`;
+  const blocked = verified
+    ? null
+    : !number
+      ? text.verify.missing
+      : isSelf
+        ? text.verify.self
+        : null;
+  if (blocked) {
+    const reason = `credentials-blocked-${profileId}`;
     return (
       <>
         <Button
           size="sm"
           variant="secondary"
           disabled
-          title={text.verify.missing}
+          title={blocked}
           aria-describedby={reason}
         >
           <ShieldCheck aria-hidden />
           {text.verify.trigger}
         </Button>
         <span id={reason} className="sr-only">
-          {text.verify.missing}
+          {blocked}
         </span>
       </>
     );
@@ -79,7 +94,7 @@ export function CredentialsActions({
   const confirm = () => {
     setError(null);
     startTransition(async () => {
-      const result = await decideCredentials(profileId, decision);
+      const result = await decideCredentials(profileId, decision, number);
       if (!result.ok) {
         setError(result.error);
         return;

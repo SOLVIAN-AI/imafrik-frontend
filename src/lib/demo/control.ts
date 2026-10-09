@@ -538,6 +538,8 @@ export function demoOverview(
       clinics_connected: DEMO_NETWORK.length,
       radiologists_active: READERS.length,
       new_requests: DEMO_NEW_REQUESTS,
+      unverified_radiologists: demoUsers(now).filter(isUnverifiedRadiologist)
+        .length,
     },
     received_14d: received14,
     sla_30d: sla(flows),
@@ -1086,6 +1088,8 @@ export function demoClinic(
     images_purged: clinic.id === DEMO_NETWORK[0].id ? 42 : 0,
     // Une clinique anglophone, pour montrer la langue des comptes-rendus.
     report_language: clinic.id === DEMO_NETWORK.at(-1)?.id ? "en" : "fr",
+    // Toutes sous contrat : la fin de contrat se montre, sans s'exécuter.
+    contract_ended_at: null,
     last_received_at: first ? iso(flows[0].receivedAt) : null,
     onboarding: [
       step("created", created),

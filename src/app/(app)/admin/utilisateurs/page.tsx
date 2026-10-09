@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function UsersPage({
   searchParams,
 }: PageProps<"/admin/utilisateurs">) {
-  await requireSession(["platform_admin"]);
+  const session = await requireSession(["platform_admin"]);
   const { t } = await getMessages();
   const text = t.admin.users;
   const params = await searchParams;
@@ -142,6 +142,7 @@ export default async function UsersPage({
                   key={user.id}
                   user={user}
                   organizations={grantable}
+                  isSelf={user.id === session.user.id}
                   t={t}
                 />
               ))}
@@ -180,9 +181,11 @@ function isRadiologistAccount(user: AdminUser): boolean {
 function UserRow({
   user,
   organizations,
+  isSelf,
   t,
 }: {
   user: AdminUser;
+  isSelf: boolean;
   organizations: {
     id: string;
     name: string;
@@ -262,7 +265,7 @@ function UserRow({
         )}
       </p>
 
-      {radiologist && <CredentialRow user={user} t={t} />}
+      {radiologist && <CredentialRow user={user} isSelf={isSelf} t={t} />}
     </li>
   );
 }
@@ -271,7 +274,15 @@ function UserRow({
  * Validation du numéro d'ordre : état, numéro déclaré, date de
  * validation, et le geste qui valide ou retire la validation.
  */
-function CredentialRow({ user, t }: { user: AdminUser; t: AppMessages }) {
+function CredentialRow({
+  user,
+  isSelf,
+  t,
+}: {
+  user: AdminUser;
+  isSelf: boolean;
+  t: AppMessages;
+}) {
   const text = t.admin.credentials;
   const status = credentialStatus({
     hasLicenseNumber: Boolean(user.licenseNumber?.trim()),
@@ -303,6 +314,7 @@ function CredentialRow({ user, t }: { user: AdminUser; t: AppMessages }) {
           fullName={formatPersonName(user.title, user.fullName)}
           licenseNumber={user.licenseNumber}
           verified={status === "verified"}
+          isSelf={isSelf}
         />
       </div>
     </div>

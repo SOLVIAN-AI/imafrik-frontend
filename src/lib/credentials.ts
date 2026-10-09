@@ -82,3 +82,33 @@ export function licenseChangeResetsValidation(
   const before = normalizeLicenseNumber(previous);
   return before !== "" && before !== normalizeLicenseNumber(next);
 }
+
+/** Ce qu'un compte-rendu imprime du signataire. */
+export interface SignerIdentity {
+  fullName: string;
+  title: string;
+  licenseNumber: string;
+}
+
+/**
+ * Vrai si l'enregistrement changerait le nom ou le titre d'un radiologue
+ * qui a déjà un numéro d'ordre : le serveur annule alors la validation,
+ * comme pour un nouveau numéro, car tous trois s'impriment sous la
+ * signature.
+ *
+ * Un titre laissé vide n'est pas envoyé et ne change donc rien.
+ *
+ * @param previous Identité enregistrée.
+ * @param next     Identité saisie.
+ */
+export function identityChangeResetsValidation(
+  previous: SignerIdentity,
+  next: SignerIdentity,
+): boolean {
+  if (normalizeLicenseNumber(previous.licenseNumber) === "") return false;
+  const nextTitle = next.title.trim();
+  return (
+    next.fullName.trim() !== previous.fullName.trim() ||
+    (nextTitle !== "" && nextTitle !== previous.title.trim())
+  );
+}

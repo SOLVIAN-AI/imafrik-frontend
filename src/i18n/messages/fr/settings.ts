@@ -32,6 +32,11 @@ export const settings = {
           : `Le numéro ${previous} sera retiré de votre profil. Sans numéro d’ordre, vous n’aurez plus accès aux examens.`,
       submit: "Enregistrer et faire vérifier",
     },
+    identityChangeConfirm: {
+      title: "Modifier votre identité de signataire ?",
+      description:
+        "Votre nom et votre titre s’impriment sous chaque compte-rendu que vous signez, avec votre numéro d’ordre. L’équipe IMAFRIK devra vérifier ce changement : d’ici là, vous n’aurez plus accès aux examens, et ceux que vous avez pris en charge pourront être confiés à un confrère.",
+    },
     saved: "Profil enregistré.",
     nameRequired: "Le nom est requis",
   },
@@ -78,6 +83,8 @@ export const settings = {
     failed:
       "Le mot de passe n’a pas pu être changé. Le lien a peut-être expiré.",
     demoAction: "Le changement de mot de passe",
+    secondFactorFirst:
+      "Votre compte est protégé par la double authentification : saisissez d’abord votre code, puis changez le mot de passe.",
   },
   profileDemoAction: "L’enregistrement du profil",
   mfa: {

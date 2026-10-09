@@ -9,7 +9,10 @@ import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locale";
 import { LANGUAGE_COOKIE } from "@/lib/i18n/routes";
 import { homeFor, isRouteAllowed } from "@/lib/navigation";
 import { demoSession } from "@/lib/session/demo";
-import { needsSecondFactor } from "@/lib/session/mfa";
+import {
+  needsSecondFactor,
+  passwordChangeNeedsSecondFactor,
+} from "@/lib/session/mfa";
 import type { Membership, Session, UserRole } from "@/lib/session/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -149,6 +152,22 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
     locale: isLocale(profile?.locale) ? profile.locale : DEFAULT_LOCALE,
     isDemo: false,
   };
+});
+
+/**
+ * Indique si la session doit vérifier son second facteur avant tout
+ * changement de mot de passe : compte doté d'un facteur vérifié, session
+ * encore au premier niveau. Toujours faux en démonstration.
+ */
+export const passwordNeedsSecondFactor = cache(async (): Promise<boolean> => {
+  if (isDemoMode()) return false;
+  const supabase = await createClient();
+  const { data: level } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  return passwordChangeNeedsSecondFactor({
+    current: level?.currentLevel ?? null,
+    next: level?.nextLevel ?? null,
+  });
 });
 
 /**

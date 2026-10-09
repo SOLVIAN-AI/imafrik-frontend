@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   needsSecondFactor,
+  passwordChangeNeedsSecondFactor,
   normalizeOtp,
   roleRequiresMfa,
 } from "@/lib/session/mfa";
@@ -34,5 +35,25 @@ describe("double authentification", () => {
     expect(normalizeOtp("12345")).toBeNull();
     expect(normalizeOtp("12a456")).toBeNull();
     expect(normalizeOtp("1234567")).toBeNull();
+  });
+});
+
+describe("changement de mot de passe", () => {
+  it("attend le second facteur quand un facteur vérifié existe", () => {
+    expect(
+      passwordChangeNeedsSecondFactor({ current: "aal1", next: "aal2" }),
+    ).toBe(true);
+  });
+
+  it("passe une fois le second facteur vérifié, ou sans facteur", () => {
+    expect(
+      passwordChangeNeedsSecondFactor({ current: "aal2", next: "aal2" }),
+    ).toBe(false);
+    expect(
+      passwordChangeNeedsSecondFactor({ current: "aal1", next: "aal1" }),
+    ).toBe(false);
+    expect(passwordChangeNeedsSecondFactor({ current: null, next: null })).toBe(
+      false,
+    );
   });
 });

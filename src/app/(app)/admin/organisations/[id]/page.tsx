@@ -1,8 +1,9 @@
-import { ArrowLeft, Check, Circle } from "lucide-react";
+import { ArrowLeft, Ban, Check, Circle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ContractPanel } from "@/components/admin/contract-panel";
 import { ControlBody, Figure, Section } from "@/components/admin/control-ui";
 import { FlowList, SegmentLegend } from "@/components/admin/flow-list";
 import { RelativeTime } from "@/components/admin/relative-time";
@@ -44,7 +45,13 @@ export async function generateMetadata(): Promise<Metadata> {
  * un coup de téléphone, pas une analyse.
  *
  * Suivent les deux réglages que le contrat fixe : la durée de
- * conservation des images et la langue des comptes-rendus.
+ * conservation des images et la langue des comptes-rendus. En bas de
+ * fiche, l'état du contrat et, dans une zone de danger, le geste qui y
+ * met fin.
+ *
+ * **Contrat terminé**, la fiche passe en lecture seule : un bandeau le
+ * dit en tête, les réglages ne sont plus modifiables, et seul demeure le
+ * rappel de l'export à remettre. L'activité passée reste consultable.
  */
 export default async function ClinicPage({
   params,
@@ -64,6 +71,7 @@ export default async function ClinicPage({
   ]);
   const activity = analytics.byClinic[0];
   const done = clinic.onboarding.filter((step) => step.done).length;
+  const ended = clinic.contractEndedAt !== null;
 
   return (
     <>
@@ -71,8 +79,16 @@ export default async function ClinicPage({
         title={clinic.name}
         description={[
           clinic.city,
-          clinic.active ? text.active : text.suspended,
-          clinic.openToPool ? text.openToPool : text.ownRadiologists,
+          ended
+            ? text.contractEnded
+            : clinic.active
+              ? text.active
+              : text.suspended,
+          ended
+            ? null
+            : clinic.openToPool
+              ? text.openToPool
+              : text.ownRadiologists,
         ]
           .filter(Boolean)
           .join(" · ")}
@@ -94,6 +110,25 @@ export default async function ClinicPage({
       />
 
       <ControlBody>
+        {clinic.contractEndedAt && (
+          <div
+            role="status"
+            className="flex gap-3 rounded-xl border border-urgent/40 bg-urgent-muted px-4 py-3"
+          >
+            <Ban className="mt-0.5 size-4 shrink-0 text-urgent" aria-hidden />
+            <div className="min-w-0">
+              <p className="text-sm font-medium">
+                {t.admin.contract.endedOnBefore}
+                <DateTime date={clinic.contractEndedAt} withTime={false} />
+                {t.admin.contract.endedOnAfter}
+              </p>
+              <p className="mt-0.5 text-xs leading-relaxed text-secondary">
+                {t.admin.contract.endedDetail}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
           <div className="flex min-w-0 flex-col gap-4">
             <Section
@@ -110,21 +145,29 @@ export default async function ClinicPage({
                   : text.retentionDays(clinic.imageRetentionDays)
               }
             >
-              <RetentionForm
-                clinicId={clinic.id}
-                clinicName={clinic.name}
-                days={clinic.imageRetentionDays}
-                purged={clinic.imagesPurged}
-              />
+              {ended ? (
+                <ReadOnly text={t.admin.contract.readOnly} />
+              ) : (
+                <RetentionForm
+                  clinicId={clinic.id}
+                  clinicName={clinic.name}
+                  days={clinic.imageRetentionDays}
+                  purged={clinic.imagesPurged}
+                />
+              )}
             </Section>
             <Section
               title={t.admin.reportLanguage.title}
               description={LOCALE_NAMES[clinic.reportLanguage]}
             >
-              <ReportLanguageForm
-                clinicId={clinic.id}
-                language={clinic.reportLanguage}
-              />
+              {ended ? (
+                <ReadOnly text={t.admin.contract.readOnly} />
+              ) : (
+                <ReportLanguageForm
+                  clinicId={clinic.id}
+                  language={clinic.reportLanguage}
+                />
+              )}
             </Section>
           </div>
 
@@ -220,9 +263,27 @@ export default async function ClinicPage({
             <FlowList studies={recent} locale={locale} />
           )}
         </Section>
+
+        <Section
+          title={t.admin.contract.title}
+          description={
+            ended ? text.contractEnded : t.admin.contract.underContract
+          }
+        >
+          <ContractPanel
+            clinicId={clinic.id}
+            clinicName={clinic.name}
+            endedAt={clinic.contractEndedAt?.toISOString() ?? null}
+          />
+        </Section>
       </ControlBody>
     </>
   );
+}
+
+/** Réglage figé par la fin du contrat : la valeur reste dans l'en-tête de section. */
+function ReadOnly({ text }: { text: string }) {
+  return <p className="text-xs leading-relaxed text-tertiary">{text}</p>;
 }
 
 /** Séries de l'histogramme des volumes, de bas en haut. */

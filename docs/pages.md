@@ -163,18 +163,42 @@ son adresse dans sa langue :
 | --- | --- | --- |
 | `/connexion` | Identifiant et mot de passe. | V1 |
 | `/mot-de-passe-oublie` | Demande de lien de réinitialisation. | V1 |
-| `/nouveau-mot-de-passe` | Saisie du nouveau mot de passe, après le lien reçu. | V1 |
+| `/nouveau-mot-de-passe` | Saisie du nouveau mot de passe, après le lien de réinitialisation. | V1 |
+| `/invitation` | **Accueil d'un invité** : établissement ou groupe, rôle en clair, qui a invité, ville ; puis le choix du mot de passe. Ouvert avant la double authentification. | V1, fait |
 | `/rejoindre` | **Candidature d'un radiologue.** Pas une inscription : un dossier, soumis à validation. Voir la décision n° 1. | V2 |
 | `/double-authentification` | **Second facteur** : enrôlement d'une application TOTP (QR code, clé de secours) ou saisie du code. Obligatoire pour radiologues et administration : imposé au jeton (voir AD-8 du dépôt backend). | V1, fait |
 
 | `/en-attente` | Compte valide rattaché à aucune organisation active : candidature en cours d'examen ou organisation suspendue. | V1 |
 
-**6 écrans**, plus un gestionnaire de route sans interface :
-`/auth/callback`, retour des liens Supabase. Une **invitation** passe par
-lui : le courriel envoyé par l'API ramène à
-`/auth/callback?suite=/nouveau-mot-de-passe`, où l'invité choisit son mot
-de passe. La **déconnexion** est une action serveur, qui révoque d'abord
-les jetons de visualisation puis ferme la session.
+**7 écrans**, plus un gestionnaire de route sans interface :
+`/auth/callback`, retour des liens Supabase. La **déconnexion** est une
+action serveur, qui révoque d'abord les jetons de visualisation puis
+ferme la session.
+
+### Arrivée d'un invité
+
+Le courriel d'invitation envoyé par l'API ramène à
+`/auth/callback?suite=/invitation` (une réinitialisation de mot de passe,
+elle, à `suite=/nouveau-mot-de-passe`). Le parcours :
+
+1. **`/invitation`** lit `GET /me/invitation` côté serveur et présente
+   l'organisation qui accueille, le rôle en clair, la personne qui a
+   invité et la date. Un invité qui n'attendait pas ce lien sait qu'il
+   doit fermer la page et écrire à contact@imafrik.tech. Le proxy laisse
+   passer cet écran pour une session `mfa_required`, et le service y
+   répond dans ce même état ; le jeton n'ouvre toujours aucune donnée.
+2. **Mot de passe** : même formulaire et mêmes règles que
+   `/nouveau-mot-de-passe`.
+3. **Double authentification** quand le rôle l'exige (radiologue, équipe
+   IMAFRIK) : `/double-authentification?suite=/bienvenue`.
+4. **Mise en service** : `/bienvenue`.
+
+Si l'invitation ne peut pas être lue (aucune appartenance, service
+indisponible), l'écran retombe sur le seul choix du mot de passe, et la
+suite est la même. L'écran porte le sélecteur de langue des écrans
+d'entrée. En démonstration, il présente une invitation fixe : personnel
+de l'accueil de la Clinique Saint-Joseph, invité par la gestionnaire de
+la clinique ; l'enregistrement du mot de passe y est indisponible.
 
 ---
 
@@ -259,7 +283,7 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | `/admin/activite` | Volumes, délais (médiane, 9 sur 10), étapes du parcours, heures d'arrivée, par clinique (débit), modalité, radiologue. Période et clinique dans l'adresse. | Fait |
 | `/admin/flux` | Flux d'images examen par examen : débit de réception, frise acquisition → remise. | Fait |
 | `/admin/organisations` | Volumes sur 30 jours, dernier envoi, suspension, invitation. | Fait |
-| `/admin/organisations/[id]` | Mise en service d'une clinique, activité, **durée de conservation des images**. | Fait |
+| `/admin/organisations/[id]` | Mise en service d'une clinique, activité, **durée de conservation des images**, état du contrat et **fin de contrat**. | Fait |
 | `/admin/utilisateurs` | Comptes : rattachement, **validation des numéros d'ordre** (filtre « À valider », `?validation=attente`), double authentification, réinitialisation. | Fait |
 | `/admin/examens` | Recherche globale, urgences en cours. | Fait |
 | `/admin/demandes` | Demandes reçues par le site (établissement ou radiologue, numéro d'ordre déclaré), suivi et notes. | Fait |
@@ -304,6 +328,33 @@ Le parcours :
 En démonstration, deux radiologues attendent leur validation (l'un sans
 numéro), l'alerte du cockpit est présente, et les gestes de validation
 répondent « indisponible en démonstration ».
+
+### Fin de contrat d'une clinique
+
+En bas de la fiche d'une clinique, une zone de danger : « Mettre fin au
+contrat ». La boîte de dialogue dit ce que le geste enclenche, puis
+n'active le bouton qu'une fois le nom de la clinique saisi (casse et
+espaces de bord ignorés, comme le service).
+
+- **Effet** (`POST /admin/clinics/{id}/end-contract`) : clinique
+  suspendue, ses membres perdent l'accès à leur requête suivante ;
+  retirée du pool ; contrats de service fermés ; geste tracé
+  (`organization.contract_ended`, avec le nombre d'examens abandonnés).
+  Les comptes-rendus signés restent conservés vingt ans (verrou R2) et
+  vérifiables par leur QR code ; les images suivent la durée de
+  conservation du contrat.
+- **Examens non rendus** : le service refuse (409) et en donne le
+  nombre. L'écran affiche son message et demande une seconde
+  confirmation explicite, « Abandonner ces examens », avant de réessayer.
+- **Ensuite** : la commande d'export renvoyée par le service s'affiche, à
+  copier. L'archive contient des données de santé nominatives : elle se
+  remet à la clinique par un canal chiffré, puis s'efface de la machine
+  qui l'a produite.
+- **Contrat terminé** : bandeau daté en tête de fiche, réglages en
+  lecture seule, rappel de l'export.
+
+En démonstration, toutes les cliniques sont sous contrat et le geste
+répond « indisponible en démonstration ».
 
 ---
 

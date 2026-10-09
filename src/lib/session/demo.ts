@@ -101,3 +101,29 @@ export function demoSession(
     isDemo: true,
   };
 }
+
+/**
+ * Invitation de démonstration, telle que `GET /me/invitation` la
+ * renverrait : une personne de l'accueil invitée à la Clinique
+ * Saint-Joseph par la gestionnaire de la clinique, hier matin.
+ *
+ * Sert à montrer l'écran d'accueil d'un invité (`/invitation`) sans lien
+ * d'invitation réel, et à le tester de bout en bout.
+ *
+ * @param now Instant de référence, en millisecondes.
+ */
+export function demoInvitation(now = Date.now()) {
+  const clinic = DEMO_MEMBERSHIPS.find(
+    (membership) => membership.id === "m-clinic",
+  )!;
+  const yesterday = new Date(now - 24 * 60 * 60 * 1000);
+  yesterday.setUTCHours(9, 30, 0, 0);
+  return {
+    organization_name: clinic.organizationName,
+    organization_kind: clinic.organizationKind,
+    city: clinic.city,
+    role: "clinic_staff" as const,
+    invited_by_name: PERSONAS["m-clinic"].fullName,
+    invited_at: yesterday.toISOString(),
+  };
+}

@@ -5,8 +5,10 @@ import { z } from "zod";
 
 import { apiSend } from "@/lib/api/client";
 import {
+  type ApiContractEnd,
   clinicDetailSchema,
   contactTrackingSchema,
+  contractEndResultSchema,
   credentialsStateSchema,
   mfaResetSchema,
   platformSettingsSchema,
@@ -17,6 +19,7 @@ import {
   run,
   rejectInvalidIds,
 } from "@/lib/actions/result";
+import { unreportedCount } from "@/lib/contract-end";
 import { isDemoMode } from "@/lib/demo/mode";
 import { isLocale, type Locale } from "@/lib/i18n/locale";
 import { getMessages } from "@/i18n/server";
@@ -236,17 +239,24 @@ export type CredentialsDecision = "verify" | "revoke";
  *
  * @param profileId Compte du radiologue.
  * @param decision  `verify` ou `revoke`.
+ * @param shownLicenseNumber Numéro affiché à l'administrateur, celui
+ *        qu'il a vérifié. Envoyé pour une validation : le service refuse
+ *        si le radiologue en a changé entre-temps.
  * @returns Le nombre d'examens rendus au pool (toujours 0 à la validation).
  */
 export async function decideCredentials(
   profileId: string,
   decision: CredentialsDecision,
+  shownLicenseNumber = "",
 ): Promise<ActionResult<number>> {
   const { t } = await getMessages();
   if (isDemoMode()) {
     return await demoUnavailable(t.admin.demoActions.credentials);
   }
-  if (decision !== "verify" && decision !== "revoke") {
+  if (
+    (decision !== "verify" && decision !== "revoke") ||
+    typeof shownLicenseNumber !== "string"
+  ) {
     return { ok: false, error: t.common.errors.invalidRequest, status: 422 };
   }
   const invalid = await rejectInvalidIds(profileId);
@@ -255,7 +265,12 @@ export async function decideCredentials(
     const body = await apiSend(
       `/admin/users/${encodeURIComponent(profileId)}/credentials`,
       "POST",
-      { decision },
+      decision === "verify"
+        ? {
+            decision,
+            expected_license_number: shownLicenseNumber.trim().slice(0, 50),
+          }
+        : { decision },
       credentialsStateSchema,
     );
     return body.released_studies;
@@ -360,5 +375,113 @@ export async function setClinicReportLanguage(
     return undefined;
   });
   revalidatePath(`/admin/organisations/${clinicId}`);
+  return result;
+}
+
+/**
+ * Schéma d'une fin de contrat.
+ *
+ * Mêmes bornes que le service pour le nom saisi (1 à 200 caractères) ; la
+ * correspondance avec le nom de la clinique, elle, est vérifiée par le
+ * service, seul à faire foi.
+ *
+ * @param m Messages de validation, dans la langue de l'utilisateur.
+ */
+const contractEndSchema = (m: Validation) =>
+  z.object({
+    confirmName: z
+      .string()
+      .trim()
+      .min(1, m.confirmNameRequired)
+      .max(200, m.confirmNameRequired),
+    abandonUnreported: z.boolean(),
+  });
+
+/** Confirmation d'une fin de contrat, telle que l'écran la saisit. */
+export type ContractEndInput = z.input<ReturnType<typeof contractEndSchema>>;
+
+/** Effet d'une fin de contrat, pour l'écran qui l'a demandée. */
+export interface ContractEnded {
+  /** Date de fin, ISO 8601. */
+  endedAt: string;
+  /** Examens non rendus abandonnés avec la fin de contrat. */
+  abandonedStudies: number;
+  /** Commande d'export à lancer sur le serveur. */
+  exportCommand: string;
+}
+
+/**
+ * Résultat d'une fin de contrat.
+ *
+ * Aux cas habituels s'ajoute un refus particulier : des examens ne sont
+ * pas encore rendus (409). L'écran le distingue d'un contrat déjà
+ * terminé, lui aussi en 409, pour proposer leur abandon explicite.
+ */
+export type EndContractResult =
+  | ActionResult<ContractEnded>
+  | { ok: false; error: string; status: 409; unreported: number };
+
+/**
+ * Met fin au contrat d'une clinique.
+ *
+ * Le service enchaîne, dans une seule transaction : clinique suspendue
+ * (ses membres perdent l'accès à leur requête suivante), retirée du pool,
+ * contrats de service fermés, geste tracé dans le journal d'audit
+ * (`organization.contract_ended`). Les comptes-rendus signés restent
+ * conservés et vérifiables. Il refuse :
+ *
+ * - un nom qui ne correspond pas à la clinique (422) ;
+ * - un contrat déjà terminé (409) ;
+ * - tant que des examens ne sont pas rendus, sauf abandon confirmé
+ *   (409, avec leur nombre : voir {@link EndContractResult}).
+ *
+ * @param clinicId Clinique.
+ * @param input    Nom saisi, et l'abandon éventuel des examens non rendus.
+ * @returns La date de fin, les examens abandonnés et la commande d'export.
+ */
+export async function endClinicContract(
+  clinicId: string,
+  input: ContractEndInput,
+): Promise<EndContractResult> {
+  const { t } = await getMessages();
+  const parsed = contractEndSchema(t.admin.validation).safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0].message, status: 422 };
+  }
+  if (isDemoMode())
+    return await demoUnavailable(t.admin.demoActions.contractEnd);
+  const invalid = await rejectInvalidIds(clinicId);
+  if (invalid) return invalid;
+
+  const body: ApiContractEnd = {
+    confirm_name: parsed.data.confirmName,
+    abandon_unreported: parsed.data.abandonUnreported,
+  };
+  const result = await run(async () => {
+    const ended = await apiSend(
+      `/admin/clinics/${encodeURIComponent(clinicId)}/end-contract`,
+      "POST",
+      body,
+      contractEndResultSchema,
+    );
+    return {
+      endedAt: ended.contract_ended_at,
+      abandonedStudies: ended.abandoned_studies,
+      exportCommand: ended.export_command,
+    };
+  });
+
+  if (!result.ok && result.status === 409) {
+    const unreported = unreportedCount(result.error);
+    if (unreported !== null)
+      return { ok: false, error: result.error, status: 409, unreported };
+  }
+  // Après un succès, ou un contrat qu'une autre session vient de
+  // terminer : la fiche, la liste et le cockpit changent.
+  if (result.ok || result.status === 409) {
+    revalidatePath(`/admin/organisations/${clinicId}`);
+    revalidatePath("/admin/organisations");
+    revalidatePath("/admin");
+  }
   return result;
 }
