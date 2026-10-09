@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Wordmark } from "@/components/brand/brand";
 import { Stepper } from "@/components/onboarding/stepper";
 import { useSession } from "@/components/providers/session-provider";
+import { MAIN_CONTENT_ID, SkipLink } from "@/components/layout/skip-link";
 import { useMessages } from "@/i18n/client";
 import { stepsFor } from "@/lib/onboarding/steps";
 
@@ -38,6 +39,7 @@ export function OnboardingChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-x-clip bg-surface-base">
+      <SkipLink label={t.common.skipToContent} />
       <div
         className="pointer-events-none absolute -top-48 left-1/2 size-[48rem] -translate-x-1/2 rounded-full blur-3xl"
         style={{
@@ -65,7 +67,11 @@ export function OnboardingChrome({ children }: { children: React.ReactNode }) {
         </Link>
       </header>
 
-      <main className="relative mx-auto w-full max-w-xl flex-1 px-4 py-12 sm:px-6 md:py-16">
+      <main
+        id={MAIN_CONTENT_ID}
+        tabIndex={-1}
+        className="relative mx-auto w-full max-w-xl flex-1 px-4 py-12 outline-none sm:px-6 md:py-16"
+      >
         <div className="mb-8 sm:hidden">
           <Stepper steps={steps} currentIndex={currentIndex} />
         </div>

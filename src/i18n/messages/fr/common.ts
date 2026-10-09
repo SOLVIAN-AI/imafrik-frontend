@@ -9,6 +9,8 @@
 export const common = {
   /** Description par défaut des pages, pour les moteurs et les aperçus. */
   appDescription: "Plateforme de téléradiologie",
+  /** Lien d’évitement, premier arrêt de la tabulation sur chaque page. */
+  skipToContent: "Aller au contenu",
   actions: {
     save: "Enregistrer",
     saving: "Enregistrement…",

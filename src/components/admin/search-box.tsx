@@ -68,7 +68,7 @@ export function SearchBox({
           className={cn(
             "h-9 w-full rounded-lg border border-border-subtle bg-surface-base/60 pr-2.5 pl-8 sm:h-8 sm:w-60",
             "text-xs placeholder:text-tertiary",
-            "focus-visible:border-accent focus-visible:outline-none",
+            "focus-visible:border-accent focus-visible:ring-3 focus-visible:ring-accent/25 focus-visible:outline-none",
           )}
         />
       </label>

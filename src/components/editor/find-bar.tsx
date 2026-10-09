@@ -186,7 +186,7 @@ export function FindBar({
               }
             }}
             placeholder={labels.placeholder}
-            className="h-8 w-full rounded-md border border-border-default bg-surface-base pr-20 pl-8 text-sm placeholder:text-tertiary focus:border-accent focus:outline-none"
+            className="h-8 w-full rounded-md border border-border-default bg-surface-base pr-20 pl-8 text-sm placeholder:text-tertiary focus:border-accent focus:ring-3 focus:ring-accent/25 focus:outline-none"
           />
           <span
             className={cn(
@@ -254,7 +254,7 @@ export function FindBar({
                 }
               }}
               placeholder={labels.replaceWith}
-              className="h-8 w-full rounded-md border border-border-default bg-surface-base px-2.5 text-sm placeholder:text-tertiary focus:border-accent focus:outline-none"
+              className="h-8 w-full rounded-md border border-border-default bg-surface-base px-2.5 text-sm placeholder:text-tertiary focus:border-accent focus:ring-3 focus:ring-accent/25 focus:outline-none"
             />
           </label>
           <div className="flex items-center gap-1.5">
