@@ -10,6 +10,8 @@ import { LANGUAGE_COOKIE } from "@/lib/i18n/routes";
 import { homeFor } from "@/lib/navigation";
 import { demoSession } from "@/lib/session/demo";
 import {
+  type AssuranceLevel,
+  assuranceFromVerified,
   needsSecondFactor,
   passwordChangeNeedsSecondFactor,
 } from "@/lib/session/mfa";
@@ -80,6 +82,8 @@ interface Account {
   profile: ProfileRow | null;
   /** Appartenances dont l'organisation est active. */
   memberships: Membership[];
+  /** Niveaux d'assurance de la session, tirés de données vérifiées. */
+  assurance: AssuranceLevel;
 }
 
 /**
@@ -87,6 +91,14 @@ interface Account {
  *
  * `getUser()` plutôt que `getSession()` : le second lit le cookie sans le
  * vérifier. Ici, la réponse décide d'un accès à des images médicales.
+ *
+ * Le niveau d'assurance suit la même exigence : claim `aal` du jeton
+ * vérifié par `getClaims()`, facteurs renvoyés par `getUser()`. La
+ * fonction `mfa.getAuthenticatorAssuranceLevel()` de la bibliothèque,
+ * utilisée auparavant sur un second client, lisait l'utilisateur du
+ * cookie sans vérification ; c'est elle qui produisait l'avertissement
+ * « Using the user object as returned from supabase.auth.getSession() »
+ * dans les journaux, à chaque requête.
  *
  * @returns Le compte, ou `"anonymous"` si aucune session valide n'existe.
  * @throws SessionUnavailableError Service d'authentification ou base
@@ -105,7 +117,7 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
   }
   if (!user) return "anonymous";
 
-  const [profileResult, membershipsResult] = await Promise.all([
+  const [profileResult, membershipsResult, claimsResult] = await Promise.all([
     supabase
       .from("profiles")
       .select(
@@ -120,6 +132,9 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
       )
       .eq("profile_id", user.id)
       .overrideTypes<MembershipRow[]>(),
+    // Lit le jeton de la session (seulement lui, pas l'utilisateur du
+    // cookie) et en vérifie la signature.
+    supabase.auth.getClaims(),
   ]);
   if (profileResult.error)
     throw new SessionUnavailableError("profile", {
@@ -128,6 +143,13 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
   if (membershipsResult.error)
     throw new SessionUnavailableError("memberships", {
       cause: membershipsResult.error,
+    });
+  // `getUser()` vient d'accepter ce jeton : un jeton illisible ou absent
+  // ici n'est pas une déconnexion mais un incident (clés de signature
+  // injoignables, session effacée entre-temps).
+  if (claimsResult.error || !claimsResult.data)
+    throw new SessionUnavailableError("assurance", {
+      cause: claimsResult.error,
     });
 
   const memberships: Membership[] = (membershipsResult.data ?? []).flatMap(
@@ -152,6 +174,10 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
     user: { id: user.id, email: user.email ?? "" },
     profile: profileResult.data,
     memberships,
+    assurance: assuranceFromVerified(
+      claimsResult.data.claims.aal,
+      user.factors,
+    ),
   };
 });
 
@@ -186,7 +212,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
 
   const account = await loadAccount();
   if (account === "anonymous") return "anonymous";
-  const { user, profile, memberships } = account;
+  const { user, profile, memberships, assurance } = account;
 
   const active = resolveActiveMembership(
     memberships,
@@ -194,20 +220,9 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
   );
   if (!active) return "no-membership";
 
-  // Niveau d'assurance lu dans le jeton de session, déjà vérifié par
-  // `getUser()` ci-dessus. Même règle que le hook qui l'a émis.
-  const supabase = await createClient();
-  const { data: level, error: levelError } =
-    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (levelError)
-    throw new SessionUnavailableError("assurance", { cause: levelError });
-  if (
-    needsSecondFactor(active.role, {
-      current: level?.currentLevel ?? null,
-      next: level?.nextLevel ?? null,
-    })
-  )
-    return "mfa-required";
+  // Niveau d'assurance tiré du jeton vérifié et des facteurs renvoyés
+  // par le service. Même règle que le hook qui a émis le jeton.
+  if (needsSecondFactor(active.role, assurance)) return "mfa-required";
 
   return {
     user: {
@@ -268,20 +283,22 @@ export const getAvailableMemberships = cache(
 /**
  * Indique si la session doit vérifier son second facteur avant tout
  * changement de mot de passe : compte doté d'un facteur vérifié, session
- * encore au premier niveau. Toujours faux en démonstration.
+ * encore au premier niveau. Toujours faux en démonstration, et pour une
+ * personne non connectée (aucun mot de passe à changer).
  */
 export const passwordNeedsSecondFactor = cache(async (): Promise<boolean> => {
   if (isDemoMode()) return false;
-  const supabase = await createClient();
-  const { data: level, error } =
-    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  // Niveau illisible : on exige le second facteur plutôt que de
-  // laisser passer un changement de mot de passe à l'aveugle.
-  if (error) return true;
-  return passwordChangeNeedsSecondFactor({
-    current: level?.currentLevel ?? null,
-    next: level?.nextLevel ?? null,
-  });
+  let account: Account | "anonymous";
+  try {
+    account = await loadAccount();
+  } catch (error) {
+    // Niveau illisible : on exige le second facteur plutôt que de
+    // laisser passer un changement de mot de passe à l'aveugle.
+    if (error instanceof SessionUnavailableError) return true;
+    throw error;
+  }
+  if (account === "anonymous") return false;
+  return passwordChangeNeedsSecondFactor(account.assurance);
 });
 
 /**

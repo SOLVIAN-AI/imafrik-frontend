@@ -6,6 +6,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SessionUnavailableError } from "@/lib/session/resolve";
+import { isServiceUnavailable } from "@/lib/service-unavailable";
 
 /**
  * Résolution de la session contre un client Supabase simulé.
@@ -24,12 +25,12 @@ const answers: {
   user: Answer;
   profile: Answer;
   memberships: Answer;
-  aal: Answer;
+  claims: Answer;
 } = {
   user: { data: { user: null }, error: null },
   profile: { data: null, error: null },
   memberships: { data: [], error: null },
-  aal: { data: null, error: null },
+  claims: { data: null, error: null },
 };
 
 /** Constructeur de requête minimal : `select().eq()` puis la terminaison. */
@@ -49,7 +50,14 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: {
       getUser: async () => answers.user,
-      mfa: { getAuthenticatorAssuranceLevel: async () => answers.aal },
+      getClaims: async () => answers.claims,
+      mfa: {
+        // Lit l'utilisateur du cookie sans le vérifier, d'où
+        // l'avertissement de Supabase : ne doit plus être appelée.
+        getAuthenticatorAssuranceLevel: async () => {
+          throw new Error("getAuthenticatorAssuranceLevel ne doit pas servir");
+        },
+      },
     },
     from: query,
   }),
@@ -59,8 +67,12 @@ vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined }),
 }));
 
-const { getAuthState, getAvailableMemberships, tryGetAuthState } =
-  await import("@/lib/session/server");
+const {
+  getAuthState,
+  getAvailableMemberships,
+  passwordNeedsSecondFactor,
+  tryGetAuthState,
+} = await import("@/lib/session/server");
 
 const USER = { id: "u-1", email: "carla@groupe-r.tg" };
 
@@ -98,10 +110,81 @@ beforeEach(() => {
     data: [row("m-a", true), row("m-b", true)],
     error: null,
   };
-  answers.aal = {
-    data: { currentLevel: "aal1", nextLevel: "aal1" },
-    error: null,
-  };
+  answers.claims = { data: { claims: { aal: "aal1" } }, error: null };
+});
+
+/** Facteur TOTP vérifié, tel que `getUser()` le renvoie. */
+const VERIFIED_FACTOR = { id: "f-1", factor_type: "totp", status: "verified" };
+
+describe("double authentification : niveau tiré de données vérifiées", () => {
+  it("rôle sensible au premier niveau : « mfa-required »", async () => {
+    answers.memberships = {
+      data: [row("m-a", true, "radiologist")],
+      error: null,
+    };
+    expect(await getAuthState()).toBe("mfa-required");
+  });
+
+  it("rôle sensible, jeton vérifié au second niveau : session", async () => {
+    answers.memberships = {
+      data: [row("m-a", true, "radiologist")],
+      error: null,
+    };
+    answers.user = {
+      data: { user: { ...USER, factors: [VERIFIED_FACTOR] } },
+      error: null,
+    };
+    answers.claims = { data: { claims: { aal: "aal2" } }, error: null };
+    expect(typeof (await getAuthState())).toBe("object");
+  });
+
+  it("facteur activé, quel que soit le rôle : « mfa-required »", async () => {
+    answers.user = {
+      data: { user: { ...USER, factors: [VERIFIED_FACTOR] } },
+      error: null,
+    };
+    expect(await getAuthState()).toBe("mfa-required");
+  });
+
+  it("facteur non vérifié : ne relève pas le niveau attendu", async () => {
+    answers.user = {
+      data: {
+        user: {
+          ...USER,
+          factors: [{ ...VERIFIED_FACTOR, status: "unverified" }],
+        },
+      },
+      error: null,
+    };
+    expect(typeof (await getAuthState())).toBe("object");
+  });
+
+  it("jeton non vérifiable : panne, pas un accès accordé", async () => {
+    answers.claims = {
+      data: null,
+      error: new AuthApiError("jwks", 500, "unexpected_failure"),
+    };
+    await expect(getAuthState()).rejects.toBeInstanceOf(
+      SessionUnavailableError,
+    );
+  });
+
+  it("changement de mot de passe : second facteur exigé au premier niveau", async () => {
+    answers.user = {
+      data: { user: { ...USER, factors: [VERIFIED_FACTOR] } },
+      error: null,
+    };
+    expect(await passwordNeedsSecondFactor()).toBe(true);
+  });
+
+  it("changement de mot de passe : exigé aussi quand le niveau est illisible", async () => {
+    answers.claims = { data: null, error: null };
+    expect(await passwordNeedsSecondFactor()).toBe(true);
+  });
+
+  it("changement de mot de passe : libre sans facteur activé", async () => {
+    expect(await passwordNeedsSecondFactor()).toBe(false);
+  });
 });
 
 describe("organisation active : la règle du hook de jeton", () => {
@@ -145,9 +228,10 @@ describe("une panne n'est pas une absence", () => {
     "service d'authentification en %s : erreur, pas « anonymous »",
     async (_label, error) => {
       answers.user = { data: { user: null }, error };
-      await expect(getAuthState()).rejects.toBeInstanceOf(
-        SessionUnavailableError,
-      );
+      const failure = await getAuthState().catch((caught: unknown) => caught);
+      expect(failure).toBeInstanceOf(SessionUnavailableError);
+      // Marquée comme panne : l'écran d'erreur l'annonce comme telle.
+      expect(isServiceUnavailable(failure)).toBe(true);
       expect(await tryGetAuthState()).toBe("unavailable");
     },
   );

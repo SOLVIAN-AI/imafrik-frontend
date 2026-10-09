@@ -27,8 +27,12 @@ import { signOut } from "@/lib/session/actions";
  *
  * **Enrôler**, quand le compte n'a pas encore de facteur : trois étapes
  * numérotées — installer une application, scanner, saisir le premier
- * code. La clé est affichée en clair, groupée par quatre, pour qui ne
- * peut pas scanner (application sur le même téléphone que l'écran).
+ * code. Les textes précisent que le QR code se scanne **depuis
+ * l'application d'authentification** (« Ajouter un compte » ou « + ») :
+ * scanné avec l'appareil photo du téléphone, il ne produit rien, et des
+ * utilisateurs s'y sont arrêtés. La clé est affichée en clair, groupée
+ * par quatre, pour qui ne peut pas scanner (application sur le même
+ * téléphone que l'écran).
  *
  * **Vérifier**, sinon : un seul champ, le code du moment.
  *
@@ -208,6 +212,9 @@ function EnrollmentCard({ enrollment }: { enrollment: Enrollment }) {
 
   return (
     <div className="mt-6 flex flex-col items-center gap-4 rounded-xl border border-border-subtle bg-surface-raised p-5">
+      <p className="text-center text-xs leading-relaxed text-secondary">
+        {t.session.mfa.scanHint}
+      </p>
       {/* Fond blanc et marge : un QR code sur fond sombre se scanne mal. */}
       {/* eslint-disable-next-line @next/next/no-img-element -- image `data:` générée par le service, rien à optimiser */}
       <img
