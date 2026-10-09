@@ -36,6 +36,8 @@ export interface AuthCopy {
       invalid: string;
       linkExpired: string;
       linkInvalid: string;
+      tooMany: string;
+      unavailable: string;
     };
   };
   forgot: {
@@ -95,6 +97,10 @@ const fr: AuthCopy = {
       invalid: "Adresse ou mot de passe incorrect.",
       linkExpired: "Ce lien a expiré. Demandez-en un nouveau.",
       linkInvalid: "Ce lien n’est pas valide. Demandez-en un nouveau.",
+      tooMany:
+        "Trop de tentatives de connexion. Patientez quelques minutes avant de réessayer.",
+      unavailable:
+        "Le service d’authentification ne répond pas. Réessayez dans un instant.",
     },
   },
   forgot: {
@@ -158,6 +164,10 @@ const en: AuthCopy = {
       invalid: "Incorrect email address or password.",
       linkExpired: "This link has expired. Please request a new one.",
       linkInvalid: "This link is not valid. Please request a new one.",
+      tooMany:
+        "Too many sign-in attempts. Please wait a few minutes before trying again.",
+      unavailable:
+        "The authentication service is not responding. Please try again in a moment.",
     },
   },
   forgot: {

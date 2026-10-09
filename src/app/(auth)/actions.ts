@@ -1,5 +1,6 @@
 "use server";
 
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 
 import { authCopy } from "@/content/auth";
@@ -8,7 +9,7 @@ import { writeLanguageCookie } from "@/lib/i18n/cookie";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locale";
 import { homeFor } from "@/lib/navigation";
 import { safeRedirect } from "@/lib/security/redirect";
-import { getAuthState } from "@/lib/session/server";
+import { tryGetAuthState } from "@/lib/session/server";
 import { createClient } from "@/lib/supabase/server";
 
 /** Résultat d'une tentative d'authentification. */
@@ -53,10 +54,19 @@ export async function signIn(
       email,
       password,
     });
-    if (error) return { error: errors.invalid };
+    if (error) {
+      // Limite de débit (429) ou panne : le dire, plutôt que « identifiants
+      // incorrects », qui pousserait à ressaisir et à épuiser la limite.
+      // Ni l'une ni l'autre ne révèle si l'adresse existe.
+      if (error.status === 429) return { error: errors.tooMany };
+      if (isAuthRetryableFetchError(error) || (error.status ?? 0) >= 500)
+        return { error: errors.unavailable };
+      return { error: errors.invalid };
+    }
   }
 
-  const state = await getAuthState();
+  const state = await tryGetAuthState();
+  if (state === "unavailable") return { error: errors.unavailable };
   if (state === "anonymous") return { error: errors.invalid };
   // Second facteur à enrôler ou vérifier : l'écran dédié, en gardant la
   // destination demandée pour y revenir ensuite.
