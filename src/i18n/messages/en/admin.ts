@@ -605,6 +605,7 @@ export const admin: AppMessages["admin"] = {
       "organization.report_language_changed": "Report language changed",
       "organization.contract_ended": "Clinic contract ended",
       "organization.exported": "Organisation data exported",
+      "profile.identity_changed": "Name, title or registration number changed",
       "user.mfa_reset": "Two-factor authentication reset",
       "user.credentials_verified": "Registration number verified",
       "user.credentials_revoked": "Registration number verification withdrawn",

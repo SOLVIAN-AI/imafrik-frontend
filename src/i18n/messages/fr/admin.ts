@@ -652,6 +652,7 @@ export const admin = {
         "Langue des comptes-rendus modifiée",
       "organization.contract_ended": "Contrat de la clinique terminé",
       "organization.exported": "Données de l’organisation exportées",
+      "profile.identity_changed": "Nom, titre ou numéro d’ordre modifié",
       "user.mfa_reset": "Double authentification réinitialisée",
       "user.credentials_verified": "Numéro d’ordre validé",
       "user.credentials_revoked": "Validation du numéro d’ordre retirée",
