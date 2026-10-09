@@ -539,8 +539,9 @@ export interface paths {
          * @description Enregistre une demande de contact.
          *
          *     Sans authentification : c'est le site public. Deux protections, sans
-         *     service tiers : une limite de débit par adresse IP, tenue dans Redis,
-         *     et un champ piège que seuls les robots remplissent.
+         *     service tiers : une limite de débit par adresse IP du visiteur
+         *     (:func:`visitor_address`), tenue dans Redis, et un champ piège que
+         *     seuls les robots remplissent.
          *
          *     Args:
          *         body: Demande.
@@ -722,11 +723,19 @@ export interface paths {
          * Profil et organisations de l'utilisateur
          * @description Renvoie l'état de la session courante.
          *
+         *     Même règle que :func:`read_invitation` : une session au premier
+         *     niveau d'un compte doté d'un second facteur ne lit rien. L'écran de
+         *     double authentification n'appelle pas cet endpoint ; l'interface ne
+         *     l'interroge qu'une fois la session ouverte (paramètres, accueil).
+         *
          *     Args:
          *         principal: Appelant authentifié.
          *
          *     Returns:
          *         Le profil, l'organisation active et la liste des appartenances.
+         *
+         *     Raises:
+         *         Forbidden: Session sans second facteur, pour un compte qui en a un.
          */
         get: operations["read_session_me_get"];
         put?: never;
@@ -942,6 +951,12 @@ export interface paths {
          *     L'écriture passe par RLS : la policy ``organization_update_own`` et le
          *     droit colonne par colonne n'autorisent que ``open_to_pool``, et pour sa
          *     propre clinique.
+         *
+         *     Fermer la clinique au pool révoque aussitôt les jetons de
+         *     visualisation que les radiologues externes tiennent sur ses examens :
+         *     RLS les leur cache, et leurs viewers déjà ouverts ne doivent pas
+         *     survivre quinze minutes de plus. Ceux des membres de la clinique
+         *     restent valables.
          *
          *     Args:
          *         body: Nouveaux réglages.
@@ -1592,8 +1607,12 @@ export interface paths {
          * Déposer un fichier DICOM
          * @description Reçoit une instance DICOM et la transmet au PACS.
          *
+         *     Le jeton est vérifié avant la lecture du corps, et le corps est lu en
+         *     flux, borné à :data:`MAX_FILE_BYTES` (voir :func:`_receive_file`).
+         *
          *     Args:
-         *         file: Fichier déposé.
+         *         request: Requête portant le fichier, en ``multipart/form-data``
+         *             (champ ``file``).
          *         x_upload_token: Jeton de dépôt émis par ``POST /uploads/token``.
          *
          *     Returns:
@@ -1966,14 +1985,6 @@ export interface components {
             routine: number;
             /** Urgent */
             urgent: number;
-        };
-        /** Body_upload_uploads_post */
-        Body_upload_uploads_post: {
-            /**
-             * File
-             * @description Une instance DICOM
-             */
-            file: string;
         };
         /**
          * ClinicActivity
@@ -5425,7 +5436,10 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_upload_uploads_post"];
+                "multipart/form-data": {
+                    /** @description Une instance DICOM */
+                    file: string;
+                };
             };
         };
         responses: {
