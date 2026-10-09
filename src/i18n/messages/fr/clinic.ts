@@ -77,6 +77,24 @@ export const clinic = {
       count > 1 ? `${display} coupes` : `${display} coupe`,
     openImages: "Ouvrir les images",
     viewerNote: "Les images s’ouvrent dans le viewer, avec un accès tracé.",
+    /** Urgence et renseignement clinique, complétés par la clinique. */
+    clinical: {
+      title: "Urgence et renseignement clinique",
+      urgentLabel: "Examen urgent",
+      urgentDetail:
+        "Lu en priorité, dans le délai promis pour les urgences. À réserver aux situations qui ne peuvent pas attendre.",
+      infoLabel: "Renseignement clinique",
+      infoHint:
+        "Contexte et question posée au radiologue. Il les retrouve dans son écran de lecture et peut les reprendre dans l’indication.",
+      infoPlaceholder:
+        "Ex. : céphalées brutales depuis deux heures, déficit moteur gauche. Suspicion d’AVC.",
+      save: "Enregistrer",
+      saved: "Examen mis à jour.",
+      lockedNote: "Modifiable jusqu’à la signature du compte-rendu.",
+      tooLong: (max: string) =>
+        `Le renseignement clinique ne peut dépasser ${max} caractères.`,
+      demoAction: "L’enregistrement de l’urgence et du renseignement clinique",
+    },
   },
   /**
    * Étapes de l'avancement, du point de vue de la clinique : `in_progress`

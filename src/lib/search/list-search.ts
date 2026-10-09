@@ -114,3 +114,19 @@ export function decodeListSearch(
     return undefined;
   }
 }
+
+/**
+ * Forme comparable d'un texte de recherche, comme le service la calcule.
+ *
+ * DICOM sépare les composantes d'un nom par `^` (`KOFFI^Ama`) ; l'écran
+ * les sépare par une espace (« KOFFI Ama »). Le service compare la saisie
+ * au nom ainsi réécrit, `^` devenu espace et espaces réduites : la
+ * démonstration fait de même, pour qu'un nom tapé tel qu'il s'affiche
+ * trouve l'examen dans les deux modes.
+ *
+ * @param text Saisie, ou texte dans lequel chercher.
+ * @returns Le texte en minuscules, `^` remplacés et espaces réduites.
+ */
+export function searchableText(text: string): string {
+  return text.replace(/\^/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+}

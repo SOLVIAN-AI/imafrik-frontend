@@ -299,7 +299,7 @@ export const admin: AppMessages["admin"] = {
     stepUpcoming: ": upcoming",
     pending: "Pending",
     retention: "Image retention",
-    contractTerm: "Contract term",
+    noLimit: "No limit, never purged",
     retentionDays: (days: number) =>
       `${days} day${days === 1 ? "" : "s"} after delivery`,
     summary: "Thirty-day summary",
@@ -327,12 +327,12 @@ export const admin: AppMessages["admin"] = {
       "Reports are kept; the clinic keeps its originals.",
     saved: "Retention period saved.",
     explanation:
-      "The period set in the contract, starting from report delivery. After that, images leave the central PACS; the examination record and the signed report are kept, and the clinic keeps its originals. Empty: images are kept for the full term of the contract.",
+      "The period set in the contract, starting from report delivery. After that, images leave the central PACS; the examination record and the signed report are kept, and the clinic keeps its originals. Empty: no automatic purge; images are kept with no time limit, including after the contract ends.",
     label: "Image retention (days)",
     purgedHint: (count: number) =>
       `${count} examination${count === 1 ? "" : "s"} already purged. Between 30 and 7,300 days.`,
-    hint: "Between 30 and 7,300 days. Leave empty to keep images for the full term of the contract.",
-    contractTerm: "Contract term",
+    hint: "Between 30 and 7,300 days. Leave empty to never purge images automatically, even after the contract ends.",
+    noLimit: "No limit",
   },
 
   reportLanguage: {
@@ -361,7 +361,7 @@ export const admin: AppMessages["admin"] = {
       "remove access to IMAFRIK for every member of the clinic, from their next request;",
       "remove the clinic from the pool and close its service contracts;",
       "keep signed reports stored for twenty years, still verifiable by their QR code;",
-      "keep images for the retention period set in the contract;",
+      "leave images untouched: they follow the retention period set for the clinic, with no time limit if none is set;",
       "leave the full data export to be run next on the server, then handed over to the clinic through an encrypted channel.",
     ],
     confirmBefore: "To confirm, type the clinic’s name: ",

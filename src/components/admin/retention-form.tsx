@@ -26,7 +26,7 @@ const PRESETS = [
  *
  * @param clinicId Clinique.
  * @param clinicName Son nom, rappelé dans la confirmation.
- * @param days     Durée actuelle, ou `null` (durée du contrat).
+ * @param days     Durée actuelle, ou `null` (aucune purge automatique).
  * @param purged   Examens déjà purgés.
  */
 export function RetentionForm({
@@ -81,7 +81,7 @@ export function RetentionForm({
           step={1}
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder={text.contractTerm}
+          placeholder={text.noLimit}
         />
       </Field>
       <div className="flex flex-wrap items-center gap-1.5">
@@ -102,7 +102,7 @@ export function RetentionForm({
           onClick={() => setValue("")}
           className="h-7 rounded-full border border-border-subtle px-2.5 text-2xs text-secondary transition-colors hover:bg-surface-hover"
         >
-          {text.contractTerm}
+          {text.noLimit}
         </button>
         <Button
           type="submit"

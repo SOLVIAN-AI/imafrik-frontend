@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type * as React from "react";
 
 import { AddendaPanel } from "@/components/domain/addenda-panel";
+import { ClinicalInfoForm } from "@/components/domain/clinical-info-form";
 import { DownloadPdfButton } from "@/components/domain/download-pdf-button";
 import { ReportDocument } from "@/components/editor/report-document";
 import { SimulatedScan } from "@/components/editor/simulated-scan";
@@ -52,6 +53,12 @@ export default async function StudySheetPage({
   if (!study) notFound();
 
   const isRadiologist = session.active.role === "radiologist";
+  // La clinique signale l'urgence et complète le renseignement tant que
+  // le compte-rendu n'est pas signé : le service applique la même règle.
+  const canEditClinical =
+    session.active.role === "clinic_staff" &&
+    study.status !== "reported" &&
+    study.status !== "delivered";
   // Un brouillon n'est visible que de son auteur, dans l'écran de
   // lecture ; ici, seul un document signé s'affiche.
   const signed = report?.status === "signed" ? report : null;
@@ -152,6 +159,15 @@ export default async function StudySheetPage({
               />
             </div>
           </Panel>
+
+          {canEditClinical && (
+            <ClinicalInfoForm
+              key={`${study.urgent}-${study.clinicalInfo ?? ""}`}
+              studyId={study.id}
+              urgent={study.urgent}
+              clinicalInfo={study.clinicalInfo}
+            />
+          )}
 
           <Panel className="flex flex-col overflow-hidden">
             <PanelTitle>{messages.information}</PanelTitle>

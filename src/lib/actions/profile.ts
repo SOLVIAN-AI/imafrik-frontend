@@ -30,7 +30,13 @@ import { createClient } from "@/lib/supabase/server";
 const profileSchema = z.object({
   fullName: z.string().trim().min(1).max(200),
   title: z.string().trim().max(100),
-  licenseNumber: z.string().trim().max(50),
+  /**
+   * Absent quand le formulaire ne montre pas le champ (personnel d'une
+   * clinique) : le numéro enregistré n'est alors pas touché. Une personne
+   * radiologue dans une autre organisation garde ainsi son numéro, et sa
+   * validation.
+   */
+  licenseNumber: z.string().trim().max(50).optional(),
 });
 
 /** Champs modifiables du profil. */
@@ -48,10 +54,14 @@ export async function updateProfile(
   if (isDemoMode()) return demoUnavailable(t.settings.profileDemoAction);
 
   const result = await run(async () => {
+    // Une chaîne vide efface la valeur côté service ; un champ absent la
+    // laisse inchangée.
     await apiSend("/me", "PATCH", {
       full_name: parsed.data.fullName,
-      title: parsed.data.title || null,
-      license_number: parsed.data.licenseNumber || null,
+      title: parsed.data.title,
+      ...(parsed.data.licenseNumber === undefined
+        ? {}
+        : { license_number: parsed.data.licenseNumber }),
     });
     return undefined;
   });

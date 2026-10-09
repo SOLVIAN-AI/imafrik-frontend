@@ -629,7 +629,8 @@ export interface ClinicDetail {
   lastReceivedAt: Date | null;
   /**
    * Conservation des images après remise du compte-rendu, en jours, fixée
-   * par contrat ; `null` : conservées pour la durée du contrat.
+   * par contrat ; `null` : aucune purge automatique, images conservées
+   * sans limite, y compris après la fin du contrat.
    */
   imageRetentionDays: number | null;
   /** Examens dont les images ont été purgées du PACS central. */

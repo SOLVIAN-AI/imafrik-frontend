@@ -79,15 +79,29 @@ describe("identité du signataire", () => {
     ).toBe(true);
   });
 
-  it("les espaces, un titre vidé ou l’absence de numéro ne changent rien", () => {
+  it("vider le titre l’efface, et annule donc la validation", () => {
+    expect(
+      identityChangeResetsValidation(signer, { ...signer, title: "" }),
+    ).toBe(true);
+    expect(
+      identityChangeResetsValidation(signer, { ...signer, title: "   " }),
+    ).toBe(true);
+    // Rien à effacer : aucun changement.
+    expect(
+      identityChangeResetsValidation(
+        { ...signer, title: "" },
+        { ...signer, title: " " },
+      ),
+    ).toBe(false);
+  });
+
+  it("les espaces de bord ou l’absence de numéro ne changent rien", () => {
     expect(
       identityChangeResetsValidation(signer, {
         ...signer,
         fullName: " Kodjo Mensah ",
+        title: " Dr ",
       }),
-    ).toBe(false);
-    expect(
-      identityChangeResetsValidation(signer, { ...signer, title: "" }),
     ).toBe(false);
     expect(
       identityChangeResetsValidation(

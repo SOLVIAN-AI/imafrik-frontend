@@ -130,7 +130,11 @@ export function ProfileForm({
     const input: ProfileInput = {
       fullName: String(form.get("fullName") ?? ""),
       title: String(form.get("title") ?? ""),
-      licenseNumber: String(form.get("licenseNumber") ?? ""),
+      // Le champ n'existe que pour un radiologue : sans lui, le numéro
+      // enregistré n'est pas touché.
+      ...(isRadiologist
+        ? { licenseNumber: String(form.get("licenseNumber") ?? "") }
+        : {}),
     };
     if (resetsValidation) setAwaiting({ input, reason: "license" });
     else if (
@@ -138,7 +142,7 @@ export function ProfileForm({
       identityChangeResetsValidation(profile, {
         fullName: input.fullName,
         title: input.title,
-        licenseNumber: input.licenseNumber,
+        licenseNumber: input.licenseNumber ?? profile.licenseNumber,
       })
     )
       setAwaiting({ input, reason: "identity" });
