@@ -473,6 +473,38 @@ export const admin: AppMessages["admin"] = {
       `${name} is now attached to ${organisation ?? "the organisation"}.`,
   },
 
+  /**
+   * Anonymising an account: the right to erasure, applied immediately.
+   * The service does the same automatically five years after the
+   * relationship ends.
+   */
+  anonymize: {
+    trigger: "Anonymise",
+    title: "Right to erasure",
+    dialogTitle: (name: string) => `Anonymise ${name}’s account`,
+    dialogDescription:
+      "The action that fulfils a request for erasure. It is permanent and recorded in the audit log. It will:",
+    consequences: [
+      "delete the login account: email address, password, two-factor authentication and sessions; the person can no longer sign in;",
+      "return their examinations in progress to the pool, and delete their drafts on those examinations;",
+      "if they signed a report, wrote an addendum or appear in the audit log, keep their name, title and registration number attached to those records; their signature and preferences are deleted;",
+      "otherwise, delete their profile entirely.",
+    ],
+    /** Before the account name, displayed separately. */
+    confirmBefore: "To confirm, type the account name: ",
+    confirmLabel: "Account name",
+    confirmHint: "The exact name; capitals and surrounding spaces are ignored.",
+    activeTitle: "This account is still a member of an active organisation",
+    removeLabel: "Remove their memberships",
+    removeDetail:
+      "They immediately lose access to all their organisations, and their viewing and upload tokens are revoked.",
+    submit: "Anonymise permanently",
+    done: (name: string, kept: boolean) =>
+      kept
+        ? `${name}’s account has been anonymised: their identity remains attached to signed records and the audit log.`
+        : `${name}’s account has been anonymised and deleted.`,
+  },
+
   mfaReset: {
     confirm: (name: string) =>
       `Reset two-factor authentication for ${name}?\n\n` +
@@ -612,6 +644,8 @@ export const admin: AppMessages["admin"] = {
       "user.mfa_reset": "Two-factor authentication reset",
       "user.credentials_verified": "Registration number verified",
       "user.credentials_revoked": "Registration number verification withdrawn",
+      "user.anonymization_requested": "Account anonymisation requested",
+      "user.anonymized": "Account anonymised",
       "platform.settings_changed": "Settings changed",
       "contact_request.tracked": "Contact request followed up",
     },
@@ -681,6 +715,7 @@ export const admin: AppMessages["admin"] = {
     emailInvalid: "Invalid email address",
     nameRequired: "A name is required",
     confirmNameRequired: "Type the clinic’s name to confirm",
+    confirmAccountNameRequired: "Type the account name to confirm",
   },
   demoActions: {
     settings: "Changing the settings",
@@ -691,6 +726,7 @@ export const admin: AppMessages["admin"] = {
     retention: "Changing the retention period",
     reportLanguage: "Changing the report language",
     contractEnd: "Ending a contract",
+    anonymize: "Anonymising an account",
     suspension: "Suspending an organisation",
     invitation: "Sending an invitation",
   },
@@ -719,7 +755,7 @@ export const admin: AppMessages["admin"] = {
       reconciliationClean: "0 examinations missing",
       reconciliationCaught: "1 examination recovered",
       retention:
-        "3 examinations purged from the PACS, 0 failed, 0 contact requests deleted",
+        "3 examinations purged from the PACS, 0 failed, 0 contact requests deleted, 0 accounts anonymised, 0 postponed",
       hostWatchFailed: "/var disk at 83% (alert threshold: 80%)",
       hostWatchOk: "/var disk at 79%",
     },

@@ -96,7 +96,7 @@ function French() {
       </ul>
       <h3>Durée de conservation</h3>
       <ul>
-        <li>Données de compte : {lowerFirst(RETENTION.accounts.fr)}</li>
+        <li>{RETENTION.accounts.fr}</li>
         <li>
           Journal des accès aux examens : {lowerFirst(RETENTION.accessLogs.fr)}
         </li>
@@ -192,10 +192,15 @@ function French() {
       <p>
         Les professionnels utilisateurs disposent des droits d’accès, de
         rectification, d’effacement, de limitation et d’opposition sur leurs
-        propres données, exerçables à <DataContactLink />. Les patients exercent
-        leurs droits <strong>auprès de l’établissement</strong> qui a réalisé
-        l’examen : c’est lui qui est responsable du traitement. IMAFRIK lui
-        apporte son concours dans les délais prévus au contrat.
+        propres données, exerçables à <DataContactLink />. L’effacement supprime
+        aussitôt le compte de connexion (adresse électronique, mot de passe,
+        double authentification) ; le nom, le titre et le numéro d’ordre de la
+        personne qui a signé un compte-rendu ou accédé à un examen restent
+        attachés à ce compte-rendu et au journal d’audit, dont ils font partie,
+        aussi longtemps qu’eux. Les patients exercent leurs droits{" "}
+        <strong>auprès de l’établissement</strong> qui a réalisé l’examen :
+        c’est lui qui est responsable du traitement. IMAFRIK lui apporte son
+        concours dans les délais prévus au contrat.
       </p>
 
       <h2>Réclamation</h2>
@@ -248,7 +253,7 @@ function English() {
       </ul>
       <h3>Retention period</h3>
       <ul>
-        <li>Account data: {lowerFirst(RETENTION.accounts.en)}</li>
+        <li>{RETENTION.accounts.en}</li>
         <li>
           Log of access to examinations: {lowerFirst(RETENTION.accessLogs.en)}
         </li>
@@ -340,10 +345,15 @@ function English() {
       <p>
         Professional users have the rights of access, rectification, erasure,
         restriction and objection in respect of their own data, which they may
-        exercise by writing to <DataContactLink />. Patients exercise their
-        rights <strong>with the facility</strong> that performed the
-        examination, as it is the controller. IMAFRIK assists the facility
-        within the time limits set out in the contract.
+        exercise by writing to <DataContactLink />. Erasure deletes the login
+        account immediately (email address, password, two-factor
+        authentication); the name, title and registration number of a person who
+        signed a report or accessed an examination remain attached to that
+        report and to the audit log, of which they form part, for as long as
+        these are kept. Patients exercise their rights{" "}
+        <strong>with the facility</strong> that performed the examination, as it
+        is the controller. IMAFRIK assists the facility within the time limits
+        set out in the contract.
       </p>
 
       <h2>Complaints</h2>

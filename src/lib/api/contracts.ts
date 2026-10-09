@@ -570,6 +570,9 @@ export const adminUserSchema = z.object({
   mfa_enabled: z.boolean().nullable(),
   // Validation du numéro d'ordre ; nul tant qu'elle reste à faire.
   credentials_verified_at: isoDate.nullable().optional(),
+  // Fin de la relation : plus aucune appartenance à une organisation
+  // active depuis cette date ; nulle tant qu'il en reste une.
+  inactive_since: isoDate.nullable().optional(),
   memberships: z.array(userMembershipSchema),
 });
 const _adminUser: Matches<
@@ -660,6 +663,18 @@ const _mfaReset: Matches<
   Schemas["MfaReset"]
 > = true;
 
+/**
+ * Issue d'une anonymisation : profil minimal gardé (des documents signés
+ * ou le journal d'audit le référencent), ou supprimé entièrement.
+ */
+export const anonymizationResultSchema = z.object({
+  outcome: z.enum(["kept", "deleted"]),
+});
+const _anonymizationResult: Matches<
+  z.input<typeof anonymizationResultSchema>,
+  Schemas["AnonymizationResult"]
+> = true;
+
 export const credentialsStateSchema = z.object({
   license_number: z.string().nullable(),
   credentials_verified_at: isoDate.nullable(),
@@ -711,6 +726,7 @@ export const CONTRACT_CHECKS = [
   _invitationWelcome,
   _contactTracking,
   _mfaReset,
+  _anonymizationResult,
   _credentialsState,
 ] as const;
 
@@ -735,5 +751,7 @@ export type ApiContractEndResult = z.output<typeof contractEndResultSchema>;
 export type ApiInvitationWelcome = z.output<typeof invitationWelcomeSchema>;
 /** Corps de `POST /admin/clinics/{id}/end-contract`, tel que le contrat le décrit. */
 export type ApiContractEnd = Schemas["ContractEnd"];
+/** Corps de `POST /admin/users/{id}/anonymize`, tel que le contrat le décrit. */
+export type ApiAnonymizationRequest = Schemas["AnonymizationRequest"];
 export type ApiOpsRun = z.output<typeof opsRunSchema>;
 export type ApiAlert = z.output<typeof alertSchema>;

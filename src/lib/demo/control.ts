@@ -886,6 +886,11 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
     mfa_enabled: mfa,
     credentials_verified_at:
       verifiedDaysAgo === null ? null : iso(now - verifiedDaysAgo * DAY),
+    // Toutes les organisations de la démonstration sont actives : un
+    // compte sans appartenance est inactif depuis sa création, comme le
+    // date la base.
+    inactive_since:
+      memberships.length === 0 ? iso(now - createdDaysAgo * DAY) : null,
     memberships,
   });
   return [
