@@ -103,8 +103,10 @@ export interface paths {
          *     Un geste daté et tracé, qui enchaîne : clinique suspendue (ses membres
          *     perdent l'accès à la requête suivante), retirée du pool, contrats de
          *     service fermés. Les comptes-rendus signés restent conservés (verrou R2
-         *     de 20 ans) et vérifiables par leur QR code ; les images suivent la
-         *     durée de conservation du contrat. L'export complet, promis au contrat,
+         *     de 20 ans) et vérifiables par leur QR code. Les images ne sont pas
+         *     touchées : la tâche de conservation continue d'appliquer la durée fixée
+         *     pour la clinique, et sans durée fixée rien n'est purgé, même après la
+         *     fin du contrat. L'export complet, promis au contrat,
          *     se lance ensuite sur le serveur : la commande est renvoyée.
          *
          *     Un examen reçu et pas encore rendu est celui d'un patient qui attend :
@@ -167,8 +169,9 @@ export interface paths {
          *
          *     Au-delà, la tâche quotidienne purge du PACS central les images des
          *     examens remis (``app.services.retention``) ; la fiche, le compte-rendu
-         *     et le journal d'audit restent. ``None`` revient à la conservation pour
-         *     la durée du contrat. Le changement est tracé.
+         *     et le journal d'audit restent. ``None`` supprime toute purge
+         *     automatique : les images sont conservées sans limite de durée, y
+         *     compris après la fin du contrat. Le changement est tracé.
          *
          *     Raises:
          *         NotFound: Clinique introuvable.
@@ -738,7 +741,8 @@ export interface paths {
          * Modifier son profil
          * @description Met à jour les champs du profil fournis, et eux seuls.
          *
-         *     Un champ absent du corps n'est pas touché. Une signature déjà apposée
+         *     Un champ absent du corps n'est pas touché ; un titre ou un numéro
+         *     d'ordre vide est effacé (voir :class:`ProfileUpdate`). Une signature déjà apposée
          *     n'est pas affectée : l'identité du signataire est figée sur chaque
          *     compte-rendu au moment de la signature.
          *
@@ -1216,7 +1220,9 @@ export interface paths {
          *
          *     **L'ordre des opérations n'est pas arbitraire.**
          *
-         *     1. Le brouillon est lu avec sa ``version``.
+         *     1. Le brouillon est lu avec sa ``version``, qui doit être celle que
+         *        le radiologue a relue (``expected_version``) : un enregistrement
+         *        venu d'un autre onglet entre sa relecture et son clic est refusé.
          *     2. Le PDF est rendu dans un thread — WeasyPrint est lent et
          *        synchrone, et ce processus sert aussi le chemin d'autorisation du
          *        viewer — puis déposé sur R2 sous une clé qui contient le jeton de
@@ -1235,6 +1241,7 @@ export interface paths {
          *
          *     Args:
          *         report_id: Compte-rendu à signer.
+         *         body: Version relue par le signataire.
          *         principal: Radiologue authentifié.
          *
          *     Returns:
@@ -1242,8 +1249,8 @@ export interface paths {
          *
          *     Raises:
          *         NotFound: Compte-rendu inaccessible.
-         *         Conflict: Déjà signé, modifié pendant la signature, ou examen
-         *             plus assigné au signataire.
+         *         Conflict: Déjà signé, modifié depuis la relecture ou pendant la
+         *             signature, ou examen plus assigné au signataire.
          *         Forbidden: L'appelant n'est pas l'auteur du brouillon, ou n'a plus
          *             l'examen en charge.
          *         Unprocessable: Une section obligatoire est vide.
@@ -1275,7 +1282,8 @@ export interface paths {
          *         principal: Appelant disposant d'une organisation active.
          *         status_filter: Restreint aux statuts donnés. Plusieurs valeurs
          *             s'additionnent : ``?status=reported&status=delivered``.
-         *         q: Recherche libre, insensible à la casse.
+         *         q: Recherche libre, insensible à la casse. Le nom se cherche tel
+         *             qu'il s'affiche (voir :func:`search_text`).
          *         mine: Restreint aux examens que l'appelant a pris en charge.
          *         order: Ordre de tri — voir :data:`StudyOrder`.
          *         limit: Nombre maximal d'examens renvoyés.
@@ -1326,19 +1334,30 @@ export interface paths {
          * Compléter le renseignement clinique
          * @description La clinique complète le renseignement clinique ou signale une urgence.
          *
-         *     Le droit d'écrire — sa propre clinique, examen pas encore rendu — est
-         *     tenu par la policy ``study_update_clinic``.
+         *     Le droit d'écrire — personnel de la clinique émettrice, examen pas
+         *     encore rendu — est tenu par la policy ``study_update_clinic`` ; le
+         *     rôle est vérifié ici en plus, pour répondre 403 plutôt que 404 à un
+         *     radiologue. Le passage en urgence rapproche aussitôt l'échéance
+         *     (``due_at``) et place l'examen en tête de la file de lecture, y
+         *     compris s'il est déjà en cours de lecture.
+         *
+         *     Le geste est tracé (``study.updated``) avec les champs modifiés et la
+         *     priorité retenue, jamais avec le texte clinique : le journal d'audit
+         *     ne recopie pas de données de santé.
          *
          *     Args:
          *         study_id: Examen à compléter.
          *         body: Champs à modifier.
-         *         principal: Appelant disposant d'une organisation active.
+         *         principal: Membre du personnel d'une clinique.
          *
          *     Returns:
          *         L'examen mis à jour.
          *
          *     Raises:
-         *         NotFound: Examen inexistant, hors périmètre, ou déjà rendu.
+         *         NotFound: Examen inexistant ou hors du périmètre de l'appelant.
+         *         Conflict: Examen déjà rendu (``reported`` ou ``delivered``).
+         *         Forbidden: L'appelant n'est pas membre du personnel d'une
+         *             clinique.
          */
         patch: operations["update_study_studies__study_id__patch"];
         trace?: never;
@@ -2024,7 +2043,7 @@ export interface components {
             id: string;
             /**
              * Image Retention Days
-             * @description Conservation des images après remise ; None : durée du contrat.
+             * @description Conservation des images après remise, en jours ; None : aucune purge automatique, images conservées sans limite, y compris après la fin du contrat.
              */
             image_retention_days: number | null;
             /**
@@ -2055,10 +2074,16 @@ export interface components {
          * ClinicalInfo
          * @description Renseignements que la clinique peut compléter après l'envoi.
          *
+         *     Seuls les champs **présents** dans le corps sont écrits : un champ
+         *     absent laisse la valeur existante inchangée.
+         *
          *     Attributes:
-         *         clinical_info: Contexte clinique de l'examen. Un champ absent
-         *             laisse la valeur existante inchangée.
-         *         priority: Passage en urgence, ou retour en routine.
+         *         clinical_info: Contexte clinique de l'examen, repris dans
+         *             l'indication du compte-rendu. Espaces de bord retirés ; un
+         *             texte vide ou ``null`` efface le renseignement.
+         *         priority: Passage en urgence, ou retour en routine. ``null``
+         *             équivaut à un champ absent : un examen a toujours une
+         *             priorité.
          */
         ClinicalInfo: {
             /** Clinical Info */
@@ -2069,6 +2094,10 @@ export interface components {
         /**
          * ContactForm
          * @description Demande envoyée par le formulaire du site.
+         *
+         *     Les textes sont pris sans leurs espaces de bord ; un nom fait
+         *     d'espaces est refusé en 422, comme un nom vide, avant d'atteindre la
+         *     contrainte de la table.
          *
          *     Attributes:
          *         full_name: Nom de la personne.
@@ -2867,6 +2896,13 @@ export interface components {
          *     ``authenticated`` ; tout autre champ — organisation active, rôle —
          *     passe par un chemin dédié qui vérifie l'appartenance.
          *
+         *     Un champ **absent** du corps n'est pas touché. Un champ présent est
+         *     écrit, espaces de bord retirés. Pour le titre et le numéro d'ordre,
+         *     facultatifs, une chaîne vide ou ``null`` **efface** la valeur : c'est
+         *     ainsi qu'un radiologue retire un titre erroné avant qu'il ne
+         *     s'imprime sur ses comptes-rendus. Le nom et la langue, obligatoires,
+         *     ne s'effacent pas : ``null`` les laisse inchangés.
+         *
          *     Attributes:
          *         full_name: Nom complet, tel qu'imprimé sur les comptes-rendus.
          *         title: Titre — « Dr », spécialité.
@@ -3038,7 +3074,7 @@ export interface components {
         RetentionUpdate: {
             /**
              * Image Retention Days
-             * @description Jours après remise du compte-rendu ; None : durée du contrat.
+             * @description Jours après remise du compte-rendu ; None : aucune purge automatique, images conservées sans limite, y compris après la fin du contrat.
              */
             image_retention_days?: number | null;
         };
@@ -3094,6 +3130,20 @@ export interface components {
             profile: components["schemas"]["Profile"] | null;
             /** Role */
             role: string | null;
+        };
+        /**
+         * SignRequest
+         * @description Demande de signature.
+         *
+         *     Attributes:
+         *         expected_version: Version du brouillon que le radiologue a relue
+         *             à l'écran au moment de signer. Si un autre onglet ou un autre
+         *             appareil a enregistré depuis, la signature est refusée : on ne
+         *             fige jamais un texte que le signataire n'a pas vu.
+         */
+        SignRequest: {
+            /** Expected Version */
+            expected_version: number;
         };
         /**
          * Sla
@@ -5013,7 +5063,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

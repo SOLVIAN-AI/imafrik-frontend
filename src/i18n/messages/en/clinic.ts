@@ -67,6 +67,23 @@ export const clinic: AppMessages["clinic"] = {
       count === 1 ? `${display} image` : `${display} images`,
     openImages: "Open images",
     viewerNote: "Images open in the viewer, and every access is logged.",
+    clinical: {
+      title: "Urgency and clinical information",
+      urgentLabel: "Urgent examination",
+      urgentDetail:
+        "Read first, within the turnaround promised for urgent cases. Keep it for situations that cannot wait.",
+      infoLabel: "Clinical information",
+      infoHint:
+        "Context and the question for the radiologist, who sees it on the reading screen and can carry it into the indication.",
+      infoPlaceholder:
+        "E.g. sudden headache for two hours, left-sided weakness. Suspected stroke.",
+      save: "Save",
+      saved: "Examination updated.",
+      lockedNote: "Can be changed until a radiologist signs the report.",
+      tooLong: (max: string) =>
+        `Clinical information cannot exceed ${max} characters.`,
+      demoAction: "Saving urgency and clinical information",
+    },
   },
   timeline: {
     received: {
