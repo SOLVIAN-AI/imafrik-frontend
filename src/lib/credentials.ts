@@ -67,7 +67,7 @@ export function normalizeLicenseNumber(value: string): string {
 
 /**
  * Vrai si l'enregistrement remplacerait un numéro d'ordre existant par un
- * autre, ce qui annule sa validation côté serveur.
+ * autre, ou l'effacerait : le serveur annule alors sa validation.
  *
  * Ajouter un premier numéro n'est pas un changement : il n'y avait rien
  * de validé à perdre.
@@ -96,7 +96,9 @@ export interface SignerIdentity {
  * comme pour un nouveau numéro, car tous trois s'impriment sous la
  * signature.
  *
- * Un titre laissé vide n'est pas envoyé et ne change donc rien.
+ * Vider le titre l'efface côté serveur : c'est un changement comme un
+ * autre, qui annule aussi la validation. Seuls les espaces de bord, que
+ * le serveur retire, ne comptent pas.
  *
  * @param previous Identité enregistrée.
  * @param next     Identité saisie.
@@ -106,9 +108,8 @@ export function identityChangeResetsValidation(
   next: SignerIdentity,
 ): boolean {
   if (normalizeLicenseNumber(previous.licenseNumber) === "") return false;
-  const nextTitle = next.title.trim();
   return (
     next.fullName.trim() !== previous.fullName.trim() ||
-    (nextTitle !== "" && nextTitle !== previous.title.trim())
+    next.title.trim() !== previous.title.trim()
   );
 }
