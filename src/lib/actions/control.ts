@@ -239,17 +239,24 @@ export type CredentialsDecision = "verify" | "revoke";
  *
  * @param profileId Compte du radiologue.
  * @param decision  `verify` ou `revoke`.
+ * @param shownLicenseNumber Numéro affiché à l'administrateur, celui
+ *        qu'il a vérifié. Envoyé pour une validation : le service refuse
+ *        si le radiologue en a changé entre-temps.
  * @returns Le nombre d'examens rendus au pool (toujours 0 à la validation).
  */
 export async function decideCredentials(
   profileId: string,
   decision: CredentialsDecision,
+  shownLicenseNumber = "",
 ): Promise<ActionResult<number>> {
   const { t } = await getMessages();
   if (isDemoMode()) {
     return await demoUnavailable(t.admin.demoActions.credentials);
   }
-  if (decision !== "verify" && decision !== "revoke") {
+  if (
+    (decision !== "verify" && decision !== "revoke") ||
+    typeof shownLicenseNumber !== "string"
+  ) {
     return { ok: false, error: t.common.errors.invalidRequest, status: 422 };
   }
   const invalid = await rejectInvalidIds(profileId);
@@ -258,7 +265,12 @@ export async function decideCredentials(
     const body = await apiSend(
       `/admin/users/${encodeURIComponent(profileId)}/credentials`,
       "POST",
-      { decision },
+      decision === "verify"
+        ? {
+            decision,
+            expected_license_number: shownLicenseNumber.trim().slice(0, 50),
+          }
+        : { decision },
       credentialsStateSchema,
     );
     return body.released_studies;

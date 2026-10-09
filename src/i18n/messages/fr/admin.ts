@@ -478,6 +478,7 @@ export const admin = {
       done: (name: string) => `Numéro d’ordre de ${name} validé.`,
       missing:
         "Aucun numéro d’ordre renseigné : le radiologue doit le saisir dans ses paramètres avant d’être validé.",
+      self: "Vous ne pouvez pas valider votre propre numéro d’ordre : un autre membre de l’équipe IMAFRIK doit le vérifier.",
     },
     revoke: {
       trigger: "Retirer la validation",

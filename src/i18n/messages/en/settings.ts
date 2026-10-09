@@ -32,6 +32,11 @@ export const settings: AppMessages["settings"] = {
           : `Number ${previous} will be removed from your profile. Without a registration number, you will no longer have access to examinations.`,
       submit: "Save and request verification",
     },
+    identityChangeConfirm: {
+      title: "Change your signing identity?",
+      description:
+        "Your name and title are printed under every report you sign, together with your registration number. The IMAFRIK team will have to verify this change: until then, you will no longer have access to examinations, and those you have claimed may be passed to a colleague.",
+    },
     saved: "Profile saved.",
     nameRequired: "Your name is required",
   },

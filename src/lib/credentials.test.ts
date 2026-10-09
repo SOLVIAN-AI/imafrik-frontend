@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   credentialBlock,
   credentialStatus,
+  identityChangeResetsValidation,
   licenseChangeResetsValidation,
 } from "@/lib/credentials";
 import { demoSession } from "@/lib/session/demo";
@@ -56,5 +57,43 @@ describe("validation du numéro d’ordre", () => {
     // Premier numéro : rien de validé à perdre.
     expect(licenseChangeResetsValidation("", "TG-1")).toBe(false);
     expect(licenseChangeResetsValidation("  ", "TG-1")).toBe(false);
+  });
+});
+
+describe("identité du signataire", () => {
+  const signer = {
+    fullName: "Kodjo Mensah",
+    title: "Dr",
+    licenseNumber: "TG-002",
+  };
+
+  it("un nouveau nom ou un nouveau titre annule la validation", () => {
+    expect(
+      identityChangeResetsValidation(signer, {
+        ...signer,
+        fullName: "Autre Nom",
+      }),
+    ).toBe(true);
+    expect(
+      identityChangeResetsValidation(signer, { ...signer, title: "Pr" }),
+    ).toBe(true);
+  });
+
+  it("les espaces, un titre vidé ou l’absence de numéro ne changent rien", () => {
+    expect(
+      identityChangeResetsValidation(signer, {
+        ...signer,
+        fullName: " Kodjo Mensah ",
+      }),
+    ).toBe(false);
+    expect(
+      identityChangeResetsValidation(signer, { ...signer, title: "" }),
+    ).toBe(false);
+    expect(
+      identityChangeResetsValidation(
+        { ...signer, licenseNumber: "" },
+        { ...signer, licenseNumber: "", fullName: "Autre Nom" },
+      ),
+    ).toBe(false);
   });
 });

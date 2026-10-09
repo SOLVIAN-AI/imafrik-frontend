@@ -445,6 +445,7 @@ export const admin: AppMessages["admin"] = {
       done: (name: string) => `${name}’s registration number verified.`,
       missing:
         "No registration number provided: the radiologist must enter it in their settings before it can be verified.",
+      self: "You cannot verify your own registration number: another member of the IMAFRIK team must check it.",
     },
     revoke: {
       trigger: "Withdraw verification",

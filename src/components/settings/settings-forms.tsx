@@ -26,6 +26,7 @@ import {
 } from "@/lib/actions/profile";
 import {
   credentialStatus,
+  identityChangeResetsValidation,
   licenseChangeResetsValidation,
   normalizeLicenseNumber,
 } from "@/lib/credentials";
@@ -102,8 +103,12 @@ export function ProfileForm({
   const text = t.settings.profile;
   const [pending, startTransition] = React.useTransition();
   const [license, setLicense] = React.useState(profile.licenseNumber);
-  // Saisie retenue le temps de la confirmation d'un changement de numéro.
-  const [awaiting, setAwaiting] = React.useState<ProfileInput | null>(null);
+  // Saisie retenue le temps de la confirmation d'un changement de numéro,
+  // de nom ou de titre : tous trois annulent la validation.
+  const [awaiting, setAwaiting] = React.useState<{
+    input: ProfileInput;
+    reason: "license" | "identity";
+  } | null>(null);
 
   const status = credentialStatus({
     hasLicenseNumber: normalizeLicenseNumber(profile.licenseNumber) !== "",
@@ -127,7 +132,16 @@ export function ProfileForm({
       title: String(form.get("title") ?? ""),
       licenseNumber: String(form.get("licenseNumber") ?? ""),
     };
-    if (resetsValidation) setAwaiting(input);
+    if (resetsValidation) setAwaiting({ input, reason: "license" });
+    else if (
+      isRadiologist &&
+      identityChangeResetsValidation(profile, {
+        fullName: input.fullName,
+        title: input.title,
+        licenseNumber: input.licenseNumber,
+      })
+    )
+      setAwaiting({ input, reason: "identity" });
     else save(input);
   };
 
@@ -219,12 +233,18 @@ export function ProfileForm({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{text.licenseChangeConfirm.title}</DialogTitle>
+            <DialogTitle>
+              {awaiting?.reason === "identity"
+                ? text.identityChangeConfirm.title
+                : text.licenseChangeConfirm.title}
+            </DialogTitle>
             <DialogDescription>
-              {text.licenseChangeConfirm.description(
-                normalizeLicenseNumber(profile.licenseNumber),
-                normalizeLicenseNumber(awaiting?.licenseNumber ?? ""),
-              )}
+              {awaiting?.reason === "identity"
+                ? text.identityChangeConfirm.description
+                : text.licenseChangeConfirm.description(
+                    normalizeLicenseNumber(profile.licenseNumber),
+                    normalizeLicenseNumber(awaiting?.input.licenseNumber ?? ""),
+                  )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -241,7 +261,7 @@ export function ProfileForm({
               type="button"
               size="sm"
               loading={pending}
-              onClick={() => awaiting && save(awaiting)}
+              onClick={() => awaiting && save(awaiting.input)}
             >
               {text.licenseChangeConfirm.submit}
             </Button>
