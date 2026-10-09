@@ -22,6 +22,22 @@ updates:
       # React, Tailwind) arrivent chacune seule : elles se lisent.
       mineures:
         update-types: [minor, patch]
+    ignore:
+      # Les types de Node suivent la version qui exécute l'application
+      # (.nvmrc, engines : Node 24). Des types plus récents laisseraient
+      # passer des API absentes en production.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # Montées majeures bloquées par l'écosystème, à réexaminer à chaque
+      # version de Next :
+      # - TypeScript 7 : openapi-typescript n'accepte pas encore cette
+      #   version en dépendance pair (ERESOLVE à l'installation) ;
+      # - ESLint 10 : eslint-plugin-react, embarqué par eslint-config-next,
+      #   appelle une API retirée (context.getFilename).
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
