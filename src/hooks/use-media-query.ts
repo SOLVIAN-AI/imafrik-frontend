@@ -12,12 +12,18 @@ import * as React from "react";
  *
  * Le serveur ne connaît pas la largeur de l'écran : il rend la valeur
  * `serverValue`, et React bascule à l'hydratation, sans effet en cascade
- * (`useSyncExternalStore`).
+ * (`useSyncExternalStore`). Avec `null`, l'écran sait qu'il ne sait pas
+ * encore, et peut rendre une forme neutre plutôt que de parier sur une
+ * disposition : un pari perdu s'affiche jusqu'à la fin du chargement.
  *
  * @param query       Requête média CSS.
- * @param serverValue Valeur supposée au rendu serveur.
+ * @param serverValue Valeur supposée au rendu serveur, ou `null` pour
+ *                    « inconnue ».
  */
-export function useMediaQuery(query: string, serverValue: boolean): boolean {
+export function useMediaQuery<T extends boolean | null>(
+  query: string,
+  serverValue: T,
+): boolean | T {
   const subscribe = React.useCallback(
     (onChange: () => void) => {
       const list = window.matchMedia(query);
@@ -26,7 +32,7 @@ export function useMediaQuery(query: string, serverValue: boolean): boolean {
     },
     [query],
   );
-  return React.useSyncExternalStore(
+  return React.useSyncExternalStore<boolean | T>(
     subscribe,
     () => window.matchMedia(query).matches,
     () => serverValue,
