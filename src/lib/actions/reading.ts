@@ -171,19 +171,34 @@ export async function saveReportDraft(
  * **Irréversible.** Le service vérifie à nouveau les sections
  * obligatoires, l'auteur, la prise en charge et la version ; un
  * déclencheur verrouille ensuite le document en base.
+ *
+ * La version envoyée est celle que le radiologue a sous les yeux, après
+ * l'enregistrement de ses dernières modifications : si un autre onglet a
+ * enregistré entre-temps, le service refuse (409) plutôt que de figer un
+ * texte que le signataire n'a pas relu.
+ *
+ * @param reportId        Compte-rendu à signer.
+ * @param expectedVersion Version relue à l'écran.
  */
-export async function signReport(reportId: string): Promise<ActionResult> {
+export async function signReport(
+  reportId: string,
+  expectedVersion: number,
+): Promise<ActionResult> {
   if (isDemoMode()) {
     const { t } = await getMessages();
     return await demoUnavailable(t.reading.actions.signDemoAction);
   }
   const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
+  if (!Number.isInteger(expectedVersion) || expectedVersion < 1) {
+    const { t } = await getMessages();
+    return { ok: false, error: t.reading.actions.invalidDraft, status: 422 };
+  }
   const result = await run(async () => {
     await apiSend(
       `/reports/${encodeURIComponent(reportId)}/sign`,
       "POST",
-      undefined,
+      { expected_version: expectedVersion },
       reportSchema,
     );
     return undefined;

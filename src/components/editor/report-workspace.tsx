@@ -449,7 +449,9 @@ export function ReportWorkspace({
    *
    * Si l'enregistrement en cours échoue, la signature n'est pas tentée :
    * signer à ce moment-là, c'était signer une version antérieure à
-   * l'écran. L'erreur levée est affichée telle quelle par la modale.
+   * l'écran. La version relue part avec la demande : le service refuse
+   * si un autre onglet a enregistré depuis. L'erreur levée est affichée
+   * telle quelle par la modale.
    */
   const sign = React.useCallback(async () => {
     if (!author) return;
@@ -460,7 +462,9 @@ export function ReportWorkspace({
           : labels.saveFailedBeforeSign,
       );
     }
-    const result = await signReport(author.reportId);
+    // La version que l'écran montre, après l'enregistrement ci-dessus : un
+    // texte enregistré depuis un autre onglet fait refuser la signature.
+    const result = await signReport(author.reportId, version.current);
     if (!result.ok) throw new Error(result.error);
     setSigned(true);
     toast.success(labels.signedToast, {
