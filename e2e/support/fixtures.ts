@@ -1,5 +1,7 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
+import { auditAccessibility, type AuditOptions } from "./accessibilite";
+
 /**
  * Fixtures communes aux tests de bout en bout.
  *
@@ -13,6 +15,10 @@ import { test as base, expect, type Page } from "@playwright/test";
  * les `console.error`, et fait échouer le test qui en a produit. Un test
  * qui en attend une, par exemple le 404 d'une adresse inexistante, la
  * déclare explicitement dans `ignoredErrors`, avec sa justification.
+ *
+ * La fixture `checkA11y` audite l'accessibilité de la page dans son état
+ * courant (`support/accessibilite.ts`) et fait échouer le test sur toute
+ * violation grave ou critique des WCAG 2.1 A et AA.
  */
 
 /** Appartenance de démonstration, donc portail : voir `lib/session/demo.ts`. */
@@ -53,6 +59,11 @@ interface Options {
 interface Fixtures {
   /** Erreurs recueillies jusqu'ici ; vérifiées automatiquement à la fin du test. */
   pageErrors: string[];
+  /**
+   * Audite l'accessibilité de la page dans son état courant ; échoue, avec
+   * le détail de chaque violation, si l'audit en relève une bloquante.
+   */
+  checkA11y: (options?: AuditOptions) => Promise<void>;
 }
 
 export const test = base.extend<Options & Fixtures>({
@@ -104,6 +115,16 @@ export const test = base.extend<Options & Fixtures>({
     },
     { auto: true },
   ],
+
+  checkA11y: async ({ page }, use, testInfo) => {
+    await use(async (options) => {
+      const violations = await auditAccessibility(page, testInfo, options);
+      expect(
+        violations,
+        `Violations d’accessibilité sur ${page.url()} :\n${violations.join("\n")}`,
+      ).toEqual([]);
+    });
+  },
 });
 
 export { expect };
