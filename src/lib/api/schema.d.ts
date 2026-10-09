@@ -280,6 +280,7 @@ export interface paths {
          *
          *     Raises:
          *         NotFound: Organisation inconnue.
+         *         Conflict: Réactivation d'une clinique dont le contrat est terminé.
          */
         patch: operations["update_organization_admin_organizations__organization_id__patch"];
         trace?: never;
@@ -803,7 +804,13 @@ export interface paths {
          *     l'appelant lui-même : RLS cacherait le nom d'un administrateur IMAFRIK
          *     qui ne partage aucune organisation avec l'invité.
          *
+         *     Un compte qui a **déjà** un second facteur n'est pas un invité qui
+         *     découvre la plateforme : avant ce second facteur (session « aal1 »), la
+         *     page ne lui présente rien. Sans cela, un mot de passe dérobé suffirait
+         *     à lire son organisation, son rôle et le nom de qui l'a invité.
+         *
          *     Raises:
+         *         Forbidden: Session sans second facteur, pour un compte qui en a un.
          *         NotFound: L'utilisateur n'appartient à aucune organisation.
          */
         get: operations["read_invitation_me_invitation_get"];
