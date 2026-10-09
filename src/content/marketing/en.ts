@@ -308,7 +308,7 @@ export const en: MarketingCopy = {
       {
         title: "Retention",
         detail:
-          "How long images are kept is set in the contract, for each facility. At the end of that period, they are removed from our servers and each deletion is logged; the encrypted backups that contained them expire no later than twelve months afterwards.",
+          "How long images are kept is set in the contract, for each facility: at the end of that period, they are removed from our servers and each deletion is logged. Without a set period, nothing is deleted automatically. Signed reports are kept for twenty years in locked storage: no one can alter or delete them. Encrypted backups expire no later than twelve months after they are made.",
       },
       {
         title: "Reversibility",

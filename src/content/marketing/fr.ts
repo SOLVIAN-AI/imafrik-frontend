@@ -303,7 +303,7 @@ export const fr: MarketingCopy = {
       {
         title: "Conservation",
         detail:
-          "La durée de conservation des images est fixée au contrat, établissement par établissement. À son terme, elles quittent nos serveurs et chaque purge est tracée ; les sauvegardes chiffrées qui les contenaient expirent au plus tard douze mois après.",
+          "La durée de conservation des images est fixée au contrat, établissement par établissement : à son terme, elles quittent nos serveurs et chaque purge est tracée. Sans durée fixée, rien n’est supprimé automatiquement. Les comptes-rendus signés sont conservés vingt ans dans un stockage verrouillé : personne ne peut les modifier ni les supprimer. Les sauvegardes chiffrées expirent au plus tard douze mois après leur création.",
       },
       {
         title: "Réversibilité",

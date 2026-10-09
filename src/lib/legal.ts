@@ -161,8 +161,8 @@ export const RETENTION: Record<
     en: "A few weeks, with automatic rotation; thirty days for monitoring checks.",
   },
   examinations: {
-    fr: "Fixée par l’établissement au contrat. Les images quittent nos serveurs à son terme ; les sauvegardes chiffrées qui les contenaient expirent au plus tard douze mois après.",
-    en: "Set by the facility in the contract. Images leave our servers at the end of that period; the encrypted backups that contained them expire no later than twelve months afterwards.",
+    fr: "Images : durée fixée par l’établissement au contrat, à son terme elles quittent nos serveurs ; sans durée fixée, rien n’est supprimé automatiquement. Comptes-rendus signés : vingt ans, dans un stockage verrouillé où personne ne peut les modifier ni les supprimer. Sauvegardes chiffrées : douze mois au plus après leur création.",
+    en: "Images: the period set by the facility in the contract, after which they are removed from our servers; without a set period, nothing is deleted automatically. Signed reports: twenty years, in locked storage where no one can alter or delete them. Encrypted backups: no more than twelve months after they are made.",
   },
 };
 
