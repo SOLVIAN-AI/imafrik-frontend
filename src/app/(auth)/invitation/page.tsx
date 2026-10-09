@@ -10,7 +10,7 @@ import { messagesFor, type AppMessages } from "@/i18n";
 import { type Invitation, getInvitation } from "@/lib/data/invitation";
 import { requestLocale } from "@/lib/i18n/server";
 import { PUBLISHER } from "@/lib/legal";
-import { getAuthState } from "@/lib/session/server";
+import { getAuthState, passwordNeedsSecondFactor } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
 
 /** Écran de la double authentification, puis la mise en service. */
@@ -43,6 +43,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * (`GET /me/invitation`) dans ce même état, et le jeton n'ouvre toujours
  * aucune donnée médicale.
  *
+ * Seule exception : un compte qui a **déjà** un facteur vérifié (invité
+ * de nouveau, ou session ouverte par un mot de passe dérobé) passe
+ * d'abord par sa vérification ; le changement de mot de passe le refuse
+ * aussi de son côté.
+ *
  * Si l'invitation ne peut pas être lue, l'écran retombe sur le simple
  * choix du mot de passe : l'accueil est un confort, pas une condition.
  *
@@ -53,6 +58,9 @@ export default async function InvitationPage() {
   const state = await getAuthState();
   if (state === "anonymous") redirect("/connexion");
   if (state === "no-membership") redirect("/en-attente");
+  // Un compte déjà doté d'un second facteur le vérifie avant de toucher
+  // au mot de passe : cet écran ne doit pas le contourner.
+  if (await passwordNeedsSecondFactor()) redirect("/double-authentification");
 
   const locale = await requestLocale();
   const t = messagesFor(locale);

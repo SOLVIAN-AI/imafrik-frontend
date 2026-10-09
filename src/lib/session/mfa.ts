@@ -45,6 +45,22 @@ export function needsSecondFactor(
 }
 
 /**
+ * Indique si un changement de mot de passe doit attendre le second facteur.
+ *
+ * Un compte qui a activé la double authentification ne change pas son
+ * mot de passe sur une session ouverte au seul premier niveau : sinon,
+ * un mot de passe dérobé suffirait à évincer son titulaire. La règle vaut
+ * quel que soit le rôle, et GoTrue l'applique aussi de son côté.
+ *
+ * @param level Niveaux d'assurance de la session.
+ */
+export function passwordChangeNeedsSecondFactor(
+  level: AssuranceLevel,
+): boolean {
+  return level.next === "aal2" && level.current !== "aal2";
+}
+
+/**
  * Valide un code à usage unique : six chiffres, espaces tolérés — on
  * recopie souvent « 123 456 » tel que l'application l'affiche.
  *
