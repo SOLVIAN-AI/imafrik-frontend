@@ -80,8 +80,11 @@ export async function signIn(
  * La réponse est la même que l'adresse existe ou non, pour la raison
  * exposée plus haut. L'appelant affiche donc toujours la confirmation.
  *
- * Le lien envoyé ramène à `/auth/callback`, qui ouvre la session puis
- * conduit au choix du nouveau mot de passe.
+ * Le lien envoyé ramène à `/auth/callback` avec un `token_hash` (modèle
+ * de courriel « recovery », généré dans le dépôt backend), vérifié côté
+ * serveur : il fonctionne depuis n'importe quel appareil, sans dépendre
+ * du vérificateur PKCE posé dans ce navigateur. `redirectTo` ne sert plus
+ * qu'aux liens par code, conservés par `/auth/callback`.
  */
 export async function requestPasswordReset(email: string): Promise<void> {
   if (isDemoMode() || !email.includes("@")) return;
