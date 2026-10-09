@@ -1120,7 +1120,10 @@ export interface paths {
          *     cette clinique, et garde ses autres appartenances. L'accès se ferme à
          *     sa requête suivante, sans attendre l'expiration de son jeton —
          *     ``auth_role()`` relit l'appartenance en base, et ses jetons de
-         *     visualisation et de dépôt sont révoqués.
+         *     visualisation et de dépôt sont révoqués. Les examens qu'un radiologue
+         *     avait pris en charge et qu'il ne peut plus atteindre retournent au
+         *     pool, avec ses brouillons (déclencheur
+         *     ``release_unreachable_assignments``).
          *
          *     Args:
          *         membership_id: Appartenance à retirer.
