@@ -351,6 +351,9 @@ export function PoolForm({ openToPool }: { openToPool: boolean }) {
 /**
  * Changement de mot de passe.
  *
+ * Le mot de passe actuel est exigé, et vérifié par le serveur : une
+ * session trouvée ouverte ne suffit pas à changer le mot de passe.
+ *
  * Les autres sessions ouvertes sous ce compte sont fermées : un mot de
  * passe changé parce qu'il a fuité ne doit pas laisser ouverte la session
  * de celui qui l'a utilisé.
@@ -370,6 +373,7 @@ export function PasswordForm() {
         onSubmit={(form) =>
           startTransition(async () => {
             const result = await changePassword(
+              String(form.get("currentPassword") ?? ""),
               String(form.get("password") ?? ""),
               String(form.get("confirmation") ?? ""),
             );
@@ -382,6 +386,15 @@ export function PasswordForm() {
           })
         }
       >
+        <Field id="currentPassword" label={t.currentPassword}>
+          <Input
+            id="currentPassword"
+            name="currentPassword"
+            type="password"
+            autoComplete="current-password"
+            required
+          />
+        </Field>
         <Field
           id="password"
           label={t.newPassword}

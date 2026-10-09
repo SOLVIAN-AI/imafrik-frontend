@@ -85,6 +85,15 @@ export const settings = {
     demoAction: "Le changement de mot de passe",
     secondFactorFirst:
       "Votre compte est protégé par la double authentification : saisissez d’abord votre code, puis changez le mot de passe.",
+    currentPassword: "Mot de passe actuel",
+    currentRequired: "Saisissez votre mot de passe actuel.",
+    currentInvalid: "Le mot de passe actuel est incorrect.",
+    tooManyAttempts:
+      "Trop de tentatives. Patientez quelques minutes avant de réessayer.",
+    unavailable:
+      "Le service d’authentification ne répond pas. Réessayez dans un instant.",
+    linkRequired:
+      "Ce lien ne permet plus de choisir un mot de passe. Demandez-en un nouveau depuis « Mot de passe oublié ».",
   },
   profileDemoAction: "L’enregistrement du profil",
   mfa: {

@@ -83,6 +83,15 @@ export const settings: AppMessages["settings"] = {
     demoAction: "Changing your password",
     secondFactorFirst:
       "Your account is protected by two-factor authentication: enter your code first, then change the password.",
+    currentPassword: "Current password",
+    currentRequired: "Please enter your current password.",
+    currentInvalid: "Your current password is incorrect.",
+    tooManyAttempts:
+      "Too many attempts. Please wait a few minutes before trying again.",
+    unavailable:
+      "The authentication service is not responding. Please try again in a moment.",
+    linkRequired:
+      "This link can no longer be used to choose a password. Please request a new one from “Forgotten password”.",
   },
   profileDemoAction: "Saving your profile",
   mfa: {

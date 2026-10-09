@@ -7,7 +7,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { useMessages } from "@/i18n/client";
-import { changePassword } from "@/lib/actions/profile";
+import { setPasswordFromLink } from "@/lib/actions/profile";
 import { PASSWORD_RULES } from "@/lib/security/password";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +17,10 @@ import { cn } from "@/lib/utils";
  * Partagé par la réinitialisation (`/nouveau-mot-de-passe`) et l'accueil
  * d'une personne invitée (`/invitation`). Dans les deux cas, le lien reçu
  * par courriel a ouvert la session ; ce formulaire n'a plus qu'à
- * enregistrer le mot de passe, puis à conduire à l'étape suivante.
+ * enregistrer le mot de passe, puis à conduire à l'étape suivante. Le
+ * serveur vérifie que la session vient bien d'un lien récent
+ * (`setPasswordFromLink`) : une session ouverte par mot de passe change
+ * le sien depuis les paramètres, en ressaisissant l'actuel.
  *
  * La confirmation par un second champ est conservée alors qu'un
  * affichage en clair suffirait souvent : ici, se tromper signifie perdre
@@ -56,7 +59,7 @@ export function NewPasswordForm({
     if (!rulesOk || !match) return;
     setError(null);
     startTransition(async () => {
-      const result = await changePassword(password, confirm);
+      const result = await setPasswordFromLink(password, confirm);
       if (!result.ok) {
         setError(result.error);
         return;
