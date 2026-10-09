@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  assuranceFromVerified,
   needsSecondFactor,
   passwordChangeNeedsSecondFactor,
   normalizeOtp,
@@ -55,5 +56,32 @@ describe("changement de mot de passe", () => {
     expect(passwordChangeNeedsSecondFactor({ current: null, next: null })).toBe(
       false,
     );
+  });
+
+  it("calcule le niveau à partir du jeton et des facteurs vérifiés", () => {
+    const verified = { status: "verified" };
+    expect(assuranceFromVerified("aal1", [])).toEqual({
+      current: "aal1",
+      next: "aal1",
+    });
+    expect(assuranceFromVerified("aal1", [verified])).toEqual({
+      current: "aal1",
+      next: "aal2",
+    });
+    expect(assuranceFromVerified("aal2", [verified])).toEqual({
+      current: "aal2",
+      next: "aal2",
+    });
+    // Un facteur en cours d'enrôlement n'ouvre pas le second niveau.
+    expect(assuranceFromVerified("aal1", [{ status: "unverified" }])).toEqual({
+      current: "aal1",
+      next: "aal1",
+    });
+    // Claim absent ou inattendu : aucun niveau reconnu.
+    expect(assuranceFromVerified(undefined, undefined)).toEqual({
+      current: null,
+      next: null,
+    });
+    expect(assuranceFromVerified("aal3", null).current).toBeNull();
   });
 });

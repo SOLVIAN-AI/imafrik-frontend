@@ -27,6 +27,32 @@ export interface AssuranceLevel {
 }
 
 /**
+ * Niveaux d'assurance, calculés à partir de données **vérifiées**.
+ *
+ * Même calcul que `supabase.auth.mfa.getAuthenticatorAssuranceLevel()`,
+ * mais sur des sources sûres : le claim `aal` d'un jeton dont la
+ * signature a été vérifiée (`getClaims()`), et les facteurs de
+ * l'utilisateur renvoyés par le service d'authentification
+ * (`getUser()`). Appelée sans jeton, la fonction de la bibliothèque lit
+ * au contraire la session du cookie sans la vérifier, y compris la liste
+ * des facteurs, et le signale par un avertissement à chaque requête.
+ *
+ * @param aal     Claim `aal` du jeton vérifié.
+ * @param factors Facteurs de l'utilisateur, tels que `getUser()` les
+ *                renvoie.
+ */
+export function assuranceFromVerified(
+  aal: unknown,
+  factors: readonly { status: string }[] | null | undefined,
+): AssuranceLevel {
+  const current = aal === "aal1" || aal === "aal2" ? aal : null;
+  const hasVerifiedFactor = (factors ?? []).some(
+    (factor) => factor.status === "verified",
+  );
+  return { current, next: hasVerifiedFactor ? "aal2" : current };
+}
+
+/**
  * Indique si la session doit encore vérifier un second facteur.
  *
  * Même règle que le hook : rôle sensible, **ou** facteur déjà activé
