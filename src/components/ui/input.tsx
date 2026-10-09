@@ -9,6 +9,10 @@ import { cn } from "@/lib/utils";
  * placés côte à côte doivent se terminer à la même ligne, faute de quoi
  * la barre paraît bancale.
  *
+ * Au focus, la bordure passe à l'accent et un halo de 3 px l'entoure : un
+ * simple changement de couleur d'un trait d'un pixel ne se repère pas
+ * d'un coup d'œil, surtout au clavier (WCAG 2.4.7).
+ *
  * L'état d'erreur est porté par `aria-invalid` plutôt que par une classe :
  * l'attribut renseigne les technologies d'assistance **et** pilote le
  * style, ce qui rend impossible un champ rouge qu'un lecteur d'écran
@@ -23,7 +27,7 @@ export function Input({ className, ...props }: React.ComponentProps<"input">) {
         "placeholder:text-tertiary",
         "transition-colors duration-100",
         "hover:border-border-strong",
-        "focus:border-accent focus:outline-none",
+        "focus:border-accent focus:ring-3 focus:ring-accent/25 focus:outline-none",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "aria-invalid:border-urgent",
         className,
@@ -46,7 +50,7 @@ export function Textarea({
         "placeholder:text-tertiary",
         "transition-colors duration-100",
         "hover:border-border-strong",
-        "focus:border-accent focus:outline-none",
+        "focus:border-accent focus:ring-3 focus:ring-accent/25 focus:outline-none",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "aria-invalid:border-urgent",
         className,
@@ -73,7 +77,7 @@ export function Select({
         "h-8 w-full rounded-md px-2 text-sm",
         "border border-border-default bg-surface-base",
         "transition-colors duration-100 hover:border-border-strong",
-        "focus:border-accent focus:outline-none",
+        "focus:border-accent focus:ring-3 focus:ring-accent/25 focus:outline-none",
         "disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}

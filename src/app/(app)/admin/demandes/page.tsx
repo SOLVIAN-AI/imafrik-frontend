@@ -34,7 +34,7 @@ const STATUS_STYLES: Record<ContactStatus, string> = {
   new: "bg-accent-muted text-accent",
   contacted: "bg-progress-muted text-progress",
   converted: "bg-done-muted text-done",
-  dismissed: "bg-surface-active text-tertiary",
+  dismissed: "bg-surface-active text-secondary",
 };
 
 /** Valeur d'adresse du filtre « demandeur », en français comme les autres. */

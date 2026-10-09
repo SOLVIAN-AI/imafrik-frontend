@@ -143,23 +143,31 @@ export function ContactPage({ locale }: { locale: Locale }) {
           {t.lead}
         </p>
 
+        {/* Chaque groupe ne contient que son terme et sa description, comme
+            l'exige `<dl>` : l'icône, décorative, est posée dans le terme, et
+            la description reprend son retrait (16 px d'icône, 12 px d'écart). */}
         <dl className="mt-10 flex flex-col gap-5">
-          <div className="flex gap-3">
-            <Mail className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
-            <div>
-              <dt className="text-sm font-medium">contact@imafrik.tech</dt>
-              <dd className="mt-0.5 text-xs text-tertiary">{t.emailHint}</dd>
-            </div>
+          <div>
+            <dt className="flex gap-3 text-sm font-medium">
+              <Mail
+                className="mt-0.5 size-4 shrink-0 text-accent"
+                aria-hidden
+              />
+              contact@imafrik.tech
+            </dt>
+            <dd className="mt-0.5 pl-7 text-xs text-tertiary">{t.emailHint}</dd>
           </div>
-          <div className="flex gap-3">
-            <MapPin
-              className="mt-0.5 size-4 shrink-0 text-accent"
-              aria-hidden
-            />
-            <div>
-              <dt className="text-sm font-medium">{t.location}</dt>
-              <dd className="mt-0.5 text-xs text-tertiary">SOLVIAN AI LLC</dd>
-            </div>
+          <div>
+            <dt className="flex gap-3 text-sm font-medium">
+              <MapPin
+                className="mt-0.5 size-4 shrink-0 text-accent"
+                aria-hidden
+              />
+              {t.location}
+            </dt>
+            <dd className="mt-0.5 pl-7 text-xs text-tertiary">
+              SOLVIAN AI LLC
+            </dd>
           </div>
         </dl>
 
@@ -377,7 +385,7 @@ export function ContactPage({ locale }: { locale: Locale }) {
                     "h-10 w-full rounded-md px-2.5 text-sm",
                     "border border-border-default bg-surface-base",
                     "transition-colors hover:border-border-strong",
-                    "focus:border-accent focus:outline-none",
+                    "focus:border-accent focus:ring-3 focus:ring-accent/25 focus:outline-none",
                   )}
                 >
                   {t.volumes.map((volume) => (

@@ -2,6 +2,8 @@ import { Clock3, Lock, Stethoscope } from "lucide-react";
 
 import { Wordmark } from "@/components/brand/brand";
 import { HtmlLang } from "@/components/i18n/html-lang";
+import { MAIN_CONTENT_ID, SkipLink } from "@/components/layout/skip-link";
+import { messagesFor } from "@/i18n";
 import { LocaleProvider } from "@/i18n/client";
 import { authCopy } from "@/content/auth";
 import { requestLocale } from "@/lib/i18n/server";
@@ -38,6 +40,7 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
   const t = authCopy(locale).brand;
   return (
     <div className="flex min-h-dvh bg-surface-base">
+      <SkipLink label={messagesFor(locale).common.skipToContent} />
       <HtmlLang lang={locale} />
       <aside className="relative hidden w-[54%] shrink-0 overflow-hidden bg-surface-sunken lg:flex lg:flex-col">
         {/* Deux halos décalés plutôt qu'un seul centré : le fond paraît
@@ -108,7 +111,11 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
         </div>
       </aside>
 
-      <main className="flex flex-1 items-center justify-center px-6 py-12">
+      <main
+        id={MAIN_CONTENT_ID}
+        tabIndex={-1}
+        className="flex flex-1 items-center justify-center px-6 py-12 outline-none"
+      >
         <LocaleProvider locale={locale}>{children}</LocaleProvider>
       </main>
     </div>

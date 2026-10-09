@@ -3,6 +3,7 @@ import type { AppMessages } from "@/i18n/messages/fr";
 /** Vocabulary shared by every screen of the application, in English. */
 export const common: AppMessages["common"] = {
   appDescription: "Teleradiology platform",
+  skipToContent: "Skip to content",
   actions: {
     save: "Save",
     saving: "Saving…",

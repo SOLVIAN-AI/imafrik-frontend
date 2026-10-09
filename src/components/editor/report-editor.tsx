@@ -133,6 +133,11 @@ function Section({
         // signataire.
         spellcheck: "true",
         lang: language,
+        // Une zone éditable porte le rôle de champ de saisie multiligne :
+        // sans rôle, un `<div>` ne peut pas recevoir de nom accessible, et
+        // le lecteur d'écran n'annoncerait pas la section où l'on écrit.
+        role: "textbox",
+        "aria-multiline": "true",
         "aria-label": title,
       },
     },
@@ -173,7 +178,10 @@ function Section({
       <h3 className="label-eyebrow mb-2 flex items-center gap-1.5">
         {title}
         {required && empty && (
+          // Pastille porteuse de sens : `role="img"` lui donne droit à un
+          // nom accessible, qu'un `<span>` sans rôle ne peut pas porter.
           <span
+            role="img"
             className="size-1 rounded-full bg-urgent"
             title={t.reading.editor.requiredTitle}
             aria-label={t.reading.editor.requiredLabel}

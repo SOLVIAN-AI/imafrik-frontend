@@ -57,7 +57,7 @@ export function StudyTimeline({
                   "flex size-5 shrink-0 items-center justify-center rounded-full",
                   done && "bg-done-muted text-done",
                   current && "bg-accent-muted text-accent",
-                  !done && !current && "bg-surface-active text-tertiary",
+                  !done && !current && "bg-surface-active text-secondary",
                 )}
                 aria-hidden
               >

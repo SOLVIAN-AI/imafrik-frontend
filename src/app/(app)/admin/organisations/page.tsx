@@ -261,7 +261,7 @@ function ActiveState({ active, text }: { active: boolean; text: Text }) {
     <span
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-2xs font-medium",
-        active ? "bg-done-muted text-done" : "bg-surface-active text-tertiary",
+        active ? "bg-done-muted text-done" : "bg-surface-active text-secondary",
       )}
     >
       <span

@@ -182,9 +182,11 @@ export function SignInForm({
         <p className="text-xs font-medium">{t.noAccountTitle}</p>
         <p className="mt-1 text-xs leading-relaxed text-tertiary">
           {t.noAccountText}{" "}
+          {/* Lien au fil du texte : souligné en permanence, la couleur
+              seule ne le distinguerait pas du texte voisin (WCAG 1.4.1). */}
           <Link
             href={localizePath("/contact", locale)}
-            className="text-accent hover:underline"
+            className="text-accent underline decoration-accent/40 underline-offset-2 transition-colors hover:decoration-accent"
           >
             {t.requestAccess}
           </Link>

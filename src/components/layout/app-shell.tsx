@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
 import { Sidebar } from "@/components/layout/sidebar";
+import { MAIN_CONTENT_ID, SkipLink } from "@/components/layout/skip-link";
 import { InactivityLock } from "@/components/session/inactivity-lock";
 import { Topbar } from "@/components/layout/topbar";
 import { useSession } from "@/components/providers/session-provider";
@@ -141,9 +142,11 @@ export function AppShell({
 }) {
   useRoleRouting();
   const { isDemo } = useSession();
+  const t = useMessages();
 
   return (
     <div className="flex h-dvh overflow-hidden bg-surface-base">
+      <SkipLink label={t.common.skipToContent} />
       {/* Barre latérale fixe à partir de 1024 px ; en dessous, la même
           navigation s'ouvre en tiroir depuis la barre supérieure. */}
       <Sidebar counts={counts} className="hidden lg:flex" />
@@ -152,7 +155,13 @@ export function AppShell({
         {banner && <MaintenanceBanner message={banner} />}
         {/* Démonstration : aucune session réelle à fermer. */}
         {!isDemo && <InactivityLock />}
-        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+        <main
+          id={MAIN_CONTENT_ID}
+          tabIndex={-1}
+          className="flex min-h-0 flex-1 flex-col outline-none"
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

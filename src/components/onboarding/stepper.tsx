@@ -40,7 +40,7 @@ export function Stepper({
                 "transition-colors duration-150",
                 done && "bg-accent text-accent-contrast",
                 current && "bg-accent-muted text-accent ring-1 ring-accent/40",
-                !done && !current && "bg-surface-active text-tertiary",
+                !done && !current && "bg-surface-active text-secondary",
               )}
               aria-hidden
             >

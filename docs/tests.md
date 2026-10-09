@@ -67,9 +67,58 @@ sans attendre réellement.
 | `lecture.spec.ts` | L'écran de lecture s'ouvre depuis la file ; la pastille de langue du compte-rendu apparaît quand l'interface est dans une autre langue, et seulement alors. |
 | `anglais.spec.ts` | Chaque écran des trois portails, en anglais : `<html lang="en">` et aucun libellé d'interface français. Les données de démonstration restent en français, et ne sont pas recherchées. |
 | `mise-en-page.spec.ts` | Chevauchements de texte, défilement horizontal, texte rogné et cibles tactiles trop petites, sur un échantillon de pages à 1440 × 900 et 390 × 844, en clair et en sombre ; plus une contre-épreuve qui prouve que l'audit détecte bien ces anomalies. |
+| `accessibilite.spec.ts` | Audit axe-core (WCAG 2.1 A et AA) des écrans principaux, en français et en anglais, en clair et en sombre ; contrôles au clavier. Voir « Accessibilité » ci-dessous. |
 
 Un test marqué `test.fixme` documente une anomalie connue de
 l'application : il est à réactiver une fois celle-ci corrigée.
+
+## Accessibilité
+
+`e2e/accessibilite.spec.ts` passe [axe-core](https://github.com/dequelabs/axe-core)
+sur la page telle qu'elle est affichée, avec les règles des WCAG 2.1
+de niveaux A et AA (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`) : noms
+accessibles des champs et des boutons, contrastes, usage d'ARIA,
+structure des listes et des repères, langue de la page.
+
+- **Pages auditées**, dans les deux langues et les deux thèmes : accueil,
+  sécurité, contact (vide, puis en erreur après un envoi à vide),
+  connexion ; file de lecture, écran de lecture `/lecture/1` et
+  paramètres du radiologue ; tableau de bord, liste et fiche d'examen
+  de la clinique ; cockpit, comptes, organisations et demandes reçues
+  de l'administration.
+- **Clavier** : le premier `Tab` atteint le lien « Aller au contenu »,
+  visible, qui mène au repère `main` ; les repères de page sont
+  présents ; les premiers éléments atteints montrent un focus visible ;
+  le dialogue de confirmation du numéro d'ordre garde le focus et le
+  rend au bouton qui l'a ouvert.
+
+Seules les violations **graves** et **critiques** font échouer un test,
+avec, pour chacune, la règle, l'impact, les éléments en cause et le
+lien vers l'aide d'axe. Les violations modérées ou mineures sont jointes
+au rapport HTML du test, en annotation.
+
+La fixture `checkA11y` (`e2e/support/fixtures.ts`, détail dans
+`e2e/support/accessibilite.ts`) audite la page courante ; un nouveau
+parcours l'appelle une fois la page dans l'état voulu :
+
+```ts
+test("mon écran", async ({ page, checkA11y }) => {
+  await page.goto("/mon-ecran");
+  await checkA11y();
+});
+```
+
+Aucune règle n'est désactivée. Une exclusion n'est admise que pour un
+élément précis et un faux positif avéré (une image de viewer dessinée
+dans un `<canvas>`, par exemple), inscrite avec sa justification dans
+`EXCLUSIONS` (`e2e/support/accessibilite.ts`) ; la liste est vide
+aujourd'hui. Un défaut réel se corrige dans l'application : un contraste
+dans les jetons de `src/app/globals.css`, un nom ou un rôle dans le
+composant.
+
+```bash
+E2E_PORT=3500 npx playwright test accessibilite   # ce seul fichier
+```
 
 ## En intégration continue
 

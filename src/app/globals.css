@@ -46,12 +46,13 @@
   --color-ink-800: oklch(0.28 0.036 262);
   --color-ink-700: oklch(0.352 0.036 263);
   --color-ink-600: oklch(0.452 0.034 263);
-  /* 0,580 et non 0,571 : c'est la clarté minimale qui tient le
-     rapport de contraste de 4,5:1 exigé pour du texte courant sur
-     le fond. Neuf millièmes d'écart, invisibles à l'œil, mais la
-     différence entre une aide de formulaire lisible et une aide
-     qu'on devine. */
-  --color-ink-500: oklch(0.58 0.03 262);
+  /* 0,620 : la clarté qui tient le rapport de contraste de 4,5:1
+     exigé pour du texte courant (WCAG 1.4.3) sur chaque surface du
+     thème sombre, du fond creusé à la surface survolée. À 0,580, une
+     aide de formulaire tombait à 4,2:1 sur le fond : lisible pour un
+     œil reposé, devinée par un radiologue en fin de vacation. Mesuré
+     par l'audit axe-core des tests de bout en bout. */
+  --color-ink-500: oklch(0.62 0.028 262);
   --color-ink-400: oklch(0.681 0.024 263);
   --color-ink-300: oklch(0.791 0.018 264);
   --color-ink-200: oklch(0.875 0.012 265);
@@ -242,21 +243,26 @@
 
   --text-primary: var(--color-ink-950);
   --text-secondary: var(--color-ink-600);
-  --text-tertiary: var(--color-ink-500);
+  /* Plus sombre qu'en thème sombre : sur le blanc et les fonds clairs,
+     0,51 est la clarté qui tient 4,5:1 jusqu'au fond creusé. */
+  --text-tertiary: oklch(0.51 0.03 262);
   --text-inverted: var(--color-ink-50);
 
   /* Teintes plus sombres en clair : le turquoise vif de la marque, posé
-     sur du blanc, tomberait sous le seuil de lisibilité d'un texte. */
-  --accent: var(--color-accent-700);
+     sur du blanc, tomberait sous le seuil de lisibilité d'un texte. Les
+     teintes de texte ci-dessous (accent et statuts) tiennent 4,5:1 sur
+     le fond de la page comme sur leur propre aplat atténué : un statut
+     s'affiche le plus souvent en pastille, sur ce même aplat. */
+  --accent: oklch(0.5 0.095 175);
   --accent-hover: var(--color-accent-800);
   --accent-muted: oklch(0.66 0.13 175 / 0.14);
   --accent-contrast: oklch(1 0 0);
 
-  --urgent: var(--color-urgent-500);
+  --urgent: oklch(0.53 0.2 23);
   --urgent-muted: oklch(0.605 0.205 22 / 0.11);
-  --progress: oklch(0.6 0.14 72);
+  --progress: oklch(0.52 0.12 70);
   --progress-muted: oklch(0.715 0.145 72 / 0.15);
-  --done: var(--color-done-500);
+  --done: oklch(0.5 0.14 148);
   --done-muted: oklch(0.655 0.155 148 / 0.13);
 
   --shadow-raised:
@@ -419,6 +425,11 @@
     font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+  /* Couleur par défaut seulement : sans spécificité, elle cède à une
+     classe de couleur posée à côté (`label-eyebrow text-accent`), qui
+     sinon perdait face à cette règle déclarée plus loin. */
+  :where(.label-eyebrow) {
     color: var(--text-tertiary);
   }
 

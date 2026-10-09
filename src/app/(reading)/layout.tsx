@@ -45,7 +45,10 @@ export default async function ReadingLayout({
         {settings?.maintenanceMessage && (
           <MaintenanceBanner message={settings.maintenanceMessage} />
         )}
-        {children}
+        {/* Repère principal de l'écran : la barre du patient et les deux
+            volets. Ni navigation ni en-tête à contourner, donc pas de lien
+            d'évitement. */}
+        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
       </div>
     </SessionProvider>
   );

@@ -37,7 +37,7 @@ const statusStyles = cva(
         assigned: "bg-surface-active text-secondary",
         in_progress: "bg-progress-muted text-progress",
         reported: "bg-done-muted text-done",
-        delivered: "bg-surface-active text-tertiary",
+        delivered: "bg-surface-active text-secondary",
       },
     },
     defaultVariants: { status: "received" },

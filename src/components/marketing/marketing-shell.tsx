@@ -1,7 +1,9 @@
 import { HtmlLang } from "@/components/i18n/html-lang";
+import { MAIN_CONTENT_ID, SkipLink } from "@/components/layout/skip-link";
 import { MarketingFooter } from "@/components/marketing/footer";
 import { MarketingNav } from "@/components/marketing/nav";
 import type { Locale } from "@/lib/i18n/locale";
+import { messagesFor } from "@/i18n";
 
 /**
  * Disposition de la vitrine publique, dans une langue.
@@ -28,8 +30,11 @@ export function MarketingShell({
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip bg-surface-base">
       <HtmlLang lang={locale} />
+      <SkipLink label={messagesFor(locale).common.skipToContent} />
       <MarketingNav locale={locale} />
-      <main className="flex-1">{children}</main>
+      <main id={MAIN_CONTENT_ID} tabIndex={-1} className="flex-1 outline-none">
+        {children}
+      </main>
       <MarketingFooter locale={locale} />
     </div>
   );
