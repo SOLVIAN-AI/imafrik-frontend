@@ -3,6 +3,7 @@ import {
   isAuthSessionMissingError,
 } from "@supabase/supabase-js";
 
+import { markServiceUnavailable } from "@/lib/service-unavailable";
 import type { Membership } from "@/lib/session/types";
 
 /**
@@ -30,6 +31,10 @@ import type { Membership } from "@/lib/session/types";
 /**
  * La session n'a pas pu être résolue : service d'authentification ou base
  * indisponible, limite de débit atteinte. Ce n'est pas une déconnexion.
+ *
+ * Marquée comme panne (`lib/service-unavailable.ts`) : l'écran d'erreur
+ * annonce un service momentanément indisponible, sans code à transmettre
+ * au support.
  */
 export class SessionUnavailableError extends Error {
   constructor(
@@ -38,6 +43,7 @@ export class SessionUnavailableError extends Error {
   ) {
     super(`Session indisponible (${step})`, options);
     this.name = "SessionUnavailableError";
+    markServiceUnavailable(this);
   }
 }
 

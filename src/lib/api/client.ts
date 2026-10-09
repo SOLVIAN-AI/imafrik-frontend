@@ -6,11 +6,15 @@ import { getLocale } from "@/i18n/server";
 import { messagesFor } from "@/i18n";
 import type { Locale } from "@/lib/i18n/locale";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { markServiceUnavailable } from "@/lib/service-unavailable";
 import { createClient } from "@/lib/supabase/server";
 
 import { API_URL } from "@/lib/api/config";
 
 export { isApiConfigured } from "@/lib/api/config";
+
+/** Statuts qui signalent une panne du service, et non un refus ou un défaut. */
+const UNAVAILABLE_STATUSES: ReadonlySet<number> = new Set([503, 504]);
 
 /**
  * Échec d'un appel à l'API.
@@ -20,6 +24,12 @@ export { isApiConfigured } from "@/lib/api/config";
  * qui appartient à une autre organisation ; un 409 sur une signature
  * veut dire « relisez » ; un 503 veut dire « réessayez ». Chaque écran
  * doit pouvoir les distinguer.
+ *
+ * Un service injoignable (erreur réseau, ramenée à un 503), indisponible
+ * (503) ou qui ne répond pas à temps derrière le proxy (504) est marqué
+ * comme panne (`lib/service-unavailable.ts`) : l'écran d'erreur qui la
+ * reçoit l'annonce comme telle, même en production où seul le `digest`
+ * de l'erreur parvient au navigateur.
  */
 export class ApiError extends Error {
   constructor(
@@ -28,6 +38,7 @@ export class ApiError extends Error {
   ) {
     super(message);
     this.name = "ApiError";
+    if (UNAVAILABLE_STATUSES.has(status)) markServiceUnavailable(this);
   }
 }
 

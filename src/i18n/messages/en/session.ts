@@ -117,6 +117,12 @@ export const session: AppMessages["session"] = {
     openOrganization: (name: string) => `Continue in ${name}`,
     resuming: "Updating your access…",
   },
+  serviceUnavailable: {
+    eyebrow: "Service interruption",
+    title: "Service temporarily unavailable",
+    detail:
+      "IMAFRIK is not responding at the moment. Your data has not been lost: please try again in a few minutes.",
+  },
   appError: {
     title: "This screen could not be displayed",
     detail:

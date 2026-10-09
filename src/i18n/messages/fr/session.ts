@@ -132,6 +132,12 @@ export const session = {
     openOrganization: (name: string) => `Continuer dans ${name}`,
     resuming: "Mise à jour de votre accès…",
   },
+  serviceUnavailable: {
+    eyebrow: "Interruption de service",
+    title: "Service momentanément indisponible",
+    detail:
+      "IMAFRIK ne répond pas pour l’instant. Vos données ne sont pas perdues : réessayez dans quelques minutes.",
+  },
   appError: {
     title: "Cet écran n’a pas pu s’afficher",
     detail:
