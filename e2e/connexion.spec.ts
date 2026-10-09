@@ -52,7 +52,10 @@ for (const membership of Object.keys(HOME_BY_MEMBERSHIP) as DemoMembership[]) {
 test("sans mot de passe, le formulaire refuse et le dit", async ({ page }) => {
   await page.goto("/connexion");
   await seConnecter(page, "qui.que.ce.soit@exemple.tg", "");
-  await expect(page.getByRole("alert")).toBeVisible();
+  // Dans le formulaire : l'annonceur de navigation de Next porte lui
+  // aussi le rôle « alert », et sur un exécuteur lent il est déjà dans la
+  // page quand le test regarde. Un sélecteur global en voyait deux.
+  await expect(page.locator("form").getByRole("alert")).toBeVisible();
   await expect(page).toHaveURL("/connexion");
 });
 
