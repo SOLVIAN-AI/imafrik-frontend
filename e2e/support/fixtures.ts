@@ -137,11 +137,16 @@ export { expect };
  *   pendant quelques centaines de millisecondes. On attend la fin de
  *   chaque animation finie, plutôt qu'une durée arbitraire ; les
  *   animations sans fin (indicateur de chargement) sont ignorées.
+ * - **Forme définitive** : un écran dont la disposition dépend de la
+ *   largeur (l'espace de lecture) rend une forme neutre jusqu'à
+ *   l'hydratation, marquée `data-pending-layout`. Mesurer avant, c'est
+ *   mesurer l'attente, pas l'écran.
  *
  * @param page Page à stabiliser.
  */
 export async function settle(page: Page): Promise<void> {
   await page.waitForLoadState("load");
+  await expect(page.locator("[data-pending-layout]")).toHaveCount(0);
   await page.evaluate(async () => {
     await document.fonts.ready;
     const finite = document
