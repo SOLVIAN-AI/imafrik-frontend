@@ -2578,6 +2578,12 @@ export interface components {
             new_requests: number;
             /** Radiologists Active */
             radiologists_active: number;
+            /**
+             * Unverified Radiologists
+             * @description Radiologues dont le numéro d'ordre attend la validation d'IMAFRIK.
+             * @default 0
+             */
+            unverified_radiologists: number;
         };
         /**
          * OnboardingStep

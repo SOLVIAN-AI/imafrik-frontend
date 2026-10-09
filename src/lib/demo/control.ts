@@ -538,6 +538,8 @@ export function demoOverview(
       clinics_connected: DEMO_NETWORK.length,
       radiologists_active: READERS.length,
       new_requests: DEMO_NEW_REQUESTS,
+      unverified_radiologists: demoUsers(now).filter(isUnverifiedRadiologist)
+        .length,
     },
     received_14d: received14,
     sla_30d: sla(flows),

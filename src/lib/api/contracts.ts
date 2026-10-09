@@ -373,6 +373,8 @@ export const controlOverviewSchema = z.object({
     clinics_connected: count,
     radiologists_active: count,
     new_requests: count,
+    // Radiologues dont le numéro d’ordre attend la validation d’IMAFRIK.
+    unverified_radiologists: count,
   }),
   received_14d: z.array(
     z.object({ day: z.string(), urgent: count, routine: count }),
