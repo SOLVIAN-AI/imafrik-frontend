@@ -12,6 +12,7 @@ import {
   setOrganizationActive,
 } from "@/lib/actions/admin";
 import type { AdminOrganization } from "@/lib/data/admin";
+import { ROLES_BY_KIND } from "@/lib/roles";
 
 /**
  * Actions du back-office sur une organisation : inviter, suspendre ou
@@ -40,13 +41,8 @@ export function OrganizationRowActions({
     });
   };
 
-  // Un groupe de radiologie accueille des radiologues ; une clinique, son
-  // personnel et ses radiologues employés. L'équipe IMAFRIK s'invite dans
-  // un groupe.
-  const roles =
-    organization.kind === "clinic"
-      ? (["clinic_staff", "radiologist"] as const)
-      : (["radiologist", "platform_admin"] as const);
+  // Règle commune à tous les chemins d'ajout, miroir de celle du service.
+  const roles = ROLES_BY_KIND[organization.kind];
 
   return (
     <div className="flex items-center justify-end gap-1">

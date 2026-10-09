@@ -17,13 +17,8 @@ import {
 import { Field, Select } from "@/components/ui/input";
 import { useMessages } from "@/i18n/client";
 import { grantMembership } from "@/lib/actions/control";
+import { ROLES_BY_KIND } from "@/lib/roles";
 import type { OrgKind, UserRole } from "@/lib/session/types";
-
-/** Rôles compatibles avec chaque nature d'organisation — même règle que le service. */
-const ROLES_BY_KIND: Record<OrgKind, readonly UserRole[]> = {
-  radiology_group: ["radiologist", "platform_admin"],
-  clinic: ["clinic_staff"],
-};
 
 /**
  * Rattachement d'un compte existant à une organisation.
@@ -58,7 +53,8 @@ export function GrantDialog({
   );
   const kind =
     organizations.find((org) => org.id === organizationId)?.kind ?? "clinic";
-  const roles = ROLES_BY_KIND[kind];
+  // Règle commune à l'invitation et au rattachement (lib/roles.ts).
+  const roles: readonly UserRole[] = ROLES_BY_KIND[kind];
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
