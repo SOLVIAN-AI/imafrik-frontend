@@ -9,7 +9,11 @@ export type AutosaveState =
   | "saved"
   /** Le service est injoignable : la copie de secours locale tient. */
   | "offline"
-  /** Le brouillon a été modifié ailleurs : il faut recharger. */
+  /**
+   * Le brouillon a été modifié ailleurs : l'enregistrement est suspendu,
+   * le texte est gardé sur le poste (`keep`) jusqu'à ce que l'utilisateur
+   * tranche (`resume` pour garder son texte, ou rechargement).
+   */
   | "conflict";
 
 /** Issue d'une tentative d'enregistrement. */
@@ -24,6 +28,16 @@ export interface UseAutosaveOptions<T> {
    * conflit (réessayer écraserait le travail d'un autre onglet).
    */
   save: (value: T) => Promise<SaveOutcome>;
+  /**
+   * Garde la valeur sur le poste quand le service ne peut plus la
+   * recevoir : appelée dès le conflit, puis à chaque modification tant
+   * qu'il dure. Sans elle, tout ce qui était tapé après un conflit ne
+   * vivait que dans la mémoire de l'onglet, et le rechargement demandé
+   * pour le résoudre le perdait.
+   *
+   * @returns `true` si la valeur est gardée (copie de secours écrite).
+   */
+  keep?: (value: T) => Promise<boolean>;
   /**
    * Délai d'inactivité avant enregistrement, en millisecondes.
    *
@@ -65,11 +79,13 @@ export interface UseAutosaveOptions<T> {
 export function useAutosave<T>({
   value,
   save,
+  keep,
   delay = 1_200,
   disabled = false,
 }: UseAutosaveOptions<T>): {
   state: AutosaveState;
   flush: () => Promise<boolean>;
+  resume: () => Promise<boolean>;
 } {
   const [state, setState] = React.useState<AutosaveState>("idle");
 
@@ -78,20 +94,42 @@ export function useAutosave<T>({
   // frappe.
   const latest = React.useRef(value);
   const saveFn = React.useRef(save);
+  const keepFn = React.useRef(keep);
   const chain = React.useRef<Promise<void>>(Promise.resolve());
   const dirty = React.useRef(false);
   const conflicted = React.useRef(false);
+  // Valeur gardée sur le poste pendant un conflit : tant que c'est la
+  // valeur affichée, quitter la page ne perd rien.
+  const kept = React.useRef<T | null>(null);
 
   React.useEffect(() => {
     latest.current = value;
     saveFn.current = save;
-  }, [value, save]);
+    keepFn.current = keep;
+  }, [value, save, keep]);
+
+  /** Garde la valeur courante sur le poste ; ne lève jamais. */
+  const keepLatest = React.useCallback(async (): Promise<void> => {
+    const snapshot = latest.current;
+    let ok = false;
+    try {
+      ok = (await keepFn.current?.(snapshot)) ?? false;
+    } catch {
+      ok = false;
+    }
+    kept.current = ok ? snapshot : null;
+  }, []);
 
   /** Ajoute une écriture à la chaîne ; renvoie la fin de la chaîne. */
   const enqueue = React.useCallback((): Promise<void> => {
     chain.current = chain.current.then(async () => {
-      // Rien à écrire, ou écrire écraserait le travail d'un autre onglet.
-      if (!dirty.current || conflicted.current) return;
+      if (!dirty.current) return;
+      // Écrire écraserait le travail d'un autre onglet : le texte est
+      // seulement gardé sur le poste, en attendant la décision.
+      if (conflicted.current) {
+        await keepLatest();
+        return;
+      }
 
       const snapshot = latest.current;
       // Marqué propre *avant* l'envoi : une frappe pendant l'écriture le
@@ -116,13 +154,14 @@ export function useAutosave<T>({
         dirty.current = true;
         conflicted.current = true;
         setState("conflict");
+        await keepLatest();
       } else {
         dirty.current = true;
         setState("offline");
       }
     });
     return chain.current;
-  }, []);
+  }, [keepLatest]);
 
   // Dernière valeur ayant déclenché un enregistrement. Comparer les
   // références — plutôt que compter les montages — rend le garde-fou
@@ -142,7 +181,11 @@ export function useAutosave<T>({
   // retenir l'utilisateur est de notre ressort.
   React.useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
-      if (dirty.current) event.preventDefault();
+      // Pendant un conflit, la valeur affichée gardée sur le poste sera
+      // proposée à la réouverture : recharger, comme l'écran l'invite à
+      // le faire, ne perd rien.
+      const safe = conflicted.current && kept.current === latest.current;
+      if (dirty.current && !safe) event.preventDefault();
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
@@ -153,5 +196,22 @@ export function useAutosave<T>({
     return !dirty.current && !conflicted.current;
   }, [enqueue]);
 
-  return { state, flush };
+  /**
+   * Lève la suspension d'un conflit et réécrit la valeur affichée.
+   *
+   * À appeler une fois que l'utilisateur a choisi de garder son texte, et
+   * que la fonction d'enregistrement vise la version désormais en base.
+   *
+   * @returns `true` si la valeur affichée est enregistrée.
+   */
+  const resume = React.useCallback(async () => {
+    // Attendre la fin des écritures en cours avant de lever la suspension.
+    await chain.current;
+    conflicted.current = false;
+    kept.current = null;
+    dirty.current = true;
+    return flush();
+  }, [flush]);
+
+  return { state, flush, resume };
 }

@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ClipboardList,
+  CloudUpload,
   CornerDownLeft,
   Hand,
   Languages,
@@ -47,6 +48,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { useLocale, useMessages } from "@/i18n/client";
 import {
   claimStudy,
+  readDraftVersion,
   releaseStudy,
   saveReportDraft,
   signReport,
@@ -375,6 +377,31 @@ export function ReportWorkspace({
     [author, backupKey],
   );
 
+  /**
+   * Garde le texte sur le poste pendant un conflit d'enregistrement.
+   *
+   * Le service a une autre version du brouillon (second onglet, ou
+   * enregistrement appliqué dont la réponse s'est perdue) : écrire
+   * écraserait l'autre version sans que le radiologue l'ait décidé. Le
+   * texte affiché est donc copié, à chaque modification, jusqu'à ce qu'il
+   * tranche ; sans cette copie, tout ce qui était tapé après le conflit
+   * disparaissait au rechargement.
+   */
+  const keep = React.useCallback(
+    async (value: ReportSections): Promise<boolean> => {
+      if (!author) return false;
+      const key = await backupKey;
+      if (!key) return false;
+      return writeReportBackup(key, author.reportId, {
+        sections: value,
+        baseVersion: version.current,
+        savedAt: new Date().toISOString(),
+        conflict: true,
+      });
+    },
+    [author, backupKey],
+  );
+
   const update = React.useCallback((key: SectionKey, html: string) => {
     setSections((current) => ({ ...current, [key]: html }));
   }, []);
@@ -399,17 +426,40 @@ export function ReportWorkspace({
     [],
   );
 
-  const { state, flush } = useAutosave({
+  const { state, flush, resume } = useAutosave({
     value: sections,
     save,
+    keep,
     disabled: locked,
   });
 
-  // Reprise d'une copie de secours laissée par une coupure : proposée
-  // seulement si elle part de la version encore en base — sinon le
-  // brouillon a avancé ailleurs depuis, et la copie périmée est écartée.
-  // La reprise est un choix du radiologue, pas un remplacement silencieux
-  // du texte qu'il a sous les yeux.
+  /**
+   * Résout un conflit en gardant le texte affiché : l'écriture suivante
+   * vise la version désormais en base, et la remplace.
+   */
+  const keepMine = React.useCallback(async () => {
+    if (!author) return;
+    const current = await readDraftVersion(author.reportId).catch(() => null);
+    if (!current?.ok) {
+      toast.error(labels.conflictKeepFailed);
+      return;
+    }
+    if (current.data.signed) {
+      toast.error(labels.conflictSignedElsewhere);
+      return;
+    }
+    version.current = current.data.version;
+    if (await resume()) toast.success(labels.conflictKept);
+    else toast.error(labels.conflictKeepFailed);
+  }, [author, labels, resume]);
+
+  // Reprise d'une copie de secours laissée par une coupure ou un conflit.
+  // Elle est toujours proposée, jamais imposée ni écartée en silence : si
+  // le brouillon a avancé ailleurs depuis, la proposition le dit. Une
+  // version plus récente en base ne signifie pas un texte plus récent :
+  // un enregistrement appliqué dont la réponse s'est perdue fait avancer
+  // la version sans que ce poste le sache, et la copie porte alors tout
+  // ce qui a été tapé ensuite.
   //
   // Une copie que la clé du compte n'ouvre pas appartient à un autre
   // compte : elle est laissée en place, sans rien en dire.
@@ -423,11 +473,8 @@ export function ReportWorkspace({
       const read = await readReportBackup(key, author.reportId);
       if (cancelled || read.status !== "found") return;
       const backup = read.backup;
-      if (backup.baseVersion !== author.version) {
-        clearReportBackup(author.reportId);
-        return;
-      }
-      toast.info(labels.backupFound, {
+      const diverged = backup.baseVersion !== author.version;
+      toast.info(diverged ? labels.backupConflictFound : labels.backupFound, {
         duration: Number.POSITIVE_INFINITY,
         action: {
           label: labels.backupRestore,
@@ -557,6 +604,12 @@ export function ReportWorkspace({
       {!signed && mode.kind === "claimable" && (
         <Banner tone="neutral">{labels.claimBanner}</Banner>
       )}
+      {!signed && author && state === "conflict" && (
+        <ConflictBanner
+          onKeep={keepMine}
+          onReload={() => window.location.reload()}
+        />
+      )}
       <ClinicalContext
         info={study.clinicalInfo}
         onUse={
@@ -656,6 +709,52 @@ function Banner({
     >
       {tone === "done" && <Lock className="size-3 shrink-0" aria-hidden />}
       {children}
+    </div>
+  );
+}
+
+/**
+ * Bandeau d'un conflit d'enregistrement, et ses deux issues.
+ *
+ * Le texte du radiologue est déjà gardé sur le poste : le bandeau lui
+ * laisse choisir, sans urgence, entre l'enregistrer à la place de l'autre
+ * version et recharger celle-ci (son texte lui est alors proposé).
+ *
+ * @param onKeep   Garde le texte affiché.
+ * @param onReload Recharge la version enregistrée.
+ */
+function ConflictBanner({
+  onKeep,
+  onReload,
+}: {
+  onKeep: () => Promise<void>;
+  onReload: () => void;
+}) {
+  const labels = useMessages().reading.workspace;
+  const [busy, setBusy] = React.useState(false);
+  const keep = async () => {
+    setBusy(true);
+    try {
+      await onKeep();
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div
+      role="alert"
+      className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border-subtle bg-urgent-muted px-4 py-2 text-2xs text-primary"
+    >
+      <p className="min-w-0 flex-1 basis-60">{labels.conflictBanner}</p>
+      <div className="flex shrink-0 items-center gap-2">
+        <Button size="sm" variant="ghost" onClick={onReload} disabled={busy}>
+          {labels.conflictReload}
+        </Button>
+        <Button size="sm" onClick={() => void keep()} loading={busy}>
+          <CloudUpload />
+          {labels.conflictKeepMine}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -516,10 +516,20 @@ export interface paths {
          *     Le geste est tracé, avec son auteur : c'est la seule porte de secours
          *     du second facteur, elle doit laisser une trace.
          *
+         *     La trace est écrite en deux temps. La demande
+         *     (``user.mfa_reset_requested``) est inscrite **avant** tout appel au
+         *     service d'authentification : si la suite échoue, ou si le processus
+         *     meurt, le geste et son auteur sont connus. Le résultat
+         *     (``user.mfa_reset``) est inscrit dès qu'un facteur a été supprimé,
+         *     même si la réinitialisation s'interrompt ensuite, avec le nombre de
+         *     facteurs supprimés et l'issue (``complete`` ou ``partial``).
+         *
          *     Raises:
          *         NotFound: Compte introuvable.
          *         AuthServiceUnavailable: Service d'authentification injoignable
          *             ou non configuré.
+         *         MfaResetIncomplete: Réinitialisation interrompue après la
+         *             suppression d'une partie des facteurs.
          */
         post: operations["reset_user_mfa_admin_users__profile_id__mfa_reset_post"];
         delete?: never;

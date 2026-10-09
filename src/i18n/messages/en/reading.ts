@@ -27,8 +27,19 @@ export const reading: AppMessages["reading"] = {
       "Some text could not be sent during a connection loss. It has been kept on this device.",
     backupRestore: "Restore",
     backupDiscard: "Discard",
+    backupConflictFound:
+      "A copy of your text is kept on this device, but the saved draft has changed since: another tab, or a save whose response was lost. Restoring the copy replaces the saved draft.",
+    conflictBanner:
+      "This draft was changed elsewhere. Your text is still kept on this device: save it in place of the other version, or reload the saved version (your text will then be offered to you).",
+    conflictKeepMine: "Keep my text",
+    conflictReload: "Reload",
+    conflictKept: "Your text has been saved.",
+    conflictKeepFailed:
+      "Your text could not be saved. It is still kept on this device: please try again in a moment.",
+    conflictSignedElsewhere:
+      "This report has been signed in the meantime and can no longer be edited. Your text is still kept on this device.",
     conflictBeforeSign:
-      "This report has been changed in another tab. Reload the page before signing.",
+      "This report has been changed elsewhere. Keep your text or reload the page before signing.",
     saveFailedBeforeSign:
       "The text could not be saved. Check your connection, then sign again.",
     signedToast: "Report signed and sent to the clinic.",
@@ -70,7 +81,7 @@ export const reading: AppMessages["reading"] = {
     requiredTitle: "Required section for signing",
     requiredLabel: "Required section, currently empty",
     offline: "Offline: copy kept on this device",
-    conflict: "Changed in another tab: reload the page",
+    conflict: "Changed elsewhere: text kept on this device",
     outline: {
       label: "Report sections",
       filled: ", written",

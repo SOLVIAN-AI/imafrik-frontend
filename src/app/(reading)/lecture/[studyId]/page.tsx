@@ -12,7 +12,7 @@ import {
   listStudies,
   type Study,
 } from "@/lib/data/studies";
-import { listTemplates } from "@/lib/data/templates";
+import { listTemplatesOrNone } from "@/lib/data/templates";
 import { credentialBlock } from "@/lib/credentials";
 import { reportBackupKey } from "@/lib/editor/backup-key";
 import { formatPersonName } from "@/lib/format";
@@ -124,8 +124,9 @@ export default async function ReadingPage({
 
   const mode = workspaceMode(session, study, report, t);
   // Les modèles ne servent qu'à l'auteur ; inutile de les charger sinon.
+  // Facultatifs : leur échec ne bloque pas l'écran.
   const templates =
-    mode.kind === "author" ? await listTemplates(study.modality) : [];
+    mode.kind === "author" ? await listTemplatesOrNone(study.modality) : [];
 
   return (
     <ReportWorkspace
