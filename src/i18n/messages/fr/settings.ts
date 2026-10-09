@@ -78,6 +78,8 @@ export const settings = {
     failed:
       "Le mot de passe n’a pas pu être changé. Le lien a peut-être expiré.",
     demoAction: "Le changement de mot de passe",
+    secondFactorFirst:
+      "Votre compte est protégé par la double authentification : saisissez d’abord votre code, puis changez le mot de passe.",
   },
   profileDemoAction: "L’enregistrement du profil",
   mfa: {

@@ -263,10 +263,10 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
 
 /**
  * Racines accessibles à tout utilisateur rattaché à une organisation,
- * quel que soit son rôle : la mise en service et le choix d'un nouveau
- * mot de passe — après une invitation, par exemple.
+ * quel que soit son rôle : la mise en service, l'accueil d'une personne
+ * invitée et le choix d'un nouveau mot de passe.
  */
-const SHARED_ROUTES = ["/bienvenue", "/nouveau-mot-de-passe"];
+const SHARED_ROUTES = ["/bienvenue", "/invitation", "/nouveau-mot-de-passe"];
 
 /**
  * Adresses accessibles sans session.

@@ -10,6 +10,7 @@ import { writeLanguageCookie } from "@/lib/i18n/cookie";
 import { isLocale } from "@/lib/i18n/locale";
 import { getMessages } from "@/i18n/server";
 import { firstBrokenRule, PASSWORD_MAX_LENGTH } from "@/lib/security/password";
+import { passwordNeedsSecondFactor } from "@/lib/session/server";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -107,6 +108,9 @@ export async function changePassword(
     return { ok: false, error: messages.mismatch, status: 422 };
   }
   if (isDemoMode()) return demoUnavailable(messages.demoAction);
+  if (await passwordNeedsSecondFactor()) {
+    return { ok: false, error: messages.secondFactorFirst, status: 403 };
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password });

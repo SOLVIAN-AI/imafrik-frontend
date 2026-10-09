@@ -149,13 +149,16 @@ export const LANGUAGE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 export const LANGUAGE_PARAM = "langue";
 
 /**
- * Écrans d'entrée, atteints depuis le site avant toute session : ils
- * portent le sélecteur de langue du site (`?langue=en`). Une fois
- * connecté, la langue se règle dans les paramètres.
+ * Écrans d'entrée, atteints avant que la langue du profil ne s'applique :
+ * ils portent le sélecteur de langue du site (`?langue=en`). L'accueil
+ * d'une personne invitée en fait partie : elle arrive d'un courriel, sans
+ * avoir encore rien choisi. Une fois connecté, la langue se règle dans
+ * les paramètres.
  */
 export const BILINGUAL_SCREENS: readonly string[] = [
   "/connexion",
   "/mot-de-passe-oublie",
+  "/invitation",
 ];
 
 /** Vrai si le chemin est une page du site public, dans l'une ou l'autre langue. */

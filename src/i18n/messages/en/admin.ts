@@ -278,6 +278,7 @@ export const admin: AppMessages["admin"] = {
     metaTitle: "Clinic",
     active: "active",
     suspended: "suspended",
+    contractEnded: "contract ended",
     openToPool: "open to the pool",
     ownRadiologists: "dedicated radiologists",
     backToOrganisations: "Organisations",
@@ -339,6 +340,54 @@ export const admin: AppMessages["admin"] = {
     explanation:
       "The headings and statements of the signed PDF report, and its verification page, follow this language. Reports already signed are not changed. Radiologists see it in the editor.",
     saved: "Report language saved.",
+  },
+
+  contract: {
+    title: "Contract",
+    underContract: "Under contract",
+    endedOnBefore: "Contract ended on ",
+    endedOnAfter: "",
+    endedDetail:
+      "The clinic is suspended and removed from the pool: its members no longer have access to IMAFRIK. Signed reports remain stored for twenty years and can still be verified by their QR code. This page is now read-only.",
+    readOnly: "Read-only: this clinic’s contract has ended.",
+    dangerZone: "Danger zone",
+    endTitle: "End the contract",
+    endDescription:
+      "Suspends the clinic, removes it from the pool and closes its service contracts. This cannot be undone.",
+    dialogTitle: (clinic: string) => `End the contract with ${clinic}`,
+    dialogDescription:
+      "This cannot be undone and is recorded in the audit log. It will:",
+    consequences: [
+      "remove access to IMAFRIK for every member of the clinic, from their next request;",
+      "remove the clinic from the pool and close its service contracts;",
+      "keep signed reports stored for twenty years, still verifiable by their QR code;",
+      "keep images for the retention period set in the contract;",
+      "leave the full data export to be run next on the server, then handed over to the clinic through an encrypted channel.",
+    ],
+    confirmBefore: "To confirm, type the clinic’s name: ",
+    confirmLabel: "Clinic name",
+    confirmHint: "The exact name; capitals and surrounding spaces are ignored.",
+    unreportedTitle: (count: number) =>
+      count === 1
+        ? "1 examination has not been reported yet"
+        : `${count} examinations have not been reported yet`,
+    abandonLabel: "Abandon these examinations",
+    abandonDetail:
+      "They will not be read for this clinic: readings in progress stop and their drafts are deleted.",
+    submit: "End the contract",
+    done: (clinic: string) => `Contract with ${clinic} ended.`,
+    abandoned: (count: number) =>
+      count === 1
+        ? "1 unreported examination was abandoned."
+        : `${count} unreported examinations were abandoned.`,
+    exportTitle: "Clinic data export",
+    exportIntro: "Run this now on the server, from the operations workstation:",
+    copy: "Copy command",
+    copied: "Command copied",
+    exportReminder:
+      "The archive contains identifiable health data: hand it over to the clinic through an encrypted channel, then delete it from the machine that produced it.",
+    endedExportReminder:
+      "If the export has not yet been handed over to the clinic, run it on the server, hand it over through an encrypted channel, then delete it from the machine that produced it.",
   },
 
   users: {
@@ -553,6 +602,7 @@ export const admin: AppMessages["admin"] = {
       "organization.pool_changed": "Pool access changed",
       "organization.retention_changed": "Retention period changed",
       "organization.report_language_changed": "Report language changed",
+      "organization.contract_ended": "Clinic contract ended",
       "organization.exported": "Organisation data exported",
       "user.mfa_reset": "Two-factor authentication reset",
       "user.credentials_verified": "Registration number verified",
@@ -625,6 +675,7 @@ export const admin: AppMessages["admin"] = {
     stateInvalid: "Invalid status.",
     emailInvalid: "Invalid email address",
     nameRequired: "A name is required",
+    confirmNameRequired: "Type the clinic’s name to confirm",
   },
   demoActions: {
     settings: "Changing the settings",
@@ -634,6 +685,7 @@ export const admin: AppMessages["admin"] = {
     credentials: "Verifying registration numbers",
     retention: "Changing the retention period",
     reportLanguage: "Changing the report language",
+    contractEnd: "Ending a contract",
     suspension: "Suspending an organisation",
     invitation: "Sending an invitation",
   },

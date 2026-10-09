@@ -9,7 +9,9 @@ import { createClient } from "@/lib/supabase/server";
  *
  * Invitation, réinitialisation de mot de passe, confirmation d'adresse :
  * tous ces courriels renvoient ici avec un code à usage unique, qui est
- * échangé contre une session. Le code voyage dans l'URL — donc dans
+ * échangé contre une session. La destination suit dans `suite` :
+ * `/invitation` pour une personne invitée (accueil, puis mot de passe),
+ * `/nouveau-mot-de-passe` pour une réinitialisation. Le code voyage dans l'URL — donc dans
  * l'historique du navigateur et les journaux du serveur — ce qui est
  * acceptable **parce qu'il est à usage unique et de courte durée** ; la
  * session, elle, repart dans un cookie `httpOnly`.

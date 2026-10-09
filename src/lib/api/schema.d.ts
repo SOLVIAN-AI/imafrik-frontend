@@ -87,6 +87,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics/{clinic_id}/end-contract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mettre fin au contrat d'une clinique
+         * @description Met fin au contrat d'une clinique.
+         *
+         *     Un geste daté et tracé, qui enchaîne : clinique suspendue (ses membres
+         *     perdent l'accès à la requête suivante), retirée du pool, contrats de
+         *     service fermés. Les comptes-rendus signés restent conservés (verrou R2
+         *     de 20 ans) et vérifiables par leur QR code ; les images suivent la
+         *     durée de conservation du contrat. L'export complet, promis au contrat,
+         *     se lance ensuite sur le serveur : la commande est renvoyée.
+         *
+         *     Un examen reçu et pas encore rendu est celui d'un patient qui attend :
+         *     la fin de contrat est refusée tant qu'il en reste, sauf abandon
+         *     explicitement confirmé. Les examens abandonnés sont rendus au pool,
+         *     leurs brouillons effacés, et la clinique suspendue les rend invisibles.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         *         Conflict: Contrat déjà terminé, ou examens non rendus sans
+         *             confirmation de leur abandon.
+         *         Unprocessable: Le nom saisi ne correspond pas à la clinique.
+         */
+        post: operations["end_contract_admin_clinics__clinic_id__end_contract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/clinics/{clinic_id}/report-language": {
         parameters: {
             query?: never;
@@ -242,6 +280,7 @@ export interface paths {
          *
          *     Raises:
          *         NotFound: Organisation inconnue.
+         *         Conflict: Réactivation d'une clinique dont le contrat est terminé.
          */
         patch: operations["update_organization_admin_organizations__organization_id__patch"];
         trace?: never;
@@ -737,6 +776,46 @@ export interface paths {
          *         Forbidden: L'appelant n'est pas membre de l'organisation visée.
          */
         post: operations["switch_organization_me_active_organization_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/invitation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Accueil d'un invité
+         * @description Présente l'invitation que l'utilisateur vient d'accepter.
+         *
+         *     Accessible avant la double authentification : c'est la première page
+         *     que voit l'invité, avant même de choisir son mot de passe. Elle nomme
+         *     l'établissement, le rôle et la personne qui invite ; un invité qui sait
+         *     d'où vient le lien n'hésite pas, et repère un lien qu'il n'attendait
+         *     pas.
+         *
+         *     L'appartenance présentée est l'organisation active du jeton, à défaut
+         *     la plus récente. La requête passe par le rôle de service, filtrée sur
+         *     l'appelant lui-même : RLS cacherait le nom d'un administrateur IMAFRIK
+         *     qui ne partage aucune organisation avec l'invité.
+         *
+         *     Un compte qui a **déjà** un second facteur n'est pas un invité qui
+         *     découvre la plateforme : avant ce second facteur (session « aal1 »), la
+         *     page ne lui présente rien. Sans cela, un mot de passe dérobé suffirait
+         *     à lire son organisation, son rôle et le nom de qui l'a invité.
+         *
+         *     Raises:
+         *         Forbidden: Session sans second facteur, pour un compte qui en a un.
+         *         NotFound: L'utilisateur n'appartient à aucune organisation.
+         */
+        get: operations["read_invitation_me_invitation_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1926,6 +2005,11 @@ export interface components {
             /** City */
             city: string | null;
             /**
+             * Contract Ended At
+             * @description Fin du contrat ; None tant que la clinique est sous contrat.
+             */
+            contract_ended_at?: string | null;
+            /**
              * Id
              * Format: uuid
              */
@@ -2112,6 +2196,41 @@ export interface components {
             status: "new" | "contacted" | "converted" | "dismissed";
         };
         /**
+         * ContractEnd
+         * @description Fin du contrat d'une clinique, confirmée par l'équipe IMAFRIK.
+         */
+        ContractEnd: {
+            /**
+             * Abandon Unreported
+             * @description Confirmer l'abandon des examens qui ne seront pas rendus.
+             * @default false
+             */
+            abandon_unreported: boolean;
+            /**
+             * Confirm Name
+             * @description Nom de la clinique, saisi pour confirmer un geste qui la coupe.
+             */
+            confirm_name: string;
+        };
+        /**
+         * ContractEndResult
+         * @description Effet de la fin de contrat.
+         */
+        ContractEndResult: {
+            /** Abandoned Studies */
+            abandoned_studies: number;
+            /**
+             * Contract Ended At
+             * Format: date-time
+             */
+            contract_ended_at: string;
+            /**
+             * Export Command
+             * @description Commande d'export à lancer sur le serveur (réversibilité contractuelle).
+             */
+            export_command: string;
+        };
+        /**
          * ControlAnalytics
          * @description L'activité sur une période.
          */
@@ -2259,6 +2378,42 @@ export interface components {
             email: string;
             /** Full Name */
             full_name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "platform_admin" | "radiologist" | "clinic_staff";
+        };
+        /**
+         * InvitationWelcome
+         * @description Ce qu'un invité voit en arrivant : qui l'invite, où, et pour quoi.
+         *
+         *     Attributes:
+         *         organization_name: Établissement ou groupe qui accueille.
+         *         organization_kind: Clinique ou groupe de radiologie.
+         *         city: Ville de l'organisation.
+         *         role: Rôle attribué.
+         *         invited_by_name: Nom de la personne qui a invité ; nul pour une
+         *             appartenance antérieure à cette information.
+         *         invited_at: Date de l'invitation.
+         */
+        InvitationWelcome: {
+            /** City */
+            city: string | null;
+            /**
+             * Invited At
+             * Format: date-time
+             */
+            invited_at: string;
+            /** Invited By Name */
+            invited_by_name: string | null;
+            /**
+             * Organization Kind
+             * @enum {string}
+             */
+            organization_kind: "clinic" | "radiology_group";
+            /** Organization Name */
+            organization_name: string;
             /**
              * Role
              * @enum {string}
@@ -2430,6 +2585,12 @@ export interface components {
             new_requests: number;
             /** Radiologists Active */
             radiologists_active: number;
+            /**
+             * Unverified Radiologists
+             * @description Radiologues dont le numéro d'ordre attend la validation d'IMAFRIK.
+             * @default 0
+             */
+            unverified_radiologists: number;
         };
         /**
          * OnboardingStep
@@ -3538,6 +3699,43 @@ export interface operations {
             };
         };
     };
+    end_contract_admin_clinics__clinic_id__end_contract_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractEnd"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractEndResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_report_language_admin_clinics__clinic_id__report_language_put: {
         parameters: {
             query?: never;
@@ -4320,6 +4518,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SwitchOrganizationResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_invitation_me_invitation_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationWelcome"];
                 };
             };
             /** @description Validation Error */

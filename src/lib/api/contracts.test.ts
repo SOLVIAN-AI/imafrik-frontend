@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { reportSchema, studyPageSchema } from "@/lib/api/contracts";
+import {
+  contractEndResultSchema,
+  invitationWelcomeSchema,
+  reportSchema,
+  studyPageSchema,
+} from "@/lib/api/contracts";
 
 const study = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -65,5 +70,32 @@ describe("contrat d'API", () => {
     };
     expect(() => reportSchema.parse(report)).toThrow();
     expect(reportSchema.parse({ ...report, addenda: [] }).version).toBe(3);
+  });
+
+  it("lit l'accueil d'un invité, inviteur inconnu compris", () => {
+    const welcome = {
+      organization_name: "Clinique Saint-Joseph",
+      organization_kind: "clinic",
+      city: null,
+      role: "clinic_staff",
+      invited_by_name: null,
+      invited_at: "2026-10-08T09:00:00Z",
+    };
+    expect(invitationWelcomeSchema.parse(welcome).role).toBe("clinic_staff");
+    expect(() =>
+      invitationWelcomeSchema.parse({ ...welcome, role: "patient" }),
+    ).toThrow();
+  });
+
+  it("exige la commande d'export dans l'effet d'une fin de contrat", () => {
+    const ended = {
+      contract_ended_at: "2026-10-08T09:00:00Z",
+      abandoned_studies: 2,
+    };
+    expect(() => contractEndResultSchema.parse(ended)).toThrow();
+    expect(
+      contractEndResultSchema.parse({ ...ended, export_command: "export" })
+        .abandoned_studies,
+    ).toBe(2);
   });
 });

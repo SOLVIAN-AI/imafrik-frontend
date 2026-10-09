@@ -76,6 +76,8 @@ export const settings: AppMessages["settings"] = {
     weak: "This password was rejected: choose a longer one that differs from your previous password.",
     failed: "The password could not be changed. The link may have expired.",
     demoAction: "Changing your password",
+    secondFactorFirst:
+      "Your account is protected by two-factor authentication: enter your code first, then change the password.",
   },
   profileDemoAction: "Saving your profile",
   mfa: {

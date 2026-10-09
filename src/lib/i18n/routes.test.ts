@@ -75,5 +75,7 @@ describe("langue des écrans partagés", () => {
 
   it("change la langue d'un écran partagé sans changer son adresse", () => {
     expect(translatePath("/connexion", "en")).toBe("/connexion?langue=en");
+    // L'accueil d'une personne invitée, qui arrive d'un courriel.
+    expect(translatePath("/invitation", "fr")).toBe("/invitation?langue=fr");
   });
 });
