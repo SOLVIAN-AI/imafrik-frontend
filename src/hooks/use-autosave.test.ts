@@ -113,8 +113,8 @@ describe("useAutosave", () => {
 
   it("reprend l'enregistrement quand l'utilisateur garde son texte", async () => {
     let resolved = false;
-    const save = vi.fn(
-      async (): Promise<SaveOutcome> => (resolved ? "saved" : "conflict"),
+    const save = vi.fn(async (): Promise<SaveOutcome> =>
+      resolved ? "saved" : "conflict",
     );
     const probe = mount(save, async () => true);
     await probe.render("a");

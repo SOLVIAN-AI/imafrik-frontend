@@ -110,7 +110,8 @@ function isStoredBackup(value: unknown): value is StoredBackup {
     typeof candidate.savedAt === "string" &&
     typeof candidate.iv === "string" &&
     typeof candidate.data === "string" &&
-    (candidate.conflict === undefined || typeof candidate.conflict === "boolean")
+    (candidate.conflict === undefined ||
+      typeof candidate.conflict === "boolean")
   );
 }
 
