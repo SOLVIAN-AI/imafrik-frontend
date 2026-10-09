@@ -13,13 +13,16 @@ import { type SaveOutcome, useAutosave } from "@/hooks/use-autosave";
 type Hook = ReturnType<typeof useAutosave<string>>;
 
 /** Monte le hook dans un composant minimal et expose son dernier résultat. */
-function mount(save: (value: string) => Promise<SaveOutcome>) {
+function mount(
+  save: (value: string) => Promise<SaveOutcome>,
+  keep?: (value: string) => Promise<boolean>,
+) {
   const container = document.createElement("div");
   const root: Root = createRoot(container);
   const current: { hook?: Hook } = {};
 
   function Probe({ value }: { value: string }) {
-    current.hook = useAutosave({ value, save, delay: 10 });
+    current.hook = useAutosave({ value, save, keep, delay: 10 });
     return null;
   }
 
@@ -29,6 +32,20 @@ function mount(save: (value: string) => Promise<SaveOutcome>) {
 }
 
 afterEach(() => vi.useRealTimers());
+
+/** Laisse partir l'écriture différée (10 ms) et sa chaîne. */
+async function settle() {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 30));
+  });
+}
+
+/** Vrai si quitter la page demanderait confirmation. */
+function wouldWarnOnUnload(): boolean {
+  const event = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(event);
+  return event.defaultPrevented;
+}
 
 describe("useAutosave", () => {
   it("survit à une écriture qui lève, et repart au retour du réseau", async () => {
@@ -55,6 +72,67 @@ describe("useAutosave", () => {
     expect(flushed).toBe(true);
     expect(probe.current.hook!.state).toBe("saved");
     expect(save).toHaveBeenLastCalledWith("ab");
+    await probe.unmount();
+  });
+
+  // Constat FM-2 de l'audit du 9 octobre 2026 : après un conflit, plus
+  // rien n'était écrit nulle part, et le rechargement demandé perdait tout
+  // ce qui avait été tapé depuis.
+  it("garde sur le poste tout ce qui est tapé pendant un conflit", async () => {
+    const save = vi.fn(async (): Promise<SaveOutcome> => "conflict");
+    const keep = vi.fn(async () => true);
+    const probe = mount(save, keep);
+    await probe.render("a");
+    await probe.render("ab");
+    await settle();
+
+    expect(probe.current.hook!.state).toBe("conflict");
+    expect(keep).toHaveBeenLastCalledWith("ab");
+
+    await probe.render("abc");
+    await settle();
+    expect(keep).toHaveBeenLastCalledWith("abc");
+    expect(save).toHaveBeenCalledTimes(1);
+    // Le texte affiché est gardé : recharger, comme l'écran y invite,
+    // ne demande pas confirmation.
+    expect(wouldWarnOnUnload()).toBe(false);
+    await probe.unmount();
+  });
+
+  it("retient l'utilisateur si la copie n'a pas pu être écrite", async () => {
+    const save = vi.fn(async (): Promise<SaveOutcome> => "conflict");
+    const keep = vi.fn(async () => false);
+    const probe = mount(save, keep);
+    await probe.render("a");
+    await probe.render("ab");
+    await settle();
+    expect(probe.current.hook!.state).toBe("conflict");
+    expect(wouldWarnOnUnload()).toBe(true);
+    await probe.unmount();
+  });
+
+  it("reprend l'enregistrement quand l'utilisateur garde son texte", async () => {
+    let resolved = false;
+    const save = vi.fn(
+      async (): Promise<SaveOutcome> => (resolved ? "saved" : "conflict"),
+    );
+    const probe = mount(save, async () => true);
+    await probe.render("a");
+    await probe.render("ab");
+    await settle();
+    await probe.render("abc");
+    await settle();
+    expect(probe.current.hook!.state).toBe("conflict");
+
+    resolved = true;
+    let saved = false;
+    await act(async () => {
+      saved = await probe.current.hook!.resume();
+    });
+    expect(saved).toBe(true);
+    expect(probe.current.hook!.state).toBe("saved");
+    expect(save).toHaveBeenLastCalledWith("abc");
+    expect(wouldWarnOnUnload()).toBe(false);
     await probe.unmount();
   });
 });

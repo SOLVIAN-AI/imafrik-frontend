@@ -166,6 +166,33 @@ export async function saveReportDraft(
 }
 
 /**
+ * Version d'un brouillon actuellement en base.
+ *
+ * Sert à résoudre un conflit d'enregistrement quand le radiologue choisit
+ * de garder le texte qu'il a sous les yeux : l'écriture suivante vise
+ * alors la version lue ici, et remplace celle enregistrée ailleurs (un
+ * second onglet, ou un enregistrement dont la réponse s'est perdue).
+ *
+ * @param reportId Compte-rendu concerné.
+ * @returns La version, et l'état du compte-rendu : un document signé
+ *          entre-temps ne se réécrit plus.
+ */
+export async function readDraftVersion(
+  reportId: string,
+): Promise<ActionResult<{ version: number; signed: boolean }>> {
+  if (isDemoMode()) return { ok: true, data: { version: 0, signed: false } };
+  const invalid = await rejectInvalidIds(reportId);
+  if (invalid) return invalid;
+  return run(async () => {
+    const report = await apiGet(
+      `/reports/${encodeURIComponent(reportId)}`,
+      reportSchema,
+    );
+    return { version: report.version, signed: report.status === "signed" };
+  });
+}
+
+/**
  * Signe un compte-rendu.
  *
  * **Irréversible.** Le service vérifie à nouveau les sections

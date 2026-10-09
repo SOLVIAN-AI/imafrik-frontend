@@ -56,6 +56,20 @@ describe("copie de secours chiffrée", () => {
     }
   });
 
+  it("garde la marque d'une copie écrite pendant un conflit", async () => {
+    const key = await keyFor("a");
+    expect(
+      await writeReportBackup(key, REPORT, { ...backup(), conflict: true }),
+    ).toBe(true);
+    const read = await readReportBackup(key, REPORT);
+    expect(read.status === "found" && read.backup.conflict).toBe(true);
+
+    // Une copie antérieure, sans la marque, reste lisible.
+    await writeReportBackup(key, REPORT, backup());
+    const plain = await readReportBackup(key, REPORT);
+    expect(plain.status === "found" && plain.backup.conflict).toBe(undefined);
+  });
+
   it("ne livre rien à un autre compte, et ne détruit pas la copie", async () => {
     await writeReportBackup(await keyFor("a"), REPORT, backup());
     expect((await readReportBackup(await keyFor("b"), REPORT)).status).toBe(

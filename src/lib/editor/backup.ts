@@ -10,12 +10,15 @@ import type { ReportSections } from "@/components/editor/report-editor";
  * de l'onglet : un rechargement, une batterie vide, et la dictée est
  * perdue — il faut relire l'examen.
  *
- * **La réponse.** À chaque échec d'enregistrement, le texte est copié dans
- * le stockage du navigateur, avec la version du brouillon sur laquelle il
- * a été écrit. À la réouverture de l'examen, la copie est proposée si elle
- * part de la version encore en base — sinon le brouillon a avancé ailleurs
- * depuis, et la copie, périmée, est écartée plutôt que d'écraser un texte
- * plus récent.
+ * **La réponse.** À chaque échec d'enregistrement, et pendant tout un
+ * conflit (brouillon modifié ailleurs), le texte est copié dans le
+ * stockage du navigateur, avec la version du brouillon sur laquelle il a
+ * été écrit. À la réouverture de l'examen, la copie est proposée au
+ * radiologue, qui choisit de la reprendre ou de l'écarter. Si le
+ * brouillon a avancé ailleurs depuis, la proposition le dit : la copie
+ * n'est jamais écartée en silence, car c'est souvent le texte le plus
+ * récent (un enregistrement appliqué dont la réponse s'est perdue fait
+ * avancer la version sans que le poste le sache).
  *
  * **La précaution.** Ce texte est médical, et le poste souvent partagé.
  * La copie est donc :
@@ -47,6 +50,11 @@ export interface ReportBackup {
   /** Version du brouillon en base au moment où le texte a été écrit. */
   baseVersion: number;
   savedAt: string;
+  /**
+   * Écrite pendant un conflit : le service avait une autre version du
+   * brouillon que celle sur laquelle le texte a été écrit.
+   */
+  conflict?: boolean;
 }
 
 /**
@@ -58,6 +66,8 @@ interface StoredBackup {
   format: typeof FORMAT;
   baseVersion: number;
   savedAt: string;
+  /** Copie écrite pendant un conflit. Facultatif : absent des copies antérieures. */
+  conflict?: boolean;
   /** Vecteur d'initialisation, base64. */
   iv: string;
   /** Sections chiffrées, base64. */
@@ -99,7 +109,8 @@ function isStoredBackup(value: unknown): value is StoredBackup {
     typeof candidate.baseVersion === "number" &&
     typeof candidate.savedAt === "string" &&
     typeof candidate.iv === "string" &&
-    typeof candidate.data === "string"
+    typeof candidate.data === "string" &&
+    (candidate.conflict === undefined || typeof candidate.conflict === "boolean")
   );
 }
 
@@ -137,12 +148,14 @@ export async function importBackupKey(raw: string): Promise<CryptoKey | null> {
  *
  * Silencieux si le stockage est bloqué : l'indicateur reste « hors
  * ligne » et la fermeture de l'onglet demande confirmation.
+ *
+ * @returns `true` si la copie est écrite.
  */
 export async function writeReportBackup(
   key: CryptoKey,
   reportId: string,
   backup: ReportBackup,
-): Promise<void> {
+): Promise<boolean> {
   try {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const data = await crypto.subtle.encrypt(
@@ -154,12 +167,15 @@ export async function writeReportBackup(
       format: FORMAT,
       baseVersion: backup.baseVersion,
       savedAt: backup.savedAt,
+      ...(backup.conflict ? { conflict: true } : {}),
       iv: toBase64(iv),
       data: toBase64(data),
     };
     window.localStorage.setItem(PREFIX + reportId, JSON.stringify(stored));
+    return true;
   } catch {
     // Navigation privée, quota atteint, chiffrement indisponible.
+    return false;
   }
 }
 
@@ -209,6 +225,7 @@ export async function readReportBackup(
         sections: JSON.parse(new TextDecoder().decode(plain)),
         baseVersion: stored.baseVersion,
         savedAt: stored.savedAt,
+        ...(stored.conflict ? { conflict: true } : {}),
       },
     };
   } catch {
