@@ -11,6 +11,7 @@ import {
 import { isDemoMode } from "@/lib/demo/mode";
 import type { Locale } from "@/lib/i18n/locale";
 import { DEMO_STUDIES, DEMO_USER_ID } from "@/lib/demo/studies";
+import { searchableText } from "@/lib/search/list-search";
 import { isConfiguredViewer } from "@/lib/security/urls";
 import { getSession } from "@/lib/session/server";
 
@@ -215,12 +216,14 @@ function filterDemo(studies: Study[], query: StudyQuery): Study[] {
   if (query.mine) {
     result = result.filter((study) => study.assignedTo === DEMO_USER_ID);
   }
-  if (query.search) {
-    const needle = query.search.toLowerCase();
+  const needle = query.search ? searchableText(query.search) : "";
+  if (needle) {
+    // Chaque champ séparément, comme le service : une recherche ne doit
+    // pas trouver un examen à cheval entre le nom et l'identifiant.
     result = result.filter((study) =>
-      `${study.patientName} ${study.patientId} ${study.modality}`
-        .toLowerCase()
-        .includes(needle),
+      [study.patientName, study.patientId, study.modality].some((field) =>
+        searchableText(field).includes(needle),
+      ),
     );
   }
   if (query.order === "deadline") {
