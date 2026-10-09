@@ -24,6 +24,7 @@ export const LIST_SEARCH_SCOPES = [
   "worklist",
   "examens",
   "admin-examens",
+  "comptes-rendus",
 ] as const;
 
 /** Une liste d'examens recherchable. */

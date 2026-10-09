@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useMessages } from "@/i18n/client";
 import { setListSearch } from "@/lib/actions/search";
+import { CURSOR_PARAM } from "@/lib/pagination";
 import {
   LIST_SEARCH_MAX_LENGTH,
   type ListSearchScope,
@@ -57,6 +58,8 @@ export function ListToolbar({
     const next = new URLSearchParams(params);
     // Un ancien lien portant encore `?q=` ne le transmet pas plus loin.
     next.delete("q");
+    // Un autre filtre, une autre liste : on repart de sa première page.
+    next.delete(CURSOR_PARAM);
     update(next);
     const query = next.toString();
     startTransition(() =>
@@ -79,6 +82,8 @@ export function ListToolbar({
           startTransition(async () => {
             const result = await setListSearch(scope, value);
             if (!result.ok) toast.error(result.error);
+            // Le curseur désignait une position dans l'ancienne recherche.
+            else if (params.has(CURSOR_PARAM)) navigate(() => undefined);
           });
         }}
       >

@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function SendStudyPage() {
   const session = await requireSession(["clinic_staff"]);
-  const [latest] = await listStudies({ limit: 1 });
+  const [latest] = await listStudies({ order: "received", limit: 1 });
   const { t } = await getMessages();
   const messages = t.clinic.send;
   // Le paquet de raccordement est dans la langue de la clinique, pas

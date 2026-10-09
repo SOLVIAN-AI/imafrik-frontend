@@ -1,5 +1,7 @@
 import "server-only";
 
+import { redirect } from "next/navigation";
+
 import type { StudyStatus } from "@/components/domain/study-status";
 import { ApiError, apiFetch, apiGet } from "@/lib/api/client";
 import {
@@ -105,28 +107,49 @@ function toStudy(row: ApiStudy): Study {
   };
 }
 
+/**
+ * Ordres de tri proposés par le service.
+ *
+ * - `recent` (défaut) : les urgences encore ouvertes, puis les plus
+ *   récents. Écrans de suivi ;
+ * - `received` : les plus récemment reçus, sans autre critère. « Dernier
+ *   examen reçu » ;
+ * - `deadline` : l'échéance la plus proche d'abord. File de lecture.
+ */
+export type StudyOrder = "recent" | "received" | "deadline";
+
 export interface StudyQuery {
   status?: StudyStatus[];
+  /** Seulement les examens de cette priorité, filtrés par le service. */
+  priority?: "routine" | "urgent";
   /** Recherche libre : nom ou identifiant du patient, modalité. */
   search?: string;
   /** Seulement les examens que l'utilisateur a pris en charge. */
   mine?: boolean;
-  /**
-   * `recent` (défaut) : urgences puis plus récents — écrans de suivi.
-   * `deadline` : échéance la plus proche d'abord — file de lecture.
-   */
-  order?: "recent" | "deadline";
+  order?: StudyOrder;
   limit?: number;
+  /**
+   * Position où reprendre : le `nextCursor` de la page précédente. Opaque,
+   * émis par le service pour un ordre de tri donné.
+   */
+  cursor?: string;
 }
 
 /** Une page d'examens, et le nombre total de ceux qui correspondent. */
 export interface StudyPage {
   studies: Study[];
+  /** Total compté par le service, toutes pages confondues. */
   total: number;
+  /** Curseur de la page suivante ; `null` sur la dernière. */
+  nextCursor: string | null;
 }
 
 /**
- * Examens visibles par l'utilisateur courant.
+ * Examens visibles par l'utilisateur courant, sans le total.
+ *
+ * Pour les usages qui ne veulent que quelques lignes (palette de
+ * commandes, dernier examen reçu). Un écran de liste passe par
+ * {@link listStudyPage}, qui dit combien il en manque.
  *
  * **Aucun filtre d'organisation n'est passé, et c'est volontaire.** La
  * restriction est appliquée par les politiques RLS à partir des claims du
@@ -141,36 +164,92 @@ export async function listStudies(query: StudyQuery = {}): Promise<Study[]> {
 }
 
 /**
- * Comme {@link listStudies}, avec le nombre total d'examens qui
- * correspondent : un écran qui n'en reçoit qu'une partie doit pouvoir le
- * dire, plutôt que de laisser croire que la liste est complète.
+ * Une page d'examens, avec le nombre total de ceux qui correspondent et
+ * le curseur de la suivante : un écran qui n'en reçoit qu'une partie doit
+ * pouvoir le dire, et proposer la suite, plutôt que de laisser croire que
+ * la liste est complète.
+ *
+ * Tous les filtres, ordre compris, sont appliqués par le service : filtrer
+ * ici une page déjà tronquée donnait des listes et des comptes faux.
  *
  * @param query Filtres facultatifs.
+ * @throws ApiError 422 si le curseur est illisible ou a été émis pour un
+ *         autre ordre de tri.
  */
 export async function listStudyPage(
   query: StudyQuery = {},
 ): Promise<StudyPage> {
-  if (isDemoMode()) {
-    const all = filterDemo(await demoScope(), { ...query, limit: undefined });
-    return {
-      studies: query.limit ? all.slice(0, query.limit) : all,
-      total: all.length,
-    };
-  }
+  if (isDemoMode()) return demoPage(await demoScope(), query);
 
   const params = new URLSearchParams();
   for (const status of query.status ?? []) params.append("status", status);
+  if (query.priority) params.set("priority", query.priority);
   if (query.search) params.set("q", query.search);
   if (query.mine) params.set("mine", "true");
   if (query.order) params.set("order", query.order);
   params.set("limit", String(query.limit ?? STUDY_PAGE_LIMIT));
+  if (query.cursor) params.set("cursor", query.cursor);
 
   const page = await apiGet(`/studies?${params.toString()}`, studyPageSchema);
-  return { studies: page.items.map(toStudy), total: page.total };
+  return {
+    studies: page.items.map(toStudy),
+    total: page.total,
+    nextCursor: page.next_cursor ?? null,
+  };
+}
+
+/**
+ * Comme {@link listStudyPage}, pour un écran de liste dont le curseur vient
+ * de l'adresse : un curseur refusé par le service (périmé après un
+ * changement d'ordre, ou modifié à la main) ramène au début de la liste au
+ * lieu d'afficher une erreur.
+ *
+ * @param query   Filtres, curseur compris.
+ * @param restart Adresse de la première page, autres paramètres gardés.
+ */
+export async function listStudyPageAt(
+  query: StudyQuery,
+  restart: string,
+): Promise<StudyPage> {
+  try {
+    return await listStudyPage(query);
+  } catch (error) {
+    if (query.cursor && error instanceof ApiError && error.status === 422) {
+      redirect(restart);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Prochain examen à lire, dans l'ordre de la file.
+ *
+ * Le service ordonne : les examens en attente de prise en charge, par
+ * échéance (`order=deadline`), retards en tête. C'est l'ordre exact de la
+ * file « À lire », quel que soit le nombre d'examens en attente ; l'écran
+ * le recalculait auparavant sur les deux cents plus récents, dans un autre
+ * ordre.
+ *
+ * @param currentId Examen ouvert, à ne pas proposer.
+ * @returns L'identifiant du suivant, ou `null` s'il n'y en a pas.
+ */
+export async function findNextStudyId(
+  currentId: string,
+): Promise<string | null> {
+  // Deux lignes : l'examen ouvert peut être lui-même le premier de la file.
+  const { studies } = await listStudyPage({
+    status: ["received"],
+    order: "deadline",
+    limit: 2,
+  });
+  return studies.find((study) => study.id !== currentId)?.id ?? null;
 }
 
 /** Taille de page maximale acceptée par le service. */
 export const STUDY_PAGE_LIMIT = 200;
+
+/** Taille d'une page des écrans de liste. */
+export const STUDY_LIST_PAGE_SIZE = 50;
 
 /**
  * Un examen précis.
@@ -205,12 +284,53 @@ async function demoScope(): Promise<Study[]> {
   );
 }
 
-/** Applique les filtres au jeu de démonstration. */
-function filterDemo(studies: Study[], query: StudyQuery): Study[] {
+/** Statuts d'un examen pas encore rendu, comme pour le service. */
+const OPEN_STATUSES: readonly StudyStatus[] = [
+  "received",
+  "assigned",
+  "in_progress",
+];
+
+/** Comparateurs des ordres de tri, identiques à ceux du service. */
+const DEMO_ORDERS: Record<StudyOrder, (a: Study, b: Study) => number> = {
+  recent: (a, b) =>
+    Number(isOpenUrgent(b)) - Number(isOpenUrgent(a)) ||
+    b.receivedAt.getTime() - a.receivedAt.getTime() ||
+    b.id.localeCompare(a.id),
+  received: (a, b) =>
+    b.receivedAt.getTime() - a.receivedAt.getTime() || b.id.localeCompare(a.id),
+  deadline: (a, b) =>
+    a.dueAt.getTime() - b.dueAt.getTime() ||
+    a.receivedAt.getTime() - b.receivedAt.getTime() ||
+    a.id.localeCompare(b.id),
+};
+
+function isOpenUrgent(study: Study): boolean {
+  return study.urgent && OPEN_STATUSES.includes(study.status);
+}
+
+/** Préfixe des curseurs du jeu de démonstration, suivi du rang. */
+const DEMO_CURSOR = /^demo-(recent|received|deadline)-(\d{1,6})$/;
+
+/**
+ * Applique les filtres, l'ordre et la pagination au jeu de démonstration,
+ * comme le service les applique en base.
+ *
+ * Le curseur est un rang : le jeu de démonstration ne change pas pendant
+ * qu'on le parcourt, le défaut d'un décalage n'y a pas lieu. Comme celui
+ * du service, il est lié à son ordre de tri, et un curseur illisible est
+ * refusé de la même façon (422).
+ */
+function demoPage(studies: Study[], query: StudyQuery): StudyPage {
+  const order = query.order ?? "recent";
   let result = studies;
 
   if (query.status?.length) {
     result = result.filter((study) => query.status!.includes(study.status));
+  }
+  if (query.priority) {
+    const urgent = query.priority === "urgent";
+    result = result.filter((study) => study.urgent === urgent);
   }
   if (query.mine) {
     result = result.filter((study) => study.assignedTo === DEMO_USER_ID);
@@ -223,14 +343,23 @@ function filterDemo(studies: Study[], query: StudyQuery): Study[] {
         .includes(needle),
     );
   }
-  if (query.order === "deadline") {
-    result = [...result].sort(
-      (a, b) =>
-        a.dueAt.getTime() - b.dueAt.getTime() ||
-        a.receivedAt.getTime() - b.receivedAt.getTime(),
-    );
+  result = [...result].sort(DEMO_ORDERS[order]);
+
+  let start = 0;
+  if (query.cursor) {
+    const match = DEMO_CURSOR.exec(query.cursor);
+    if (!match || match[1] !== order) {
+      throw new ApiError(422, "Curseur de pagination invalide");
+    }
+    start = Number(match[2]);
   }
-  return query.limit ? result.slice(0, query.limit) : result;
+  const limit = query.limit ?? STUDY_PAGE_LIMIT;
+  const end = start + limit;
+  return {
+    studies: result.slice(start, end),
+    total: result.length,
+    nextCursor: end < result.length ? `demo-${order}-${end}` : null,
+  };
 }
 
 /**

@@ -26,7 +26,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ClinicDashboardPage() {
   await requireSession(["clinic_staff"]);
   const [studies, metrics, toDownload] = await Promise.all([
-    listStudies({ limit: 5 }),
+    // Les derniers envois, dans l'ordre d'arrivée : une urgence ancienne
+    // ne doit pas masquer l'examen reçu à l'instant.
+    listStudies({ order: "received", limit: 5 }),
     getMetrics(),
     listStudies({ status: ["reported"], limit: 10 }),
   ]);

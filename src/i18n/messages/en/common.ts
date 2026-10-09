@@ -39,6 +39,12 @@ export const common: AppMessages["common"] = {
   urgent: "Urgent",
   sex: { M: "Male", F: "Female", O: "Other" },
   sexShort: { M: "M", F: "F", O: "O" },
+  pagination: {
+    label: "List pages",
+    shown: (shown: number, total: number) => `${shown} shown of ${total}`,
+    first: "Back to the start",
+    next: "Next page",
+  },
   units: {
     minute: "min",
     hour: "h",

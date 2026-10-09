@@ -7,9 +7,9 @@ import type { AppMessages } from "@/i18n";
 import { getMessages } from "@/i18n/server";
 import { getReportForStudy, type Report } from "@/lib/data/reports";
 import {
+  findNextStudyId,
   getStudy,
   getViewerUrl,
-  listStudies,
   type Study,
 } from "@/lib/data/studies";
 import { listTemplates } from "@/lib/data/templates";
@@ -74,23 +74,16 @@ function workspaceMode(
 }
 
 /**
- * Prochain examen à lire : la première urgence, sinon l'attente la plus
- * longue — l'ordre dans lequel un radiologue vide sa file.
+ * Prochain examen à lire, dans l'ordre de la file « À lire » : celui dont
+ * l'échéance est la plus proche, retards en tête. L'ordre est celui du
+ * service (`findNextStudyId`), sur toute la file.
  *
  * Un échec n'empêche pas d'ouvrir l'examen courant : le bouton « Examen
  * suivant » n'est qu'un raccourci.
  */
 async function findNextStudy(currentId: string): Promise<string | null> {
   try {
-    const waiting = (await listStudies({ status: ["received"] })).filter(
-      (study) => study.id !== currentId,
-    );
-    const byAge = (a: Study, b: Study) =>
-      a.receivedAt.getTime() - b.receivedAt.getTime();
-    const next =
-      waiting.filter((study) => study.urgent).sort(byAge)[0] ??
-      waiting.sort(byAge)[0];
-    return next?.id ?? null;
+    return await findNextStudyId(currentId);
   } catch {
     return null;
   }
