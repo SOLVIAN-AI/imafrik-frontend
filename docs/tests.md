@@ -5,7 +5,8 @@ Deux niveaux, qui ne vérifient pas la même chose.
 | Niveau | Outil | Dossier | Ce qu'il vérifie |
 | --- | --- | --- | --- |
 | Unitaire | Vitest | `src/**/*.test.ts` | La logique pure : redirections, accès par rôle, CSP, contrat d'API, textes. |
-| Bout en bout | Playwright | `e2e/*.spec.ts` | L'application compilée, dans un vrai navigateur. |
+| Bout en bout | Playwright | `e2e/*.spec.ts` | L'application compilée, dans un vrai navigateur, en mode démonstration. |
+| Parcours réels | Playwright | `e2e/reel/*.spec.ts` | L'application compilée contre le vrai Supabase et la vraie API (voir « Parcours réels »). |
 
 Vitest ne lit que `src/**/*.test.ts` : les parcours Playwright, en
 `.spec.ts` sous `e2e/`, ne sont jamais pris pour des tests unitaires.
@@ -131,3 +132,56 @@ un test qui ne passe qu'au second essai est signalé comme instable. En
 cas d'échec, le rapport HTML et les traces sont publiés comme artefact
 `rapport-playwright` (quatorze jours) : `npx playwright show-trace` sur
 le fichier `trace.zip` rejoue le test pas à pas.
+
+## Parcours réels
+
+Le mode démonstration ne traverse ni GoTrue, ni PostgREST, ni le hook des
+jetons, ni l'API : un défaut entre deux de ces pièces y reste invisible.
+Les parcours de `e2e/reel/`, avec leur configuration
+[`playwright.reel.config.ts`](../playwright.reel.config.ts), tournent au
+contraire contre une pile complète, démarrée sur la machine de CI par
+l'action composite
+[`.github/actions/parcours-reels`](../.github/actions/parcours-reels/action.yml)
+et le script [`tools/parcours-reels/pile.sh`](../tools/parcours-reels/pile.sh) :
+
+| Pièce | Ce qui tourne |
+| --- | --- |
+| Supabase | Le Supabase local du backend (CLI 2.114.0) : base avec ses migrations et son jeu de départ, GoTrue, PostgREST, Kong, Mailpit. Clés de démonstration générées par la CLI. |
+| API | L'image de production du backend (WeasyPrint, Pango, Cairo), en réseau hôte sur le port 8000. |
+| Annexes | Redis ; S3Mock à la place de R2 (dépôt, relecture et URL pré-signées des PDF ; il ne vérifie pas les signatures) ; un viewer factice, page statique sur le port 3100. Orthanc n'y est pas : le viewer se vérifie sur la préproduction. |
+| Application | Compilée avec les adresses de la pile, servie sur l'adresse du site que le Supabase local écrit dans ses courriels (`site_url` de sa configuration, lue par la pile). |
+
+| Fichier | Ce qu'il vérifie |
+| --- | --- |
+| `connexion.spec.ts` | Un compte créé par l'API d'administration de GoTrue se connecte ; un mauvais mot de passe est refusé ; le personnel d'une clinique comme le radiologue enrôlent un vrai second facteur TOTP ; le radiologue le présente à la connexion suivante. |
+| `invitation.spec.ts` | Une invitation part de l'API, son courriel est lu dans Mailpit, son lien est suivi ; l'invité choisit son mot de passe, enrôle son second facteur, arrive sur son tableau de bord, et se reconnecte avec l'un et l'autre. |
+| `examen.spec.ts` | Un examen arrive par le webhook d'ingestion ; le radiologue le trouve dans sa file, le prend en charge, le rédige et le signe ; la clinique télécharge le PDF, dont l'empreinte est celle de la base ; la page publique reconnaît le code du QR code et le fichier. |
+| `panne.spec.ts` | L'API arrêtée, le premier écran qui la demande annonce une interruption de service, sans référence d'erreur. Lancé en dernier : il arrête l'API pour de bon. |
+| `totp.spec.ts` | Le calcul des codes TOTP du parcours, contre les vecteurs de la RFC 6238. |
+
+Chaque parcours crée ses propres comptes (adresses en
+`@parcours.imafrik.tech`, jamais distribuées : tout courrier reste dans
+Mailpit) et ses propres examens, et ne suppose rien des autres. Les
+organisations sont celles du jeu de départ du backend (`db/seed.sql`).
+
+Le job `reel` de la CI du frontend les lance à chaque pull request et à
+chaque push sur `main`, en extrayant le backend avec le jeton
+`BACKEND_READ_TOKEN` (la branche homonyme si elle existe, `main` sinon).
+Le backend appelle la même action dans son job `parcours`, avec la
+branche homonyme du frontend : une évolution de l'API se vérifie contre
+les écrans qui la consomment. Comptez une quinzaine de minutes. En cas
+d'échec, l'artefact `rapport-parcours-reels` réunit le rapport, les
+traces, les journaux des conteneurs et celui du démarrage de Supabase.
+
+Ils ne se lancent pas sur un poste partagé : la pile occupe les ports
+standard du Supabase local. Sur un poste dédié, Docker démarré :
+
+```bash
+export BACKEND_DIR=../backend PILE_DIR=/tmp/pile
+docker build -t imafrik-api:parcours ../backend/services/api
+tools/parcours-reels/pile.sh supabase
+tools/parcours-reels/pile.sh services && tools/parcours-reels/pile.sh api
+set -a && source /tmp/pile/pile.env && set +a
+npm run build && npx playwright test --config playwright.reel.config.ts
+```
+

@@ -1,0 +1,144 @@
+# Parcours réels : l'application compilée contre le vrai Supabase et la
+# vraie API, dans un vrai navigateur.
+#
+# Action composite partagée par les deux dépôts. Elle attend les deux
+# extractions côte à côte, `frontend/` et `backend/`, et ne dépend
+# d'aucun secret : tout ce qu'elle démarre tourne sur l'exécuteur, avec
+# les clés de démonstration que la CLI Supabase génère.
+#
+# - le frontend l'appelle à chaque pull request et à chaque poussée sur
+#   main (.github/workflows/ci.yml, job `reel`) ;
+# - le backend l'appelle depuis l'extraction du frontend
+#   (`uses: ./frontend/.github/actions/parcours-reels`) : une évolution de
+#   l'API est ainsi vérifiée contre les écrans qui la consomment.
+#
+# Ordre choisi pour la durée : le Supabase local démarre en arrière-plan
+# dès le début (tirage des images, migrations), pendant l'installation
+# des dépendances, de Chromium et la construction de l'image de l'API.
+# Détail des parcours : docs/tests.md, section « Parcours réels ».
+
+name: Parcours réels
+description: Supabase local, API du backend et application en mode réel, parcourus par Playwright.
+
+inputs:
+  frontend-dir:
+    description: Extraction du dépôt frontend.
+    default: frontend
+  backend-dir:
+    description: Extraction du dépôt backend.
+    default: backend
+
+runs:
+  using: composite
+  steps:
+    # Version épinglée, celle des postes de développement : le format de
+    # supabase/config.toml évolue avec elle.
+    - uses: supabase/setup-cli@v1
+      with:
+        version: 2.114.0
+
+    - name: Démarrer Supabase en arrière-plan
+      shell: bash
+      env:
+        BACKEND_DIR: ${{ github.workspace }}/${{ inputs.backend-dir }}
+        PILE_DIR: ${{ runner.temp }}/pile
+      run: |
+        mkdir -p "$PILE_DIR"
+        nohup "${{ inputs.frontend-dir }}/tools/parcours-reels/pile.sh" supabase \
+          > "$PILE_DIR/supabase.log" 2>&1 &
+
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: ${{ inputs.frontend-dir }}/.nvmrc
+        cache: npm
+        cache-dependency-path: ${{ inputs.frontend-dir }}/package-lock.json
+
+    - name: Installer les dépendances
+      shell: bash
+      working-directory: ${{ inputs.frontend-dir }}
+      run: npm ci
+
+    - name: Installer Chromium
+      shell: bash
+      working-directory: ${{ inputs.frontend-dir }}
+      run: npx playwright install --with-deps chromium
+
+    # L'image de production elle-même : le rendu des PDF y trouve Pango et
+    # Cairo, et les dépendances sont celles du verrou. Le cache GitHub la
+    # reconstruit en quelques secondes quand le code de l'API n'a pas bougé.
+    - uses: docker/setup-buildx-action@v4
+
+    - name: Construire l'image de l'API
+      uses: docker/build-push-action@v7
+      with:
+        context: ${{ inputs.backend-dir }}/services/api
+        push: false
+        load: true
+        tags: imafrik-api:parcours
+        cache-from: type=gha,scope=api-parcours
+        cache-to: type=gha,scope=api-parcours,mode=max
+
+    - name: Attendre Supabase
+      shell: bash
+      env:
+        PILE_DIR: ${{ runner.temp }}/pile
+      run: |
+        "${{ inputs.frontend-dir }}/tools/parcours-reels/pile.sh" attendre-supabase
+        "${{ inputs.frontend-dir }}/tools/parcours-reels/pile.sh" exporter
+        grep -E '^▸|démarré' "$PILE_DIR/supabase.log" || true
+
+    - name: Démarrer Redis, le stockage et l'API
+      id: api
+      shell: bash
+      env:
+        PILE_DIR: ${{ runner.temp }}/pile
+      run: |
+        "${{ inputs.frontend-dir }}/tools/parcours-reels/pile.sh" services
+        "${{ inputs.frontend-dir }}/tools/parcours-reels/pile.sh" api
+
+    # Les variables NEXT_PUBLIC_* (versées par `exporter`) sont figées dans
+    # le code compilé : la compilation vient après le démarrage de la pile.
+    - name: Compiler en mode réel
+      shell: bash
+      working-directory: ${{ inputs.frontend-dir }}
+      env:
+        NEXT_TELEMETRY_DISABLED: "1"
+      run: npm run build
+
+    - name: Parcours réels
+      shell: bash
+      working-directory: ${{ inputs.frontend-dir }}
+      env:
+        E2E_LOT: reel
+      run: npx playwright test --config playwright.reel.config.ts --project reel
+
+    # Lancé dès que la pile tourne : l'écran de panne se vérifie même si un
+    # parcours précédent a échoué.
+    - name: Panne de l'API
+      if: ${{ !cancelled() && steps.api.outcome == 'success' }}
+      shell: bash
+      working-directory: ${{ inputs.frontend-dir }}
+      env:
+        E2E_LOT: panne
+      run: npx playwright test --config playwright.reel.config.ts --project panne --no-deps
+
+    - name: Recueillir les journaux
+      if: ${{ failure() }}
+      shell: bash
+      env:
+        PILE_DIR: ${{ runner.temp }}/pile
+      run: |
+        "${{ inputs.frontend-dir }}/tools/parcours-reels/pile.sh" journaux
+        tail -n 80 "$PILE_DIR/journaux/imafrik-api-parcours.log" || true
+
+    - name: Publier le rapport
+      if: ${{ failure() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: rapport-parcours-reels
+        path: |
+          ${{ inputs.frontend-dir }}/playwright-report/
+          ${{ inputs.frontend-dir }}/test-results/
+          ${{ runner.temp }}/pile/journaux/
+          ${{ runner.temp }}/pile/supabase.log
+        retention-days: 14

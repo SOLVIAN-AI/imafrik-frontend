@@ -45,6 +45,9 @@ const start = `npx next start --port ${PORT}`;
 export default defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.spec.ts",
+  // Parcours réels : ils exigent la pile complète, et ont leur propre
+  // configuration (`playwright.reel.config.ts`).
+  testIgnore: "reel/**",
   outputDir: "./test-results",
   // Les tests ne modifient pas l'état du serveur de démonstration : ils
   // peuvent tourner en parallèle, fichier par fichier comme test par test.
