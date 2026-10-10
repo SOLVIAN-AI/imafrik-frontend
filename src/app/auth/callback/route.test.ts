@@ -35,6 +35,8 @@ async function follow(query: string): Promise<string> {
 }
 
 beforeEach(() => {
+  vi.unstubAllEnvs();
+  vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
   demo.on = false;
   auth.verifyOtp.mockReset().mockResolvedValue({ error: null });
   auth.exchangeCodeForSession.mockReset().mockResolvedValue({ error: null });
@@ -130,5 +132,28 @@ describe("sans jeton ni code, ou en démonstration", () => {
       `${ORIGIN}/connexion?motif=lien-invalide`,
     );
     expect(auth.verifyOtp).not.toHaveBeenCalled();
+  });
+});
+
+describe("origine des redirections", () => {
+  it("suit l'adresse du site, et non celle sur laquelle le serveur écoute", async () => {
+    // Servie par `next start`, la route reçoit `http://localhost:3000` ;
+    // la session, elle, est posée sur le domaine du lien du courriel.
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://imafrik.tech/");
+    const response = await GET(
+      new NextRequest(
+        "http://localhost:3000/auth/callback?token_hash=abc&type=invite&suite=/invitation",
+      ),
+    );
+    expect(response.headers.get("location")).toBe(
+      "https://imafrik.tech/invitation",
+    );
+  });
+
+  it("retombe sur l'origine de la requête sans adresse de site valable", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "pas une adresse");
+    expect(await follow("token_hash=abc&type=invite")).toBe(
+      `${ORIGIN}/invitation`,
+    );
   });
 });
