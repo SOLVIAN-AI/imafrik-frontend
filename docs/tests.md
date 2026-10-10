@@ -148,7 +148,7 @@ et le script [`tools/parcours-reels/pile.sh`](../tools/parcours-reels/pile.sh) :
 | --- | --- |
 | Supabase | Le Supabase local du backend (CLI 2.114.0) : base avec ses migrations et son jeu de départ, GoTrue, PostgREST, Kong, Mailpit. Clés de démonstration générées par la CLI. |
 | API | L'image de production du backend (WeasyPrint, Pango, Cairo), en réseau hôte sur le port 8000. |
-| Annexes | Redis ; MinIO à la place de R2 (région « auto ») ; un viewer factice, page statique sur le port 3100. Orthanc n'y est pas : le viewer se vérifie sur la préproduction. |
+| Annexes | Redis ; S3Mock à la place de R2 (dépôt, relecture et URL pré-signées des PDF ; il ne vérifie pas les signatures) ; un viewer factice, page statique sur le port 3100. Orthanc n'y est pas : le viewer se vérifie sur la préproduction. |
 | Application | Compilée avec les adresses de la pile, servie sur `http://127.0.0.1:3000`, l'adresse du site que le Supabase local écrit dans ses courriels. |
 
 | Fichier | Ce qu'il vérifie |

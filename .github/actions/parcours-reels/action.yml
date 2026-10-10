@@ -88,6 +88,7 @@ runs:
         grep -E '^▸|démarré' "$PILE_DIR/supabase.log" || true
 
     - name: Démarrer Redis, le stockage et l'API
+      id: api
       shell: bash
       env:
         PILE_DIR: ${{ runner.temp }}/pile
@@ -111,10 +112,10 @@ runs:
         E2E_LOT: reel
       run: npx playwright test --config playwright.reel.config.ts --project reel
 
-    # Toujours lancé : l'écran de panne se vérifie même si un parcours
-    # précédent a échoué.
+    # Lancé dès que la pile tourne : l'écran de panne se vérifie même si un
+    # parcours précédent a échoué.
     - name: Panne de l'API
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && steps.api.outcome == 'success' }}
       shell: bash
       working-directory: ${{ inputs.frontend-dir }}
       env:

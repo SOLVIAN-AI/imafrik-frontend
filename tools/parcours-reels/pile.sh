@@ -11,7 +11,7 @@
 #               tourner en arrière-plan pendant les installations :
 #               `attendre-supabase` en attend la fin ;
 #    exporter   verse pile.env dans $GITHUB_ENV, secrets masqués ;
-#    services   Redis, un stockage compatible S3 (MinIO, à la place de
+#    services   Redis, un stockage compatible S3 (S3Mock, à la place de
 #               R2) et un viewer factice, page statique sur 127.0.0.1:3100 ;
 #    api        l'API, depuis son image de production (WeasyPrint, Pango
 #               et Cairo compris), en réseau hôte ; attend sa sonde ;
@@ -48,11 +48,14 @@ S3_CONTAINER=imafrik-s3-parcours
 #: Images épinglées : un parcours qui change d'outil sans qu'on le décide
 #: échouerait pour une raison étrangère à l'application.
 REDIS_IMAGE=redis:7.4-alpine
-S3_IMAGE=minio/minio:RELEASE.2025-04-22T22-12-26Z
+#: S3Mock plutôt que MinIO, dont les images ne sont plus publiées sur
+#: Docker Hub. Il ne vérifie pas les signatures : le dépôt, la relecture et
+#: les URL pré-signées des PDF sont exercés, pas l'authentification à R2.
+S3_IMAGE=adobe/s3mock:3.12.0
 
 #: Ports de la pile, tous sur 127.0.0.1.
 API_PORT=8000
-S3_PORT=9000
+S3_PORT=9090
 VIEWER_PORT=3100
 SITE_URL=http://127.0.0.1:3000
 
@@ -196,12 +199,10 @@ cmd_services() {
   log "Redis"
   docker run -d --name "$REDIS_CONTAINER" -p "127.0.0.1:6379:6379" "$REDIS_IMAGE" > /dev/null
 
-  log "Stockage compatible S3 (MinIO, région « auto » comme R2)"
-  docker run -d --name "$S3_CONTAINER" -p "127.0.0.1:$S3_PORT:9000" \
-    -e MINIO_ROOT_USER="$(lire E2E_S3_ACCESS_KEY)" \
-    -e MINIO_ROOT_PASSWORD="$(lire E2E_S3_SECRET_KEY)" \
-    -e MINIO_SITE_REGION=auto \
-    "$S3_IMAGE" server /data > /dev/null
+  log "Stockage compatible S3 (S3Mock), bucket des comptes-rendus créé"
+  docker run -d --name "$S3_CONTAINER" -p "127.0.0.1:$S3_PORT:9090" \
+    -e initialBuckets="$REPORTS_BUCKET" \
+    "$S3_IMAGE" > /dev/null
 
   log "Viewer factice sur 127.0.0.1:$VIEWER_PORT"
   mkdir -p "$PILE_DIR/viewer/viewer"
@@ -210,7 +211,7 @@ cmd_services() {
   nohup python3 -m http.server "$VIEWER_PORT" --bind 127.0.0.1 \
     --directory "$PILE_DIR/viewer" > "$PILE_DIR/viewer.log" 2>&1 &
 
-  attendre "http://127.0.0.1:$S3_PORT/minio/health/live" 60 "MinIO"
+  attendre "http://127.0.0.1:$S3_PORT/" 60 "S3Mock"
 }
 
 # Environnement de l'API : celui d'un déploiement, pointé sur la pile.
@@ -243,14 +244,6 @@ EOF
 cmd_api() {
   api_env > "$PILE_DIR/api.env"
   chmod 600 "$PILE_DIR/api.env"
-
-  log "Bucket des comptes-rendus"
-  docker run --rm --network host --env-file "$PILE_DIR/api.env" "$API_IMAGE" python -c "
-from app.infra import storage
-from app.config import get_settings
-storage._client().create_bucket(Bucket=get_settings().r2_reports_bucket)
-print('bucket créé')
-"
 
   log "API ($API_IMAGE)"
   docker run -d --name "$API_CONTAINER" --network host \
