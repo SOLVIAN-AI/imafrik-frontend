@@ -5,6 +5,8 @@ import {
 } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { assuranceFromVerified } from "@/lib/session/mfa";
+
 import { SessionUnavailableError } from "@/lib/session/resolve";
 import { isServiceUnavailable } from "@/lib/service-unavailable";
 
@@ -146,17 +148,15 @@ describe("double authentification : niveau tiré de données vérifiées", () =>
     expect(await getAuthState()).toBe("mfa-required");
   });
 
-  it("facteur non vérifié : ne relève pas le niveau attendu", async () => {
-    answers.user = {
-      data: {
-        user: {
-          ...USER,
-          factors: [{ ...VERIFIED_FACTOR, status: "unverified" }],
-        },
-      },
-      error: null,
-    };
-    expect(typeof (await getAuthState())).toBe("object");
+  it("facteur non vérifié : ne relève pas le niveau attendu", () => {
+    // Tous les rôles exigent le second facteur : l'effet d'un facteur
+    // inachevé se lit sur le niveau calculé, pas sur l'état de session.
+    expect(assuranceFromVerified("aal1", [{ status: "unverified" }]).next).toBe(
+      "aal1",
+    );
+    expect(assuranceFromVerified("aal1", [{ status: "verified" }]).next).toBe(
+      "aal2",
+    );
   });
 
   it("jeton non vérifiable : panne, pas un accès accordé", async () => {
@@ -229,6 +229,18 @@ describe("second facteur attendu : ni profil ni appartenances lus", () => {
 });
 
 describe("organisation active : la règle du hook de jeton", () => {
+  // Session complète : le second facteur, exigé de tous, est présenté.
+  beforeEach(() => {
+    answers.user = {
+      data: { user: { ...USER, factors: [VERIFIED_FACTOR] } },
+      error: null,
+    };
+    answers.claims = {
+      data: { claims: { aal: "aal2", mfa_required: false } },
+      error: null,
+    };
+  });
+
   it("retient l'appartenance désignée par le profil", async () => {
     answers.profile = { data: profile("m-b"), error: null };
     const state = await getAuthState();
