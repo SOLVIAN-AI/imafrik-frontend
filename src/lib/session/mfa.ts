@@ -87,6 +87,27 @@ export function passwordChangeNeedsSecondFactor(
 }
 
 /**
+ * Indique si la session attend son second facteur, avant toute lecture
+ * en base.
+ *
+ * Même règle que `second_factor_pending()` côté base (migration
+ * `20261010140000`), qui ferme alors la lecture du profil et des
+ * appartenances : le hook a exigé le second facteur (`mfa_required` du
+ * jeton vérifié), ou le compte en a un vérifié et la session ne l'a pas
+ * encore présenté. Une session au second niveau n'attend jamais rien.
+ *
+ * @param mfaRequired Claim `mfa_required` du jeton vérifié.
+ * @param level       Niveaux d'assurance de la session.
+ */
+export function secondFactorPending(
+  mfaRequired: unknown,
+  level: AssuranceLevel,
+): boolean {
+  if (level.current === "aal2") return false;
+  return mfaRequired === true || passwordChangeNeedsSecondFactor(level);
+}
+
+/**
  * Valide un code à usage unique : six chiffres, espaces tolérés — on
  * recopie souvent « 123 456 » tel que l'application l'affiche.
  *

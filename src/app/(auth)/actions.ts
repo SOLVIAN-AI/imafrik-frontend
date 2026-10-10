@@ -1,6 +1,7 @@
 "use server";
 
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { authCopy } from "@/content/auth";
@@ -8,6 +9,11 @@ import { isDemoMode } from "@/lib/demo/mode";
 import { writeLanguageCookie } from "@/lib/i18n/cookie";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locale";
 import { homeFor } from "@/lib/navigation";
+import {
+  attemptSucceeded,
+  beginAttempt,
+  retryMinutes,
+} from "@/lib/security/auth-throttle";
 import { safeRedirect } from "@/lib/security/redirect";
 import { tryGetAuthState } from "@/lib/session/server";
 import { createClient } from "@/lib/supabase/server";
@@ -24,6 +30,10 @@ export interface AuthState {
  * soit inconnue ou le mot de passe faux : distinguer les deux
  * permettrait de découvrir qui possède un compte, donc qui travaille
  * dans quel établissement.
+ *
+ * Les essais répétés sont ralentis puis suspendus, par adresse saisie et
+ * par visiteur (`lib/security/auth-throttle.ts`) : avant toute question à
+ * Supabase, et de la même façon qu'un compte existe ou non.
  *
  * La destination de retour (`suite`) est validée par `safeRedirect` :
  * un paramètre d'URL ne doit jamais pouvoir renvoyer hors de
@@ -50,6 +60,14 @@ export async function signIn(
 
   if (!isDemoMode()) {
     const supabase = await createClient();
+    const attempt = await beginAttempt(
+      supabase,
+      "password",
+      email,
+      await headers(),
+    );
+    if (!attempt.allowed)
+      return { error: errors.locked(retryMinutes(attempt.retryAfterSeconds)) };
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -63,6 +81,7 @@ export async function signIn(
         return { error: errors.unavailable };
       return { error: errors.invalid };
     }
+    await attemptSucceeded(supabase, attempt.keys);
   }
 
   const state = await tryGetAuthState();

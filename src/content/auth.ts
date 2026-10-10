@@ -37,6 +37,8 @@ export interface AuthCopy {
       linkExpired: string;
       linkInvalid: string;
       tooMany: string;
+      /** Essais suspendus par la limitation du serveur, pour tant de minutes. */
+      locked: (minutes: number) => string;
       unavailable: string;
     };
   };
@@ -99,6 +101,8 @@ const fr: AuthCopy = {
       linkInvalid: "Ce lien n’est pas valide. Demandez-en un nouveau.",
       tooMany:
         "Trop de tentatives de connexion. Patientez quelques minutes avant de réessayer.",
+      locked: (minutes: number) =>
+        `Trop de tentatives de connexion. Par sécurité, les essais sont suspendus : réessayez dans ${minutes} minute${minutes > 1 ? "s" : ""}.`,
       unavailable:
         "Le service d’authentification ne répond pas. Réessayez dans un instant.",
     },
@@ -166,6 +170,8 @@ const en: AuthCopy = {
       linkInvalid: "This link is not valid. Please request a new one.",
       tooMany:
         "Too many sign-in attempts. Please wait a few minutes before trying again.",
+      locked: (minutes: number) =>
+        `Too many sign-in attempts. For your security, sign-in is paused: please try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`,
       unavailable:
         "The authentication service is not responding. Please try again in a moment.",
     },

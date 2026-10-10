@@ -932,11 +932,16 @@ export interface paths {
          *     images jusqu'à quinze minutes après la déconnexion : le jeton de
          *     visualisation a une durée de vie propre, indépendante de la session.
          *
+         *     La révocation passe par la file durable (:mod:`app.services.revocation`),
+         *     comme les autres gestes : une panne de Redis ne fait plus échouer la
+         *     déconnexion (erreur 500 auparavant, jetons laissés vivants), la
+         *     révocation inscrite est rejouée par la tâche de fond.
+         *
          *     Args:
          *         principal: Appelant authentifié.
          *
          *     Returns:
-         *         Le nombre de jetons révoqués.
+         *         Si les jetons sont déjà tombés, ou laissés à la tâche de fond.
          */
         post: operations["logout_me_logout_post"];
         delete?: never;
@@ -2628,12 +2633,15 @@ export interface components {
          * @description Résultat d'une déconnexion.
          *
          *     Attributes:
-         *         revoked_viewer_tokens: Nombre de jetons de visualisation
-         *             invalidés.
+         *         viewer_tokens_revoked: ``True`` si les jetons de visualisation et
+         *             de dépôt sont déjà tombés ; ``False`` si Redis n'a pas
+         *             répondu et que la révocation, inscrite, est laissée à la
+         *             tâche de fond (au plus une minute). La déconnexion réussit
+         *             dans les deux cas.
          */
         LogoutResult: {
-            /** Revoked Viewer Tokens */
-            revoked_viewer_tokens: number;
+            /** Viewer Tokens Revoked */
+            viewer_tokens_revoked: boolean;
         };
         /**
          * Member

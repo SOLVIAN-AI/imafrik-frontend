@@ -187,6 +187,47 @@ describe("double authentification : niveau tiré de données vérifiées", () =>
   });
 });
 
+describe("second facteur attendu : ni profil ni appartenances lus", () => {
+  /** Toute lecture en base échoue : la base les refuse dans cet état. */
+  function refuseReads() {
+    const refused = { data: null, error: new Error("lecture refusée") };
+    answers.profile = refused;
+    answers.memberships = refused;
+  }
+
+  it("exigence du hook dans le jeton : « mfa-required » sans requête", async () => {
+    refuseReads();
+    answers.claims = {
+      data: { claims: { aal: "aal1", mfa_required: true } },
+      error: null,
+    };
+    expect(await getAuthState()).toBe("mfa-required");
+    expect(await getAvailableMemberships()).toEqual([]);
+  });
+
+  it("facteur vérifié sans organisation active : « mfa-required », pas « no-membership »", async () => {
+    refuseReads();
+    answers.user = {
+      data: { user: { ...USER, factors: [VERIFIED_FACTOR] } },
+      error: null,
+    };
+    expect(await getAuthState()).toBe("mfa-required");
+  });
+
+  it("second facteur présenté : profil et appartenances relus", async () => {
+    answers.user = {
+      data: { user: { ...USER, factors: [VERIFIED_FACTOR] } },
+      error: null,
+    };
+    answers.claims = {
+      data: { claims: { aal: "aal2", mfa_required: false } },
+      error: null,
+    };
+    const state = await getAuthState();
+    expect(typeof state === "object" && state.active.id).toBe("m-a");
+  });
+});
+
 describe("organisation active : la règle du hook de jeton", () => {
   it("retient l'appartenance désignée par le profil", async () => {
     answers.profile = { data: profile("m-b"), error: null };
