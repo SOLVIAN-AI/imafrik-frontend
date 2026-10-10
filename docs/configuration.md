@@ -224,9 +224,16 @@ Ces éléments sont posés par les migrations du dépôt backend et doivent
 
 | Environnement | Redirect URL |
 | --- | --- |
-| Développement | `http://localhost:3000/auth/callback` |
+| Développement (Supabase de la CLI) | `http://127.0.0.1:5173/auth/callback`, déjà déclarée dans `supabase/config.toml` du backend |
 | Aperçu Vercel | `https://<déploiement>.vercel.app/auth/callback` |
 | Production | `https://<domaine>/auth/callback` |
 
 Sans ces entrées, les liens d'invitation et de réinitialisation
 aboutissent à une erreur côté Supabase, pas côté application.
+
+Branchée sur la pile locale du backend, l'application se lance sur
+`http://127.0.0.1:5173` (`npm run dev -- -p 5173 -H 127.0.0.1`) : c'est
+l'adresse des liens de courriel du Supabase local (`site_url`), et le
+port 3000 y est déjà pris par le viewer OHIF. Ouvrir l'application sur
+cette même adresse, et non sur `localhost` : les cookies de session sont
+liés au nom d'hôte.
