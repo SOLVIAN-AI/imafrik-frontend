@@ -36,6 +36,8 @@ export const session: AppMessages["session"] = {
       enrollFailed: "Setup could not be started. Please try again.",
       codeFormat: "The code must have six digits.",
       unknownFactor: "Unknown authentication factor.",
+      locked: (minutes: number) =>
+        `Too many code attempts. For your security, verification is paused: please try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`,
       tooManyAttempts:
         "Too many attempts. Please wait a minute before trying again.",
       wrongCode:

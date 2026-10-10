@@ -1,11 +1,17 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import type { ActionResult } from "@/lib/actions/result";
 import { getMessages } from "@/i18n/server";
 import { isDemoMode } from "@/lib/demo/mode";
 import { homeFor } from "@/lib/navigation";
+import {
+  attemptSucceeded,
+  beginAttempt,
+  retryMinutes,
+} from "@/lib/security/auth-throttle";
 import { safeRedirect } from "@/lib/security/redirect";
 import { normalizeOtp } from "@/lib/session/mfa";
 import { tryGetAuthState } from "@/lib/session/server";
@@ -109,7 +115,9 @@ export async function startEnrollment(): Promise<ActionResult<Enrollment>> {
  *
  * Le message d'échec ne distingue pas un code faux d'un code expiré :
  * dans les deux cas, le geste est le même — saisir le code affiché
- * maintenant. Supabase limite le nombre d'essais.
+ * maintenant. Les essais répétés sont ralentis puis suspendus, par
+ * compte et par visiteur (`lib/security/auth-throttle.ts`), en plus des
+ * limites de Supabase.
  *
  * @param factorId Facteur à vérifier — celui qu'on vient d'enrôler, ou
  *                 le facteur existant.
@@ -135,6 +143,23 @@ export async function verifyCode(
   }
 
   const supabase = await createClient();
+  // Le compte est celui du jeton vérifié : le quota suit la personne, pas
+  // le facteur qu'elle désigne.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims.sub;
+  if (!userId) {
+    return { ok: false, error: t.common.errors.sessionExpired, status: 401 };
+  }
+  const attempt = await beginAttempt(supabase, "totp", userId, await headers());
+  if (!attempt.allowed) {
+    return {
+      ok: false,
+      error: t.session.mfa.errors.locked(
+        retryMinutes(attempt.retryAfterSeconds),
+      ),
+      status: 429,
+    };
+  }
   const { error } = await supabase.auth.mfa.challengeAndVerify({
     factorId,
     code,
@@ -149,6 +174,8 @@ export async function verifyCode(
       status: error.status ?? 401,
     };
   }
+
+  await attemptSucceeded(supabase, attempt.keys);
 
   // Le nouveau jeton (aal2) est posé ; l'état est relu avec lui.
   const state = await tryGetAuthState();
