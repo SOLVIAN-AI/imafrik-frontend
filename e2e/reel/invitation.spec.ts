@@ -8,6 +8,7 @@ import {
   rattacher,
   suffixe,
 } from "./support/pile";
+import { enrolerSecondFacteur, saisirCode } from "./support/session";
 
 /**
  * Invitation réelle, du clic de la clinique au tableau de bord de l'invité.
@@ -74,7 +75,8 @@ test("l’invité suit le lien du courriel, choisit son mot de passe et arrive s
   await page.getByLabel("Confirmation").fill(MOT_DE_PASSE);
   await page.getByRole("button", { name: "Enregistrer et continuer" }).click();
 
-  // Prise en main, puis le tableau de bord.
+  // Second facteur, exigé de tous, puis prise en main et tableau de bord.
+  const secret = await enrolerSecondFacteur(page);
   await expect(page).toHaveURL(/\/bienvenue\//);
   await page.goto("/bienvenue/termine");
   await page.getByRole("button", { name: "Ouvrir le tableau de bord" }).click();
@@ -82,11 +84,12 @@ test("l’invité suit le lien du courriel, choisit son mot de passe et arrive s
   await expect(page.getByText("Clinique Saint-Joseph").first()).toBeVisible();
 
   // Le mot de passe choisi est bien celui du compte : une nouvelle
-  // session s'ouvre avec lui.
+  // session s'ouvre avec lui, et le facteur enrôlé.
   await page.context().clearCookies();
   await page.goto("/connexion");
   await page.getByLabel("Adresse électronique").fill(invite);
   await page.locator("#password").fill(MOT_DE_PASSE);
   await page.getByRole("button", { name: "Se connecter" }).click();
+  await saisirCode(page, secret);
   await expect(page).toHaveURL("/tableau-de-bord");
 });

@@ -55,3 +55,19 @@ export async function saisirCode(page: Page, secret: string): Promise<void> {
   await page.getByLabel("Code à six chiffres").fill(await totpNow(secret));
   await page.getByRole("button", { name: "Vérifier" }).click();
 }
+
+/**
+ * Ouvre la session d'un compte neuf : mot de passe, puis enrôlement du
+ * second facteur, exigé de tous les rôles à la première connexion.
+ *
+ * @param page   Page sur laquelle se connecter.
+ * @param compte Compte créé pour le parcours, sans facteur enrôlé.
+ * @returns La clé du facteur enrôlé.
+ */
+export async function ouvrirSession(
+  page: Page,
+  compte: Compte,
+): Promise<string> {
+  await seConnecter(page, compte);
+  return enrolerSecondFacteur(page);
+}

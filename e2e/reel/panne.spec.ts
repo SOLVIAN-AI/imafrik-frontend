@@ -2,7 +2,7 @@ import { execSync } from "node:child_process";
 
 import { expect, test } from "../support/fixtures";
 import { creerCompte, ORGANISATIONS, rattacher } from "./support/pile";
-import { seConnecter } from "./support/session";
+import { ouvrirSession } from "./support/session";
 
 /**
  * L'API arrêtée : l'interface annonce une panne, pas un défaut.
@@ -42,7 +42,7 @@ test("l’API arrêtée, l’écran annonce une interruption de service", async 
   const compte = await creerCompte("panne", "Sena Amegah");
   rattacher(compte, ORGANISATIONS.clinique, "clinic_staff");
 
-  await seConnecter(page, compte);
+  await ouvrirSession(page, compte);
   await expect(page).toHaveURL("/tableau-de-bord");
   await expect(
     page.getByRole("heading", { name: "Service momentanément indisponible" }),

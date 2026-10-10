@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { expect } from "@playwright/test";
 
 import { environnement } from "./environnement";
+import { totpNow } from "./totp";
 
 /**
  * Accès directs à la pile réelle : comptes GoTrue, base, API, courriels.
@@ -169,29 +170,62 @@ export function habiliterRadiologue(compte: Compte): string {
   return licence;
 }
 
+/** Appelle GoTrue (`/auth/v1/…`) et renvoie le corps d'une réponse réussie. */
+async function gotrue<T>(
+  path: string,
+  body: unknown,
+  accessToken?: string,
+): Promise<T> {
+  const { supabaseUrl, anonKey } = environnement();
+  const headers: Record<string, string> = {
+    apikey: anonKey,
+    "Content-Type": "application/json",
+  };
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  const response = await fetch(`${supabaseUrl}/auth/v1${path}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+  const texte = await response.text();
+  if (!response.ok) {
+    throw new Error(`GoTrue ${path} : ${response.status} : ${texte}`);
+  }
+  return JSON.parse(texte) as T;
+}
+
 /**
- * Ouvre une session GoTrue hors du navigateur (mot de passe), pour
- * appeler l'API au nom d'un compte.
+ * Ouvre, hors du navigateur, une session dont le second facteur est
+ * vérifié, pour appeler l'API au nom d'un compte.
  *
- * @returns Le jeton d'accès, porteur des claims du hook.
+ * La double authentification vaut pour tous les rôles : un jeton obtenu
+ * par le seul mot de passe ne porte aucun rôle, et l'API le refuse. Le
+ * compte enrôle donc un facteur TOTP et le vérifie, par les mêmes appels
+ * que l'application.
+ *
+ * @returns Le jeton d'accès de niveau `aal2`, porteur des claims du hook.
  */
 export async function jetonDe(compte: Compte): Promise<string> {
-  const { supabaseUrl, anonKey } = environnement();
-  const response = await fetch(
-    `${supabaseUrl}/auth/v1/token?grant_type=password`,
-    {
-      method: "POST",
-      headers: { apikey: anonKey, "Content-Type": "application/json" },
-      body: JSON.stringify({ email: compte.email, password: compte.password }),
-    },
+  const session = await gotrue<{ access_token: string }>(
+    "/token?grant_type=password",
+    { email: compte.email, password: compte.password },
   );
-  const body = (await response.json()) as { access_token?: string };
-  if (!response.ok || !body.access_token) {
-    throw new Error(
-      `Session refusée pour ${compte.email} (${response.status}) : ${JSON.stringify(body)}`,
-    );
-  }
-  return body.access_token;
+  const facteur = await gotrue<{ id: string; totp: { secret: string } }>(
+    "/factors",
+    { factor_type: "totp", friendly_name: `parcours-${suffixe()}` },
+    session.access_token,
+  );
+  const defi = await gotrue<{ id: string }>(
+    `/factors/${facteur.id}/challenge`,
+    {},
+    session.access_token,
+  );
+  const verifiee = await gotrue<{ access_token: string }>(
+    `/factors/${facteur.id}/verify`,
+    { challenge_id: defi.id, code: await totpNow(facteur.totp.secret) },
+    session.access_token,
+  );
+  return verifiee.access_token;
 }
 
 /**

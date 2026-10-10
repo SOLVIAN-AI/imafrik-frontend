@@ -10,7 +10,7 @@ import {
   rattacher,
   sql,
 } from "./support/pile";
-import { enrolerSecondFacteur, seConnecter } from "./support/session";
+import { ouvrirSession } from "./support/session";
 
 /**
  * Le circuit complet d'un examen, de la passerelle à la vérification.
@@ -45,8 +45,7 @@ test("un examen ingéré est lu, signé, téléchargé par la clinique et vérif
     ingererExamen(ORGANISATIONS.clinique));
 
   await test.step("le radiologue trouve l’examen dans sa file", async () => {
-    await seConnecter(page, radiologue);
-    await enrolerSecondFacteur(page);
+    await ouvrirSession(page, radiologue);
     await expect(page).toHaveURL("/worklist");
     const ligne = page
       .locator("table a[data-row-link]")
@@ -106,7 +105,7 @@ test("un examen ingéré est lu, signé, téléchargé par la clinique et vérif
       baseURL: testInfo.project.use.baseURL,
     });
     const clinique = await contexte.newPage();
-    await seConnecter(clinique, clinicien);
+    await ouvrirSession(clinique, clinicien);
     await expect(clinique).toHaveURL("/tableau-de-bord");
     await clinique.goto(`/examens/${examen.studyId}`);
     const telechargement = clinique.waitForEvent("download");

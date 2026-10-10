@@ -149,12 +149,12 @@ et le script [`tools/parcours-reels/pile.sh`](../tools/parcours-reels/pile.sh) :
 | Supabase | Le Supabase local du backend (CLI 2.114.0) : base avec ses migrations et son jeu de départ, GoTrue, PostgREST, Kong, Mailpit. Clés de démonstration générées par la CLI. |
 | API | L'image de production du backend (WeasyPrint, Pango, Cairo), en réseau hôte sur le port 8000. |
 | Annexes | Redis ; S3Mock à la place de R2 (dépôt, relecture et URL pré-signées des PDF ; il ne vérifie pas les signatures) ; un viewer factice, page statique sur le port 3100. Orthanc n'y est pas : le viewer se vérifie sur la préproduction. |
-| Application | Compilée avec les adresses de la pile, servie sur `http://127.0.0.1:3000`, l'adresse du site que le Supabase local écrit dans ses courriels. |
+| Application | Compilée avec les adresses de la pile, servie sur l'adresse du site que le Supabase local écrit dans ses courriels (`site_url` de sa configuration, lue par la pile). |
 
 | Fichier | Ce qu'il vérifie |
 | --- | --- |
-| `connexion.spec.ts` | Un compte créé par l'API d'administration de GoTrue se connecte ; un mauvais mot de passe est refusé ; un radiologue enrôle un vrai second facteur TOTP, puis le présente à la connexion suivante. |
-| `invitation.spec.ts` | Une invitation part de l'API, son courriel est lu dans Mailpit, son lien est suivi ; l'invité choisit son mot de passe, arrive sur son tableau de bord, et se reconnecte avec ce mot de passe. |
+| `connexion.spec.ts` | Un compte créé par l'API d'administration de GoTrue se connecte ; un mauvais mot de passe est refusé ; le personnel d'une clinique comme le radiologue enrôlent un vrai second facteur TOTP ; le radiologue le présente à la connexion suivante. |
+| `invitation.spec.ts` | Une invitation part de l'API, son courriel est lu dans Mailpit, son lien est suivi ; l'invité choisit son mot de passe, enrôle son second facteur, arrive sur son tableau de bord, et se reconnecte avec l'un et l'autre. |
 | `examen.spec.ts` | Un examen arrive par le webhook d'ingestion ; le radiologue le trouve dans sa file, le prend en charge, le rédige et le signe ; la clinique télécharge le PDF, dont l'empreinte est celle de la base ; la page publique reconnaît le code du QR code et le fichier. |
 | `panne.spec.ts` | L'API arrêtée, le premier écran qui la demande annonce une interruption de service, sans référence d'erreur. Lancé en dernier : il arrête l'API pour de bon. |
 | `totp.spec.ts` | Le calcul des codes TOTP du parcours, contre les vecteurs de la RFC 6238. |

@@ -7,6 +7,7 @@ import {
 } from "./support/pile";
 import {
   enrolerSecondFacteur,
+  ouvrirSession,
   saisirCode,
   seConnecter,
 } from "./support/session";
@@ -21,7 +22,7 @@ import {
 
 test.use({ langue: "fr" });
 
-test("le personnel d’une clinique arrive sur son tableau de bord", async ({
+test("le personnel d’une clinique enrôle son second facteur et arrive sur son tableau de bord", async ({
   page,
 }) => {
   const compte = await creerCompte("accueil", "Kossi Agbeko");
@@ -33,7 +34,9 @@ test("le personnel d’une clinique arrive sur son tableau de bord", async ({
   );
   await expect(page).toHaveURL("/connexion");
 
-  await seConnecter(page, compte);
+  // La double authentification vaut aussi pour le personnel des
+  // cliniques : rien ne s'ouvre avant l'enrôlement.
+  await ouvrirSession(page, compte);
   await expect(page).toHaveURL("/tableau-de-bord");
   await expect(page.locator("h1").first()).toBeVisible();
   // L'organisation active vient du hook du jeton : sans lui, aucun écran

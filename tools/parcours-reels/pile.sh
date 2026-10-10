@@ -57,7 +57,21 @@ S3_IMAGE=adobe/s3mock:3.12.0
 API_PORT=8000
 S3_PORT=9090
 VIEWER_PORT=3100
-SITE_URL=http://127.0.0.1:3000
+
+# Adresse de l'application : celle que le Supabase local du backend déclare
+# comme adresse du site (`site_url`), sur laquelle il bâtit les liens de
+# ses courriels. Lue dans sa configuration plutôt que recopiée ici : si le
+# backend en change, les parcours suivent.
+site_url() {
+  : "${BACKEND_DIR:?BACKEND_DIR manquant}"
+  local url
+  url="$(sed -n 's/^site_url = "\(.*\)"$/\1/p' "$BACKEND_DIR/supabase/config.toml" | head -n1)"
+  if [[ ! "$url" =~ ^http://127\.0\.0\.1:[0-9]+$ ]]; then
+    echo "site_url inattendue dans supabase/config.toml : « $url »" >&2
+    return 1
+  fi
+  printf '%s' "$url"
+}
 
 #: Bucket des comptes-rendus signés.
 REPORTS_BUCKET=imafrik-reports
@@ -122,7 +136,8 @@ cmd_supabase() {
 
   local status
   status="$(cd "$BACKEND_DIR" && supabase status -o env)"
-  local api_url anon_key service_key jwt_secret db_url mailpit_url
+  local api_url anon_key service_key jwt_secret db_url mailpit_url site
+  site="$(site_url)"
   api_url="$(sed -n 's/^API_URL="\(.*\)"$/\1/p' <<< "$status")"
   anon_key="$(sed -n 's/^ANON_KEY="\(.*\)"$/\1/p' <<< "$status")"
   service_key="$(sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p' <<< "$status")"
@@ -158,7 +173,8 @@ cmd_supabase() {
   publier NEXT_PUBLIC_SUPABASE_URL "$api_url"
   publier NEXT_PUBLIC_SUPABASE_ANON_KEY "$anon_key"
   publier NEXT_PUBLIC_API_URL "http://127.0.0.1:$API_PORT"
-  publier NEXT_PUBLIC_SITE_URL "$SITE_URL"
+  publier NEXT_PUBLIC_SITE_URL "$site"
+  publier E2E_SITE_URL "$site"
   publier NEXT_PUBLIC_VIEWER_URL "http://127.0.0.1:$VIEWER_PORT/viewer"
   publier REPORT_BACKUP_SECRET "$(openssl rand -base64 48)" secret
   touch "$PILE_DIR/supabase.ok"
@@ -235,9 +251,9 @@ R2_REPORTS_BUCKET=$REPORTS_BUCKET
 R2_REPORTS_ACCESS_KEY=$(lire E2E_S3_ACCESS_KEY)
 R2_REPORTS_SECRET_KEY=$(lire E2E_S3_SECRET_KEY)
 PUBLIC_API_URL=http://127.0.0.1:$API_PORT
-APP_URL=$SITE_URL
+APP_URL=$(lire E2E_SITE_URL)
 VIEWER_URL=http://127.0.0.1:$VIEWER_PORT
-CORS_ORIGINS=["$SITE_URL"]
+CORS_ORIGINS=["$(lire E2E_SITE_URL)"]
 EOF
 }
 

@@ -13,8 +13,9 @@ import { defineConfig, devices } from "@playwright/test";
  * - **Un seul processus** : les parcours partagent une base, et l'un
  *   d'eux arrête l'API. Chacun crée néanmoins ses propres comptes et
  *   examens, et n'en suppose aucun autre.
- * - **Adresse 127.0.0.1:3000** : celle que le Supabase local déclare comme
- *   adresse du site (`site_url`), et donc celle des liens de ses courriels.
+ * - **Adresse du site** (`E2E_SITE_URL`) : celle que le Supabase local
+ *   déclare comme adresse du site (`site_url`), et donc celle des liens de
+ *   ses courriels. La pile la lit dans la configuration du backend.
  * - **Deux projets** : `reel` d'abord, puis `panne`, qui arrête l'API et
  *   vérifie l'écran d'interruption. La dépendance garantit l'ordre en
  *   local ; la CI les lance l'un après l'autre (`--project`, puis
@@ -23,9 +24,9 @@ import { defineConfig, devices } from "@playwright/test";
  *   résultats, que chaque lancement efface sinon.
  */
 
-const PORT = 3000;
+const BASE_URL = process.env.E2E_SITE_URL ?? "http://127.0.0.1:3000";
+const { hostname: HOSTNAME, port: PORT } = new URL(BASE_URL);
 const LOT = process.env.E2E_LOT ?? "reel";
-const BASE_URL = `http://127.0.0.1:${PORT}`;
 const CI = Boolean(process.env.CI);
 
 export default defineConfig({
@@ -67,7 +68,7 @@ export default defineConfig({
   webServer: {
     // Compilé au préalable avec les adresses de la pile : les variables
     // `NEXT_PUBLIC_*` sont figées dans le code compilé.
-    command: `npx next start --hostname 127.0.0.1 --port ${PORT}`,
+    command: `npx next start --hostname ${HOSTNAME} --port ${PORT}`,
     url: `${BASE_URL}/robots.txt`,
     reuseExistingServer: false,
     timeout: 60_000,
