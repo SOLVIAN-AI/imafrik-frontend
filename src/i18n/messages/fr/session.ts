@@ -41,6 +41,8 @@ export const session = {
       enrollFailed: "L’enrôlement n’a pas pu démarrer. Réessayez.",
       codeFormat: "Le code compte six chiffres.",
       unknownFactor: "Facteur inconnu.",
+      locked: (minutes: number) =>
+        `Trop d’essais de code. Par sécurité, la vérification est suspendue : réessayez dans ${minutes} minute${minutes > 1 ? "s" : ""}.`,
       tooManyAttempts:
         "Trop d’essais. Patientez une minute avant de recommencer.",
       wrongCode:

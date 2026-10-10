@@ -14,6 +14,7 @@ import {
   assuranceFromVerified,
   needsSecondFactor,
   passwordChangeNeedsSecondFactor,
+  secondFactorPending,
 } from "@/lib/session/mfa";
 import {
   isSignedOutError,
@@ -84,6 +85,11 @@ interface Account {
   memberships: Membership[];
   /** Niveaux d'assurance de la session, tirés de données vérifiées. */
   assurance: AssuranceLevel;
+  /**
+   * Second facteur attendu (voir `secondFactorPending`) : profil et
+   * appartenances n'ont pas été lus, la base les refuse.
+   */
+  secondFactorPending: boolean;
 }
 
 /**
@@ -117,7 +123,33 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
   }
   if (!user) return "anonymous";
 
-  const [profileResult, membershipsResult, claimsResult] = await Promise.all([
+  // Lit le jeton de la session (seulement lui, pas l'utilisateur du
+  // cookie) et en vérifie la signature. `getUser()` vient d'accepter ce
+  // jeton : un jeton illisible ou absent ici n'est pas une déconnexion
+  // mais un incident (clés de signature injoignables, session effacée
+  // entre-temps).
+  const claimsResult = await supabase.auth.getClaims();
+  if (claimsResult.error || !claimsResult.data)
+    throw new SessionUnavailableError("assurance", {
+      cause: claimsResult.error,
+    });
+  const { claims } = claimsResult.data;
+  const assurance = assuranceFromVerified(claims.aal, user.factors);
+  const account = { id: user.id, email: user.email ?? "" };
+
+  // Second facteur attendu : la base ne laisse lire ni le profil ni les
+  // appartenances (migration 20261010140000), et l'aiguillage n'en a pas
+  // besoin. On ne les demande donc pas.
+  if (secondFactorPending(claims.mfa_required, assurance))
+    return {
+      user: account,
+      profile: null,
+      memberships: [],
+      assurance,
+      secondFactorPending: true,
+    };
+
+  const [profileResult, membershipsResult] = await Promise.all([
     supabase
       .from("profiles")
       .select(
@@ -132,9 +164,6 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
       )
       .eq("profile_id", user.id)
       .overrideTypes<MembershipRow[]>(),
-    // Lit le jeton de la session (seulement lui, pas l'utilisateur du
-    // cookie) et en vérifie la signature.
-    supabase.auth.getClaims(),
   ]);
   if (profileResult.error)
     throw new SessionUnavailableError("profile", {
@@ -143,13 +172,6 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
   if (membershipsResult.error)
     throw new SessionUnavailableError("memberships", {
       cause: membershipsResult.error,
-    });
-  // `getUser()` vient d'accepter ce jeton : un jeton illisible ou absent
-  // ici n'est pas une déconnexion mais un incident (clés de signature
-  // injoignables, session effacée entre-temps).
-  if (claimsResult.error || !claimsResult.data)
-    throw new SessionUnavailableError("assurance", {
-      cause: claimsResult.error,
     });
 
   const memberships: Membership[] = (membershipsResult.data ?? []).flatMap(
@@ -171,13 +193,11 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
         : [],
   );
   return {
-    user: { id: user.id, email: user.email ?? "" },
+    user: account,
     profile: profileResult.data,
     memberships,
-    assurance: assuranceFromVerified(
-      claimsResult.data.claims.aal,
-      user.factors,
-    ),
+    assurance,
+    secondFactorPending: false,
   };
 });
 
@@ -212,6 +232,9 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
 
   const account = await loadAccount();
   if (account === "anonymous") return "anonymous";
+  // Avant tout le reste, comme le hook : un compte qui attend son second
+  // facteur n'a encore ni organisation ni rôle à faire valoir.
+  if (account.secondFactorPending) return "mfa-required";
   const { user, profile, memberships, assurance } = account;
 
   const active = resolveActiveMembership(

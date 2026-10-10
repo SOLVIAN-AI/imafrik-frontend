@@ -5,6 +5,7 @@ import {
   needsSecondFactor,
   passwordChangeNeedsSecondFactor,
   normalizeOtp,
+  secondFactorPending,
   roleRequiresMfa,
 } from "@/lib/session/mfa";
 
@@ -83,5 +84,28 @@ describe("changement de mot de passe", () => {
       next: null,
     });
     expect(assuranceFromVerified("aal3", null).current).toBeNull();
+  });
+});
+
+describe("second facteur attendu, avant toute lecture en base", () => {
+  const aal1 = { current: "aal1", next: "aal1" };
+  const withFactor = { current: "aal1", next: "aal2" };
+  const aal2 = { current: "aal2", next: "aal2" };
+
+  it("suit l'exigence posée par le hook dans le jeton", () => {
+    expect(secondFactorPending(true, aal1)).toBe(true);
+    expect(secondFactorPending(false, aal1)).toBe(false);
+    expect(secondFactorPending(undefined, aal1)).toBe(false);
+    // Seul le booléen vaut exigence : une chaîne n'est pas un claim valide.
+    expect(secondFactorPending("true", aal1)).toBe(false);
+  });
+
+  it("vaut pour un facteur vérifié, même sur un jeton qui ne le dit pas", () => {
+    expect(secondFactorPending(false, withFactor)).toBe(true);
+  });
+
+  it("n'attend plus rien au second niveau", () => {
+    expect(secondFactorPending(true, aal2)).toBe(false);
+    expect(secondFactorPending(false, aal2)).toBe(false);
   });
 });

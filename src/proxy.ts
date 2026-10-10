@@ -15,6 +15,7 @@ import {
 import { isDemoMode } from "@/lib/demo/mode";
 import { homeFor, isPublicRoute, isRouteAllowed } from "@/lib/navigation";
 import { contentSecurityPolicy, createNonce } from "@/lib/security/csp";
+import { clearRevokedSession, isRevokedSession } from "@/lib/session/revoked";
 import type { UserRole } from "@/lib/session/types";
 import { SESSION_COOKIE_OPTIONS } from "@/lib/supabase/cookies";
 import { supabaseEnv } from "@/lib/supabase/env";
@@ -66,7 +67,10 @@ function rememberLocale(
  *    connecté ne dépasse pas son portail.
  *
  * Le tri par rôle repose sur les claims du jeton, vérifiés localement
- * (`getClaims`). C'est une première barrière, rapide. Le second contrôle
+ * (`getClaims`). C'est une première barrière, rapide. Seule exception :
+ * sur l'écran de connexion, une session que le jeton dit ouverte est
+ * confirmée auprès de GoTrue, pour reconnaître une session révoquée
+ * (`lib/session/revoked.ts`). Le second contrôle
  * est fait par **chaque page**, qui appelle `requireSession` avec ses
  * rôles sur la session relue en base : les dispositions, elles, ne
  * vérifient que la présence d'une session, sans rôle. Un nouvel écran doit
@@ -190,6 +194,14 @@ export async function proxy(request: NextRequest) {
   if (!claims) {
     return authScreen ? withCsp(response) : redirectTo("/connexion", true);
   }
+
+  // Écran de connexion avec un jeton valide localement : tout écran qui
+  // refuse la session y renvoie. Si GoTrue la tient pour révoquée
+  // (déconnexion globale depuis un autre appareil), ses cookies sont
+  // effacés et la connexion s'affiche, au lieu de renvoyer vers le
+  // portail qui renverrait ici. Voir `lib/session/revoked.ts`.
+  if (authScreen && (await isRevokedSession(() => supabase.auth.getUser())))
+    return withCsp(clearRevokedSession(request, requestHeaders).response);
 
   // Second facteur à enrôler ou vérifier : le jeton n'ouvre aucune
   // donnée (hook Supabase) ; deux écrans seulement, celui qui permet d'en
