@@ -68,7 +68,9 @@ test("un examen ingéré est lu, signé, téléchargé par la clinique et vérif
     };
     for (const [titre, texte] of Object.entries(sections)) {
       const section = page.getByRole("textbox", { name: titre, exact: true });
-      await expect(section).toBeVisible();
+      // Modifiable une fois la prise en charge enregistrée et la page
+      // relue en mode auteur ; avant, l'éditeur est en lecture seule.
+      await expect(section).toHaveAttribute("contenteditable", "true");
       await section.fill(texte);
     }
   });

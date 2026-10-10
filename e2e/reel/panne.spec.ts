@@ -17,8 +17,13 @@ import { seConnecter } from "./support/session";
 
 test.use({
   langue: "fr",
-  // L'écran d'erreur journalise la panne côté navigateur ; c'est voulu.
-  ignoredErrors: [/\[imafrik\] IMAFRIK_SERVICE_UNAVAILABLE/],
+  ignoredErrors: [
+    // L'écran d'erreur journalise la panne côté navigateur ; c'est voulu.
+    /\[imafrik\] IMAFRIK_SERVICE_UNAVAILABLE/,
+    // React rapporte l'erreur du composant serveur que l'écran d'erreur a
+    // recueillie (message omis en production) : c'est la panne elle-même.
+    /Minified React error #441/,
+  ],
 });
 
 test.beforeAll(() => {
