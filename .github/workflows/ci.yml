@@ -14,8 +14,14 @@
 #
 # Les parcours de bout en bout (job `e2e`) tournent ici contre le mode
 # démonstration : une compilation de production sans Supabase ni API,
-# servie par `next start`. Ceux qui demandent un environnement complet
-# (Supabase, API, Orthanc) tournent sur la préproduction.
+# servie par `next start`.
+#
+# Les parcours réels (job `reel`) traversent au contraire le vrai
+# Supabase et la vraie API, démarrés sur l'exécuteur : Supabase local
+# avec les migrations du backend, API depuis son image de production.
+# Ils extraient le backend avec le même jeton `BACKEND_READ_TOKEN`, et
+# sont signalés comme non lancés sans lui. Seul Orthanc manque à la pile :
+# le viewer reste vérifié sur la préproduction.
 
 name: CI
 
@@ -167,3 +173,51 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 14
+
+  reel:
+    name: Parcours réels (Supabase et API)
+    runs-on: ubuntu-latest
+    # Quinze minutes attendues ; la marge couvre un tirage d'images lent.
+    timeout-minutes: 25
+    env:
+      BACKEND_READ_TOKEN: ${{ secrets.BACKEND_READ_TOKEN }}
+
+    steps:
+      - name: Jeton de lecture du backend
+        if: ${{ env.BACKEND_READ_TOKEN == '' }}
+        run: |
+          echo "::warning title=Parcours réels non lancés::Secret BACKEND_READ_TOKEN absent : le dépôt backend, privé, ne peut pas être extrait."
+
+      - uses: actions/checkout@v7
+        if: ${{ env.BACKEND_READ_TOKEN != '' }}
+        with:
+          path: frontend
+
+      # Même règle que pour le contrat : la branche homonyme du backend si
+      # elle existe, `main` sinon.
+      - name: Choisir la version du backend
+        id: backend-ref
+        if: ${{ env.BACKEND_READ_TOKEN != '' }}
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if git ls-remote --exit-code --heads \
+            "https://x-access-token:${BACKEND_READ_TOKEN}@github.com/SOLVIAN-AI/imafrik-backend.git" \
+            "refs/heads/${BRANCH}" > /dev/null; then
+            echo "ref=${BRANCH}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extraire le backend
+        if: ${{ env.BACKEND_READ_TOKEN != '' }}
+        uses: actions/checkout@v7
+        with:
+          repository: SOLVIAN-AI/imafrik-backend
+          token: ${{ secrets.BACKEND_READ_TOKEN }}
+          ref: ${{ steps.backend-ref.outputs.ref }}
+          path: backend
+
+      - name: Parcours réels
+        if: ${{ env.BACKEND_READ_TOKEN != '' }}
+        uses: ./frontend/.github/actions/parcours-reels
