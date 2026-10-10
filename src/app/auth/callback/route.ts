@@ -27,32 +27,6 @@ function isLinkType(value: string | null): value is LinkType {
 }
 
 /**
- * Origine des redirections : celle du site déclaré, à défaut celle de la
- * requête.
- *
- * L'origine de la requête n'est pas fiable hors de Vercel : servi par
- * `next start` (un conteneur, un serveur derrière un mandataire), un
- * gestionnaire de route reçoit l'adresse sur laquelle le serveur écoute,
- * `http://localhost:3000`, et non celle que le visiteur a ouverte. La
- * session, posée en cookie sur le domaine du lien, était alors perdue à
- * la redirection, et l'invité renvoyé à la connexion. Les parcours réels
- * de la CI l'ont révélé. Les liens des courriels sont bâtis sur l'adresse
- * du site : la redirection y reste.
- */
-function redirectOrigin(request: NextRequest): string {
-  const site = process.env.NEXT_PUBLIC_SITE_URL;
-  if (site) {
-    try {
-      const origin = new URL(site).origin;
-      if (origin !== "null") return origin;
-    } catch {
-      // Adresse invalide : signalée par l'écran de configuration requise.
-    }
-  }
-  return request.nextUrl.origin;
-}
-
-/**
  * Retour des liens envoyés par courriel.
  *
  * Deux formes arrivent ici :
@@ -79,8 +53,7 @@ function redirectOrigin(request: NextRequest): string {
  * pas un incident.
  */
 export async function GET(request: NextRequest) {
-  const { searchParams } = request.nextUrl;
-  const origin = redirectOrigin(request);
+  const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
