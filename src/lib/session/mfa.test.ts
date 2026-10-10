@@ -10,16 +10,18 @@ import {
 } from "@/lib/session/mfa";
 
 describe("double authentification", () => {
-  it("est exigée des rôles sensibles seulement", () => {
+  it("est exigée de tous les rôles", () => {
     expect(roleRequiresMfa("radiologist")).toBe(true);
     expect(roleRequiresMfa("platform_admin")).toBe(true);
-    expect(roleRequiresMfa("clinic_staff")).toBe(false);
+    // Tous les rôles depuis le 10 octobre 2026 : le personnel de clinique
+    // voit les données de tous les patients de sa clinique.
+    expect(roleRequiresMfa("clinic_staff")).toBe(true);
   });
 
   it("est demandée tant que la session n'est pas en aal2", () => {
     const aal1 = { current: "aal1", next: "aal1" };
     expect(needsSecondFactor("radiologist", aal1)).toBe(true);
-    expect(needsSecondFactor("clinic_staff", aal1)).toBe(false);
+    expect(needsSecondFactor("clinic_staff", aal1)).toBe(true);
     expect(
       needsSecondFactor("radiologist", { current: "aal2", next: "aal2" }),
     ).toBe(false);

@@ -10,8 +10,12 @@ import type { UserRole } from "@/lib/session/types";
  * permet de le satisfaire, avec la même règle.
  */
 
-/** Rôles soumis à la double authentification — même liste qu'en base. */
-export const MFA_ROLES: readonly UserRole[] = ["radiologist", "platform_admin"];
+/** Rôles soumis à la double authentification : tous, même liste qu’en base (`role_requires_mfa`). */
+export const MFA_ROLES: readonly UserRole[] = [
+  "clinic_staff",
+  "radiologist",
+  "platform_admin",
+];
 
 /** Indique si un rôle exige la double authentification. */
 export function roleRequiresMfa(role: UserRole): boolean {
