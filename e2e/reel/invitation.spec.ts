@@ -77,7 +77,7 @@ test("l’invité suit le lien du courriel, choisit son mot de passe et arrive s
   // Prise en main, puis le tableau de bord.
   await expect(page).toHaveURL(/\/bienvenue\//);
   await page.goto("/bienvenue/termine");
-  await page.getByRole("link", { name: "Ouvrir le tableau de bord" }).click();
+  await page.getByRole("button", { name: "Ouvrir le tableau de bord" }).click();
   await expect(page).toHaveURL("/tableau-de-bord");
   await expect(page.getByText("Clinique Saint-Joseph").first()).toBeVisible();
 
