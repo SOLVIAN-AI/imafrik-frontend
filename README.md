@@ -11,6 +11,10 @@ cp .env.local.example .env.local   # vide : l'application tourne sur le jeu de d
 npm run dev        # http://localhost:3000
 ```
 
+Avec la pile locale du backend (Supabase de la CLI, API, viewer), lancer
+plutôt `npm run dev -- -p 5173 -H 127.0.0.1` : voir
+[`docs/configuration.md`](docs/configuration.md), « Adresses de redirection ».
+
 Renseigner `.env.local` (Supabase, API, viewer, adresse du site) branche
 l'interface sur un backend réel. Voir
 [`docs/configuration.md`](docs/configuration.md) ; une production à
