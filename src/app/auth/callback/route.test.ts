@@ -34,6 +34,20 @@ async function follow(query: string): Promise<string> {
   return response.headers.get("location") ?? "";
 }
 
+describe("adresse de redirection", () => {
+  it("reste relative, quel que soit l'hôte vu par le serveur", async () => {
+    // Hors de Vercel, nextUrl porte le nom d'hôte d'écoute (« localhost »),
+    // et non celui que le navigateur a ouvert : une redirection absolue
+    // l'envoyait sur un autre hôte, sans ses cookies de session.
+    const response = await GET(
+      new NextRequest(
+        "http://localhost:5173/auth/callback?token_hash=abc&type=invite",
+      ),
+    );
+    expect(response.headers.get("location")).toBe("/invitation");
+  });
+});
+
 beforeEach(() => {
   demo.on = false;
   auth.verifyOtp.mockReset().mockResolvedValue({ error: null });
@@ -49,7 +63,7 @@ describe("liens par token_hash", () => {
       token_hash: "abc",
       type: "invite",
     });
-    expect(location).toBe(`${ORIGIN}/invitation`);
+    expect(location).toBe(`/invitation`);
   });
 
   it("ouvre la session d'une réinitialisation, depuis n'importe quel appareil", async () => {
@@ -62,15 +76,13 @@ describe("liens par token_hash", () => {
     });
     // Aucun échange de code : pas de vérificateur PKCE nécessaire.
     expect(auth.exchangeCodeForSession).not.toHaveBeenCalled();
-    expect(location).toBe(`${ORIGIN}/nouveau-mot-de-passe`);
+    expect(location).toBe(`/nouveau-mot-de-passe`);
   });
 
   it("conduit à la page du type quand `suite` manque", async () => {
-    expect(await follow("token_hash=abc&type=invite")).toBe(
-      `${ORIGIN}/invitation`,
-    );
+    expect(await follow("token_hash=abc&type=invite")).toBe(`/invitation`);
     expect(await follow("token_hash=abc&type=recovery")).toBe(
-      `${ORIGIN}/nouveau-mot-de-passe`,
+      `/nouveau-mot-de-passe`,
     );
   });
 
@@ -82,14 +94,14 @@ describe("liens par token_hash", () => {
     const location = await follow(
       `token_hash=abc&type=recovery&suite=${encodeURIComponent(suite)}`,
     );
-    expect(location).toBe(`${ORIGIN}/nouveau-mot-de-passe`);
+    expect(location).toBe(`/nouveau-mot-de-passe`);
   });
 
   it.each(["signup", "email_change", "magiclink", "email", "", "INVITE"])(
     "refuse le type %j sans ouvrir de session",
     async (type) => {
       const location = await follow(`token_hash=abc&type=${type}`);
-      expect(location).toBe(`${ORIGIN}/connexion?motif=lien-invalide`);
+      expect(location).toBe(`/connexion?motif=lien-invalide`);
       expect(auth.verifyOtp).not.toHaveBeenCalled();
     },
   );
@@ -97,7 +109,7 @@ describe("liens par token_hash", () => {
   it("signale un lien expiré ou déjà utilisé", async () => {
     auth.verifyOtp.mockResolvedValue({ error: new Error("expired") });
     expect(await follow("token_hash=abc&type=invite")).toBe(
-      `${ORIGIN}/connexion?motif=lien-expire`,
+      `/connexion?motif=lien-expire`,
     );
   });
 });
@@ -106,28 +118,26 @@ describe("liens par code (PKCE)", () => {
   it("échange le code et suit `suite`", async () => {
     const location = await follow("code=xyz&suite=/nouveau-mot-de-passe");
     expect(auth.exchangeCodeForSession).toHaveBeenCalledWith("xyz");
-    expect(location).toBe(`${ORIGIN}/nouveau-mot-de-passe`);
+    expect(location).toBe(`/nouveau-mot-de-passe`);
   });
 
   it("signale un code refusé", async () => {
     auth.exchangeCodeForSession.mockResolvedValue({ error: new Error("x") });
-    expect(await follow("code=xyz")).toBe(
-      `${ORIGIN}/connexion?motif=lien-expire`,
-    );
+    expect(await follow("code=xyz")).toBe(`/connexion?motif=lien-expire`);
   });
 });
 
 describe("sans jeton ni code, ou en démonstration", () => {
   it("refuse un lien vide", async () => {
     expect(await follow("suite=/invitation")).toBe(
-      `${ORIGIN}/connexion?motif=lien-invalide`,
+      `/connexion?motif=lien-invalide`,
     );
   });
 
   it("n'ouvre aucune session en démonstration", async () => {
     demo.on = true;
     expect(await follow("token_hash=abc&type=invite")).toBe(
-      `${ORIGIN}/connexion?motif=lien-invalide`,
+      `/connexion?motif=lien-invalide`,
     );
     expect(auth.verifyOtp).not.toHaveBeenCalled();
   });

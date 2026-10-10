@@ -27,6 +27,24 @@ function isLinkType(value: string | null): value is LinkType {
 }
 
 /**
+ * Redirection relative : le navigateur la résout sur l'adresse qu'il a
+ * lui-même ouverte.
+ *
+ * `request.nextUrl.origin` ne convient pas : hors de Vercel (`next start`,
+ * derrière un mandataire), Next.js y met le nom d'hôte sur lequel le
+ * serveur écoute, et non celui du lien suivi. Ouvert sur
+ * `http://127.0.0.1:5173`, le lien d'invitation renvoyait ainsi vers
+ * `http://localhost:5173/invitation` : les cookies de session, posés sur
+ * 127.0.0.1, ne suivaient pas, et l'invité retombait sur l'écran de
+ * connexion. Constaté lors de la répétition générale du 10 octobre 2026.
+ *
+ * @param path Chemin de destination, déjà validé (`safeRedirect`).
+ */
+function redirectTo(path: string): NextResponse {
+  return new NextResponse(null, { status: 307, headers: { Location: path } });
+}
+
+/**
  * Retour des liens envoyés par courriel.
  *
  * Deux formes arrivent ici :
@@ -53,14 +71,12 @@ function isLinkType(value: string | null): value is LinkType {
  * pas un incident.
  */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
-  const invalid = () =>
-    NextResponse.redirect(`${origin}/connexion?motif=lien-invalide`);
-  const expired = () =>
-    NextResponse.redirect(`${origin}/connexion?motif=lien-expire`);
+  const invalid = () => redirectTo("/connexion?motif=lien-invalide");
+  const expired = () => redirectTo("/connexion?motif=lien-expire");
 
   if (isDemoMode()) return invalid();
 
@@ -76,7 +92,7 @@ export async function GET(request: NextRequest) {
       type,
     });
     if (error) return expired();
-    return NextResponse.redirect(`${origin}${suite ?? LINK_TYPES[type]}`);
+    return redirectTo(suite ?? LINK_TYPES[type]);
   }
 
   if (!code) return invalid();
@@ -87,5 +103,5 @@ export async function GET(request: NextRequest) {
 
   // À défaut, la connexion : le proxy y renvoie un utilisateur connecté
   // vers l’accueil de son portail.
-  return NextResponse.redirect(`${origin}${suite ?? "/connexion"}`);
+  return redirectTo(suite ?? "/connexion");
 }
