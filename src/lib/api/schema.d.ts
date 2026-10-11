@@ -721,7 +721,7 @@ export interface paths {
         put?: never;
         /**
          * Décrire ce qu'un jeton donne à voir
-         * @description Renvoie au plugin les étiquettes que ce jeton autorise.
+         * @description Renvoie au plugin les permissions et les étiquettes d'un jeton.
          *
          *     C'est la pièce qui manquait pour qu'une **recherche** DICOMweb soit
          *     contrôlée : le moteur de décision ne voit que les requêtes visant une
@@ -729,22 +729,22 @@ export interface paths {
          *
          *     Le corps est relu depuis la requête brute plutôt que par un paramètre
          *     typé, pour deux raisons : le format varie d'une version du plugin à
-         *     l'autre, et un corps inattendu doit produire l'absence de profil —
-         *     donc la fermeture — et non une 422 que le plugin interpréterait mal.
+         *     l'autre, et un corps inattendu doit produire la fermeture, et non une
+         *     422 que le plugin interpréterait mal.
          *
          *     Args:
          *         request: Requête brute, dont le corps JSON est posté par le plugin.
          *         settings: Configuration injectée.
          *
          *     Returns:
-         *         Le profil en JSON, ou une réponse 403 sans corps si le jeton
-         *         n'ouvre aucun profil. **Cette 403 n'est pas un refus d'accès** :
-         *         elle dit au plugin « pas de profil pour ce jeton », qui traite
-         *         alors l'appelant en anonyme — aucune étiquette, donc aucun
-         *         résultat de recherche — tout en lui laissant le mécanisme des
-         *         resource tokens. C'est ce qui permet aux jetons de visualisation
-         *         du viewer, qui ne sont pas des JWT, de continuer à ouvrir leur
-         *         étude.
+         *         Le profil en JSON. Celui du jeton de service ouvre ce que l'API
+         *         utilise ; **tout autre jeton reçoit le profil anonyme**, sans
+         *         permission ni étiquette, que le plugin garde en cache
+         *         (``ANONYMOUS_PROFILE_VALIDITY``). Il laisse aux jetons de
+         *         visualisation, qui ne sont pas des JWT, le seul mécanisme des
+         *         resource tokens pour ouvrir leur étude. Une réponse 403 sans corps
+         *         n'est renvoyée qu'à un corps illisible : le plugin la traite
+         *         aussi en anonyme, mais la redemande à chaque requête.
          */
         post: operations["profile_internal_orthanc_user_profile_post"];
         delete?: never;
