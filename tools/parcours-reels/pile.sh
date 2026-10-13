@@ -234,9 +234,13 @@ cmd_services() {
 # aucun modèle n'est appelé, la connexion « fake » de l'API rend ce texte.
 # Trois signalements, écrits pour le brouillon de e2e/reel/relecture.spec.ts :
 # deux dont la citation existe dans le texte, un dont la citation est
-# inventée, que l'API doit jeter avant qu'il n'atteigne l'écran. La
-# relecture reste coupée tant qu'un parcours n'active pas son organisation.
-AI_FAKE_REPLY='{"findings":[{"kind":"contradiction","section":"conclusion","quote":"Absence de tout épanchement pleural","related_section":"resultats","related_quote":"Épanchement pleural droit de faible abondance","note":"La conclusion écarte un épanchement que les résultats décrivent."},{"kind":"omission","section":"resultats","quote":"de faible abondance","note":"L’abondance décrite ne figure pas dans la conclusion."},{"kind":"omission","section":"resultats","quote":"Nodule spiculé de 12 mm","note":"Citation inventée par le modèle."}]}'
+# inventée, que l'API doit jeter avant qu'il n'atteigne l'écran. Le passage
+# opposé de la contradiction (« Épanchement pleural droit ») survit à la
+# correction que fait le parcours : l'API jette aussi un signalement dont
+# le passage opposé a disparu, et la contradiction doit revenir à la
+# signature. La relecture reste coupée tant qu'un parcours n'active pas
+# son organisation.
+AI_FAKE_REPLY='{"findings":[{"kind":"contradiction","section":"conclusion","quote":"Absence de tout épanchement pleural","related_section":"resultats","related_quote":"Épanchement pleural droit","note":"La conclusion écarte un épanchement que les résultats décrivent."},{"kind":"omission","section":"resultats","quote":"de faible abondance","note":"L’abondance décrite ne figure pas dans la conclusion."},{"kind":"omission","section":"resultats","quote":"Nodule spiculé de 12 mm","note":"Citation inventée par le modèle."}]}'
 
 # Environnement de l'API : celui d'un déploiement, pointé sur la pile.
 api_env() {
