@@ -65,7 +65,13 @@ test("un brouillon est relu par l’IA, ses signalements écartés ou corrigés,
   await test.step("sans activation, l’éditeur ne propose pas la relecture avancée", async () => {
     activerRelecture(false);
     await ouvrirSession(page, radiologue);
+    // La connexion mène à la file : y arriver avant de naviguer, sans
+    // quoi la navigation suivante couperait celle de la connexion.
+    await expect(page).toHaveURL("/worklist");
     await page.goto(`/lecture/${examen.studyId}`);
+    await expect(
+      page.getByRole("heading", { level: 1, name: examen.displayName }),
+    ).toBeVisible();
     await page.getByRole("button", { name: "Prendre en charge" }).click();
     await expect(section("Résultats")).toHaveAttribute(
       "contenteditable",
