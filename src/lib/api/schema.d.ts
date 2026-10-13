@@ -651,7 +651,7 @@ export interface paths {
          * @description Note la décision du radiologue sur un signalement.
          *
          *     C'est la mesure qui dit si la relecture sert : un type de signalement
-         *     presque toujours écarté est retiré ou retravaillé (docs/ia.md, 8.2).
+         *     presque toujours écarté est retiré ou retravaillé (docs/ia.md, 8.3).
          *     Seuls le type et la décision sont gardés, jamais le texte.
          *
          *     Args:
