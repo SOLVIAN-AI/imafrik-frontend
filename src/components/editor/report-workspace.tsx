@@ -31,6 +31,7 @@ import {
   type SectionKey,
 } from "@/components/editor/report-editor";
 import { SignReportDialog } from "@/components/editor/sign-report-dialog";
+import { useAiReview } from "@/components/editor/use-ai-review";
 import {
   SaveAsTemplate,
   TemplatePicker,
@@ -299,6 +300,7 @@ export function ReportWorkspace({
   signerName,
   templates = [],
   nextStudyId = null,
+  aiReview: aiReviewOffered = false,
 }: {
   study: WorkspaceStudy;
   viewerUrl: string | null;
@@ -308,6 +310,8 @@ export function ReportWorkspace({
   signerName: string;
   templates?: ReportTemplate[];
   nextStudyId?: string | null;
+  /** La relecture par IA est offerte à cet utilisateur (décidé par le service). */
+  aiReview?: boolean;
 }) {
   const router = useRouter();
   const { isDemo, active } = useSession();
@@ -500,6 +504,27 @@ export function ReportWorkspace({
    * si un autre onglet a enregistré depuis. L'erreur levée est affichée
    * telle quelle par la modale.
    */
+  // Relecture par IA : seulement pour l'auteur d'un brouillon ouvert. Elle
+  // enregistre avant d'appeler, parce que le service relit ce qui est en
+  // base, pas ce qui est à l'écran.
+  const aiReview = useAiReview({
+    reportId: locked ? null : (author?.reportId ?? null),
+    sections,
+    enabled: aiReviewOffered,
+    save: flush,
+  });
+
+  /**
+   * Ouvre la fenêtre de signature. La relecture par IA part à ce
+   * moment-là si elle n'a pas encore porté sur ce texte : le radiologue
+   * la trouve faite en arrivant, sans avoir eu à y penser. Elle ne retarde
+   * ni n'empêche la signature.
+   */
+  const openSigning = React.useCallback(() => {
+    setConfirming(true);
+    if (aiReview.status === "idle" || aiReview.stale) aiReview.run();
+  }, [aiReview]);
+
   const sign = React.useCallback(async () => {
     if (!author) return;
     if (!(await flush())) {
@@ -578,7 +603,7 @@ export function ReportWorkspace({
         <Undo2 />
         {labels.release}
       </Button>
-      <Button size="sm" onClick={() => setConfirming(true)}>
+      <Button size="sm" onClick={openSigning}>
         <PenTool />
         {labels.sign}
       </Button>
@@ -629,6 +654,7 @@ export function ReportWorkspace({
         readOnly={locked}
         language={study.reportLanguage}
         onChange={update}
+        aiReview={aiReview}
       />
     </div>
   );
@@ -679,6 +705,7 @@ export function ReportWorkspace({
           signerName={signerName}
           language={study.reportLanguage}
           onConfirm={sign}
+          aiReview={aiReview}
         />
       )}
     </div>

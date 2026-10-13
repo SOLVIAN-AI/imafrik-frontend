@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { apiSend } from "@/lib/api/client";
+import { apiGet, apiSend } from "@/lib/api/client";
 import {
   type ApiAnonymizationRequest,
   type ApiContractEnd,
   anonymizationResultSchema,
+  aiFeaturesSchema,
   clinicDetailSchema,
   contactTrackingSchema,
   contractEndResultSchema,
@@ -573,4 +574,71 @@ export async function endClinicContract(
     revalidatePath("/admin");
   }
   return result;
+}
+
+/** Fonctions d'IA d'une organisation. */
+export interface AiFeatures {
+  /** Relecture d'un brouillon avant signature. */
+  review: boolean;
+  /** Dictée vocale dans l'éditeur. */
+  dictation: boolean;
+}
+
+/**
+ * Lit les fonctions d'IA activées pour une organisation.
+ *
+ * Lu à l'ouverture du réglage, pas avec la liste des organisations : la
+ * réponse doit être celle du moment où l'administrateur décide.
+ *
+ * @param organizationId Organisation.
+ */
+export async function readAiFeatures(
+  organizationId: string,
+): Promise<ActionResult<AiFeatures>> {
+  if (isDemoMode()) {
+    return { ok: true, data: { review: false, dictation: false } };
+  }
+  const invalid = await rejectInvalidIds(organizationId);
+  if (invalid) return invalid;
+  return await run(() =>
+    apiGet(
+      `/admin/organizations/${encodeURIComponent(organizationId)}/ai-features`,
+      aiFeaturesSchema,
+    ),
+  );
+}
+
+/**
+ * Active ou coupe les fonctions d'IA d'une organisation.
+ *
+ * L'organisation concernée est celle où le radiologue travaille : son
+ * groupe de radiologie, ou sa clinique quand elle lit avec ses propres
+ * radiologues. Le service trace le changement. Activer ici ne suffit pas
+ * si l'IA est coupée pour toute la plateforme.
+ *
+ * @param organizationId Organisation.
+ * @param features       État voulu de chaque fonction.
+ */
+export async function setAiFeatures(
+  organizationId: string,
+  features: AiFeatures,
+): Promise<ActionResult<AiFeatures>> {
+  const { t } = await getMessages();
+  // Un argument d'action serveur vient du navigateur : revérifié ici.
+  const parsed = aiFeaturesSchema.safeParse(features);
+  if (!parsed.success) {
+    return { ok: false, error: t.common.errors.unexpected, status: 422 };
+  }
+  if (isDemoMode())
+    return await demoUnavailable(t.admin.demoActions.aiFeatures);
+  const invalid = await rejectInvalidIds(organizationId);
+  if (invalid) return invalid;
+  return await run(() =>
+    apiSend(
+      `/admin/organizations/${encodeURIComponent(organizationId)}/ai-features`,
+      "PUT",
+      parsed.data,
+      aiFeaturesSchema,
+    ),
+  );
 }

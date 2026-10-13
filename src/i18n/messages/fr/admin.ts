@@ -355,6 +355,19 @@ export const admin = {
   },
 
   /** Langue des comptes-rendus d'une clinique. */
+  /** Fonctions d'IA d'une organisation : activées une à une, par l'équipe IMAFRIK. */
+  aiFeatures: {
+    open: (name: string) => `Fonctions d’IA de ${name}`,
+    title: "Fonctions d’IA",
+    explanation:
+      "Une fonction n’est offerte qu’aux radiologues qui travaillent dans cette organisation. Elle ne modifie jamais un compte-rendu et ne bloque jamais une signature. Chaque changement est inscrit au journal d’audit.",
+    review: "Relecture avancée avant signature",
+    reviewHint:
+      "Signale les incohérences entre les sections d’un brouillon. Le texte est envoyé au modèle sans le nom, l’identifiant ni la date de naissance du patient.",
+    loadFailed: "Impossible de lire l’état actuel. Réessayez.",
+    saved: "Fonctions d’IA enregistrées.",
+  },
+
   reportLanguage: {
     title: "Langue des comptes-rendus",
     explanation:
@@ -676,6 +689,7 @@ export const admin = {
       "report.addendum": "Addendum ajouté",
       "report.delivered": "Compte-rendu remis",
       "report.downloaded": "Compte-rendu téléchargé",
+      "report.ai_reviewed": "Brouillon relu par l’IA",
       "membership.created": "Membre ajouté",
       "membership.removed": "Membre retiré",
       "organization.state_changed": "Organisation activée ou suspendue",
@@ -685,6 +699,7 @@ export const admin = {
         "Langue des comptes-rendus modifiée",
       "organization.contract_ended": "Contrat de la clinique terminé",
       "organization.exported": "Données de l’organisation exportées",
+      "organization.ai_features_changed": "Fonctions d’IA activées ou coupées",
       "user.mfa_reset_requested":
         "Réinitialisation de la double authentification demandée",
 
@@ -775,6 +790,7 @@ export const admin = {
     credentials: "La validation des numéros d’ordre",
     retention: "La durée de conservation",
     reportLanguage: "La langue des comptes-rendus",
+    aiFeatures: "L’activation des fonctions d’IA",
     contractEnd: "La fin de contrat",
     anonymize: "L’anonymisation",
     suspension: "La suspension",

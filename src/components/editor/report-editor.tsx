@@ -37,6 +37,11 @@ import {
 } from "@/components/editor/navigation";
 import { reviewReport } from "@/components/editor/review";
 import { ReviewList } from "@/components/editor/review-list";
+import { AiReviewPanel } from "@/components/editor/ai-review-panel";
+import {
+  NO_AI_REVIEW,
+  type AiReviewController,
+} from "@/components/editor/use-ai-review";
 import { ShortcutsDialog } from "@/components/editor/shortcuts-dialog";
 import {
   Dialog,
@@ -401,6 +406,7 @@ export function ReportEditor({
   language,
   onChange,
   footer,
+  aiReview = NO_AI_REVIEW,
 }: {
   sections: ReportSections;
   /**
@@ -422,6 +428,8 @@ export function ReportEditor({
   language?: Locale;
   onChange?: (key: SectionKey, html: string) => void;
   footer?: React.ReactNode;
+  /** Relecture par IA ; absente, rien ne s'affiche. */
+  aiReview?: AiReviewController;
 }) {
   // La barre de mise en forme agit sur la section qui a le focus. On
   // retient donc l'éditeur actif plutôt que d'en dupliquer une par
@@ -509,6 +517,8 @@ export function ReportEditor({
   );
 
   const findings = React.useMemo(() => reviewReport(sections), [sections]);
+  // Points à vérifier, toutes relectures confondues : règles et IA.
+  const pointCount = findings.length + aiReview.findings.length;
 
   /** Amène une section à l'écran et y place le curseur. */
   const goToSection = React.useCallback(
@@ -586,8 +596,8 @@ export function ReportEditor({
           />
           <EditorAction
             icon={ClipboardCheck}
-            label={labels.reviewButton(findings.length)}
-            badge={findings.length}
+            label={labels.reviewButton(pointCount)}
+            badge={pointCount}
             onClick={() => setReviewOpen(true)}
           />
           <EditorAction
@@ -675,9 +685,15 @@ export function ReportEditor({
               findings={findings}
               sectionTitles={titles}
               onGo={goToSection}
-              className="max-h-[60vh] overflow-auto px-3 pb-4"
+              className="max-h-[40vh] overflow-auto px-3 pb-4"
             />
           )}
+          <AiReviewPanel
+            review={aiReview}
+            sectionTitles={titles}
+            onGo={goToSection}
+            className="max-h-[40vh] overflow-auto border-t border-border-subtle px-5 py-4"
+          />
         </DialogContent>
       </Dialog>
     </div>

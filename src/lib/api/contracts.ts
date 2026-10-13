@@ -216,10 +216,60 @@ export const sessionInfoSchema = z.object({
       is_active: z.boolean(),
     }),
   ),
+  ai_review: z.boolean(),
 });
 const _sessionInfo: Matches<
   z.input<typeof sessionInfoSchema>,
   Schemas["SessionInfo"]
+> = true;
+
+/** Types de signalement de la relecture par IA : liste fermée par le service. */
+export const aiFindingKindSchema = z.enum([
+  "contradiction",
+  "omission",
+  "laterality",
+  "context_mismatch",
+  "measurement",
+  "question_unanswered",
+  "critical_finding",
+]);
+
+/** Où un passage cité se trouve : une section, ou la demande de la clinique. */
+export const aiSourceSchema = z.enum([
+  "indication",
+  "technique",
+  "comparatif",
+  "resultats",
+  "conclusion",
+  "clinical_info",
+]);
+
+export const aiReviewSchema = z.object({
+  run_id: uuid.nullable(),
+  available: z.boolean(),
+  findings: z.array(
+    z.object({
+      kind: aiFindingKindSchema,
+      section: aiSourceSchema,
+      quote: z.string(),
+      related_section: aiSourceSchema.nullish(),
+      related_quote: z.string().nullish(),
+      note: z.string(),
+    }),
+  ),
+});
+const _aiReview: Matches<
+  z.input<typeof aiReviewSchema>,
+  Schemas["ReviewResponse"]
+> = true;
+
+export const aiFeaturesSchema = z.object({
+  review: z.boolean(),
+  dictation: z.boolean(),
+});
+const _aiFeatures: Matches<
+  z.input<typeof aiFeaturesSchema>,
+  Schemas["AiFeatures"]
 > = true;
 
 export const uploadTokenSchema = z.object({
@@ -695,6 +745,8 @@ export const CONTRACT_CHECKS = [
   _addendum,
   _profile,
   _sessionInfo,
+  _aiReview,
+  _aiFeatures,
   _study,
   _studyPage,
   _report,

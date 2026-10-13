@@ -10,6 +10,7 @@ import { getMessages } from "@/i18n/server";
 import { apiGet, apiSend } from "@/lib/api/client";
 import {
   addendumSchema,
+  aiReviewSchema,
   pdfLinkSchema,
   reportSchema,
   studySchema,
@@ -20,6 +21,7 @@ import {
   rejectInvalidIds,
   run,
 } from "@/lib/actions/result";
+import type { AiReviewResult } from "@/components/editor/ai-review";
 import { isDemoMode } from "@/lib/demo/mode";
 
 /**
@@ -312,4 +314,86 @@ export async function addAddendum(
   revalidatePath(`/comptes-rendus/${reportId}`);
   revalidatePath("/examens");
   return result;
+}
+
+/**
+ * Fait relire un brouillon par l'IA.
+ *
+ * Le service relit le brouillon **tel qu'il est enregistré** : l'écran
+ * enregistre donc avant d'appeler. Il rend des signalements dont chaque
+ * citation a été vérifiée mot pour mot, et ne modifie rien.
+ *
+ * Une panne du modèle n'est pas un échec de l'action : le service répond
+ * alors « indisponible » (`available: false`), et la signature reste
+ * possible. Un échec, ici, c'est un refus du service — fonction non
+ * activée, plafond horaire atteint — que l'écran présente de la même
+ * façon, sans jamais bloquer.
+ *
+ * @param reportId Brouillon à relire.
+ */
+export async function reviewDraft(
+  reportId: string,
+): Promise<ActionResult<AiReviewResult>> {
+  if (isDemoMode()) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.reading.actions.aiReviewDemoAction);
+  }
+  const invalid = await rejectInvalidIds(reportId);
+  if (invalid) return invalid;
+  return await run(async () => {
+    const review = await apiSend(
+      `/reports/${encodeURIComponent(reportId)}/review`,
+      "POST",
+      undefined,
+      aiReviewSchema,
+    );
+    return {
+      runId: review.run_id,
+      available: review.available,
+      findings: review.findings.map((finding, index) => ({
+        index,
+        kind: finding.kind,
+        section: finding.section,
+        quote: finding.quote,
+        relatedSection: finding.related_section ?? null,
+        relatedQuote: finding.related_quote ?? null,
+        note: finding.note,
+      })),
+    };
+  });
+}
+
+/**
+ * Dit au service ce que le radiologue a fait d'un signalement.
+ *
+ * C'est la mesure qui juge la relecture : un type de signalement presque
+ * toujours écarté sera retiré ou retravaillé. Seuls le rang et la
+ * décision partent, jamais de texte. L'appelant n'attend pas la réponse
+ * et n'en affiche pas l'échec : perdre une mesure ne doit rien coûter au
+ * radiologue.
+ *
+ * @param runId    Exécution à laquelle le signalement appartient.
+ * @param index    Rang du signalement dans la réponse de la relecture.
+ * @param decision Corrigé dans le texte, ou écarté.
+ */
+export async function sendFindingDecision(
+  runId: string,
+  index: number,
+  decision: "corrected" | "dismissed",
+): Promise<ActionResult> {
+  if (isDemoMode()) return { ok: true, data: undefined };
+  const invalid = await rejectInvalidIds(runId);
+  if (invalid) return invalid;
+  if (!Number.isInteger(index) || index < 0 || index > 50) {
+    const { t } = await getMessages();
+    return { ok: false, error: t.common.errors.unexpected, status: 422 };
+  }
+  return await run(async () => {
+    await apiSend(
+      `/assist/runs/${encodeURIComponent(runId)}/feedback`,
+      "POST",
+      { index, decision },
+    );
+    return undefined;
+  });
 }

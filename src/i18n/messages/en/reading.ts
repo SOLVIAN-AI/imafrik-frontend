@@ -129,6 +129,36 @@ export const reading: AppMessages["reading"] = {
     unit: (text: string) => `Measurement without a unit: “${text}”.`,
     repeat: (text: string) => `Repeated word: “${text}”.`,
   },
+  aiReview: {
+    title: "Advanced review",
+    badge: "AI",
+    run: "Review",
+    rerun: "Review again",
+    idle: "Looks for inconsistencies between sections and with the examination. Nothing in your text is changed.",
+    running: "Review in progress…",
+    unavailable:
+      "Advanced review is unavailable at the moment. You can carry on and sign.",
+    withFindings:
+      "Passages to check. These are flags, not definite errors: you remain the sole judge of your text.",
+    nothing:
+      "No inconsistency found. This is not a validation: the review may miss an error.",
+    stale: "The text has changed since this review.",
+    clinicalInfo: "Clinical information",
+    kinds: {
+      contradiction: "Contradiction",
+      omission: "Omitted from the conclusion",
+      laterality: "Laterality",
+      context_mismatch: "Inconsistent with the examination",
+      measurement: "Discrepant measurement",
+      question_unanswered: "Unanswered question",
+      critical_finding: "Finding to report without delay",
+    },
+    quoted: (quote: string) => `“${quote}”`,
+    related: (section: string, quote: string) =>
+      `Compare with, in ${section}: “${quote}”`,
+    go: "View",
+    dismiss: "Dismiss",
+  },
   toolbar: {
     label: "Formatting",
     undo: "Undo",
@@ -398,6 +428,7 @@ export const reading: AppMessages["reading"] = {
     signDemoAction: "Signing",
     pdfDemoAction: "Downloading the PDF",
     addendumDemoAction: "Adding an addendum",
+    aiReviewDemoAction: "Advanced review",
     invalidDraft: "Invalid draft.",
     addendumEmpty: "The addendum is empty.",
     addendumTooLong: "The addendum exceeds 10,000 characters.",

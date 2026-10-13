@@ -288,6 +288,42 @@ export interface paths {
         patch: operations["update_organization_admin_organizations__organization_id__patch"];
         trace?: never;
     };
+    "/admin/organizations/{organization_id}/ai-features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fonctions d'IA activées
+         * @description Dit quelles fonctions d'IA une organisation peut utiliser.
+         *
+         *     Raises:
+         *         NotFound: Organisation introuvable.
+         */
+        get: operations["get_ai_features_admin_organizations__organization_id__ai_features_get"];
+        /**
+         * Activer les fonctions d'IA
+         * @description Active ou coupe les fonctions d'IA d'une organisation.
+         *
+         *     L'organisation concernée est celle dans laquelle le radiologue
+         *     travaille : son groupe de radiologie, ou sa clinique quand elle lit
+         *     avec ses propres radiologues. Activer une fonction ici ne suffit pas
+         *     si l'IA est coupée pour toute la plateforme (``AI_ENABLED``). Le
+         *     changement est tracé.
+         *
+         *     Raises:
+         *         NotFound: Organisation introuvable.
+         */
+        put: operations["set_ai_features_admin_organizations__organization_id__ai_features_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/organizations/{organization_id}/invitations": {
         parameters: {
             query?: never;
@@ -595,6 +631,42 @@ export interface paths {
          *             suppression d'une partie des facteurs.
          */
         post: operations["reset_user_mfa_admin_users__profile_id__mfa_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assist/runs/{run_id}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dire ce qu'on a fait d'un signalement
+         * @description Note la décision du radiologue sur un signalement.
+         *
+         *     C'est la mesure qui dit si la relecture sert : un type de signalement
+         *     presque toujours écarté est retiré ou retravaillé (docs/ia.md, 8.3).
+         *     Seuls le type et la décision sont gardés, jamais le texte.
+         *
+         *     Args:
+         *         run_id: Exécution à laquelle le signalement appartient.
+         *         body: Rang du signalement et décision.
+         *         principal: Radiologue aux titres vérifiés.
+         *
+         *     Returns:
+         *         Une réponse vide.
+         *
+         *     Raises:
+         *         NotFound: Exécution inconnue, lancée par un autre, ou rang hors
+         *             de la liste : les trois cas sont confondus volontairement.
+         */
+        post: operations["give_feedback_assist_runs__run_id__feedback_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1301,6 +1373,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reports/{report_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Relire un brouillon par IA
+         * @description Relit un brouillon et signale ses incohérences.
+         *
+         *     L'IA ne modifie rien et ne bloque rien : elle montre des passages et
+         *     dit pourquoi. Une liste vide avec ``available: true`` ne vaut pas
+         *     validation ; l'éditeur ne l'affiche pas comme telle.
+         *
+         *     Args:
+         *         report_id: Brouillon à relire.
+         *         principal: Radiologue aux titres vérifiés.
+         *
+         *     Returns:
+         *         Les signalements vérifiés, et l'exécution à rappeler pour chaque
+         *         décision.
+         *
+         *     Raises:
+         *         Forbidden: Relecture non activée pour le processus ou l'organisation.
+         *         NotFound: Compte-rendu inexistant ou hors du périmètre de l'appelant.
+         *         Conflict: Compte-rendu signé, ou rédigé par un autre.
+         *         TooManyRequests: Plafond horaire atteint.
+         */
+        post: operations["review_report_reports__report_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/reports/{report_id}/sign": {
         parameters: {
             query?: never;
@@ -1989,6 +2099,22 @@ export interface components {
             title: string | null;
         };
         /**
+         * AiFeatures
+         * @description Fonctions d'IA activées pour une organisation (docs/ia.md, IA-8).
+         */
+        AiFeatures: {
+            /**
+             * Dictation
+             * @description Dictée vocale dans l'éditeur.
+             */
+            dictation: boolean;
+            /**
+             * Review
+             * @description Relecture d'un brouillon avant signature.
+             */
+            review: boolean;
+        };
+        /**
          * Alert
          * @description Ce qui demande l'attention — voir :class:`app.services.control_tower.Alert`.
          */
@@ -2538,6 +2664,29 @@ export interface components {
             /** Urgent */
             urgent: number;
         };
+        /**
+         * FindingDecision
+         * @description Ce que le radiologue a fait d'un signalement.
+         */
+        FindingDecision: {
+            /**
+             * Decision
+             * @description Corrigé dans le texte, ou écarté.
+             * @enum {string}
+             */
+            decision: "corrected" | "dismissed";
+            /**
+             * Index
+             * @description Rang du signalement dans la réponse.
+             */
+            index: number;
+        };
+        /**
+         * FindingKind
+         * @description Types de signalement.
+         * @enum {string}
+         */
+        FindingKind: "contradiction" | "omission" | "laterality" | "context_mismatch" | "measurement" | "question_unanswered" | "critical_finding";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -3222,6 +3371,54 @@ export interface components {
             image_retention_days?: number | null;
         };
         /**
+         * ReviewFinding
+         * @description Un signalement de la relecture par IA.
+         */
+        ReviewFinding: {
+            /** @description Type du signalement, dans une liste fermée. */
+            kind: components["schemas"]["FindingKind"];
+            /**
+             * Note
+             * @description Une phrase d'explication, dans la langue de l'interface.
+             */
+            note: string;
+            /**
+             * Quote
+             * @description Passage cité, présent mot pour mot dans la section.
+             */
+            quote: string;
+            /**
+             * Related Quote
+             * @description Passage contredit, présent mot pour mot.
+             */
+            related_quote?: string | null;
+            /** @description Section du passage que celui-ci contredit. */
+            related_section?: components["schemas"]["Source"] | null;
+            /** @description Section où se trouve le passage cité. */
+            section: components["schemas"]["Source"];
+        };
+        /**
+         * ReviewResponse
+         * @description Résultat d'une relecture.
+         */
+        ReviewResponse: {
+            /**
+             * Available
+             * @description Faux si le modèle n'a pas répondu utilement : la liste vide ne vaut alors pas « rien à signaler ».
+             */
+            available: boolean;
+            /**
+             * Findings
+             * @description Signalements, citations vérifiées.
+             */
+            findings: components["schemas"]["ReviewFinding"][];
+            /**
+             * Run Id
+             * @description Exécution relevée, à rappeler avec chaque décision ; None si rien n'a été appelé.
+             */
+            run_id: string | null;
+        };
+        /**
          * SectionsPatch
          * @description Fragment de compte-rendu envoyé par l'auto-save.
          *
@@ -3264,10 +3461,18 @@ export interface components {
          *         active_organization_id: Organisation active, issue du JWT.
          *         role: Rôle dans cette organisation. Détermine le portail affiché.
          *         organizations: Toutes les appartenances, pour le sélecteur.
+         *         ai_review: Vrai si la relecture par IA est offerte à l'appelant :
+         *             IA active pour la plateforme et pour son organisation active.
+         *             L'éditeur n'affiche la fonction que dans ce cas.
          */
         SessionInfo: {
             /** Active Organization Id */
             active_organization_id: string | null;
+            /**
+             * Ai Review
+             * @default false
+             */
+            ai_review: boolean;
             /** Organizations */
             organizations: components["schemas"]["OrganizationMembership"][];
             profile: components["schemas"]["Profile"] | null;
@@ -3298,6 +3503,12 @@ export interface components {
             /** Within Sla */
             within_sla: number | null;
         };
+        /**
+         * Source
+         * @description Où une citation peut être prise : les cinq sections, et la demande.
+         * @enum {string}
+         */
+        Source: "indication" | "technique" | "comparatif" | "resultats" | "conclusion" | "clinical_info";
         /**
          * StageMedians
          * @description Durée médiane de chaque étape du parcours, en minutes.
@@ -3811,7 +4022,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credentials_verified" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credentials_verified" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -4145,6 +4356,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminOrganization"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ai_features_admin_organizations__organization_id__ai_features_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiFeatures"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_ai_features_admin_organizations__organization_id__ai_features_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiFeatures"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiFeatures"];
                 };
             };
             /** @description Validation Error */
@@ -4493,6 +4774,41 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MfaReset"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    give_feedback_assist_runs__run_id__feedback_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FindingDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -5225,6 +5541,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PdfLink"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_report_reports__report_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewResponse"];
                 };
             };
             /** @description Validation Error */
