@@ -5,6 +5,11 @@ import * as React from "react";
 
 import { reviewReport } from "@/components/editor/review";
 import { ReviewList } from "@/components/editor/review-list";
+import { AiReviewPanel } from "@/components/editor/ai-review-panel";
+import {
+  NO_AI_REVIEW,
+  type AiReviewController,
+} from "@/components/editor/use-ai-review";
 import {
   missingRequiredSections,
   type ReportSections,
@@ -58,6 +63,7 @@ export function SignReportDialog({
   signerName,
   language,
   onConfirm,
+  aiReview = NO_AI_REVIEW,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -66,6 +72,8 @@ export function SignReportDialog({
   signerName: string;
   language: Locale;
   onConfirm: () => Promise<void>;
+  /** Relecture par IA, lancée à l'ouverture ; elle ne bloque jamais. */
+  aiReview?: AiReviewController;
 }) {
   const t = useMessages();
   const labels = t.reading.sign;
@@ -132,6 +140,14 @@ export function SignReportDialog({
           </Notice>
         )}
 
+        {missing.length === 0 && (
+          <AiReviewPanel
+            review={aiReview}
+            sectionTitles={sectionTitles}
+            className="max-h-56 overflow-auto rounded-lg border border-border-subtle px-3 py-2.5"
+          />
+        )}
+
         {error && (
           <Notice icon={AlertTriangle}>
             <p>{error}</p>
@@ -151,7 +167,8 @@ export function SignReportDialog({
             onClick={confirm}
           >
             <PenTool />
-            {findings.length > 0 && missing.length === 0
+            {findings.length + aiReview.findings.length > 0 &&
+            missing.length === 0
               ? labels.confirmAnyway
               : labels.confirm}
           </Button>

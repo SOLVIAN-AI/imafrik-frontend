@@ -335,6 +335,18 @@ export const admin: AppMessages["admin"] = {
     noLimit: "No limit",
   },
 
+  aiFeatures: {
+    open: (name: string) => `AI features for ${name}`,
+    title: "AI features",
+    explanation:
+      "A feature is offered only to radiologists working within this organisation. It never changes a report and never blocks a signature. Every change is recorded in the audit log.",
+    review: "Advanced review before signing",
+    reviewHint:
+      "Flags inconsistencies between the sections of a draft. The text is sent to the model without the patient’s name, identifier or date of birth.",
+    loadFailed: "The current state could not be read. Please try again.",
+    saved: "AI features saved.",
+  },
+
   reportLanguage: {
     title: "Report language",
     explanation:
@@ -630,6 +642,7 @@ export const admin: AppMessages["admin"] = {
       "report.addendum": "Addendum added",
       "report.delivered": "Report delivered",
       "report.downloaded": "Report downloaded",
+      "report.ai_reviewed": "Draft reviewed by AI",
       "membership.created": "Member added",
       "membership.removed": "Member removed",
       "organization.state_changed": "Organisation activated or suspended",
@@ -638,6 +651,7 @@ export const admin: AppMessages["admin"] = {
       "organization.report_language_changed": "Report language changed",
       "organization.contract_ended": "Clinic contract ended",
       "organization.exported": "Organisation data exported",
+      "organization.ai_features_changed": "AI features enabled or disabled",
       "user.mfa_reset_requested": "Two-factor authentication reset requested",
 
       "profile.identity_changed": "Name, title or registration number changed",
@@ -725,6 +739,7 @@ export const admin: AppMessages["admin"] = {
     credentials: "Verifying registration numbers",
     retention: "Changing the retention period",
     reportLanguage: "Changing the report language",
+    aiFeatures: "Enabling AI features",
     contractEnd: "Ending a contract",
     anonymize: "Anonymising an account",
     suspension: "Suspending an organisation",

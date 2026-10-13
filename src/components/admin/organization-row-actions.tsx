@@ -4,6 +4,7 @@ import { UserPlus } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { AiFeaturesDialog } from "@/components/admin/ai-features-dialog";
 import { InviteDialog } from "@/components/domain/invite-dialog";
 import { Button } from "@/components/ui/button";
 import { useMessages } from "@/i18n/client";
@@ -15,8 +16,8 @@ import type { AdminOrganization } from "@/lib/data/admin";
 import { ROLES_BY_KIND } from "@/lib/roles";
 
 /**
- * Actions du back-office sur une organisation : inviter, suspendre ou
- * réactiver.
+ * Actions du back-office sur une organisation : inviter, régler ses
+ * fonctions d'IA, suspendre ou réactiver.
  *
  * Suspendre ferme l'accès de **tous** les membres à leur requête suivante
  * — une confirmation s'impose. Les examens et comptes-rendus restent en
@@ -61,6 +62,10 @@ export function OrganizationRowActions({
             <UserPlus />
           </Button>
         }
+      />
+      <AiFeaturesDialog
+        organizationId={organization.id}
+        organizationName={organization.name}
       />
       <Button variant="ghost" size="sm" loading={pending} onClick={toggle}>
         {organization.active ? text.suspend : text.reactivate}

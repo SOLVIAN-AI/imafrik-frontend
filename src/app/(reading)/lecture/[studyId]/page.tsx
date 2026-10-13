@@ -5,6 +5,7 @@ import { ReportWorkspace } from "@/components/editor/report-workspace";
 import { EMPTY_REPORT_SECTIONS } from "@/components/editor/sections";
 import type { AppMessages } from "@/i18n";
 import { getMessages } from "@/i18n/server";
+import { isAiReviewAvailable } from "@/lib/data/assist";
 import { getReportForStudy, type Report } from "@/lib/data/reports";
 import {
   findNextStudyId,
@@ -120,6 +121,9 @@ export default async function ReadingPage({
   // Facultatifs : leur échec ne bloque pas l'écran.
   const templates =
     mode.kind === "author" ? await listTemplatesOrNone(study.modality) : [];
+  // La relecture par IA ne concerne que l'auteur d'un brouillon ; le
+  // service dit si elle lui est offerte.
+  const aiReview = mode.kind === "author" && (await isAiReviewAvailable());
 
   return (
     <ReportWorkspace
@@ -134,6 +138,7 @@ export default async function ReadingPage({
       signerName={formatPersonName(session.user.title, session.user.fullName)}
       templates={templates}
       nextStudyId={nextStudyId}
+      aiReview={aiReview}
     />
   );
 }

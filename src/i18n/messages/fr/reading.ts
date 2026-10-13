@@ -147,6 +147,37 @@ export const reading = {
     unit: (text: string) => `Mesure sans unité : « ${text} ».`,
     repeat: (text: string) => `Mot répété : « ${text} ».`,
   },
+  /** Relecture avancée, par IA : état, types de signalement, gestes. */
+  aiReview: {
+    title: "Relecture avancée",
+    badge: "IA",
+    run: "Relire",
+    rerun: "Relire de nouveau",
+    idle: "Recherche des incohérences entre les sections et avec l’examen. Rien n’est modifié dans votre texte.",
+    running: "Relecture en cours…",
+    unavailable:
+      "Relecture avancée indisponible pour l’instant. Vous pouvez continuer et signer.",
+    withFindings:
+      "Passages à vérifier. Ce sont des signalements, pas des erreurs certaines : vous restez seul juge de votre texte.",
+    nothing:
+      "Aucune incohérence relevée. Ce n’est pas une validation : la relecture peut passer à côté d’une erreur.",
+    stale: "Le texte a changé depuis cette relecture.",
+    clinicalInfo: "Renseignement clinique",
+    kinds: {
+      contradiction: "Contradiction",
+      omission: "Oubli dans la conclusion",
+      laterality: "Latéralité",
+      context_mismatch: "Incohérence avec l’examen",
+      measurement: "Mesure discordante",
+      question_unanswered: "Question sans réponse",
+      critical_finding: "Résultat à signaler sans délai",
+    },
+    quoted: (quote: string) => `« ${quote} »`,
+    related: (section: string, quote: string) =>
+      `À rapprocher de, dans ${section} : « ${quote} »`,
+    go: "Voir",
+    dismiss: "Écarter",
+  },
   /** Barre de mise en forme. */
   toolbar: {
     label: "Mise en forme",
@@ -436,6 +467,7 @@ export const reading = {
     signDemoAction: "La signature",
     pdfDemoAction: "Le téléchargement du PDF",
     addendumDemoAction: "L’ajout d’un addendum",
+    aiReviewDemoAction: "La relecture avancée",
     invalidDraft: "Brouillon invalide.",
     addendumEmpty: "L’addendum est vide.",
     addendumTooLong: "L’addendum dépasse 10 000 caractères.",
