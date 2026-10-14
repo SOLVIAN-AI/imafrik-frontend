@@ -48,6 +48,12 @@ describe("isRouteAllowed", () => {
     expect(isRouteAllowed("clinic_staff", "/admin/organisations")).toBe(false);
   });
 
+  it("ouvre la consultation des images à l'administration", () => {
+    expect(isRouteAllowed("platform_admin", "/lecture/1")).toBe(true);
+    // Consultation seulement : la file de travail reste aux radiologues.
+    expect(isRouteAllowed("platform_admin", "/worklist")).toBe(false);
+  });
+
   it("partage la mise en service, l'accueil et le mot de passe entre les rôles", () => {
     for (const role of [
       "radiologist",

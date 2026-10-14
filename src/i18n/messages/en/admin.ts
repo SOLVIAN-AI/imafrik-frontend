@@ -226,6 +226,7 @@ export const admin: AppMessages["admin"] = {
     allDescription: (count: number) =>
       `${count} examination${count === 1 ? "" : "s"} across all organisations`,
     openUrgent: "Open urgent cases",
+    openImages: (patient: string) => `Open the images of ${patient}`,
     stuck: (count: number) =>
       `${count} urgent examination${count === 1 ? " is" : "s are"} waiting to be claimed.`,
     columns: {
