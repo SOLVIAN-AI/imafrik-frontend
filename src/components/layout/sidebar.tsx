@@ -302,16 +302,27 @@ function NavLink({
   const t = useMessages();
   const Icon = NAV_ICONS[item.icon];
   const count = item.count && counts ? counts[item.count] : 0;
+  // Intention d'ouvrir la page : survol, focus clavier ou premier contact
+  // tactile. C'est alors seulement qu'elle se précharge en entier.
+  const [intent, setIntent] = React.useState(false);
+  const showIntent = () => setIntent(true);
   const urgent =
     item.urgentCount && counts ? counts[item.urgentCount] > 0 : false;
 
   return (
     <Link
       href={item.href}
-      // Préchargée en entier, données comprises : un clic affiche une page
-      // déjà prête. Gardée 30 s au plus (staleTimes, next.config.ts), et
-      // rechargée au survol si elle a expiré.
-      prefetch
+      // Préchargée en entier, données comprises, dès que l'on montre
+      // l'intention de l'ouvrir : le survol précède le clic de 100 à 300 ms,
+      // assez pour que la page soit prête. Pas avant : préchargées d'office,
+      // les pages du menu étaient toutes relues à chaque rafraîchissement
+      // de la file (cinq requêtes au lieu d'une, toutes les 30 secondes).
+      // La page courante ne se précharge jamais. Gardée 30 s au plus
+      // (staleTimes, next.config.ts).
+      prefetch={active ? false : intent ? true : null}
+      onMouseEnter={showIntent}
+      onFocus={showIntent}
+      onTouchStart={showIntent}
       aria-current={active ? "page" : undefined}
       className={cn(
         "group relative flex h-9 items-center gap-2.5 rounded-lg px-2.5",
