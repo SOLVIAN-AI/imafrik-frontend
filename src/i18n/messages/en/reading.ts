@@ -348,6 +348,8 @@ export const reading: AppMessages["reading"] = {
     simulated: "Simulated images",
     openFullscreen: "Open the images in full screen",
     fullscreen: "Full screen",
+    closeFullscreen: "Leave the full-screen image view",
+    exitFullscreen: "Exit full screen",
     archivedTitle: "Images archived",
     archivedBefore:
       "The retention period set in the clinic’s contract ended on",

@@ -66,6 +66,7 @@ import {
 import { formatDemographics, formatPatientName } from "@/lib/format";
 import type { Locale } from "@/lib/i18n/locale";
 import { homeFor } from "@/lib/navigation";
+import { useReturnPath } from "@/lib/return-path";
 import { cn } from "@/lib/utils";
 
 /**
@@ -197,6 +198,7 @@ function StudyBar({
   actions: React.ReactNode;
 }) {
   const { active } = useSession();
+  const returnPath = useReturnPath(homeFor(active.role));
   const t = useMessages();
   const locale = useLocale();
   // L'âge est celui du jour de l'examen : c'est lui qui compte pour
@@ -218,15 +220,15 @@ function StudyBar({
         "bg-surface-raised/40 backdrop-blur-sm",
       )}
     >
-      {/* Le retour dépend du portail : la file de lecture pour un
-          radiologue, le suivi des examens pour une clinique. */}
+      {/* Retour à la page du portail d'où l'on vient ; à défaut, son
+          accueil (la file pour un radiologue, le suivi pour une clinique). */}
       <Button
         variant="ghost"
         size="icon"
         aria-label={t.common.actions.back}
         asChild
       >
-        <Link href={homeFor(active.role)}>
+        <Link href={returnPath}>
           <ArrowLeft />
         </Link>
       </Button>

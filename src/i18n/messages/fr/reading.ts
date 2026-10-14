@@ -380,6 +380,8 @@ export const reading = {
     simulated: "Images simulées",
     openFullscreen: "Ouvrir les images en plein écran",
     fullscreen: "Plein écran",
+    closeFullscreen: "Quitter le plein écran des images",
+    exitFullscreen: "Quitter le plein écran",
     archivedTitle: "Images archivées",
     /** « … échue depuis le {date}{archivedAfter} » */
     archivedBefore:
