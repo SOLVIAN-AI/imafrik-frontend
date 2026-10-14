@@ -2,7 +2,11 @@ import type { MetadataRoute } from "next";
 
 import { isApiConfigured } from "@/lib/api/config";
 import { LOCALES } from "@/lib/i18n/locale";
-import { INDEXABLE_PAGES, localizePath } from "@/lib/i18n/routes";
+import {
+  INDEXABLE_PAGES,
+  INDEXABLE_SCREENS,
+  localizePath,
+} from "@/lib/i18n/routes";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 /**
@@ -15,9 +19,10 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
  * projet, des engagements de délai non confirmés, et une file de travail
  * peuplée de patients inventés — le tout sous le nom de l'éditeur.
  *
- * Une fois configuré, seules la vitrine et les pages légales sont
- * ouvertes : tout le reste manipule des données de santé, et
- * l'exploration n'y a rien à faire même derrière authentification.
+ * Une fois configuré, seules la vitrine, les pages légales et l'écran
+ * de connexion sont ouverts : tout le reste manipule des données de
+ * santé, et l'exploration n'y a rien à faire même derrière
+ * authentification.
  */
 export default function robots(): MetadataRoute.Robots {
   const live = isSupabaseConfigured() && isApiConfigured();
@@ -34,12 +39,16 @@ export default function robots(): MetadataRoute.Robots {
       // langue est donc autorisé à l'adresse exacte (`/$`, `/en$`) ; sans
       // le `$`, `/en` ouvrirait toutes les adresses anglaises, vérification
       // comprise. Les autres pages sont autorisées une à une.
-      allow: INDEXABLE_PAGES.flatMap((page) =>
-        LOCALES.map((locale) => {
-          const path = localizePath(page.path, locale);
-          return page.path === "/" ? `${path}$` : path;
-        }),
-      ),
+      allow: [
+        ...INDEXABLE_PAGES.flatMap((page) =>
+          LOCALES.map((locale) => {
+            const path = localizePath(page.path, locale);
+            return page.path === "/" ? `${path}$` : path;
+          }),
+        ),
+        // Adresse exacte : ses variantes à paramètres restent fermées.
+        ...INDEXABLE_SCREENS.map((screen) => `${screen.path}$`),
+      ],
       disallow: "/",
     },
     sitemap: process.env.NEXT_PUBLIC_SITE_URL

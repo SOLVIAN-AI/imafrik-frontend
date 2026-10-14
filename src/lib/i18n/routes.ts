@@ -133,6 +133,18 @@ export const INDEXABLE_PAGES: readonly { path: string; priority: number }[] = [
 ];
 
 /**
+ * Écrans de l'application ouverts aux moteurs, à la même adresse dans
+ * toutes les langues.
+ *
+ * La connexion seule : c'est l'entrée que cherchent les clients, et
+ * celle que Google propose sous le nom du site quand il l'a indexée. Elle
+ * ne montre aucune donnée. L'adresse est autorisée exacte : une variante
+ * à paramètres (`?suite=…`, `?motif=…`) reste hors de l'index.
+ */
+export const INDEXABLE_SCREENS: readonly { path: string; priority: number }[] =
+  [{ path: "/connexion", priority: 0.5 }];
+
+/**
  * Cookie de la langue choisie sur le site public.
  *
  * Posé à chaque visite d'une page publique, il fait suivre la même langue

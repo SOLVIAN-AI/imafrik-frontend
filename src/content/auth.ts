@@ -18,6 +18,8 @@ export interface AuthCopy {
   };
   signIn: {
     metaTitle: string;
+    /** Description pour les moteurs de recherche. */
+    metaDescription: string;
     title: string;
     subtitle: string;
     email: string;
@@ -80,6 +82,8 @@ const fr: AuthCopy = {
   },
   signIn: {
     metaTitle: "Connexion",
+    metaDescription:
+      "Connectez-vous à IMAFRIK pour suivre vos examens, lire et signer vos comptes rendus de téléradiologie.",
     title: "Connexion",
     subtitle: "Accédez à vos examens et à vos comptes-rendus.",
     email: "Adresse électronique",
@@ -149,6 +153,8 @@ const en: AuthCopy = {
   },
   signIn: {
     metaTitle: "Sign in",
+    metaDescription:
+      "Sign in to IMAFRIK to follow your examinations, and read and sign your teleradiology reports.",
     title: "Sign in",
     subtitle: "Access your examinations and reports.",
     email: "Email address",

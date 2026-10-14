@@ -4,8 +4,20 @@ import { SignInForm } from "@/components/auth/sign-in-form";
 import { authCopy } from "@/content/auth";
 import { requestLocale } from "@/lib/i18n/server";
 
+/**
+ * Métadonnées de la connexion : seul écran de l'application ouvert aux
+ * moteurs (voir `INDEXABLE_SCREENS`), pour que « IMAFRIK » mène aussi
+ * à l'entrée des clients. Indexé, mais sans suivre ses liens : ils ne
+ * mènent qu'à des écrans fermés.
+ */
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: authCopy(await requestLocale()).signIn.metaTitle };
+  const copy = authCopy(await requestLocale()).signIn;
+  return {
+    title: copy.metaTitle,
+    description: copy.metaDescription,
+    alternates: { canonical: "/connexion" },
+    robots: { index: true, follow: false },
+  };
 }
 
 /**
