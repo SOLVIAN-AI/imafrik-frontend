@@ -308,6 +308,10 @@ function NavLink({
   return (
     <Link
       href={item.href}
+      // Préchargée en entier, données comprises : un clic affiche une page
+      // déjà prête. Gardée 30 s au plus (staleTimes, next.config.ts), et
+      // rechargée au survol si elle a expiré.
+      prefetch
       aria-current={active ? "page" : undefined}
       className={cn(
         "group relative flex h-9 items-center gap-2.5 rounded-lg px-2.5",

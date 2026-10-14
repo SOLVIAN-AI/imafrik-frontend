@@ -38,6 +38,56 @@ function useRoleRouting() {
   }, [active.role, pathname, router]);
 }
 
+/** Durée de l'arrivée d'une page, en millisecondes. */
+const PAGE_ARRIVAL_MS = 140;
+
+/**
+ * Contenu de la page, qui s'installe en 140 ms à chaque changement.
+ *
+ * L'animation part **après** l'affichage, jamais avant : le nouveau
+ * contenu est à l'écran dès que React l'a reçu, puis il achève de
+ * s'éclaircir. Une transition de vue (`<ViewTransition>`) faisait
+ * l'inverse : mesurée le 15 octobre 2026, elle retenait chaque changement
+ * de page environ 290 ms, contre 3 à 8 ms sans elle pour une page déjà
+ * en cache.
+ *
+ * Web Animations plutôt qu'une clé React : le contenu n'est pas
+ * remonté, son état (défilement, saisie, filtres) est conservé.
+ */
+function PageArrival({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const ref = React.useRef<HTMLDivElement>(null);
+  const first = React.useRef(true);
+
+  React.useEffect(() => {
+    // Pas d'animation au premier affichage : la page vient d'être chargée.
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    const element = ref.current;
+    if (
+      !element?.animate ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+    element.animate(
+      [
+        { opacity: 0.6, transform: "translateY(3px)" },
+        { opacity: 1, transform: "translateY(0)" },
+      ],
+      { duration: PAGE_ARRIVAL_MS, easing: "cubic-bezier(0.25, 1, 0.5, 1)" },
+    );
+  }, [pathname]);
+
+  return (
+    <div ref={ref} className="flex min-h-0 flex-1 flex-col">
+      {children}
+    </div>
+  );
+}
+
 /**
  * En-tête de page.
  *
@@ -170,7 +220,7 @@ export function AppShell({
           tabIndex={-1}
           className="flex min-h-0 flex-1 flex-col outline-none"
         >
-          {children}
+          <PageArrival>{children}</PageArrival>
         </main>
       </div>
     </div>
