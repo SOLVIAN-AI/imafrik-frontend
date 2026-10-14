@@ -103,7 +103,11 @@ async function findNextStudy(currentId: string): Promise<string | null> {
 export default async function ReadingPage({
   params,
 }: PageProps<"/lecture/[studyId]">) {
-  const session = await requireSession(["radiologist", "clinic_staff"]);
+  const session = await requireSession([
+    "radiologist",
+    "clinic_staff",
+    "platform_admin",
+  ]);
   const { studyId } = await params;
 
   const radiologist = session.active.role === "radiologist";

@@ -1,5 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { Segmented } from "@/components/admin/control-ui";
 import { StudyAge } from "@/components/domain/study-age";
@@ -36,8 +37,10 @@ export async function generateMetadata(): Promise<Metadata> {
  *
  * Elle est réservée au rôle `platform_admin` : c'est la policy RLS
  * `study_select_admin` qui ouvre ce périmètre, sur la même route
- * `GET /studies` que tout le monde. Les images, elles, ne s'ouvrent pas
- * d'ici : regarder un examen reste un acte de lecture, tracé comme tel.
+ * `GET /studies` que tout le monde. Le nom du patient ouvre l'écran de
+ * lecture, en consultation seule : images et compte-rendu, sans
+ * rédaction ni signature. Chaque ouverture des images est tracée au nom
+ * de l'administrateur, comme pour un radiologue.
  */
 export default async function AdminStudiesPage({
   searchParams,
@@ -126,9 +129,16 @@ export default async function AdminStudiesPage({
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-medium">
+                    <Link
+                      href={`/lecture/${study.id}`}
+                      prefetch={false}
+                      className="truncate text-sm font-medium hover:underline"
+                      aria-label={text.openImages(
+                        formatPatientName(study.patientName),
+                      )}
+                    >
                       {formatPatientName(study.patientName)}
-                    </span>
+                    </Link>
                     {study.urgent && <UrgentMarker />}
                   </div>
                   <p className="mt-0.5 truncate text-xs text-secondary">
@@ -200,9 +210,16 @@ export default async function AdminStudiesPage({
                   >
                     <td>
                       <div className="flex items-center gap-2">
-                        <span className="truncate font-medium">
+                        <Link
+                          href={`/lecture/${study.id}`}
+                          prefetch={false}
+                          className="truncate font-medium hover:underline"
+                          aria-label={text.openImages(
+                            formatPatientName(study.patientName),
+                          )}
+                        >
                           {formatPatientName(study.patientName)}
-                        </span>
+                        </Link>
                         {study.urgent && <UrgentMarker />}
                       </div>
                       <span className="font-mono text-2xs text-tertiary">

@@ -245,6 +245,7 @@ export const admin = {
     allDescription: (count: number) =>
       `${count} examen${count > 1 ? "s" : ""}, toutes organisations confondues`,
     openUrgent: "Urgences en cours",
+    openImages: (patient: string) => `Ouvrir les images de ${patient}`,
     stuck: (count: number) =>
       `${count} examen${count > 1 ? "s" : ""} urgent${count > 1 ? "s" : ""} en attente de prise en charge.`,
     columns: {
