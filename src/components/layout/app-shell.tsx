@@ -10,6 +10,7 @@ import { InactivityLock } from "@/components/session/inactivity-lock";
 import { Topbar } from "@/components/layout/topbar";
 import { useSession } from "@/components/providers/session-provider";
 import { homeFor, isRouteAllowed, type NavCounts } from "@/lib/navigation";
+import { useRecordReturnPath } from "@/lib/return-path";
 import { cn } from "@/lib/utils";
 import { useMessages } from "@/i18n/client";
 
@@ -31,6 +32,8 @@ function useRoleRouting() {
   const { active } = useSession();
   const pathname = usePathname();
   const router = useRouter();
+  // Point de retour de l'écran de lecture : la dernière page du portail.
+  useRecordReturnPath(pathname);
 
   React.useEffect(() => {
     if (isRouteAllowed(active.role, pathname)) return;
