@@ -567,6 +567,9 @@ export const admin = {
   requests: {
     description: (count: number, fresh: number) =>
       `${count} demande${count > 1 ? "s" : ""} · ${fresh} à traiter`,
+    inviteRadiologist: "Inviter comme radiologue",
+    inviteTrackingFailed:
+      "Invitation envoyée, mais la demande n’a pas pu passer à « Convertie » : mettez-la à jour à la main.",
     stage: "Étape du suivi",
     allFilter: (count: number) => `Toutes · ${count}`,
     /** Étapes du suivi, au singulier : l'état d'une demande. */

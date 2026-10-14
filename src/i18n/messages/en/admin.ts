@@ -529,6 +529,9 @@ export const admin: AppMessages["admin"] = {
   },
 
   requests: {
+    inviteRadiologist: "Invite as radiologist",
+    inviteTrackingFailed:
+      "Invitation sent, but the request could not be marked as converted: update it by hand.",
     description: (count: number, fresh: number) =>
       `${count} request${count === 1 ? "" : "s"} · ${fresh} to handle`,
     stage: "Follow-up stage",
