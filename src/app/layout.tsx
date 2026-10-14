@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 
 import { DEFAULT_LOCALE, isLocale, LOCALE_HEADER } from "@/lib/i18n/locale";
+import { shareImage } from "@/lib/i18n/share-image";
 import { messagesFor } from "@/i18n";
 import "./globals.css";
 
@@ -36,6 +37,17 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /** Métadonnées communes à toutes les pages ; la description suit la langue. */
 const BASE_METADATA: Metadata = {
+  // Base des adresses absolues des métadonnées, dont les images de
+  // partage (`opengraph-image.png`). Sans elle, Next les bâtirait sur
+  // l'adresse du déploiement : un aperçu `*.vercel.app`, éphémère, que
+  // WhatsApp ou LinkedIn garderaient en cache. Le domaine public sert de
+  // repli, l'adresse du site n'étant pas définie en développement.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://imafrik.tech",
+  ),
+  // Pages sans bloc Open Graph propre (connexion, application) : l'image
+  // de partage française, la langue par défaut.
+  ...shareImage(DEFAULT_LOCALE),
   title: {
     default: "IMAFRIK",
     template: "%s · IMAFRIK",

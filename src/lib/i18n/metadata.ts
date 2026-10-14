@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import type { Locale } from "@/lib/i18n/locale";
 import { languageAlternates, localizePath } from "@/lib/i18n/routes";
+import { shareImage } from "@/lib/i18n/share-image";
 
 /** Locale Open Graph de chaque langue. */
 const OG_LOCALE: Record<Locale, string> = { fr: "fr_FR", en: "en_GB" };
@@ -30,6 +31,7 @@ export function publicPageMetadata(
   },
 ): Metadata {
   const index = page.index ?? true;
+  const share = shareImage(locale);
   return {
     title: page.absoluteTitle ? { absolute: page.title } : page.title,
     description: page.description,
@@ -44,7 +46,10 @@ export function publicPageMetadata(
       alternateLocale: Object.entries(OG_LOCALE)
         .filter(([key]) => key !== locale)
         .map(([, value]) => value),
+      // Repris ici : ce bloc remplace celui de la disposition racine.
+      ...share.openGraph,
     },
+    twitter: share.twitter,
     robots: { index, follow: index },
   };
 }
