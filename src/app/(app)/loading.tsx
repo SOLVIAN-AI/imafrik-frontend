@@ -16,7 +16,7 @@ export default function Loading() {
       role="status"
       aria-label="Chargement"
     >
-      <div className="flex items-end justify-between gap-4 px-6 pt-6 pb-5">
+      <div className="flex items-end justify-between gap-4 px-4 pt-6 pb-8 sm:px-6">
         <div className="space-y-2">
           <Skeleton className="h-7 w-48" />
           <Skeleton className="h-3 w-72" />

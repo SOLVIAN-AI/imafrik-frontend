@@ -50,6 +50,11 @@ function useRoleRouting() {
  * l'application : une source lumineuse implicite, très diluée, qui
  * évite l'aplat uniforme d'un grand fond sombre. Il reste sous le seuil
  * où une teinte adjacente perturberait la lecture d'une image.
+ *
+ * L'espace sous l'en-tête est le seul qui sépare le titre du contenu :
+ * aucun corps de page n'ajoute de marge en tête. À 20 px, les panneaux
+ * semblaient collés au titre et coupaient le halo à ras ; 32 px leur
+ * laissent l'air d'un bloc distinct, sur tous les écrans à la fois.
  */
 export function PageHeader({
   title,
@@ -63,12 +68,17 @@ export function PageHeader({
   return (
     // Les actions passent sous le titre quand la largeur manque, au lieu
     // de le recouvrir : `flex-wrap`, et une largeur de base au titre.
-    <header className="relative flex shrink-0 flex-wrap items-end justify-between gap-x-4 gap-y-3 px-4 pt-6 pb-5 sm:px-6">
+    <header className="relative flex shrink-0 flex-wrap items-end justify-between gap-x-4 gap-y-3 px-4 pt-6 pb-8 sm:px-6">
       <div
-        className="pointer-events-none absolute inset-x-0 -top-24 h-48 opacity-70"
+        // Le halo couvre tout l'en-tête et s'éteint avant son bord bas. Sa
+        // source était posée sur ce bord même : à son plus vif, il se
+        // coupait net, en un trait que seuls les panneaux collés au titre
+        // masquaient.
+        className="pointer-events-none absolute inset-x-0 -top-24 bottom-0 opacity-70"
         style={{
           background:
-            "radial-gradient(60% 100% at 20% 100%, var(--glow-accent), transparent 70%)",
+            "radial-gradient(60% 75% at 20% 75%, var(--glow-accent), transparent 70%)",
+          maskImage: "linear-gradient(to bottom, #000 70%, transparent)",
         }}
         aria-hidden
       />
