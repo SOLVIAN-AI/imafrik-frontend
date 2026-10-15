@@ -2,15 +2,20 @@ import type { MetadataRoute } from "next";
 
 import { isApiConfigured } from "@/lib/api/config";
 import { LOCALES } from "@/lib/i18n/locale";
-import { INDEXABLE_PAGES, localizePath } from "@/lib/i18n/routes";
+import {
+  INDEXABLE_PAGES,
+  INDEXABLE_SCREENS,
+  localizePath,
+} from "@/lib/i18n/routes";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 /**
  * Plan du site.
  *
  * Il ne liste que les pages publiques, dans chaque langue, chacune avec
- * ses équivalents (`hreflang`). Tout le reste est derrière authentification
- * et n'a pas à figurer dans un fichier destiné aux moteurs.
+ * ses équivalents (`hreflang`), puis l'écran de connexion, à adresse
+ * unique. Tout le reste est derrière authentification et n'a pas à
+ * figurer dans un fichier destiné aux moteurs.
  *
  * Vide tant que le service n'est pas configuré, pour la même raison que
  * `robots.ts` : un aperçu ne doit pas s'annoncer.
@@ -21,7 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   if (!base || !live) return [];
 
-  return INDEXABLE_PAGES.flatMap((page) =>
+  const pages: MetadataRoute.Sitemap = INDEXABLE_PAGES.flatMap((page) =>
     LOCALES.map((locale) => ({
       url: `${base}${localizePath(page.path, locale)}`,
       priority: page.priority,
@@ -36,4 +41,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     })),
   );
+  const screens: MetadataRoute.Sitemap = INDEXABLE_SCREENS.map((screen) => ({
+    url: `${base}${screen.path}`,
+    priority: screen.priority,
+    changeFrequency: "yearly" as const,
+  }));
+
+  return [...pages, ...screens];
 }

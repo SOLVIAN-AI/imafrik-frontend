@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
 import { HomePage } from "@/components/marketing/pages/home-page";
+import { StructuredData } from "@/components/marketing/structured-data";
 import { marketingCopy } from "@/content/marketing";
 import { publicPageMetadata } from "@/lib/i18n/metadata";
+import { homeStructuredData } from "@/lib/seo/structured-data";
 
 const t = marketingCopy("fr").meta;
 
@@ -22,5 +24,10 @@ export const metadata: Metadata = publicPageMetadata("fr", "/", {
 
 /** Accueil, en français. */
 export default function FrenchHomePage() {
-  return <HomePage locale="fr" />;
+  return (
+    <>
+      <StructuredData data={homeStructuredData("fr", t.homeDescription)} />
+      <HomePage locale="fr" />
+    </>
+  );
 }
