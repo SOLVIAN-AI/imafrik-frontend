@@ -1,5 +1,6 @@
 import type {
   ApiAdminUser,
+  ApiCredentialDocument,
   ApiContactRequest,
   ApiAuditEntry,
   ApiBillingLine,
@@ -496,7 +497,7 @@ export function demoOverview(
     message: text.hostWatchFailed,
     href: "/admin/systeme",
   });
-  const unverified = demoUsers(now).filter(isUnverifiedRadiologist).length;
+  const unverified = demoUsers(now).filter(credentialReviewDue).length;
   if (unverified)
     alerts.push({
       code: "unverified_radiologists",
@@ -538,8 +539,8 @@ export function demoOverview(
       clinics_connected: DEMO_NETWORK.length,
       radiologists_active: READERS.length,
       new_requests: DEMO_NEW_REQUESTS,
-      unverified_radiologists: demoUsers(now).filter(isUnverifiedRadiologist)
-        .length,
+      unverified_radiologists:
+        demoUsers(now).filter(credentialReviewDue).length,
     },
     received_14d: received14,
     sla_30d: sla(flows),
@@ -886,6 +887,17 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
     mfa_enabled: mfa,
     credentials_verified_at:
       verifiedDaysAgo === null ? null : iso(now - verifiedDaysAgo * DAY),
+    // Un numéro déclaré accompagne, en démonstration, un diplôme déposé :
+    // validé, ou en attente de l'équipe IMAFRIK. Sans numéro, le dossier
+    // reste à compléter.
+    practice_status: license ? "registered" : null,
+    credentials_valid_until: null,
+    credential_state:
+      verifiedDaysAgo !== null
+        ? "verified"
+        : license
+          ? "pending"
+          : "undeclared",
     // Toutes les organisations de la démonstration sont actives : un
     // compte sans appartenance est inactif depuis sa création, comme le
     // date la base.
@@ -1002,8 +1014,8 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       false,
       [clinic(4)],
     ),
-    // Rattachés au groupe, pas encore validés : l'un attend la
-    // vérification de son numéro d'ordre, l'autre ne l'a pas renseigné.
+    // Rattachés au groupe, pas encore habilités : l'un attend l'examen de
+    // son diplôme, l'autre n'a pas encore complété son dossier.
     user(
       "demo-amegah",
       "Kossi Amegah",
@@ -1044,19 +1056,49 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
 }
 
 /**
- * Compte dont le numéro d'ordre attend la validation de l'équipe IMAFRIK :
- * même règle que le filtre `unverified` du service, et que la pastille
- * « À valider » des lignes. Un numéro **déclaré**, pas encore validé.
+ * Justificatifs d'un compte de démonstration : un diplôme en attente pour
+ * un dossier à examiner, accepté pour un radiologue habilité, aucun
+ * sinon. Le fichier lui-même n'existe pas : son ouverture, comme toute
+ * décision, aboutit au message « indisponible en démonstration ».
  *
- * L'ancienne règle (rattaché comme radiologue, non validé) comptait les
- * comptes sans numéro, qu'aucun bouton ne permet de valider, et oubliait
- * ceux qui avaient déclaré un numéro sans être encore rattachés : le
- * compteur et la liste se contredisaient (revue du 15 octobre 2026).
+ * @param profileId Compte examiné.
+ * @param now       Instant de référence.
+ */
+export function demoCredentialDocuments(
+  profileId: string,
+  now = Date.now(),
+): ApiCredentialDocument[] {
+  const user = demoUsers(now).find((candidate) => candidate.id === profileId);
+  if (!user || user.practice_status !== "registered") return [];
+  const verifiedAt = user.credentials_verified_at;
+  const uploadedAt = verifiedAt
+    ? new Date(Date.parse(verifiedAt) - DAY).toISOString()
+    : new Date(Date.parse(user.created_at) + DAY / 24).toISOString();
+  return [
+    {
+      id: `demo-diploma-${profileId}`,
+      kind: "diploma",
+      file_name: "diplome-radiologie.pdf",
+      content_type: "application/pdf",
+      size_bytes: 1_284_000,
+      valid_until: null,
+      status: verifiedAt ? "accepted" : "pending",
+      rejection_reason: null,
+      uploaded_at: uploadedAt,
+      reviewed_at: verifiedAt ?? null,
+    },
+  ];
+}
+
+/**
+ * Compte dont un justificatif attend la décision de l'équipe IMAFRIK : la
+ * file « À valider » et l'alerte du cockpit. Le service le calcule en
+ * base ; la démonstration lit l'état qu'elle a posé.
  *
  * @param user Compte, tel que le service le renvoie.
  */
-export function isUnverifiedRadiologist(user: ApiAdminUser): boolean {
-  return Boolean(user.license_number?.trim()) && !user.credentials_verified_at;
+export function credentialReviewDue(user: ApiAdminUser): boolean {
+  return user.credential_state === "pending";
 }
 
 /**

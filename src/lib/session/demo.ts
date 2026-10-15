@@ -59,24 +59,21 @@ const PERSONAS: Record<string, Session["user"]> = {
     email: "a.kponton@imafrik.tech",
     fullName: "Adjo Kponton",
     title: "Dr",
-    hasLicenseNumber: true,
-    credentialsVerified: true,
+    credentialState: "verified",
   },
   "m-admin": {
     id: DEMO_USER_ID,
     email: "operations@imafrik.tech",
     fullName: "Edem Agbodjan",
     title: "",
-    hasLicenseNumber: false,
-    credentialsVerified: false,
+    credentialState: "undeclared",
   },
   "m-clinic": {
     id: DEMO_USER_ID,
     email: "accueil@cliniquesaintjoseph.tg",
     fullName: "Akouvi Mensah",
     title: "",
-    hasLicenseNumber: false,
-    credentialsVerified: false,
+    credentialState: "undeclared",
   },
 };
 

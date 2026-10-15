@@ -7,7 +7,9 @@ import {
   PoolForm,
   ProfileForm,
 } from "@/components/settings/settings-forms";
+import { CredentialFileCard } from "@/components/credentials/credential-file-card";
 import { MfaCard } from "@/components/settings/mfa-card";
+import { getMyCredentialDocuments } from "@/lib/data/credentials";
 import { getOrganization } from "@/lib/data/organization";
 import { getProfile } from "@/lib/data/profile";
 import { isDemoMode } from "@/lib/demo/mode";
@@ -35,10 +37,12 @@ export default async function SettingsPage() {
   const session = await requireSession();
   const { t } = await getMessages();
   const isClinic = session.active.role === "clinic_staff";
-  const [profile, organization, mfaEnrolled] = await Promise.all([
+  const isRadiologist = session.active.role === "radiologist";
+  const [profile, organization, mfaEnrolled, documents] = await Promise.all([
     getProfile(),
     isClinic ? getOrganization() : Promise.resolve(null),
     hasVerifiedFactor(session.active.role),
+    isRadiologist ? getMyCredentialDocuments() : Promise.resolve([]),
   ]);
 
   return (
@@ -50,10 +54,10 @@ export default async function SettingsPage() {
 
       <div className="min-h-0 flex-1 overflow-auto px-4 pb-6 sm:px-6">
         <div className="flex max-w-2xl flex-col gap-4">
-          <ProfileForm
-            profile={profile}
-            isRadiologist={session.active.role === "radiologist"}
-          />
+          {isRadiologist && (
+            <CredentialFileCard profile={profile} documents={documents} />
+          )}
+          <ProfileForm profile={profile} isRadiologist={isRadiologist} />
           <LanguageForm />
           {organization && <PoolForm openToPool={organization.openToPool} />}
           <PasswordForm />

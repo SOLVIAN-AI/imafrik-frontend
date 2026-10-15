@@ -17,11 +17,6 @@ export const settings: AppMessages["settings"] = {
     license: "Registration number",
     licenseHint:
       "Printed below your signature. The IMAFRIK team verifies it before giving access to examinations.",
-    licenseStatus: {
-      verified: "Verified by IMAFRIK",
-      pending: "Being verified",
-      missing: "Not provided",
-    },
     licenseChangeWarning:
       "A new number has to be verified again by the IMAFRIK team. Until then, you will no longer have access to examinations.",
     licenseChangeConfirm: {

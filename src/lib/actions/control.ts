@@ -13,6 +13,7 @@ import {
   contactTrackingSchema,
   contractEndResultSchema,
   credentialsStateSchema,
+  documentViewSchema,
   mfaResetSchema,
   platformSettingsSchema,
 } from "@/lib/api/contracts";
@@ -23,6 +24,10 @@ import {
   rejectInvalidIds,
 } from "@/lib/actions/result";
 import { unreportedCount } from "@/lib/contract-end";
+import {
+  type CredentialDocument,
+  getUserCredentialDocuments,
+} from "@/lib/data/credentials";
 import { isDemoMode } from "@/lib/demo/mode";
 import { isLocale, type Locale } from "@/lib/i18n/locale";
 import { getMessages } from "@/i18n/server";
@@ -314,60 +319,142 @@ export async function anonymizeUser(
   return result;
 }
 
-/** Décision de l'équipe IMAFRIK sur un numéro d'ordre. */
-export type CredentialsDecision = "verify" | "revoke";
+/** Décision de l'équipe IMAFRIK sur l'habilitation d'un radiologue. */
+export type CredentialsDecision =
+  | {
+      kind: "verify";
+      /** Justificatif examiné, tel qu'affiché. */
+      documentId: string;
+      /** Inscrit à l'Ordre : numéro affiché, celui qui a été vérifié. */
+      licenseNumber?: string;
+      /** Résident : date de fin lue sur l'attestation (`AAAA-MM-JJ`). */
+      validUntil?: string;
+    }
+  | { kind: "reject"; documentId: string; reason: string }
+  | { kind: "revoke" };
+
+/** Forme d'une décision reçue du navigateur : rien n'y est cru sur parole. */
+const decisionSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("verify"),
+    documentId: z.string().uuid(),
+    licenseNumber: z.string().max(50).optional(),
+    validUntil: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+  }),
+  z.object({
+    kind: z.literal("reject"),
+    documentId: z.string().uuid(),
+    reason: z.string().trim().min(1).max(500),
+  }),
+  z.object({ kind: z.literal("revoke") }),
+]);
 
 /**
- * Valide le numéro d'ordre d'un radiologue, ou retire la validation.
+ * Accepte le justificatif d'un radiologue et l'habilite, le refuse avec un
+ * motif, ou retire l'habilitation.
  *
- * La vérification (inscription à l'Ordre, droit d'exercer) se fait hors
- * de la plateforme ; ce geste en enregistre le résultat. Le service le
- * trace dans le journal d'audit avec le numéro vérifié, refuse de valider
- * un compte sans numéro (422) et, au retrait, rend au pool les examens
- * que le radiologue avait pris en charge.
+ * La vérification (inscription à l'Ordre, diplôme, attestation) se fait
+ * sur le justificatif consulté ; ce geste en enregistre le résultat. Le
+ * service le trace dans le journal d'audit, refuse une décision sur un
+ * justificatif remplacé ou un numéro changé depuis l'affichage, et, au
+ * retrait, rend au pool les examens que le radiologue avait pris en charge.
  *
  * @param profileId Compte du radiologue.
- * @param decision  `verify` ou `revoke`.
- * @param shownLicenseNumber Numéro affiché à l'administrateur, celui
- *        qu'il a vérifié. Envoyé pour une validation : le service refuse
- *        si le radiologue en a changé entre-temps.
- * @returns Le nombre d'examens rendus au pool (toujours 0 à la validation).
+ * @param decision  La décision, avec ce qui a été examiné.
+ * @returns Le nombre d'examens rendus au pool (0 hors retrait).
  */
 export async function decideCredentials(
   profileId: string,
   decision: CredentialsDecision,
-  shownLicenseNumber = "",
 ): Promise<ActionResult<number>> {
   const { t } = await getMessages();
   if (isDemoMode()) {
     return await demoUnavailable(t.admin.demoActions.credentials);
   }
-  if (
-    (decision !== "verify" && decision !== "revoke") ||
-    typeof shownLicenseNumber !== "string"
-  ) {
+  const parsed = decisionSchema.safeParse(decision);
+  if (!parsed.success) {
     return { ok: false, error: t.common.errors.invalidRequest, status: 422 };
   }
   const invalid = await rejectInvalidIds(profileId);
   if (invalid) return invalid;
+  const chosen = parsed.data;
+  const body =
+    chosen.kind === "verify"
+      ? {
+          decision: "verify",
+          document_id: chosen.documentId,
+          ...(chosen.licenseNumber
+            ? { expected_license_number: chosen.licenseNumber.trim() }
+            : {}),
+          ...(chosen.validUntil ? { valid_until: chosen.validUntil } : {}),
+        }
+      : chosen.kind === "reject"
+        ? {
+            decision: "reject",
+            document_id: chosen.documentId,
+            reason: chosen.reason,
+          }
+        : { decision: "revoke" };
   const result = await run(async () => {
-    const body = await apiSend(
+    const state = await apiSend(
       `/admin/users/${encodeURIComponent(profileId)}/credentials`,
       "POST",
-      decision === "verify"
-        ? {
-            decision,
-            expected_license_number: shownLicenseNumber.trim().slice(0, 50),
-          }
-        : { decision },
+      body,
       credentialsStateSchema,
     );
-    return body.released_studies;
+    return state.released_studies;
   });
   revalidatePath("/admin/utilisateurs");
-  // L'alerte du cockpit compte les radiologues à valider.
+  // L'alerte du cockpit compte les justificatifs à examiner.
   revalidatePath("/admin");
   return result;
+}
+
+/**
+ * Justificatifs d'un radiologue, pour l'examen de son dossier.
+ *
+ * @param profileId Compte examiné.
+ * @returns Ses justificatifs, du plus récent au plus ancien, sans adresse
+ *          de fichier.
+ */
+export async function loadCredentialDocuments(
+  profileId: string,
+): Promise<ActionResult<CredentialDocument[]>> {
+  // Les comptes de démonstration n'ont pas d'identifiant UUID.
+  if (!isDemoMode()) {
+    const invalid = await rejectInvalidIds(profileId);
+    if (invalid) return invalid;
+  }
+  return run(() => getUserCredentialDocuments(profileId));
+}
+
+/**
+ * Ouvre un justificatif pour l'équipe IMAFRIK : une adresse valable cinq
+ * minutes, que le navigateur ouvre aussitôt. Le service trace chaque
+ * consultation au journal d'audit.
+ *
+ * @param documentId Justificatif à consulter.
+ * @returns L'adresse du fichier.
+ */
+export async function viewCredentialDocument(
+  documentId: string,
+): Promise<ActionResult<string>> {
+  const { t } = await getMessages();
+  if (isDemoMode()) {
+    return await demoUnavailable(t.admin.demoActions.credentials);
+  }
+  const invalid = await rejectInvalidIds(documentId);
+  if (invalid) return invalid;
+  return run(async () => {
+    const view = await apiGet(
+      `/admin/credential-documents/${encodeURIComponent(documentId)}/view`,
+      documentViewSchema,
+    );
+    return view.url;
+  });
 }
 
 /**

@@ -460,12 +460,12 @@ export const admin = {
     mfaNone: "Sans MFA",
     /** Filtre et section des radiologues dont le numéro d'ordre attend sa validation. */
     unverifiedFilter: "À valider",
-    unverifiedTitle: "Numéros d’ordre à valider",
+    unverifiedTitle: "Dossiers à examiner",
     unverifiedDescription:
-      "Radiologues dont le numéro d’ordre attend la vérification de l’équipe IMAFRIK : ils ne voient aucun examen d’ici là.",
-    noUnverified: "Aucun numéro d’ordre à valider",
+      "Radiologues dont le justificatif attend la décision de l’équipe IMAFRIK : diplôme, attestation d’inscription, ou renouvellement d’une attestation.",
+    noUnverified: "Aucun dossier à examiner",
     unverifiedHint:
-      "Un radiologue apparaît ici dès son rattachement, et de nouveau s’il change de numéro d’ordre.",
+      "Un radiologue apparaît ici dès qu’il dépose un justificatif, et de nouveau s’il change de nom, de titre ou de numéro d’ordre.",
   },
 
   /**
@@ -475,35 +475,57 @@ export const admin = {
    */
   credentials: {
     status: {
-      verified: "Numéro validé",
+      verified: "Habilité",
       pending: "À valider",
-      missing: "Numéro manquant",
+      expired: "Attestation expirée",
+      undeclared: "Dossier incomplet",
+      license_missing: "Numéro manquant",
+      documents_missing: "Justificatif manquant",
     },
-    verifiedOn: "Validé le",
+    practice: {
+      registered: "Inscrit à l’Ordre",
+      resident: "Résident",
+    },
+    verifiedOn: "Habilité le",
+    validUntil: "Attestation valable jusqu’au",
     licenseLabel: "N° d’ordre",
-    verify: {
-      trigger: "Valider le numéro d’ordre",
-      title: (name: string) => `Valider le numéro d’ordre de ${name}`,
+    review: {
+      trigger: "Examiner le dossier",
+      title: (name: string) => `Dossier de ${name}`,
       description:
-        "Vérifiez auprès de l’Ordre des médecins que ce numéro est inscrit au nom de cette personne et l’autorise à exercer. La validation ouvre aussitôt l’accès aux examens ; elle est tracée dans le journal d’audit, avec le numéro vérifié.",
-      numberLabel:
-        "Numéro à vérifier, tel qu’il sera imprimé sous sa signature",
-      submit: "Valider ce numéro",
-      done: (name: string) => `Numéro d’ordre de ${name} validé.`,
-      missing:
-        "Aucun numéro d’ordre renseigné : le radiologue doit le saisir dans ses paramètres avant d’être validé.",
-      self: "Vous ne pouvez pas valider votre propre numéro d’ordre : un autre membre de l’équipe IMAFRIK doit le vérifier.",
+        "Ouvrez le justificatif, vérifiez-le, puis acceptez ou refusez. Chaque consultation et chaque décision sont tracées dans le journal d’audit.",
+      loading: "Chargement du dossier…",
+      noDocument:
+        "Aucun justificatif en attente : le radiologue doit d’abord déposer le sien.",
+      view: "Ouvrir le document",
+      viewFailed: "Le document n’a pas pu être ouvert. Réessayez.",
+      self: "Vous ne pouvez pas décider de votre propre habilitation : un autre membre de l’équipe IMAFRIK doit examiner votre dossier.",
+      licenseHint:
+        "Vérifiez auprès de l’Ordre des médecins que ce numéro est inscrit au nom de cette personne : il sera imprimé sous sa signature.",
+      validUntil: "Date de fin lue sur l’attestation",
+      validUntilHint:
+        "Corrigez-la si elle diffère de celle déclarée. L’accès se ferme le lendemain.",
+      accept: "Accepter et habiliter",
+      accepted: (name: string) =>
+        `${name} est habilité : son accès aux examens est ouvert.`,
+      reject: "Refuser",
+      reason: "Motif du refus",
+      reasonHint:
+        "Adressé au radiologue, qui le lira dans ses paramètres : dites ce qu’il doit corriger.",
+      rejectSubmit: "Refuser ce justificatif",
+      rejected: (name: string) =>
+        `Justificatif de ${name} refusé : le motif lui est transmis.`,
     },
     revoke: {
-      trigger: "Retirer la validation",
-      title: (name: string) => `Retirer la validation de ${name}`,
+      trigger: "Retirer l’habilitation",
+      title: (name: string) => `Retirer l’habilitation de ${name}`,
       description:
         "Cette personne perd aussitôt l’accès aux examens. Ceux qu’elle a pris en charge et pas encore signés retournent au pool, et ses brouillons sur ces examens sont effacés. Les comptes-rendus déjà signés ne changent pas.",
-      submit: "Retirer la validation",
+      submit: "Retirer l’habilitation",
       done: (name: string, released: number) =>
         released === 0
-          ? `Validation de ${name} retirée.`
-          : `Validation de ${name} retirée : ${released} examen${released > 1 ? "s rendus" : " rendu"} au pool.`,
+          ? `Habilitation de ${name} retirée.`
+          : `Habilitation de ${name} retirée : ${released} examen${released > 1 ? "s rendus" : " rendu"} au pool.`,
     },
   },
 
@@ -713,8 +735,11 @@ export const admin = {
 
       "profile.identity_changed": "Nom, titre ou numéro d’ordre modifié",
       "user.mfa_reset": "Double authentification réinitialisée",
-      "user.credentials_verified": "Numéro d’ordre validé",
-      "user.credentials_revoked": "Validation du numéro d’ordre retirée",
+      "user.credential_document_uploaded": "Justificatif déposé",
+      "user.credential_document_viewed": "Justificatif consulté",
+      "user.credentials_verified": "Radiologue habilité",
+      "user.credentials_rejected": "Justificatif refusé",
+      "user.credentials_revoked": "Habilitation retirée",
       "user.anonymization_requested": "Anonymisation d’un compte demandée",
       "user.anonymized": "Compte anonymisé",
       "platform.settings_changed": "Réglages modifiés",
@@ -820,8 +845,8 @@ export const admin = {
       hostWatchFailed: "Surveillance de l’hôte en échec : disque /var à 83 %",
       unverifiedRadiologists: (count: number) =>
         count > 1
-          ? `${count} radiologues attendent la validation de leur numéro d’ordre`
-          : `${count} radiologue attend la validation de son numéro d’ordre`,
+          ? `${count} radiologues attendent l’examen de leur justificatif`
+          : `${count} radiologue attend l’examen de son justificatif`,
       newRequests: (count: number) =>
         `${count} demande${count > 1 ? "s reçues" : " reçue"} par le site ${count > 1 ? "attendent" : "attend"} une réponse`,
     },

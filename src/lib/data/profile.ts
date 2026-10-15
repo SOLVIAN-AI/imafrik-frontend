@@ -2,6 +2,7 @@ import "server-only";
 
 import { apiGet } from "@/lib/api/client";
 import { sessionInfoSchema } from "@/lib/api/contracts";
+import type { CredentialState, PracticeStatus } from "@/lib/credentials";
 import { isDemoMode } from "@/lib/demo/mode";
 import { DEMO_LICENSE_NUMBER } from "@/lib/session/demo";
 import { getSession } from "@/lib/session/server";
@@ -11,11 +12,16 @@ export interface Profile {
   fullName: string;
   title: string;
   licenseNumber: string;
+  /** Exercice déclaré ; `null` tant qu'il ne l'est pas. */
+  practiceStatus: PracticeStatus | null;
+  /** Résident : dernier jour de validité de l'attestation acceptée. */
+  credentialsValidUntil: string | null;
   /**
-   * Numéro d'ordre validé par l'équipe IMAFRIK. Un nouveau numéro annule
-   * la validation : le service renvoie alors `false`.
+   * État d'habilitation calculé par la base. Changer de nom, de titre, de
+   * numéro ou d'exercice défait l'habilitation : le service renvoie
+   * alors le nouvel état.
    */
-  credentialsVerified: boolean;
+  credentialState: CredentialState;
 }
 
 /**
@@ -33,7 +39,9 @@ export async function getProfile(): Promise<Profile> {
       fullName: session!.user.fullName,
       title: session!.user.title,
       licenseNumber: radiologist ? DEMO_LICENSE_NUMBER : "",
-      credentialsVerified: session!.user.credentialsVerified,
+      practiceStatus: radiologist ? "registered" : null,
+      credentialsValidUntil: null,
+      credentialState: session!.user.credentialState,
     };
   }
   const info = await apiGet("/me", sessionInfoSchema);
@@ -41,6 +49,8 @@ export async function getProfile(): Promise<Profile> {
     fullName: info.profile?.full_name ?? "",
     title: info.profile?.title ?? "",
     licenseNumber: info.profile?.license_number ?? "",
-    credentialsVerified: info.profile?.credentials_verified ?? false,
+    practiceStatus: info.profile?.practice_status ?? null,
+    credentialsValidUntil: info.profile?.credentials_valid_until ?? null,
+    credentialState: info.profile?.credential_state ?? "undeclared",
   };
 }

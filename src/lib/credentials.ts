@@ -1,60 +1,102 @@
 import type { Session } from "@/lib/session/types";
 
 /**
- * Validation du numéro d'ordre d'un radiologue par l'équipe IMAFRIK.
+ * Habilitation d'un radiologue par l'équipe IMAFRIK.
  *
  * Un compte-rendu signé engage un médecin : avant le moindre accès aux
- * examens, l'équipe IMAFRIK vérifie auprès de l'Ordre le numéro que le
- * radiologue a déclaré. Tant que ce n'est pas fait, la base lui masque
- * tous les examens et le service refuse prise en charge, rédaction et
- * signature. Ce module ne décide de rien : il traduit l'état du profil
- * en ce que l'écran doit dire.
+ * examens, l'équipe IMAFRIK examine le justificatif qu'exige l'exercice
+ * déclaré : diplôme et numéro d'ordre pour un inscrit à l'Ordre,
+ * attestation d'inscription pour un résident, dont l'accès se ferme seul
+ * à la fin de l'attestation.
+ *
+ * **La règle vit en base** (`credential_state`) : l'accès aux examens, le
+ * service et cet écran lisent le même calcul. Ce module ne décide de
+ * rien : il dit ce que chaque état demande à l'écran.
  */
 
 /**
- * État de la validation :
+ * État d'habilitation, tel que la base le calcule :
  *
- * - `verified` — numéro renseigné et validé : accès ouvert ;
- * - `pending` — numéro renseigné, vérification en cours ;
- * - `missing` — aucun numéro : rien ne peut être vérifié.
+ * - `undeclared` : exercice pas encore déclaré ;
+ * - `license_missing` : inscrit à l'Ordre, sans numéro d'ordre ;
+ * - `documents_missing` : aucun justificatif en attente (aucun dépôt,
+ *   ou le dernier a été refusé) ;
+ * - `pending` : justificatif en attente de la décision de l'équipe ;
+ * - `expired` : attestation d'un résident échue, sans nouvelle déposée ;
+ * - `verified` : habilité, il lit, rédige et signe.
  */
-export type CredentialStatus = "verified" | "pending" | "missing";
+export type CredentialState =
+  | "undeclared"
+  | "license_missing"
+  | "documents_missing"
+  | "pending"
+  | "expired"
+  | "verified";
 
-/** Ce que l'état demande de savoir du profil. */
-export interface CredentialFacts {
-  /** Un numéro d'ordre non vide figure au profil. */
-  hasLicenseNumber: boolean;
-  /** L'équipe IMAFRIK l'a validé. */
-  credentialsVerified: boolean;
-}
+/** Exercice déclaré : inscrit à l'Ordre, ou en cours de spécialisation. */
+export type PracticeStatus = "registered" | "resident";
+
+/** Nature d'un justificatif. */
+export type DocumentKind = "diploma" | "enrollment_certificate";
+
+/** Justificatif qu'exige chaque exercice. */
+export const REQUIRED_DOCUMENT: Record<PracticeStatus, DocumentKind> = {
+  registered: "diploma",
+  resident: "enrollment_certificate",
+};
+
+/** Taille maximale d'un justificatif, comme le service la vérifie. */
+export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
+
+/** Types de fichier acceptés, pour le sélecteur du navigateur. */
+export const DOCUMENT_ACCEPT = "application/pdf,image/jpeg,image/png";
 
 /**
- * État de la validation, avec la même règle que la base
- * (`radiologist_credentialed()`) : une validation sans numéro ne vaut
- * rien, le numéro est alors « manquant ».
- *
- * @param facts Numéro renseigné, validation posée.
+ * États où le radiologue a quelque chose à faire, et l'étape ou le
+ * paramètre qui le lui permet. Les autres (`pending`, `verified`)
+ * n'attendent rien de lui.
  */
-export function credentialStatus(facts: CredentialFacts): CredentialStatus {
-  if (!facts.hasLicenseNumber) return "missing";
-  return facts.credentialsVerified ? "verified" : "pending";
+export function credentialNeedsAction(state: CredentialState): boolean {
+  return state !== "pending" && state !== "verified";
 }
 
 /**
  * Ce qui empêche le radiologue connecté d'accéder aux examens.
  *
  * @param session Session courante.
- * @returns `missing` ou `pending` pour un radiologue non validé ; `null`
- *          pour un radiologue validé et pour tout autre rôle, que la
- *          validation ne concerne pas.
+ * @returns L'état d'un radiologue non habilité ; `null` pour un
+ *          radiologue habilité et pour tout autre rôle, que
+ *          l'habilitation ne concerne pas.
  */
 export function credentialBlock(
   session: Pick<Session, "user" | "active">,
-): Exclude<CredentialStatus, "verified"> | null {
+): Exclude<CredentialState, "verified"> | null {
   if (session.active.role !== "radiologist") return null;
-  const status = credentialStatus(session.user);
-  return status === "verified" ? null : status;
+  const state = session.user.credentialState;
+  return state === "verified" ? null : state;
 }
+
+/**
+ * Jours restants avant la fin d'une attestation, à la date du jour.
+ *
+ * @param validUntil Dernier jour de validité (`AAAA-MM-JJ`), ou `null`.
+ * @param today      Date du jour (`AAAA-MM-JJ`).
+ * @returns Le nombre de jours, 0 le dernier jour ; `null` sans date.
+ */
+export function daysUntil(
+  validUntil: string | null,
+  today: string,
+): number | null {
+  if (!validUntil) return null;
+  const day = 24 * 60 * 60 * 1000;
+  return Math.round(
+    (Date.parse(`${validUntil}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) /
+      day,
+  );
+}
+
+/** Une attestation qui finit dans ce délai appelle son renouvellement. */
+export const RENEWAL_NOTICE_DAYS = 30;
 
 /**
  * Normalise un numéro d'ordre saisi : espaces de bord retirés.
@@ -91,10 +133,10 @@ export interface SignerIdentity {
 }
 
 /**
- * Vrai si l'enregistrement changerait le nom ou le titre d'un radiologue
- * qui a déjà un numéro d'ordre : le serveur annule alors la validation,
- * comme pour un nouveau numéro, car tous trois s'impriment sous la
- * signature.
+ * Vrai si l'enregistrement changerait le nom ou le titre : le serveur
+ * annule alors la validation, comme pour un nouveau numéro, car tous
+ * trois s'impriment sous la signature. L'écran ne l'annonce qu'à un
+ * radiologue habilité : sans habilitation, il n'y a rien à perdre.
  *
  * Vider le titre l'efface côté serveur : c'est un changement comme un
  * autre, qui annule aussi la validation. Seuls les espaces de bord, que
@@ -107,7 +149,6 @@ export function identityChangeResetsValidation(
   previous: SignerIdentity,
   next: SignerIdentity,
 ): boolean {
-  if (normalizeLicenseNumber(previous.licenseNumber) === "") return false;
   return (
     next.fullName.trim() !== previous.fullName.trim() ||
     next.title.trim() !== previous.title.trim()

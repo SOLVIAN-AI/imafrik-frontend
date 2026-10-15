@@ -2,13 +2,16 @@ import { notFound } from "next/navigation";
 import type * as React from "react";
 
 import {
+  DocumentsStep,
   DoneStep,
   FirstStudyStep,
+  PracticeStep,
   ProfileStep,
   ReadingStep,
   TeamStep,
   type StepProps,
 } from "@/components/onboarding/onboarding-steps";
+import { getMyCredentialDocuments } from "@/lib/data/credentials";
 import { getOrganization } from "@/lib/data/organization";
 import { getProfile } from "@/lib/data/profile";
 import { getMessages } from "@/i18n/server";
@@ -22,6 +25,8 @@ import { requireSession } from "@/lib/session/server";
  * qui est atteignable : un segment hors du parcours du rôle renvoie 404.
  */
 const STEP_COMPONENTS: Record<string, React.ComponentType<StepProps>> = {
+  exercice: PracticeStep,
+  justificatifs: DocumentsStep,
   profil: ProfileStep,
   lecture: ReadingStep,
   "premier-envoi": FirstStudyStep,
@@ -49,11 +54,12 @@ export default async function OnboardingStepPage({
   const Component = STEP_COMPONENTS[slug];
   if (index === -1 || !Component) notFound();
 
-  const [profile, organization] = await Promise.all([
+  const [profile, organization, documents] = await Promise.all([
     getProfile(),
     session.active.role === "clinic_staff"
       ? getOrganization()
       : Promise.resolve(null),
+    slug === "justificatifs" ? getMyCredentialDocuments() : Promise.resolve([]),
   ]);
 
   return (
@@ -63,6 +69,7 @@ export default async function OnboardingStepPage({
       nextSlug={index < steps.length - 1 ? steps[index + 1].slug : undefined}
       profile={profile}
       openToPool={organization?.openToPool ?? true}
+      documents={documents}
     />
   );
 }

@@ -2,6 +2,7 @@ import type { AppMessages } from "@/i18n/messages/fr";
 import { admin } from "@/i18n/messages/en/admin";
 import { clinic } from "@/i18n/messages/en/clinic";
 import { common } from "@/i18n/messages/en/common";
+import { credentials } from "@/i18n/messages/en/credentials";
 import { nav } from "@/i18n/messages/en/nav";
 import { onboarding } from "@/i18n/messages/en/onboarding";
 import { reading } from "@/i18n/messages/en/reading";
@@ -22,6 +23,7 @@ import { worklist } from "@/i18n/messages/en/worklist";
  *   erreurs), verrouillage, mot de passe ;
  * - `worklist`, `reading` : portail radiologue, file et écran de lecture ;
  * - `clinic`, `onboarding` : portail clinique, mise en service ;
+ * - `credentials` : habilitation des radiologues, partout où elle se dit ;
  * - `settings` : paramètres ;
  * - `admin` : tour de contrôle.
  */
@@ -33,6 +35,7 @@ export const en: AppMessages = {
   reading,
   clinic,
   onboarding,
+  credentials,
   settings,
   admin,
 };

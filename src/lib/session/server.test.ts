@@ -28,11 +28,13 @@ const answers: {
   profile: Answer;
   memberships: Answer;
   claims: Answer;
+  credentialState: Answer;
 } = {
   user: { data: { user: null }, error: null },
   profile: { data: null, error: null },
   memberships: { data: [], error: null },
   claims: { data: null, error: null },
+  credentialState: { data: "undeclared", error: null },
 };
 
 /** Constructeur de requête minimal : `select().eq()` puis la terminaison. */
@@ -62,6 +64,11 @@ vi.mock("@/lib/supabase/server", () => ({
       },
     },
     from: query,
+    rpc: async (name: string) => {
+      if (name !== "my_credential_state")
+        throw new Error(`fonction inattendue : ${name}`);
+      return answers.credentialState;
+    },
   }),
 }));
 vi.mock("@/lib/demo/mode", () => ({ isDemoMode: () => false }));
@@ -98,8 +105,6 @@ function profile(activeMembershipId: string | null) {
   return {
     full_name: "Carla",
     title: null,
-    license_number: null,
-    credentials_verified_at: null,
     active_membership_id: activeMembershipId,
     locale: "fr",
   };
@@ -107,6 +112,7 @@ function profile(activeMembershipId: string | null) {
 
 beforeEach(() => {
   answers.user = { data: { user: USER }, error: null };
+  answers.credentialState = { data: "undeclared", error: null };
   answers.profile = { data: profile("m-a"), error: null };
   answers.memberships = {
     data: [row("m-a", true), row("m-b", true)],
@@ -193,6 +199,7 @@ describe("second facteur attendu : ni profil ni appartenances lus", () => {
     const refused = { data: null, error: new Error("lecture refusée") };
     answers.profile = refused;
     answers.memberships = refused;
+    answers.credentialState = refused;
   }
 
   it("exigence du hook dans le jeton : « mfa-required » sans requête", async () => {
@@ -295,6 +302,34 @@ describe("une panne n'est pas une absence", () => {
   ])("%s : « anonymous »", async (_label, error) => {
     answers.user = { data: { user: null }, error };
     expect(await getAuthState()).toBe("anonymous");
+  });
+
+  it("état d’habilitation illisible : erreur, pas un accès refusé en silence", async () => {
+    answers.credentialState = { data: null, error: { message: "timeout" } };
+    await expect(getAuthState()).rejects.toBeInstanceOf(
+      SessionUnavailableError,
+    );
+  });
+
+  it("l’état d’habilitation vient de la base, et rien d’inconnu n’ouvre l’accès", async () => {
+    answers.user = {
+      data: { user: { ...USER, factors: [VERIFIED_FACTOR] } },
+      error: null,
+    };
+    answers.claims = {
+      data: { claims: { aal: "aal2", mfa_required: false } },
+      error: null,
+    };
+    answers.credentialState = { data: "verified", error: null };
+    const session = await getAuthState();
+    expect(typeof session === "object" && session.user.credentialState).toBe(
+      "verified",
+    );
+    answers.credentialState = { data: "état-futur", error: null };
+    const other = await getAuthState();
+    expect(typeof other === "object" && other.user.credentialState).toBe(
+      "undeclared",
+    );
   });
 
   it("appartenances illisibles : erreur, pas « no-membership »", async () => {

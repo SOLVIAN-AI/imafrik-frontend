@@ -45,13 +45,16 @@ const CLINIC_STEPS: StepDefinition[] = [
  * Parcours d'un radiologue.
  *
  * Un radiologue arrive ici invité par IMAFRIK ou par la clinique qui
- * l'emploie. L'étape « profil » recueille ce qui sera imprimé sous sa
- * signature, dont son numéro d'ordre, obligatoire : l'équipe IMAFRIK le
- * vérifie auprès de l'Ordre avant d'ouvrir le moindre accès aux examens.
- * La dernière étape explique cette attente tant que la validation n'est
- * pas faite.
+ * l'emploie. Il dit d'abord **qui il est** (inscrit à l'Ordre, ou en
+ * cours de spécialisation), car c'est ce qui décide du justificatif
+ * demandé ; puis il le dépose ; puis il complète ce qui sera imprimé sous
+ * sa signature (numéro d'ordre compris, pour un inscrit). La dernière
+ * étape dit où en est la vérification de l'équipe IMAFRIK, qui seule
+ * ouvre l'accès aux examens.
  */
 const RADIOLOGIST_STEPS: StepDefinition[] = [
+  { slug: "exercice" },
+  { slug: "justificatifs" },
   { slug: "profil" },
   { slug: "termine" },
 ];
