@@ -48,6 +48,17 @@ export function ClinicalInfoForm({
 
   const dirty =
     isUrgent !== saved.urgent || info.trim() !== saved.clinicalInfo.trim();
+  const urgentUnsaved = isUrgent !== saved.urgent;
+
+  // Une modification non enregistrée ne se perd pas en silence : cocher
+  // « urgent » puis quitter la page laissait croire que l'urgence était
+  // transmise, alors que rien n'était parti (revue du 15 octobre 2026).
+  React.useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -122,6 +133,12 @@ export function ClinicalInfoForm({
             aria-describedby="study-clinical-info-description"
           />
         </Field>
+
+        {urgentUnsaved && (
+          <p role="status" className="text-xs font-medium text-urgent">
+            {isUrgent ? text.urgentUnsaved : text.urgentRemovalUnsaved}
+          </p>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-2xs text-tertiary">{text.lockedNote}</p>

@@ -1,6 +1,7 @@
 "use client";
 
-import { Archive, ImageOff, Maximize2 } from "lucide-react";
+import { Archive, ImageOff, Maximize2, Minimize2 } from "lucide-react";
+import * as React from "react";
 
 import { DateTime } from "@/components/domain/date-time";
 import { SimulatedScan } from "@/components/editor/simulated-scan";
@@ -49,8 +50,9 @@ export function ViewerPane({
 }) {
   const labels = useMessages().reading.viewer;
   const locale = useLocale();
+  const { pane, fullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="flex h-full min-h-0 flex-col bg-ink-950">
+    <div ref={pane} className="flex h-full min-h-0 flex-col bg-ink-950">
       {/* Le noir absolu n'est pas décoratif : c'est le fond de référence
           d'une lecture diagnostique. Toute autre teinte autour d'une image
           en niveaux de gris en décalerait la perception. */}
@@ -100,18 +102,56 @@ export function ViewerPane({
           variant="ghost"
           size="sm"
           className={cn("shrink-0", !demo && "ml-auto")}
-          disabled={!viewerUrl}
-          aria-label={labels.openFullscreen}
-          onClick={() =>
-            viewerUrl && window.open(viewerUrl, "_blank", "noopener")
+          // Le volet entier passe en plein écran : la coupe simulée de la
+          // démonstration aussi.
+          disabled={!viewerUrl && !demo}
+          aria-label={
+            fullscreen ? labels.closeFullscreen : labels.openFullscreen
           }
+          aria-pressed={fullscreen}
+          onClick={toggleFullscreen}
         >
-          <Maximize2 />
-          <span className="hidden sm:inline">{labels.fullscreen}</span>
+          {fullscreen ? <Minimize2 /> : <Maximize2 />}
+          <span className="hidden sm:inline">
+            {fullscreen ? labels.exitFullscreen : labels.fullscreen}
+          </span>
         </Button>
       </div>
     </div>
   );
+}
+
+/**
+ * Plein écran du volet d'images, dans la page.
+ *
+ * Le volet entier passe en plein écran (images et barre du bas) : on en
+ * sort par Échap ou par le même bouton, et l'on retrouve l'examen et le
+ * compte-rendu exactement où on les avait laissés. L'ancien bouton
+ * ouvrait le viewer dans un nouvel onglet, sans aucun chemin de retour
+ * vers IMAFRIK : signalé le 15 octobre 2026.
+ */
+function useFullscreen() {
+  const pane = React.useRef<HTMLDivElement>(null);
+  const [fullscreen, setFullscreen] = React.useState(false);
+
+  React.useEffect(() => {
+    // Suit l'état réel : Échap, ou la sortie imposée par le navigateur,
+    // ne passent pas par le bouton.
+    const sync = () =>
+      setFullscreen(document.fullscreenElement === pane.current);
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+
+  const toggleFullscreen = React.useCallback(() => {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+    } else {
+      void pane.current?.requestFullscreen();
+    }
+  }, []);
+
+  return { pane, fullscreen, toggleFullscreen };
 }
 
 /**
