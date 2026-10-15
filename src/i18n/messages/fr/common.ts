@@ -36,12 +36,25 @@ export const common = {
     radiologist: "Radiologue",
     clinic_staff: "Clinique",
   },
+  /**
+   * États d'un examen, côté radiologue et équipe IMAFRIK. « Signé » et
+   * « Remis » partout : les écrans disaient tantôt « Rendu », « signés »,
+   * tantôt « Livré », « remis » ou « Remise » pour le même état.
+   */
   studyStatus: {
     received: "À lire",
     assigned: "Attribué",
     in_progress: "En cours",
-    reported: "Rendu",
-    delivered: "Livré",
+    reported: "Signé",
+    delivered: "Remis",
+  },
+  /** Les mêmes états, vus de la clinique : ce qu'elle attend, sans jargon. */
+  studyStatusClinic: {
+    received: "En attente",
+    assigned: "En lecture",
+    in_progress: "En lecture",
+    reported: "Prêt à télécharger",
+    delivered: "Téléchargé",
   },
   urgent: "Urgent",
   sex: { M: "Homme", F: "Femme", O: "Autre" },

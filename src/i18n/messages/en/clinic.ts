@@ -32,7 +32,6 @@ export const clinic: AppMessages["clinic"] = {
     empty: "No examinations sent",
     emptyDetail:
       "Examinations relayed by your gateway or uploaded from the browser appear here.",
-    reportAvailable: "Report available",
     columns: {
       patient: "Patient",
       study: "Examination",
@@ -41,7 +40,6 @@ export const clinic: AppMessages["clinic"] = {
       sent: "Sent",
       report: "Report",
     },
-    available: "Available",
     pending: "Pending",
   },
   study: {
@@ -72,6 +70,9 @@ export const clinic: AppMessages["clinic"] = {
       urgentLabel: "Urgent examination",
       urgentDetail:
         "Read first, within the turnaround promised for urgent cases. Keep it for situations that cannot wait.",
+      urgentUnsaved:
+        "Not sent yet: save to flag the emergency to the radiologist.",
+      urgentRemovalUnsaved: "Not sent yet: save to remove the emergency flag.",
       infoLabel: "Clinical information",
       infoHint:
         "Context and the question for the radiologist, who sees it on the reading screen and can carry it into the indication.",

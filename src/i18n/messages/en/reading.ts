@@ -3,6 +3,9 @@ import type { AppMessages } from "@/i18n/messages/fr";
 /** Texts for the "reading" area, in English. */
 export const reading: AppMessages["reading"] = {
   page: {
+    awaitingReportTitle: "Report in preparation",
+    awaitingReportDetail:
+      "It will be available here as soon as a radiologist signs it. The images can already be viewed.",
     loading: "Opening the examination",
     claimedBy: (name: string) => `Examination claimed by ${name}.`,
     claimedByOther: "Examination claimed by another radiologist.",

@@ -61,7 +61,13 @@ const DEADLINE_STYLES: Record<DeadlineTone, string> = {
  * `StudyAge`) : le premier rendu réserve la place, sans texte, pour ne
  * pas diverger de l'hydratation.
  */
-function DeadlineBadge({ study, muted }: { study: Study; muted?: boolean }) {
+export function DeadlineBadge({
+  study,
+  muted,
+}: {
+  study: Study;
+  muted?: boolean;
+}) {
   const now = useNow();
   const t = useMessages();
   const locale = useLocale();

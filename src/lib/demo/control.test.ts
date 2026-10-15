@@ -134,17 +134,23 @@ describe("réseau de démonstration", () => {
 });
 
 describe("validation des numéros d’ordre en démonstration", () => {
-  it("signale au cockpit les radiologues à valider", () => {
+  it("signale au cockpit les numéros déclarés et non validés", () => {
     const unverified = demoUsers(NOW).filter(isUnverifiedRadiologist);
-    expect(unverified.map((user) => user.full_name)).toEqual([
-      "Kossi Amegah",
-      "Afi Lawson",
-    ]);
+    const names = unverified.map((user) => user.full_name);
+    // Un numéro déclaré, pas encore validé : c'est ce que la pastille
+    // « À valider » des lignes affiche, et ce qu'un bouton peut valider.
+    expect(names).toContain("Kossi Amegah");
+    for (const user of unverified) {
+      expect(user.license_number?.trim()).toBeTruthy();
+      expect(user.credentials_verified_at).toBeFalsy();
+    }
+    // Sans numéro, rien à valider : « Numéro manquant », hors du compte.
+    expect(names).not.toContain("Afi Lawson");
     const alert = demoOverview(NOW).alerts.find(
       (candidate) => candidate.code === "unverified_radiologists",
     );
     expect(alert?.href).toBe("/admin/utilisateurs?validation=attente");
-    expect(alert?.message).toContain("2");
+    expect(alert?.message).toContain(String(unverified.length));
     // Le compte des demandes nouvelles du cockpit suit la liste.
     expect(demoOverview(NOW).network.new_requests).toBe(
       demoContactRequests(NOW).filter((request) => request.status === "new")

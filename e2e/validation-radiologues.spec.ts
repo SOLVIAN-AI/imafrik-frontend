@@ -26,35 +26,35 @@ test.describe("tour de contrôle", () => {
   }) => {
     await page.goto("/admin");
     const alerte = page.getByRole("link", {
-      name: /2 radiologues attendent la validation de leur numéro d’ordre/,
+      name: /3 radiologues attendent la validation de leur numéro d’ordre/,
     });
     await alerte.click();
     await expect(page).toHaveURL("/admin/utilisateurs?validation=attente");
 
     const filtre = page.getByRole("navigation", { name: "Filtre" });
     await expect(
-      filtre.getByRole("link", { name: "À valider · 2" }),
+      filtre.getByRole("link", { name: "À valider · 3" }),
     ).toHaveAttribute("aria-current", "page");
     await expect(
       page.getByText("Numéros d’ordre à valider", { exact: true }),
     ).toBeVisible();
+    // « À valider » : un numéro déclaré, pas encore validé. Chaque ligne a
+    // donc un bouton actif, et le compte du filtre égale celui du cockpit.
     const lignes = page.locator("[data-credentials-row]");
-    await expect(lignes).toHaveCount(2);
+    await expect(lignes).toHaveCount(3);
+    await expect(page.locator('[data-credentials-row="pending"]')).toHaveCount(
+      3,
+    );
     await expect(page.getByText("Dr Kossi Amegah")).toBeVisible();
-    await expect(page.getByText("Dr Afi Lawson")).toBeVisible();
-    // Une radiologue validée n'apparaît pas dans ce filtre.
+    // Sans numéro, rien à valider : hors de ce filtre.
+    await expect(page.getByText("Dr Afi Lawson")).toHaveCount(0);
+    // Une radiologue validée n'y apparaît pas non plus.
     await expect(page.getByText("Dr Adjo Kponton")).toHaveCount(0);
 
-    // Sans numéro, rien à valider : le bouton est inactif.
-    await expect(
-      page
-        .locator('[data-credentials-row="missing"]')
-        .getByRole("button", { name: "Valider le numéro d’ordre" }),
-    ).toBeDisabled();
-
-    // Avec un numéro, la confirmation montre le numéro exact à vérifier.
+    // La confirmation montre le numéro exact à vérifier.
     await page
       .locator('[data-credentials-row="pending"]')
+      .filter({ hasText: "TG-RAD-0263" })
       .getByRole("button", { name: "Valider le numéro d’ordre" })
       .click();
     const dialogue = page.getByRole("dialog");
@@ -121,10 +121,12 @@ test.describe("tour de contrôle en anglais", () => {
     await expect(
       page.getByText("Registration numbers to verify", { exact: true }),
     ).toBeVisible();
-    await expect(page.getByText("Number missing")).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Verify registration number" }).first(),
     ).toBeVisible();
+    // Sans numéro, hors du filtre : le badge se lit dans la liste complète.
+    await page.goto("/admin/utilisateurs");
+    await expect(page.getByText("Number missing").first()).toBeVisible();
   });
 });
 

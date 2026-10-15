@@ -1044,16 +1044,19 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
 }
 
 /**
- * Radiologue dont le numéro d'ordre attend la validation de l'équipe
- * IMAFRIK : même règle que le filtre `unverified` du service.
+ * Compte dont le numéro d'ordre attend la validation de l'équipe IMAFRIK :
+ * même règle que le filtre `unverified` du service, et que la pastille
+ * « À valider » des lignes. Un numéro **déclaré**, pas encore validé.
+ *
+ * L'ancienne règle (rattaché comme radiologue, non validé) comptait les
+ * comptes sans numéro, qu'aucun bouton ne permet de valider, et oubliait
+ * ceux qui avaient déclaré un numéro sans être encore rattachés : le
+ * compteur et la liste se contredisaient (revue du 15 octobre 2026).
  *
  * @param user Compte, tel que le service le renvoie.
  */
 export function isUnverifiedRadiologist(user: ApiAdminUser): boolean {
-  return (
-    user.memberships.some((membership) => membership.role === "radiologist") &&
-    !user.credentials_verified_at
-  );
+  return Boolean(user.license_number?.trim()) && !user.credentials_verified_at;
 }
 
 /**

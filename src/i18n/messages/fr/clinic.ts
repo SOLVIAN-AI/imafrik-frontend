@@ -34,7 +34,6 @@ export const clinic = {
     empty: "Aucun examen envoyé",
     emptyDetail:
       "Les examens transmis par votre passerelle ou déposés depuis le navigateur apparaissent ici.",
-    reportAvailable: "Compte-rendu disponible",
     columns: {
       patient: "Patient",
       study: "Examen",
@@ -43,7 +42,6 @@ export const clinic = {
       sent: "Envoyé",
       report: "Compte-rendu",
     },
-    available: "Disponible",
     pending: "En attente",
   },
   /** Fiche d'un examen. */
@@ -83,6 +81,10 @@ export const clinic = {
       urgentLabel: "Examen urgent",
       urgentDetail:
         "Lu en priorité, dans le délai promis pour les urgences. À réserver aux situations qui ne peuvent pas attendre.",
+      urgentUnsaved:
+        "Pas encore transmise : enregistrez pour signaler l’urgence au radiologue.",
+      urgentRemovalUnsaved:
+        "Pas encore transmis : enregistrez pour retirer l’urgence.",
       infoLabel: "Renseignement clinique",
       infoHint:
         "Contexte et question posée au radiologue. Il les retrouve dans son écran de lecture et peut les reprendre dans l’indication.",
