@@ -46,7 +46,13 @@ export default async function SystemPage() {
   const ops = t.admin.ops;
   const system = await getSystem();
   const latest = latestByKind(system.ops);
-  const allOk = system.services.every((service) => service.ok);
+  const servicesOk = system.services.every((service) => service.ok);
+  // Un filet de sécurité dont la dernière exécution a échoué (sauvegarde,
+  // surveillance de l'hôte…) dégrade l'état autant qu'une dépendance
+  // muette : la page affichait « Opérationnels » pendant que le cockpit
+  // alertait sur un disque plein.
+  const failingTasks = failingKinds(system.ops);
+  const allOk = servicesOk && failingTasks === 0;
 
   return (
     <>
@@ -63,10 +69,14 @@ export default async function SystemPage() {
             label={text.services}
             value={allOk ? text.operational : text.degraded}
             tone={allOk ? "done" : "urgent"}
-            hint={text.responding(
-              system.services.filter((s) => s.ok).length,
-              system.services.length,
-            )}
+            hint={
+              servicesOk && failingTasks > 0
+                ? text.tasksFailing(failingTasks)
+                : text.responding(
+                    system.services.filter((s) => s.ok).length,
+                    system.services.length,
+                  )
+            }
           />
           <Figure
             label={text.pacs}
@@ -211,6 +221,18 @@ export default async function SystemPage() {
  * cibles, un échec l'emporte sur un succès — même règle que les alertes
  * du service.
  */
+/** Nombre de tâches dont l'exécution la plus récente a échoué. */
+function failingKinds(runs: OpsRun[]): number {
+  const mostRecent = new Map<OpsKind, OpsRun>();
+  for (const run of runs) {
+    const current = mostRecent.get(run.kind);
+    if (!current || run.finishedAt > current.finishedAt) {
+      mostRecent.set(run.kind, run);
+    }
+  }
+  return [...mostRecent.values()].filter((run) => !run.ok).length;
+}
+
 function latestByKind(runs: OpsRun[]): Map<OpsKind, OpsRun> {
   const latest = new Map<OpsKind, OpsRun>();
   for (const run of runs) {

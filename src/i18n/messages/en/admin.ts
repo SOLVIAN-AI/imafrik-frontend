@@ -609,6 +609,8 @@ export const admin: AppMessages["admin"] = {
     operational: "Operational",
     degraded: "Degraded",
     responding: (ok: number, total: number) => `${ok} of ${total} responding`,
+    tasksFailing: (count: number) =>
+      count > 1 ? `${count} safety tasks failing` : "1 safety task failing",
     pacs: "Central PACS",
     engineVersion: "engine version",
     storedStudies: "Examinations stored",

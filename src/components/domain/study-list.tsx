@@ -42,7 +42,9 @@ export function StudyList({
   filtered?: boolean;
 }) {
   const router = useRouter();
-  const t = useMessages().clinic.studies;
+  const messages = useMessages();
+  const t = messages.clinic.studies;
+  const reports = messages.clinic.reports;
   const locale = useLocale();
 
   if (studies.length === 0) {
@@ -86,9 +88,18 @@ export function StudyList({
                   </span>
                 </p>
                 {study.reportedAt && (
-                  <p className="mt-1 inline-flex items-center gap-1.5 text-2xs font-medium text-done">
+                  <p
+                    className={cn(
+                      "mt-1 inline-flex items-center gap-1.5 text-2xs font-medium",
+                      study.status === "delivered"
+                        ? "text-tertiary"
+                        : "text-accent",
+                    )}
+                  >
                     <FileCheck className="size-3.5" aria-hidden />
-                    {t.reportAvailable}
+                    {study.status === "delivered"
+                      ? reports.downloaded
+                      : reports.toDownload}
                   </p>
                 )}
               </div>
@@ -186,9 +197,20 @@ export function StudyList({
 
                 <td className="text-right">
                   {study.reportedAt ? (
-                    <span className="inline-flex items-center gap-1.5 text-2xs font-medium text-done">
+                    // Téléchargé ou non : « Disponible », en vert dans les
+                    // deux cas, ne disait pas ce qui restait à récupérer.
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 text-2xs font-medium",
+                        study.status === "delivered"
+                          ? "text-tertiary"
+                          : "text-accent",
+                      )}
+                    >
                       <FileCheck className="size-3.5" aria-hidden />
-                      {t.available}
+                      {study.status === "delivered"
+                        ? reports.downloaded
+                        : reports.toDownload}
                     </span>
                   ) : (
                     <span className="text-2xs text-tertiary">{t.pending}</span>

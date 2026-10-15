@@ -35,7 +35,12 @@ function workspaceMode(
   report: Report | null,
   t: AppMessages,
 ): WorkspaceMode {
-  if (session.active.role !== "radiologist") return { kind: "readonly" };
+  if (session.active.role !== "radiologist") {
+    return {
+      kind: "readonly",
+      awaitingReport: report?.status !== "signed",
+    };
+  }
   if (report?.status === "signed") return { kind: "readonly" };
 
   // Numéro d'ordre non validé : ni prise en charge ni rédaction. La base

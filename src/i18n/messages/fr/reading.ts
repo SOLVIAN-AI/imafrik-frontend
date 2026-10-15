@@ -10,6 +10,9 @@
 export const reading = {
   /** Écran de lecture, côté serveur. */
   page: {
+    awaitingReportTitle: "Compte-rendu en préparation",
+    awaitingReportDetail:
+      "Il sera disponible ici dès qu’un radiologue l’aura signé. Les images, elles, sont déjà consultables.",
     loading: "Ouverture de l’examen",
     claimedBy: (name: string) => `Examen pris en charge par ${name}.`,
     claimedByOther: "Examen pris en charge par un autre radiologue.",

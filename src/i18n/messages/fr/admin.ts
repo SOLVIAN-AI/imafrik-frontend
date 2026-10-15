@@ -650,6 +650,10 @@ export const admin = {
     operational: "Opérationnels",
     degraded: "Dégradés",
     responding: (ok: number, total: number) => `${ok} sur ${total} répondent`,
+    tasksFailing: (count: number) =>
+      count > 1
+        ? `${count} tâches de sécurité en échec`
+        : "1 tâche de sécurité en échec",
     pacs: "PACS central",
     engineVersion: "version du moteur",
     storedStudies: "Examens conservés",

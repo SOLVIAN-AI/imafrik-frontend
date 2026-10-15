@@ -244,6 +244,7 @@ test.describe("clavier", () => {
       await open(page, "/admin/utilisateurs?validation=attente", "dark");
       const trigger = page
         .locator('[data-credentials-row="pending"]')
+        .filter({ hasText: "TG-RAD-0263" })
         .getByRole("button", { name: "Valider le numéro d’ordre" });
       await trigger.focus();
       await page.keyboard.press("Enter");
