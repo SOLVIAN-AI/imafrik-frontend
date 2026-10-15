@@ -46,11 +46,14 @@ export function InviteDialog({
   roles,
   onInvite,
   trigger,
+  defaults,
 }: {
   organizationName: string;
   roles: readonly UserRole[];
   onInvite: (input: InviteInput) => Promise<ActionResult<unknown>>;
   trigger?: React.ReactNode;
+  /** Valeurs proposées, modifiables : une demande reçue, par exemple. */
+  defaults?: { fullName?: string; email?: string };
 }) {
   const t = useMessages();
   const messages = t.clinic.invite;
@@ -109,6 +112,7 @@ export function InviteDialog({
               <Input
                 id="invite-name"
                 name="fullName"
+                defaultValue={defaults?.fullName}
                 required
                 maxLength={200}
                 autoComplete="off"
@@ -119,6 +123,7 @@ export function InviteDialog({
                 id="invite-email"
                 name="email"
                 type="email"
+                defaultValue={defaults?.email}
                 required
                 autoComplete="off"
               />

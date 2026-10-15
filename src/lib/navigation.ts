@@ -258,7 +258,9 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
     "/equipe",
     "/parametres",
   ],
-  platform_admin: ["/admin", "/parametres"],
+  // L'administration consulte aussi les images, en lecture seule : même
+  // écran que la clinique, ouverture tracée à son nom.
+  platform_admin: ["/admin", "/lecture", "/parametres"],
 };
 
 /**

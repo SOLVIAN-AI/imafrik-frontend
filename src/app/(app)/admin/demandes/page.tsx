@@ -9,6 +9,7 @@ import {
 import type { Metadata } from "next";
 
 import { ContactTracker } from "@/components/admin/contact-tracker";
+import { InviteRequesterButton } from "@/components/admin/invite-requester-button";
 import { ControlBody, Segmented } from "@/components/admin/control-ui";
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
@@ -75,8 +76,17 @@ function requestsHref(
 export default async function ContactRequestsPage({
   searchParams,
 }: PageProps<"/admin/demandes">) {
-  await requireSession(["platform_admin"]);
+  const session = await requireSession(["platform_admin"]);
   const { t } = await getMessages();
+  // Les radiologues acceptés rejoignent l'équipe de la plateforme : celle
+  // de l'administrateur, quand c'est un groupe de radiologie.
+  const team =
+    session.active.organizationKind === "radiology_group"
+      ? {
+          id: session.active.organizationId,
+          name: session.active.organizationName,
+        }
+      : null;
   const text = t.admin.requests;
   const params = await searchParams;
   const requestedKind = Object.entries(KIND_PARAMS).find(
@@ -239,6 +249,21 @@ export default async function ContactRequestsPage({
                       {request.message}
                     </p>
                   )}
+                  {team &&
+                    request.requesterKind === "radiologist" &&
+                    (request.status === "new" ||
+                      request.status === "contacted") && (
+                      <div className="mt-3">
+                        <InviteRequesterButton
+                          requestId={request.id}
+                          notes={request.notes}
+                          fullName={request.fullName}
+                          email={request.email}
+                          organizationId={team.id}
+                          organizationName={team.name}
+                        />
+                      </div>
+                    )}
                   <div className="mt-3 border-t border-border-subtle pt-3">
                     <ContactTracker
                       requestId={request.id}

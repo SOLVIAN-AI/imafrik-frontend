@@ -226,6 +226,7 @@ export const admin: AppMessages["admin"] = {
     allDescription: (count: number) =>
       `${count} examination${count === 1 ? "" : "s"} across all organisations`,
     openUrgent: "Open urgent cases",
+    openImages: (patient: string) => `Open the images of ${patient}`,
     stuck: (count: number) =>
       `${count} urgent examination${count === 1 ? " is" : "s are"} waiting to be claimed.`,
     columns: {
@@ -528,6 +529,9 @@ export const admin: AppMessages["admin"] = {
   },
 
   requests: {
+    inviteRadiologist: "Invite as radiologist",
+    inviteTrackingFailed:
+      "Invitation sent, but the request could not be marked as converted: update it by hand.",
     description: (count: number, fresh: number) =>
       `${count} request${count === 1 ? "" : "s"} · ${fresh} to handle`,
     stage: "Follow-up stage",
@@ -608,6 +612,8 @@ export const admin: AppMessages["admin"] = {
     operational: "Operational",
     degraded: "Degraded",
     responding: (ok: number, total: number) => `${ok} of ${total} responding`,
+    tasksFailing: (count: number) =>
+      count > 1 ? `${count} safety tasks failing` : "1 safety task failing",
     pacs: "Central PACS",
     engineVersion: "engine version",
     storedStudies: "Examinations stored",

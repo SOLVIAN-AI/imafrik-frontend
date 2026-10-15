@@ -468,8 +468,11 @@ export interface paths {
          *         q: Recherche sur le nom ou l'adresse.
          *         pending: Seulement les comptes sans appartenance, invités jamais
          *             rattachés.
-         *         unverified: Seulement les radiologues dont le numéro d'ordre attend
-         *             la validation de l'équipe IMAFRIK.
+         *         unverified: Seulement les comptes dont le numéro d'ordre, déclaré,
+         *             attend la validation de l'équipe IMAFRIK. Même règle que
+         *             l'alerte du cockpit et que la pastille « À valider » des lignes :
+         *             un compte sans numéro n'a rien à valider, un numéro déclaré
+         *             avant tout rattachement en a un.
          */
         get: operations["list_users_admin_users_get"];
         put?: never;

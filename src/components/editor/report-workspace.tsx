@@ -6,6 +6,7 @@ import {
   ClipboardList,
   CloudUpload,
   CornerDownLeft,
+  FileClock,
   Hand,
   Languages,
   Lock,
@@ -41,6 +42,7 @@ import {
   StudyStatusChip,
   UrgentMarker,
 } from "@/components/domain/study-status";
+import { DeadlineBadge } from "@/components/domain/reading-table";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { type SaveOutcome, useAutosave } from "@/hooks/use-autosave";
@@ -66,6 +68,7 @@ import {
 import { formatDemographics, formatPatientName } from "@/lib/format";
 import type { Locale } from "@/lib/i18n/locale";
 import { homeFor } from "@/lib/navigation";
+import { useReturnPath } from "@/lib/return-path";
 import { cn } from "@/lib/utils";
 
 /**
@@ -75,6 +78,13 @@ import { cn } from "@/lib/utils";
  * forme à lui, et redéclarer les champs obligerait à les tenir en phase
  * à la main.
  */
+/** États où l'examen attend encore son compte-rendu : l'échéance compte. */
+const OPEN_STATUSES: ReadonlySet<Study["status"]> = new Set([
+  "received",
+  "assigned",
+  "in_progress",
+]);
+
 export type WorkspaceStudy = Study;
 
 /** Clé de persistance du partage entre les deux volets. */
@@ -138,6 +148,20 @@ function usePersistedLayout() {
  * - `readonly` — consultation : clinique, examen pris par un collègue,
  *   compte-rendu signé.
  */
+/** Volet du compte-rendu tant qu'aucun radiologue ne l'a signé. */
+function AwaitingReport() {
+  const labels = useMessages().reading.page;
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-10 text-center">
+      <FileClock className="size-6 text-tertiary" aria-hidden />
+      <p className="text-sm font-medium">{labels.awaitingReportTitle}</p>
+      <p className="max-w-xs text-xs leading-relaxed text-secondary">
+        {labels.awaitingReportDetail}
+      </p>
+    </div>
+  );
+}
+
 export type WorkspaceMode =
   | {
       kind: "author";
@@ -146,7 +170,17 @@ export type WorkspaceMode =
       backupKey: string | null;
     }
   | { kind: "claimable" }
-  | { kind: "readonly"; notice?: string };
+  | {
+      kind: "readonly";
+      notice?: string;
+      /**
+       * Consultation sans compte-rendu signé (clinique, administration) :
+       * le volet de rédaction cède la place à un état d'attente. Un
+       * formulaire vide aux sections « obligatoires » laissait croire à la
+       * clinique qu'elle devait le remplir.
+       */
+      awaitingReport?: boolean;
+    };
 
 /**
  * Langue du compte-rendu, signalée quand elle diffère de celle de l'écran.
@@ -197,6 +231,7 @@ function StudyBar({
   actions: React.ReactNode;
 }) {
   const { active } = useSession();
+  const returnPath = useReturnPath(homeFor(active.role));
   const t = useMessages();
   const locale = useLocale();
   // L'âge est celui du jour de l'examen : c'est lui qui compte pour
@@ -218,15 +253,15 @@ function StudyBar({
         "bg-surface-raised/40 backdrop-blur-sm",
       )}
     >
-      {/* Le retour dépend du portail : la file de lecture pour un
-          radiologue, le suivi des examens pour une clinique. */}
+      {/* Retour à la page du portail d'où l'on vient ; à défaut, son
+          accueil (la file pour un radiologue, le suivi pour une clinique). */}
       <Button
         variant="ghost"
         size="icon"
         aria-label={t.common.actions.back}
         asChild
       >
-        <Link href={homeFor(active.role)}>
+        <Link href={returnPath}>
           <ArrowLeft />
         </Link>
       </Button>
@@ -237,6 +272,13 @@ function StudyBar({
             {formatPatientName(study.patientName)}
           </h1>
           {study.urgent && <UrgentMarker />}
+          {/* L'échéance reste sous les yeux pendant la rédaction : la file
+              l'affichait, l'écran où l'on écrit ne la montrait pas. Au
+              radiologue seulement : côté clinique, « reste 22 min » se
+              lirait comme une promesse de remise. */}
+          {active.role === "radiologist" &&
+            !signed &&
+            OPEN_STATUSES.has(study.status) && <DeadlineBadge study={study} />}
           <ReportLanguageChip language={study.reportLanguage} />
         </div>
         <p className="truncate text-2xs text-tertiary">
@@ -647,15 +689,19 @@ export function ReportWorkspace({
             : undefined
         }
       />
-      <ReportEditor
-        sections={sections}
-        revision={revision}
-        saveState={state}
-        readOnly={locked}
-        language={study.reportLanguage}
-        onChange={update}
-        aiReview={aiReview}
-      />
+      {mode.kind === "readonly" && mode.awaitingReport && !signed ? (
+        <AwaitingReport />
+      ) : (
+        <ReportEditor
+          sections={sections}
+          revision={revision}
+          saveState={state}
+          readOnly={locked}
+          language={study.reportLanguage}
+          onChange={update}
+          aiReview={aiReview}
+        />
+      )}
     </div>
   );
 

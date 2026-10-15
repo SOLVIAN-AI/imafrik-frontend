@@ -245,6 +245,7 @@ export const admin = {
     allDescription: (count: number) =>
       `${count} examen${count > 1 ? "s" : ""}, toutes organisations confondues`,
     openUrgent: "Urgences en cours",
+    openImages: (patient: string) => `Ouvrir les images de ${patient}`,
     stuck: (count: number) =>
       `${count} examen${count > 1 ? "s" : ""} urgent${count > 1 ? "s" : ""} en attente de prise en charge.`,
     columns: {
@@ -566,6 +567,9 @@ export const admin = {
   requests: {
     description: (count: number, fresh: number) =>
       `${count} demande${count > 1 ? "s" : ""} · ${fresh} à traiter`,
+    inviteRadiologist: "Inviter comme radiologue",
+    inviteTrackingFailed:
+      "Invitation envoyée, mais la demande n’a pas pu passer à « Convertie » : mettez-la à jour à la main.",
     stage: "Étape du suivi",
     allFilter: (count: number) => `Toutes · ${count}`,
     /** Étapes du suivi, au singulier : l'état d'une demande. */
@@ -649,6 +653,10 @@ export const admin = {
     operational: "Opérationnels",
     degraded: "Dégradés",
     responding: (ok: number, total: number) => `${ok} sur ${total} répondent`,
+    tasksFailing: (count: number) =>
+      count > 1
+        ? `${count} tâches de sécurité en échec`
+        : "1 tâche de sécurité en échec",
     pacs: "PACS central",
     engineVersion: "version du moteur",
     storedStudies: "Examens conservés",

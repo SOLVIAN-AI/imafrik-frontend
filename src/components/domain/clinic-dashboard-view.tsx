@@ -11,7 +11,10 @@ import {
   type Metric,
 } from "@/components/domain/metrics";
 import { StudyAge } from "@/components/domain/study-age";
-import { StudyStatusChip } from "@/components/domain/study-status";
+import {
+  StudyStatusChip,
+  UrgentMarker,
+} from "@/components/domain/study-status";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
@@ -174,7 +177,12 @@ export function ClinicDashboardView({
           ) : (
             <ul className="divide-y divide-border-subtle">
               {recent.map((study) => (
-                <li key={study.id}>
+                <li
+                  key={study.id}
+                  // Le rail rouge, comme dans les autres listes : une urgence
+                  // ressemblait ici à un examen ordinaire.
+                  className={cn(study.urgent && "rail-urgent")}
+                >
                   <Link
                     href={`/examens/${study.id}`}
                     className={cn(
@@ -184,8 +192,11 @@ export function ClinicDashboardView({
                     )}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium">
-                        {formatPatientName(study.patientName)}
+                      <p className="flex items-center gap-1.5 text-xs font-medium">
+                        <span className="truncate">
+                          {formatPatientName(study.patientName)}
+                        </span>
+                        {study.urgent && <UrgentMarker />}
                       </p>
                       <p className="truncate text-2xs text-tertiary">
                         {study.modality}
