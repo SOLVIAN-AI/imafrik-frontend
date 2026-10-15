@@ -35,7 +35,12 @@ function workspaceMode(
   report: Report | null,
   t: AppMessages,
 ): WorkspaceMode {
-  if (session.active.role !== "radiologist") return { kind: "readonly" };
+  if (session.active.role !== "radiologist") {
+    return {
+      kind: "readonly",
+      awaitingReport: report?.status !== "signed",
+    };
+  }
   if (report?.status === "signed") return { kind: "readonly" };
 
   // Numéro d'ordre non validé : ni prise en charge ni rédaction. La base
@@ -103,7 +108,11 @@ async function findNextStudy(currentId: string): Promise<string | null> {
 export default async function ReadingPage({
   params,
 }: PageProps<"/lecture/[studyId]">) {
-  const session = await requireSession(["radiologist", "clinic_staff"]);
+  const session = await requireSession([
+    "radiologist",
+    "clinic_staff",
+    "platform_admin",
+  ]);
   const { studyId } = await params;
 
   const radiologist = session.active.role === "radiologist";

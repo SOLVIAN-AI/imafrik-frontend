@@ -23,9 +23,12 @@ import { getReportPdfLink } from "@/lib/actions/reading";
 export function DownloadPdfButton({
   reportId,
   size = "sm",
+  compact = false,
 }: {
   reportId: string | null;
   size?: "sm" | "md";
+  /** Dans une liste : l'icône et « PDF » seulement, nommé en entier pour les lecteurs d'écran. */
+  compact?: boolean;
 }) {
   const router = useRouter();
   const t = useMessages();
@@ -34,6 +37,8 @@ export function DownloadPdfButton({
   return (
     <Button
       size={size}
+      variant={compact ? "secondary" : undefined}
+      aria-label={compact ? t.clinic.reports.downloadPdf : undefined}
       disabled={!reportId}
       loading={pending}
       onClick={() =>
@@ -50,7 +55,7 @@ export function DownloadPdfButton({
       }
     >
       <Download />
-      {t.clinic.reports.downloadPdf}
+      {compact ? "PDF" : t.clinic.reports.downloadPdf}
     </Button>
   );
 }

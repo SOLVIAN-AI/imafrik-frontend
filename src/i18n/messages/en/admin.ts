@@ -226,6 +226,7 @@ export const admin: AppMessages["admin"] = {
     allDescription: (count: number) =>
       `${count} examination${count === 1 ? "" : "s"} across all organisations`,
     openUrgent: "Open urgent cases",
+    openImages: (patient: string) => `Open the images of ${patient}`,
     stuck: (count: number) =>
       `${count} urgent examination${count === 1 ? " is" : "s are"} waiting to be claimed.`,
     columns: {
@@ -608,6 +609,8 @@ export const admin: AppMessages["admin"] = {
     operational: "Operational",
     degraded: "Degraded",
     responding: (ok: number, total: number) => `${ok} of ${total} responding`,
+    tasksFailing: (count: number) =>
+      count > 1 ? `${count} safety tasks failing` : "1 safety task failing",
     pacs: "Central PACS",
     engineVersion: "engine version",
     storedStudies: "Examinations stored",
