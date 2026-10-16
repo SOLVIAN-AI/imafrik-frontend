@@ -15,12 +15,6 @@ export const settings = {
     license: "Numéro d’ordre",
     licenseHint:
       "Imprimé sous votre signature. L’équipe IMAFRIK le vérifie avant d’ouvrir l’accès aux examens.",
-    /** Validation du numéro d'ordre, affichée à côté du champ. */
-    licenseStatus: {
-      verified: "Validé par IMAFRIK",
-      pending: "En cours de vérification",
-      missing: "À renseigner",
-    },
     /** Avertissement quand le numéro saisi remplace un numéro existant. */
     licenseChangeWarning:
       "Un nouveau numéro doit être vérifié de nouveau par l’équipe IMAFRIK. D’ici là, vous n’aurez plus accès aux examens.",

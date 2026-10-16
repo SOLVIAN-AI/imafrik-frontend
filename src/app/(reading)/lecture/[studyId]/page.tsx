@@ -43,18 +43,13 @@ function workspaceMode(
   }
   if (report?.status === "signed") return { kind: "readonly" };
 
-  // Numéro d'ordre non validé : ni prise en charge ni rédaction. La base
-  // masque déjà les examens et le service refuse ces gestes ; l'écran ne
-  // propose donc pas un bouton voué au refus, il dit pourquoi.
+  // Radiologue pas encore habilité : ni prise en charge ni rédaction. La
+  // base masque déjà les examens et le service refuse ces gestes ; l'écran
+  // ne propose donc pas un bouton voué au refus, il dit pourquoi.
   const block = credentialBlock(session);
   if (block) {
-    return {
-      kind: "readonly",
-      notice:
-        block === "missing"
-          ? t.reading.page.credentialsMissing
-          : t.reading.page.credentialsPending,
-    };
+    const text = t.credentials.states[block];
+    return { kind: "readonly", notice: `${text.title}. ${text.detail}` };
   }
 
   const mine = study.assignedTo === session.user.id;

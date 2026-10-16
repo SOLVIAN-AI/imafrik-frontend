@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, Clock, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
@@ -14,7 +15,19 @@ import { useMessages } from "@/i18n/client";
 import { hasReceivedStudy } from "@/lib/actions/onboarding";
 import { setOpenToPool } from "@/lib/actions/organization";
 import { updateProfile } from "@/lib/actions/profile";
-import { credentialBlock } from "@/lib/credentials";
+import {
+  DocumentHistory,
+  DocumentPicker,
+  useDocumentUpload,
+} from "@/components/credentials/document-upload";
+import { PracticeChoice } from "@/components/credentials/practice-choice";
+import { declarePractice } from "@/lib/actions/credentials";
+import {
+  REQUIRED_DOCUMENT,
+  credentialBlock,
+  credentialNeedsAction,
+} from "@/lib/credentials";
+import type { CredentialDocument } from "@/lib/data/credentials";
 import type { Profile } from "@/lib/data/profile";
 import { homeFor } from "@/lib/navigation";
 import type { OnboardingStep } from "@/lib/onboarding/steps";
@@ -27,6 +40,8 @@ export interface StepProps {
   nextSlug?: string;
   profile: Profile;
   openToPool: boolean;
+  /** Radiologue : ses justificatifs, du plus récent au plus ancien. */
+  documents: CredentialDocument[];
 }
 
 /** Va à l'étape suivante, ou à l'accueil du portail à la dernière. */
@@ -55,6 +70,9 @@ export function ProfileStep({
   const advance = useAdvance(nextSlug);
   const [pending, startTransition] = React.useTransition();
   const isRadiologist = active.role === "radiologist";
+  // Un résident signe sans numéro d'ordre : le champ n'est demandé qu'à un
+  // inscrit à l'Ordre.
+  const asksLicense = isRadiologist && profile.practiceStatus === "registered";
 
   return (
     <StepShell
@@ -68,9 +86,9 @@ export function ProfileStep({
           const result = await updateProfile({
             fullName: String(form.get("fullName") ?? ""),
             title: String(form.get("title") ?? ""),
-            licenseNumber: String(
-              form.get("licenseNumber") ?? profile.licenseNumber,
-            ),
+            ...(asksLicense
+              ? { licenseNumber: String(form.get("licenseNumber") ?? "") }
+              : {}),
           });
           if (result.ok) advance();
           else toast.error(result.error);
@@ -98,7 +116,7 @@ export function ProfileStep({
           defaultValue={profile.title}
         />
       </Field>
-      {isRadiologist && (
+      {asksLicense && (
         <Field id="licenseNumber" label={t.license} hint={t.licenseHint}>
           <Input
             id="licenseNumber"
@@ -279,19 +297,140 @@ export function TeamStep({ step, previousSlug, nextSlug }: StepProps) {
 }
 
 /**
- * Dernière étape, commune aux deux parcours.
+ * Étape « Votre exercice » : radiologue.
  *
- * Pour un radiologue dont le numéro d'ordre n'est pas encore validé, elle
- * explique l'attente : sa file restera vide jusqu'à la vérification de
- * l'équipe IMAFRIK, et il n'a rien d'autre à faire. Sans cette phrase, la
- * file vide qui suit passerait pour une panne.
+ * Enregistrée avant d'avancer : c'est elle qui décide du justificatif
+ * demandé à l'étape suivante. Redéclarer le même exercice ne change rien ;
+ * en changer suspend l'habilitation, et l'écran le dit avant.
+ */
+export function PracticeStep({
+  step,
+  previousSlug,
+  nextSlug,
+  profile,
+}: StepProps) {
+  const t = useMessages().credentials.practice;
+  const advance = useAdvance(nextSlug);
+  const [value, setValue] = React.useState(profile.practiceStatus);
+  const [pending, startTransition] = React.useTransition();
+  const changing =
+    profile.credentialState === "verified" &&
+    value !== null &&
+    value !== profile.practiceStatus;
+
+  return (
+    <StepShell
+      step={step}
+      previousSlug={previousSlug}
+      submitting={pending}
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!value) return;
+        if (value === profile.practiceStatus) {
+          advance();
+          return;
+        }
+        startTransition(async () => {
+          const result = await declarePractice(value);
+          if (result.ok) advance();
+          else toast.error(result.error);
+        });
+      }}
+    >
+      <PracticeChoice value={value} onChange={setValue} />
+      {changing && (
+        <p role="status" className="text-xs text-progress">
+          {t.changeWarning}
+        </p>
+      )}
+    </StepShell>
+  );
+}
+
+/**
+ * Étape « Votre justificatif » : radiologue.
+ *
+ * « Continuer » envoie le fichier choisi, puis avance. Un justificatif
+ * déjà en attente (ou accepté) permet d'avancer sans nouveau dépôt ; sans
+ * lui, l'étape demande le fichier : un parcours qui laisserait passer un
+ * dossier vide mènerait à une attente sans objet.
+ */
+export function DocumentsStep({
+  step,
+  previousSlug,
+  nextSlug,
+  profile,
+  documents,
+}: StepProps) {
+  const t = useMessages().credentials;
+  const router = useRouter();
+  const advance = useAdvance(nextSlug);
+  const kind = REQUIRED_DOCUMENT[profile.practiceStatus ?? "registered"];
+  const upload = useDocumentUpload(kind);
+  const [pending, startTransition] = React.useTransition();
+  const onFile = documents.some(
+    (document) => document.kind === kind && document.status !== "rejected",
+  );
+
+  if (!profile.practiceStatus) {
+    // Arrivé ici par l'URL sans avoir déclaré son exercice.
+    return (
+      <StepShell
+        step={step}
+        previousSlug={previousSlug}
+        submitLabel={t.states.undeclared.action}
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (previousSlug) router.push(`/bienvenue/${previousSlug}`);
+        }}
+      >
+        <p className="text-sm text-secondary">{t.states.undeclared.detail}</p>
+      </StepShell>
+    );
+  }
+
+  return (
+    <StepShell
+      step={step}
+      previousSlug={previousSlug}
+      submitting={pending || upload.progress !== null}
+      submitLabel={upload.file ? t.documents.send : undefined}
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!upload.file && onFile) {
+          advance();
+          return;
+        }
+        startTransition(async () => {
+          if (await upload.send()) {
+            toast.success(t.documents.sent);
+            advance();
+          }
+        });
+      }}
+    >
+      <DocumentPicker upload={upload} />
+      <DocumentHistory documents={documents} />
+    </StepShell>
+  );
+}
+
+/**
+ * Dernière étape, commune à tous les parcours.
+ *
+ * Pour un radiologue pas encore habilité, elle dit où en est son dossier :
+ * en cours de vérification (rien à faire), ou incomplet (avec le geste qui
+ * le complète). Sans cette phrase, la file vide qui suit passerait pour
+ * une panne.
  */
 export function DoneStep({ step, previousSlug }: StepProps) {
   const advance = useAdvance(undefined);
   const session = useSession();
   const { active } = session;
-  const t = useMessages().onboarding.done;
+  const messages = useMessages();
+  const t = messages.onboarding.done;
   const block = credentialBlock(session);
+  const text = block ? messages.credentials.states[block] : null;
 
   return (
     <StepShell
@@ -309,7 +448,7 @@ export function DoneStep({ step, previousSlug }: StepProps) {
         advance();
       }}
     >
-      {block ? (
+      {block && text ? (
         <div
           role="status"
           data-credentials={block}
@@ -317,12 +456,18 @@ export function DoneStep({ step, previousSlug }: StepProps) {
         >
           <Clock className="mt-0.5 size-4 shrink-0 text-progress" aria-hidden />
           <div className="min-w-0">
-            <p className="text-sm font-medium text-primary">
-              {block === "pending" ? t.pendingTitle : t.missingTitle}
-            </p>
+            <p className="text-sm font-medium text-primary">{text.title}</p>
             <p className="mt-1 text-xs leading-relaxed text-secondary">
-              {block === "pending" ? t.pendingDetail : t.missingDetail}
+              {text.detail}
             </p>
+            {credentialNeedsAction(block) && (
+              <Link
+                href="/parametres#justificatifs"
+                className="mt-2 inline-block text-xs font-medium text-accent hover:underline"
+              >
+                {text.action}
+              </Link>
+            )}
           </div>
         </div>
       ) : (

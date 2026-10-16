@@ -188,15 +188,69 @@ const _metrics: Matches<
   Schemas["Metrics"]
 > = true;
 
+/** État d'habilitation d'un radiologue, calculé par la base (`credential_state`). */
+export const credentialStateSchema = z.enum([
+  "undeclared",
+  "license_missing",
+  "documents_missing",
+  "pending",
+  "expired",
+  "verified",
+]);
+
+/** Exercice déclaré : inscrit à l'Ordre, ou résident. */
+export const practiceStatusSchema = z.enum(["registered", "resident"]);
+
+/** Un justificatif déposé par un radiologue, et la décision prise. */
+export const credentialDocumentSchema = z.object({
+  id: uuid,
+  kind: z.enum(["diploma", "enrollment_certificate"]),
+  file_name: z.string(),
+  content_type: z.string(),
+  size_bytes: z.number().int(),
+  valid_until: isoDate.nullable().optional(),
+  status: z.enum(["pending", "accepted", "rejected"]),
+  rejection_reason: z.string().nullable().optional(),
+  uploaded_at: isoDate,
+  reviewed_at: isoDate.nullable().optional(),
+});
+const _credentialDocument: Matches<
+  z.input<typeof credentialDocumentSchema>,
+  Schemas["CredentialDocument"]
+> = true;
+
+/** Jeton de dépôt de justificatif, remis au navigateur. */
+export const documentTokenSchema = z.object({
+  token: z.string(),
+  expires_in: z.number().int(),
+});
+const _documentToken: Matches<
+  z.input<typeof documentTokenSchema>,
+  Schemas["DocumentToken"]
+> = true;
+
+/** URL de consultation d'un justificatif, valable quelques minutes. */
+export const documentViewSchema = z.object({
+  url: browserUrl,
+  expires_in: z.number().int(),
+});
+const _documentView: Matches<
+  z.input<typeof documentViewSchema>,
+  Schemas["DocumentView"]
+> = true;
+
 export const profileSchema = z.object({
   id: uuid,
   full_name: z.string(),
   title: z.string().nullable().optional(),
   license_number: z.string().nullable().optional(),
   locale: z.enum(["fr", "en"]),
-  // Validation du numéro d'ordre par l'équipe IMAFRIK : sans elle, un
-  // radiologue n'accède à aucun examen.
+  // Habilitation enregistrée par l'équipe IMAFRIK.
   credentials_verified: z.boolean(),
+  practice_status: practiceStatusSchema.nullable().optional(),
+  credentials_valid_until: isoDate.nullable().optional(),
+  // État calculé par la base : seul « verified » ouvre l'accès aux examens.
+  credential_state: credentialStateSchema,
 });
 const _profile: Matches<
   z.input<typeof profileSchema>,
@@ -618,8 +672,11 @@ export const adminUserSchema = z.object({
   created_at: isoDate,
   last_sign_in_at: isoDate.nullable(),
   mfa_enabled: z.boolean().nullable(),
-  // Validation du numéro d'ordre ; nul tant qu'elle reste à faire.
+  // Habilitation enregistrée ; nulle tant qu'elle reste à faire.
   credentials_verified_at: isoDate.nullable().optional(),
+  practice_status: practiceStatusSchema.nullable().optional(),
+  credentials_valid_until: isoDate.nullable().optional(),
+  credential_state: credentialStateSchema,
   // Fin de la relation : plus aucune appartenance à une organisation
   // active depuis cette date ; nulle tant qu'il en reste une.
   inactive_since: isoDate.nullable().optional(),
@@ -728,6 +785,8 @@ const _anonymizationResult: Matches<
 export const credentialsStateSchema = z.object({
   license_number: z.string().nullable(),
   credentials_verified_at: isoDate.nullable(),
+  credentials_valid_until: isoDate.nullable().optional(),
+  credential_state: credentialStateSchema,
   released_studies: z.number().int(),
 });
 const _credentialsState: Matches<
@@ -741,6 +800,9 @@ const _credentialsState: Matches<
  */
 export const CONTRACT_CHECKS = [
   _uploadToken,
+  _credentialDocument,
+  _documentToken,
+  _documentView,
   _uploadResult,
   _addendum,
   _profile,
@@ -798,6 +860,7 @@ export type ApiSystemStatus = z.output<typeof systemStatusSchema>;
 export type ApiPlatformSettings = z.output<typeof platformSettingsSchema>;
 export type ApiAuditEntry = z.output<typeof auditEntrySchema>;
 export type ApiAdminUser = z.output<typeof adminUserSchema>;
+export type ApiCredentialDocument = z.output<typeof credentialDocumentSchema>;
 export type ApiClinicDetail = z.output<typeof clinicDetailSchema>;
 export type ApiContractEndResult = z.output<typeof contractEndResultSchema>;
 export type ApiInvitationWelcome = z.output<typeof invitationWelcomeSchema>;

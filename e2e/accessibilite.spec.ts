@@ -245,15 +245,14 @@ test.describe("clavier", () => {
       const trigger = page
         .locator('[data-credentials-row="pending"]')
         .filter({ hasText: "TG-RAD-0263" })
-        .getByRole("button", { name: "Valider le numéro d’ordre" });
+        .getByRole("button", { name: "Examiner le dossier" });
       await trigger.focus();
       await page.keyboard.press("Enter");
 
       const dialog = page.getByRole("dialog");
       await expect(dialog).toBeVisible();
-      await expect(dialog).toHaveAccessibleName(
-        "Valider le numéro d’ordre de Dr Kossi Amegah",
-      );
+      await expect(dialog).toHaveAccessibleName("Dossier de Dr Kossi Amegah");
+      await expect(dialog.getByTestId("document-under-review")).toBeVisible();
       // Le focus entre dans le dialogue et n'en sort pas à la tabulation.
       for (let step = 0; step < 6; step++) {
         await expect(dialog.locator(":focus")).toHaveCount(1);

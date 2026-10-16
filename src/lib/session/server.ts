@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
+import { credentialStateSchema } from "@/lib/api/contracts";
+import type { CredentialState } from "@/lib/credentials";
 import { isDemoMode } from "@/lib/demo/mode";
 import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/locale";
 import { LANGUAGE_COOKIE } from "@/lib/i18n/routes";
@@ -71,16 +73,28 @@ export type AuthState =
 interface ProfileRow {
   full_name: string | null;
   title: string | null;
-  license_number: string | null;
-  credentials_verified_at: string | null;
   active_membership_id: string | null;
   locale: string | null;
+}
+
+/**
+ * État d'habilitation renvoyé par la base. Une valeur inconnue (profil
+ * absent, version de la base plus récente) ne donne aucun accès.
+ */
+function parseCredentialState(value: unknown): CredentialState {
+  const parsed = credentialStateSchema.safeParse(value);
+  return parsed.success ? parsed.data : "undeclared";
 }
 
 /** Compte connecté, relu en base : avant le choix de l'organisation active. */
 interface Account {
   user: { id: string; email: string };
   profile: ProfileRow | null;
+  /**
+   * État d'habilitation, calculé par la base (`my_credential_state()`) :
+   * la règle même qui ouvre ou ferme l'accès aux examens.
+   */
+  credentialState: CredentialState;
   /** Appartenances dont l'organisation est active. */
   memberships: Membership[];
   /** Niveaux d'assurance de la session, tirés de données vérifiées. */
@@ -144,17 +158,16 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
     return {
       user: account,
       profile: null,
+      credentialState: "undeclared",
       memberships: [],
       assurance,
       secondFactorPending: true,
     };
 
-  const [profileResult, membershipsResult] = await Promise.all([
+  const [profileResult, membershipsResult, stateResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select(
-        "full_name, title, license_number, credentials_verified_at, active_membership_id, locale",
-      )
+      .select("full_name, title, active_membership_id, locale")
       .eq("id", user.id)
       .maybeSingle<ProfileRow>(),
     supabase
@@ -164,6 +177,7 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
       )
       .eq("profile_id", user.id)
       .overrideTypes<MembershipRow[]>(),
+    supabase.rpc("my_credential_state"),
   ]);
   if (profileResult.error)
     throw new SessionUnavailableError("profile", {
@@ -173,6 +187,8 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
     throw new SessionUnavailableError("memberships", {
       cause: membershipsResult.error,
     });
+  if (stateResult.error)
+    throw new SessionUnavailableError("profile", { cause: stateResult.error });
 
   const memberships: Membership[] = (membershipsResult.data ?? []).flatMap(
     (row) =>
@@ -195,6 +211,7 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
   return {
     user: account,
     profile: profileResult.data,
+    credentialState: parseCredentialState(stateResult.data),
     memberships,
     assurance,
     secondFactorPending: false,
@@ -235,7 +252,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
   // Avant tout le reste, comme le hook : un compte qui attend son second
   // facteur n'a encore ni organisation ni rôle à faire valoir.
   if (account.secondFactorPending) return "mfa-required";
-  const { user, profile, memberships, assurance } = account;
+  const { user, profile, credentialState, memberships, assurance } = account;
 
   const active = resolveActiveMembership(
     memberships,
@@ -253,8 +270,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
       email: user.email,
       fullName: profile?.full_name ?? user.email,
       title: profile?.title ?? "",
-      hasLicenseNumber: Boolean(profile?.license_number?.trim()),
-      credentialsVerified: Boolean(profile?.credentials_verified_at),
+      credentialState,
     },
     memberships,
     active,

@@ -38,30 +38,37 @@ function html(text: string): string {
   return text.replaceAll("&", "&amp;").replaceAll("'", "&#x27;");
 }
 
-describe("bandeau de validation du numéro d’ordre", () => {
-  it("n’apparaît pas pour un radiologue validé ni pour les autres rôles", () => {
+describe("bandeau d’habilitation du radiologue", () => {
+  it("n’apparaît pas pour un radiologue habilité ni pour les autres rôles", () => {
     expect(render(radiologist({}))).toBe("");
     expect(render(demoSession("m-clinic"))).toBe("");
     expect(render(demoSession("m-admin"))).toBe("");
   });
 
-  it("renvoie vers les paramètres quand le numéro manque", () => {
-    const markup = render(
-      radiologist({ hasLicenseNumber: false, credentialsVerified: false }),
-    );
-    const t = messagesFor("fr").worklist.credentials;
-    expect(markup).toContain('data-credentials="missing"');
-    expect(markup).toContain(html(t.missing.title));
-    expect(markup).toContain(html(t.why));
-    expect(markup).toContain('href="/parametres"');
-  });
+  it.each([
+    "undeclared",
+    "license_missing",
+    "documents_missing",
+    "expired",
+  ] as const)(
+    "renvoie vers le dossier quand il est incomplet (%s)",
+    (state) => {
+      const markup = render(radiologist({ credentialState: state }));
+      const t = messagesFor("fr").credentials;
+      expect(markup).toContain(`data-credentials="${state}"`);
+      expect(markup).toContain(html(t.states[state].title));
+      expect(markup).toContain(html(t.states[state].action));
+      expect(markup).toContain(html(t.why));
+      expect(markup).toContain('href="/parametres#justificatifs"');
+    },
+  );
 
   it("annonce la vérification en cours, sans action à faire", () => {
-    const markup = render(radiologist({ credentialsVerified: false }, "en"));
-    const t = messagesFor("en").worklist.credentials;
+    const markup = render(radiologist({ credentialState: "pending" }, "en"));
+    const t = messagesFor("en").credentials;
     expect(markup).toContain('data-credentials="pending"');
-    expect(markup).toContain(html(t.pending.title));
-    expect(markup).toContain(html(t.pending.detail));
-    expect(markup).not.toContain('href="/parametres"');
+    expect(markup).toContain(html(t.states.pending.title));
+    expect(markup).toContain(html(t.states.pending.detail));
+    expect(markup).not.toContain('href="/parametres');
   });
 });

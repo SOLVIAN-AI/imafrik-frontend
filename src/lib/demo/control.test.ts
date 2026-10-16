@@ -9,7 +9,7 @@ import {
   demoPipeline,
   demoSystem,
   demoUsers,
-  isUnverifiedRadiologist,
+  credentialReviewDue,
 } from "@/lib/demo/control";
 
 /** Instant fixe : les tests ne dépendent pas de l'heure de leur exécution. */
@@ -133,18 +133,18 @@ describe("réseau de démonstration", () => {
   });
 });
 
-describe("validation des numéros d’ordre en démonstration", () => {
-  it("signale au cockpit les numéros déclarés et non validés", () => {
-    const unverified = demoUsers(NOW).filter(isUnverifiedRadiologist);
+describe("dossiers à examiner en démonstration", () => {
+  it("signale au cockpit les justificatifs en attente", () => {
+    const unverified = demoUsers(NOW).filter(credentialReviewDue);
     const names = unverified.map((user) => user.full_name);
-    // Un numéro déclaré, pas encore validé : c'est ce que la pastille
-    // « À valider » des lignes affiche, et ce qu'un bouton peut valider.
+    // Un justificatif en attente : c'est ce que la pastille « À valider »
+    // des lignes affiche, et ce que l'équipe IMAFRIK peut examiner.
     expect(names).toContain("Kossi Amegah");
     for (const user of unverified) {
-      expect(user.license_number?.trim()).toBeTruthy();
+      expect(user.credential_state).toBe("pending");
       expect(user.credentials_verified_at).toBeFalsy();
     }
-    // Sans numéro, rien à valider : « Numéro manquant », hors du compte.
+    // Dossier incomplet : rien à examiner, hors du compte.
     expect(names).not.toContain("Afi Lawson");
     const alert = demoOverview(NOW).alerts.find(
       (candidate) => candidate.code === "unverified_radiologists",

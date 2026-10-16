@@ -230,6 +230,37 @@ export interface paths {
         patch: operations["track_contact_request_admin_contact_requests__request_id__patch"];
         trace?: never;
     };
+    "/admin/credential-documents/{document_id}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consulter un justificatif
+         * @description URL de consultation d'un justificatif, valable cinq minutes, tracée.
+         *
+         *     Args:
+         *         document_id: Justificatif.
+         *         principal: Administrateur.
+         *
+         *     Returns:
+         *         L'URL pré-signée ; le navigateur affiche le document.
+         *
+         *     Raises:
+         *         NotFound: Justificatif introuvable, ou détaché d'un compte
+         *             anonymisé.
+         */
+        get: operations["view_document_admin_credential_documents__document_id__view_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/organizations": {
         parameters: {
             query?: never;
@@ -468,11 +499,11 @@ export interface paths {
          *         q: Recherche sur le nom ou l'adresse.
          *         pending: Seulement les comptes sans appartenance, invités jamais
          *             rattachés.
-         *         unverified: Seulement les comptes dont le numéro d'ordre, déclaré,
-         *             attend la validation de l'équipe IMAFRIK. Même règle que
-         *             l'alerte du cockpit et que la pastille « À valider » des lignes :
-         *             un compte sans numéro n'a rien à valider, un numéro déclaré
-         *             avant tout rattachement en a un.
+         *         unverified: Seulement les comptes dont un justificatif attend la
+         *             décision de l'équipe IMAFRIK (:func:`~app.services.credentials.review_due_sql`).
+         *             Même règle que l'alerte du cockpit et que la pastille « À
+         *             valider » des lignes : un compte qui n'a rien déposé n'a rien à
+         *             faire valider.
          */
         get: operations["list_users_admin_users_get"];
         put?: never;
@@ -533,6 +564,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/users/{profile_id}/credential-documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Justificatifs d'un radiologue
+         * @description Justificatifs d'un compte, du plus récent au plus ancien.
+         *
+         *     Args:
+         *         profile_id: Compte examiné.
+         *         principal: Administrateur.
+         *
+         *     Returns:
+         *         Les justificatifs, sans URL : la consultation passe par
+         *         :func:`view_document`, tracée.
+         */
+        get: operations["list_documents_admin_users__profile_id__credential_documents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users/{profile_id}/credentials": {
         parameters: {
             query?: never;
@@ -543,30 +602,38 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Valider ou retirer le numéro d'ordre d'un radiologue
-         * @description Valide le numéro d'ordre d'un radiologue, ou retire la validation.
+         * Accepter, refuser ou retirer l'habilitation d'un radiologue
+         * @description Accepte ou refuse le justificatif d'un radiologue, ou retire son habilitation.
          *
-         *     Sans validation, un radiologue n'accède à aucun examen : ni la file,
-         *     ni le viewer, ni la rédaction, ni la signature. La vérification
-         *     elle-même (inscription à l'Ordre, droit d'exercer) se fait hors de la
-         *     plateforme ; ce geste en enregistre le résultat, avec son auteur et le
-         *     numéro vérifié, dans le journal d'audit. Retirer la validation coupe
-         *     l'accès à la requête suivante, et rend au pool les examens que ce
-         *     radiologue avait pris en charge : un examen ne doit pas rester bloqué
-         *     chez quelqu'un qui ne peut plus le signer. Ses brouillons sur ces
-         *     examens sont effacés, comme lorsqu'il rend un examen lui-même.
+         *     Sans habilitation, un radiologue n'accède à aucun examen : ni la file,
+         *     ni le viewer, ni la rédaction, ni la signature. L'équipe IMAFRIK
+         *     examine le justificatif qu'exige l'exercice déclaré (diplôme et numéro
+         *     d'ordre d'un inscrit, attestation d'inscription d'un résident) ; ce
+         *     geste en enregistre le résultat, avec son auteur, dans le journal
+         *     d'audit.
          *
-         *     La validation porte sur le numéro que l'administrateur a eu sous les
-         *     yeux (``expected_license_number``) : si le radiologue l'a changé entre
-         *     l'affichage et la décision, elle est refusée plutôt que d'approuver un
-         *     numéro que personne n'a vérifié. Nul ne valide son propre numéro.
+         *     - **verify** accepte le justificatif examiné et habilite le radiologue.
+         *       Pour un résident, l'habilitation court jusqu'à la date de fin de
+         *       l'attestation, confirmée ici.
+         *     - **reject** refuse le justificatif, avec un motif que le radiologue
+         *       lira ; il en dépose un autre.
+         *     - **revoke** retire l'habilitation : l'accès se ferme à la requête
+         *       suivante, et les examens que ce radiologue avait pris en charge
+         *       retournent au pool, ses brouillons avec.
+         *
+         *     La décision porte sur ce que l'administrateur a eu sous les yeux : le
+         *     justificatif (``document_id``) et, pour un inscrit, le numéro d'ordre
+         *     (``expected_license_number``). Si l'un ou l'autre a changé entre
+         *     l'affichage et la décision, elle est refusée plutôt que d'approuver ce
+         *     que personne n'a vérifié. Nul ne décide de sa propre habilitation.
          *
          *     Raises:
-         *         NotFound: Compte introuvable.
-         *         Forbidden: Validation de son propre numéro.
-         *         Conflict: Le numéro a changé depuis son affichage.
-         *         Unprocessable: Validation demandée pour un compte sans numéro
-         *             d'ordre, ou sans le numéro vérifié.
+         *         NotFound: Compte ou justificatif introuvable.
+         *         Forbidden: Décision sur son propre compte.
+         *         Conflict: Justificatif remplacé, ou numéro changé, depuis l'affichage.
+         *         Unprocessable: Exercice non déclaré, numéro d'ordre manquant,
+         *             justificatif qui ne correspond pas à l'exercice, date de fin
+         *             passée, motif manquant.
          */
         post: operations["decide_credentials_admin_users__profile_id__credentials_post"];
         delete?: never;
@@ -944,6 +1011,83 @@ export interface paths {
          *         Forbidden: L'appelant n'est pas membre de l'organisation visée.
          */
         post: operations["switch_organization_me_active_organization_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/credential-documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mes justificatifs
+         * @description Justificatifs du radiologue, du plus récent au plus ancien.
+         *
+         *     Args:
+         *         principal: Radiologue, appartenance vérifiée en base.
+         *
+         *     Returns:
+         *         Ses justificatifs et la décision prise, sans URL du fichier.
+         */
+        get: operations["list_my_documents_me_credential_documents_get"];
+        put?: never;
+        /**
+         * Déposer un justificatif
+         * @description Dépose le justificatif qu'exige l'exercice déclaré.
+         *
+         *     Diplôme pour un inscrit à l'Ordre, attestation d'inscription pour un
+         *     résident, avec sa date de fin. Le justificatif de même nature encore
+         *     en attente est remplacé.
+         *
+         *     Args:
+         *         request: Requête dont le corps est le fichier.
+         *         x_upload_token: Jeton émis par ``POST /me/credential-documents/token``.
+         *         file_name: Nom du fichier, pour l'affichage.
+         *         valid_until: Date de fin de l'attestation.
+         *
+         *     Returns:
+         *         Le justificatif enregistré, en attente.
+         *
+         *     Raises:
+         *         Unauthorized: Jeton absent, expiré ou révoqué.
+         *         Unprocessable: Exercice non déclaré, date de fin absente ou
+         *             invalide, trop de justificatifs, corps vide, format non reconnu.
+         *         FileTooLarge: Fichier au-delà de 10 Mio.
+         *         StorageUnavailable: Stockage indisponible ; rien n'est enregistré.
+         */
+        post: operations["upload_document_me_credential_documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/credential-documents/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Obtenir un jeton de dépôt de justificatif
+         * @description Émet un jeton de dépôt de justificatif, au nom du radiologue.
+         *
+         *     Args:
+         *         principal: Radiologue, appartenance vérifiée en base, second facteur
+         *             présenté s'il en a un.
+         *
+         *     Returns:
+         *         Le jeton et sa durée de vie.
+         */
+        post: operations["issue_document_token_me_credential_documents_token_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2069,8 +2213,20 @@ export interface components {
              */
             created_at: string;
             /**
+             * Credential State
+             * @description État d'habilitation calculé par la base ; pending : à examiner.
+             * @default undeclared
+             * @enum {string}
+             */
+            credential_state: "undeclared" | "license_missing" | "documents_missing" | "pending" | "expired" | "verified";
+            /**
+             * Credentials Valid Until
+             * @description Résident : fin de l'attestation acceptée.
+             */
+            credentials_valid_until?: string | null;
+            /**
              * Credentials Verified At
-             * @description Validation du numéro d'ordre par l'équipe IMAFRIK ; None si à faire.
+             * @description Habilitation enregistrée par l'équipe IMAFRIK ; None si à faire.
              */
             credentials_verified_at?: string | null;
             /** Email */
@@ -2098,6 +2254,11 @@ export interface components {
              * @description None si l'information n'est pas disponible.
              */
             mfa_enabled: boolean | null;
+            /**
+             * Practice Status
+             * @description Exercice déclaré : registered (inscrit à l'Ordre) ou resident.
+             */
+            practice_status?: ("registered" | "resident") | null;
             /** Title */
             title: string | null;
         };
@@ -2599,27 +2760,101 @@ export interface components {
             sla_urgent_minutes: number;
         };
         /**
+         * CredentialDocument
+         * @description Un justificatif, et la décision de l'équipe IMAFRIK.
+         *
+         *     Attributes:
+         *         id: Identifiant du justificatif.
+         *         kind: ``diploma`` (diplôme) ou ``enrollment_certificate``
+         *             (attestation d'inscription).
+         *         file_name: Nom du fichier déposé.
+         *         content_type: Type reconnu : PDF, JPEG ou PNG.
+         *         size_bytes: Taille, en octets.
+         *         valid_until: Attestation : date de fin, déclarée au dépôt puis
+         *             confirmée par l'équipe IMAFRIK.
+         *         status: ``pending``, ``accepted`` ou ``rejected``.
+         *         rejection_reason: Motif du refus, à l'intention du radiologue.
+         *         uploaded_at: Instant du dépôt.
+         *         reviewed_at: Instant de la décision.
+         */
+        CredentialDocument: {
+            /** Content Type */
+            content_type: string;
+            /** File Name */
+            file_name: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "diploma" | "enrollment_certificate";
+            /** Rejection Reason */
+            rejection_reason?: string | null;
+            /** Reviewed At */
+            reviewed_at?: string | null;
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "accepted" | "rejected";
+            /**
+             * Uploaded At
+             * Format: date-time
+             */
+            uploaded_at: string;
+            /** Valid Until */
+            valid_until?: string | null;
+        };
+        /**
          * CredentialsDecision
-         * @description Décision de l'équipe IMAFRIK sur le numéro d'ordre d'un radiologue.
+         * @description Décision de l'équipe IMAFRIK sur l'habilitation d'un radiologue.
          */
         CredentialsDecision: {
             /**
              * Decision
-             * @description verify : numéro vérifié auprès de l'Ordre ; revoke : validation retirée.
+             * @description verify : justificatif accepté, radiologue habilité ; reject : justificatif refusé, avec un motif ; revoke : habilitation retirée.
              * @enum {string}
              */
-            decision: "verify" | "revoke";
+            decision: "verify" | "reject" | "revoke";
+            /**
+             * Document Id
+             * @description Justificatif examiné, tel qu'affiché. Obligatoire pour verify et reject : si le radiologue en a déposé un autre entre-temps, la décision est refusée.
+             */
+            document_id?: string | null;
             /**
              * Expected License Number
-             * @description Numéro d'ordre que l'administrateur a vérifié, tel qu'affiché. Obligatoire pour verify : si le radiologue l'a changé entre-temps, la validation est refusée.
+             * @description Numéro d'ordre que l'administrateur a vérifié, tel qu'affiché. Obligatoire pour verify d'un inscrit : si le radiologue l'a changé entre-temps, la validation est refusée.
              */
             expected_license_number?: string | null;
+            /**
+             * Reason
+             * @description Motif du refus, adressé au radiologue. Obligatoire pour reject.
+             */
+            reason?: string | null;
+            /**
+             * Valid Until
+             * @description Résident : date de fin lue sur l'attestation, si elle diffère de celle déclarée au dépôt. L'accès se ferme le lendemain.
+             */
+            valid_until?: string | null;
         };
         /**
          * CredentialsState
-         * @description Validation du numéro d'ordre après la décision.
+         * @description Habilitation d'un radiologue après la décision.
          */
         CredentialsState: {
+            /**
+             * Credential State
+             * @enum {string}
+             */
+            credential_state: "undeclared" | "license_missing" | "documents_missing" | "pending" | "expired" | "verified";
+            /** Credentials Valid Until */
+            credentials_valid_until?: string | null;
             /** Credentials Verified At */
             credentials_verified_at: string | null;
             /** License Number */
@@ -2666,6 +2901,37 @@ export interface components {
             routine: number;
             /** Urgent */
             urgent: number;
+        };
+        /**
+         * DocumentToken
+         * @description Jeton de dépôt de justificatif remis au navigateur.
+         *
+         *     Attributes:
+         *         token: Jeton opaque, à présenter dans l'en-tête ``X-Upload-Token``.
+         *         expires_in: Durée de vie, en secondes.
+         */
+        DocumentToken: {
+            /** Expires In */
+            expires_in: number;
+            /** Token */
+            token: string;
+        };
+        /**
+         * DocumentView
+         * @description URL de consultation d'un justificatif.
+         *
+         *     Attributes:
+         *         url: URL pré-signée, à ouvrir aussitôt.
+         *         expires_in: Durée de validité, en secondes.
+         */
+        DocumentView: {
+            /**
+             * Expires In
+             * @default 300
+             */
+            expires_in: number;
+            /** Url */
+            url: string;
         };
         /**
          * FindingDecision
@@ -2924,7 +3190,7 @@ export interface components {
             radiologists_active: number;
             /**
              * Unverified Radiologists
-             * @description Radiologues dont le numéro d'ordre attend la validation d'IMAFRIK.
+             * @description Radiologues dont le justificatif attend la décision d'IMAFRIK.
              * @default 0
              */
             unverified_radiologists: number;
@@ -3155,11 +3421,24 @@ export interface components {
          *         title: Titre — « Dr », spécialité.
          *         license_number: Numéro d'ordre, imprimé sur les comptes-rendus.
          *         locale: Langue de l'interface, des messages et des courriels.
-         *         credentials_verified: Numéro d'ordre validé par l'équipe IMAFRIK.
-         *             Sans cette validation, un radiologue n'accède à aucun examen ;
-         *             changer de numéro la retire.
+         *         credentials_verified: Validation enregistrée par l'équipe IMAFRIK.
+         *             Changer de nom, de titre, de numéro ou d'exercice la retire.
+         *         practice_status: Exercice déclaré : ``registered`` (inscrit à
+         *             l'Ordre) ou ``resident`` (en cours de spécialisation) ;
+         *             ``None`` tant qu'il n'est pas déclaré.
+         *         credentials_valid_until: Résident : fin de l'attestation acceptée.
+         *         credential_state: État d'habilitation, calculé par la base. Seul
+         *             ``verified`` ouvre l'accès aux examens.
          */
         Profile: {
+            /**
+             * Credential State
+             * @default undeclared
+             * @enum {string}
+             */
+            credential_state: "undeclared" | "license_missing" | "documents_missing" | "pending" | "expired" | "verified";
+            /** Credentials Valid Until */
+            credentials_valid_until?: string | null;
             /**
              * Credentials Verified
              * @default false
@@ -3180,6 +3459,8 @@ export interface components {
              * @enum {string}
              */
             locale: "fr" | "en";
+            /** Practice Status */
+            practice_status?: ("registered" | "resident") | null;
             /** Title */
             title?: string | null;
         };
@@ -3203,6 +3484,8 @@ export interface components {
          *         title: Titre — « Dr », spécialité.
          *         license_number: Numéro d'ordre.
          *         locale: Langue de l'interface, des messages et des courriels.
+         *         practice_status: Exercice déclaré. En changer retire la validation :
+         *             les justificatifs acceptés ne valent que pour l'exercice déclaré.
          */
         ProfileUpdate: {
             /** Full Name */
@@ -3211,6 +3494,8 @@ export interface components {
             license_number?: string | null;
             /** Locale */
             locale?: ("fr" | "en") | null;
+            /** Practice Status */
+            practice_status?: ("registered" | "resident") | null;
             /** Title */
             title?: string | null;
         };
@@ -4025,7 +4310,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credentials_verified" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -4291,6 +4576,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ContactRequestTracking"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    view_document_admin_credential_documents__document_id__view_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentView"];
                 };
             };
             /** @description Validation Error */
@@ -4669,6 +4987,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnonymizationResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_documents_admin_users__profile_id__credential_documents_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialDocument"][];
                 };
             };
             /** @description Validation Error */
@@ -5086,6 +5437,109 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SwitchOrganizationResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_documents_me_credential_documents_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialDocument"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_document_me_credential_documents_post: {
+        parameters: {
+            query?: {
+                file_name?: string | null;
+                /** @description Attestation d'inscription : date de fin. Ignorée pour un diplôme. */
+                valid_until?: string | null;
+            };
+            header?: {
+                "x-upload-token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/pdf": string;
+                "image/jpeg": string;
+                "image/png": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialDocument"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_document_token_me_credential_documents_token_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentToken"];
                 };
             };
             /** @description Validation Error */

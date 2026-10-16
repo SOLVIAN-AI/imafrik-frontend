@@ -1,3 +1,4 @@
+import type { CredentialState } from "@/lib/credentials";
 import type { Locale } from "@/lib/i18n/locale";
 
 /**
@@ -39,18 +40,12 @@ export interface Session {
     fullName: string;
     title: string;
     /**
-     * Numéro d'ordre renseigné au profil (`profiles.license_number`) :
-     * un radiologue sans numéro ne peut pas être validé.
+     * État d'habilitation calculé par la base (`credential_state`). Seul
+     * `verified` ouvre à un radiologue l'accès aux examens : sans lui, la
+     * base les lui masque et le service refuse prise en charge, rédaction
+     * et signature. Sans objet pour les autres rôles.
      */
-    hasLicenseNumber: boolean;
-    /**
-     * Numéro d'ordre validé par l'équipe IMAFRIK
-     * (`profiles.credentials_verified_at`). Sans cette validation, un
-     * radiologue n'accède à aucun examen : la base les lui masque et le
-     * service refuse prise en charge, rédaction et signature. Sans objet
-     * pour les autres rôles.
-     */
-    credentialsVerified: boolean;
+    credentialState: CredentialState;
   };
   memberships: Membership[];
   active: Membership;

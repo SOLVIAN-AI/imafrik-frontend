@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   credentialBlock,
-  credentialStatus,
+  credentialNeedsAction,
+  daysUntil,
   identityChangeResetsValidation,
   licenseChangeResetsValidation,
 } from "@/lib/credentials";
@@ -15,39 +16,34 @@ function radiologist(user: Partial<Session["user"]>): Session {
   return { ...session, user: { ...session.user, ...user } };
 }
 
-describe("validation du numéro d’ordre", () => {
-  it("distingue un numéro validé, en attente ou manquant", () => {
-    expect(
-      credentialStatus({ hasLicenseNumber: true, credentialsVerified: true }),
-    ).toBe("verified");
-    expect(
-      credentialStatus({ hasLicenseNumber: true, credentialsVerified: false }),
-    ).toBe("pending");
-    expect(
-      credentialStatus({ hasLicenseNumber: false, credentialsVerified: false }),
-    ).toBe("missing");
-  });
-
-  it("ne tient pas pour valide une validation sans numéro", () => {
-    expect(
-      credentialStatus({ hasLicenseNumber: false, credentialsVerified: true }),
-    ).toBe("missing");
-  });
-
-  it("ne bloque qu’un radiologue non validé", () => {
+describe("habilitation du radiologue", () => {
+  it("ne bloque qu’un radiologue non habilité", () => {
     expect(credentialBlock(radiologist({}))).toBeNull();
-    expect(credentialBlock(radiologist({ credentialsVerified: false }))).toBe(
+    expect(credentialBlock(radiologist({ credentialState: "pending" }))).toBe(
       "pending",
     );
-    expect(
-      credentialBlock(
-        radiologist({ hasLicenseNumber: false, credentialsVerified: false }),
-      ),
-    ).toBe("missing");
-    // Le personnel d'une clinique et l'équipe IMAFRIK n'ont pas de numéro
-    // d'ordre à faire valider.
+    expect(credentialBlock(radiologist({ credentialState: "expired" }))).toBe(
+      "expired",
+    );
+    // L'habilitation ne concerne que les radiologues.
     expect(credentialBlock(demoSession("m-clinic"))).toBeNull();
     expect(credentialBlock(demoSession("m-admin"))).toBeNull();
+  });
+
+  it("dit quand le radiologue a quelque chose à faire", () => {
+    expect(credentialNeedsAction("undeclared")).toBe(true);
+    expect(credentialNeedsAction("license_missing")).toBe(true);
+    expect(credentialNeedsAction("documents_missing")).toBe(true);
+    expect(credentialNeedsAction("expired")).toBe(true);
+    expect(credentialNeedsAction("pending")).toBe(false);
+    expect(credentialNeedsAction("verified")).toBe(false);
+  });
+
+  it("compte les jours avant la fin d’une attestation", () => {
+    expect(daysUntil("2026-11-14", "2026-10-15")).toBe(30);
+    expect(daysUntil("2026-10-15", "2026-10-15")).toBe(0);
+    expect(daysUntil("2026-10-14", "2026-10-15")).toBe(-1);
+    expect(daysUntil(null, "2026-10-15")).toBeNull();
   });
 
   it("annonce la nouvelle vérification quand un numéro en remplace un autre", () => {
@@ -95,19 +91,13 @@ describe("identité du signataire", () => {
     ).toBe(false);
   });
 
-  it("les espaces de bord ou l’absence de numéro ne changent rien", () => {
+  it("les espaces de bord ne changent rien", () => {
     expect(
       identityChangeResetsValidation(signer, {
         ...signer,
         fullName: " Kodjo Mensah ",
         title: " Dr ",
       }),
-    ).toBe(false);
-    expect(
-      identityChangeResetsValidation(
-        { ...signer, licenseNumber: "" },
-        { ...signer, licenseNumber: "", fullName: "Autre Nom" },
-      ),
     ).toBe(false);
   });
 });

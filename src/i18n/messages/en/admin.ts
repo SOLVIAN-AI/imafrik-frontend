@@ -430,46 +430,68 @@ export const admin: AppMessages["admin"] = {
     mfaRequired: "Required for radiologists and administrators",
     mfaMissing: "MFA missing",
     mfaNone: "No MFA",
-    unverifiedFilter: "To verify",
-    unverifiedTitle: "Registration numbers to verify",
+    unverifiedFilter: "To review",
+    unverifiedTitle: "Files to review",
     unverifiedDescription:
-      "Radiologists whose registration number is awaiting verification by the IMAFRIK team: until then, they cannot see any examinations.",
-    noUnverified: "No registration numbers to verify",
+      "Radiologists whose supporting document awaits the IMAFRIK team’s decision: diploma, enrolment certificate, or certificate renewal.",
+    noUnverified: "No files to review",
     unverifiedHint:
-      "A radiologist appears here once attached to an organisation, and again if they change their registration number.",
+      "A radiologist appears here as soon as they upload a supporting document, and again if they change their name, title or registration number.",
   },
 
   credentials: {
     status: {
-      verified: "Number verified",
-      pending: "To verify",
-      missing: "Number missing",
+      verified: "Approved",
+      pending: "To review",
+      expired: "Certificate expired",
+      undeclared: "File incomplete",
+      license_missing: "Number missing",
+      documents_missing: "Document missing",
     },
-    verifiedOn: "Verified on",
+    practice: {
+      registered: "Registered",
+      resident: "Resident",
+    },
+    verifiedOn: "Approved on",
+    validUntil: "Certificate valid until",
     licenseLabel: "Reg. no.",
-    verify: {
-      trigger: "Verify registration number",
-      title: (name: string) => `Verify ${name}’s registration number`,
+    review: {
+      trigger: "Review the file",
+      title: (name: string) => `${name}’s file`,
       description:
-        "Check with the medical council that this number is registered to this person and allows them to practise. Verification gives immediate access to examinations; it is recorded in the audit log together with the number checked.",
-      numberLabel:
-        "Number to check, as it will be printed below their signature",
-      submit: "Verify this number",
-      done: (name: string) => `${name}’s registration number verified.`,
-      missing:
-        "No registration number provided: the radiologist must enter it in their settings before it can be verified.",
-      self: "You cannot verify your own registration number: another member of the IMAFRIK team must check it.",
+        "Open the supporting document, check it, then accept or refuse. Every viewing and every decision is recorded in the audit log.",
+      loading: "Loading the file…",
+      noDocument:
+        "No supporting document awaiting review: the radiologist must upload theirs first.",
+      view: "Open the document",
+      viewFailed: "The document could not be opened. Try again.",
+      self: "You cannot decide on your own accreditation: another member of the IMAFRIK team must review your file.",
+      licenseHint:
+        "Check with the medical council that this number is registered to this person: it will be printed below their signature.",
+      validUntil: "End date read on the certificate",
+      validUntilHint:
+        "Correct it if it differs from the one declared. Access closes the following day.",
+      accept: "Accept and approve",
+      accepted: (name: string) =>
+        `${name} is approved: their access to examinations is open.`,
+      reject: "Refuse",
+      reason: "Reason for refusal",
+      reasonHint:
+        "Sent to the radiologist, who will read it in their settings: say what they need to correct.",
+      rejectSubmit: "Refuse this document",
+      rejected: (name: string) =>
+        `${name}’s document refused: the reason has been sent to them.`,
     },
     revoke: {
-      trigger: "Withdraw verification",
-      title: (name: string) => `Withdraw ${name}’s verification`,
+      trigger: "Withdraw approval",
+      title: (name: string) => `Withdraw ${name}’s approval`,
       description:
         "This person immediately loses access to examinations. Those they have claimed but not yet signed return to the pool, and their drafts for these examinations are deleted. Reports already signed are not affected.",
-      submit: "Withdraw verification",
+      submit: "Withdraw approval",
       done: (name: string, released: number) =>
         released === 0
-          ? `${name}’s verification withdrawn.`
-          : `${name}’s verification withdrawn: ${released} examination${released === 1 ? "" : "s"} returned to the pool.`,
+          ? `${name}’s approval withdrawn.`
+          : `${name}’s approval withdrawn: ${released} examination${released === 1 ? "" : "s"} returned to the pool.`,
     },
   },
 
@@ -662,8 +684,11 @@ export const admin: AppMessages["admin"] = {
 
       "profile.identity_changed": "Name, title or registration number changed",
       "user.mfa_reset": "Two-factor authentication reset",
-      "user.credentials_verified": "Registration number verified",
-      "user.credentials_revoked": "Registration number verification withdrawn",
+      "user.credential_document_uploaded": "Supporting document uploaded",
+      "user.credential_document_viewed": "Supporting document viewed",
+      "user.credentials_verified": "Radiologist approved",
+      "user.credentials_rejected": "Supporting document refused",
+      "user.credentials_revoked": "Approval withdrawn",
       "user.anonymization_requested": "Account anonymisation requested",
       "user.anonymized": "Account anonymised",
       "platform.settings_changed": "Settings changed",
@@ -763,8 +788,8 @@ export const admin: AppMessages["admin"] = {
       hostWatchFailed: "Host monitoring failed: /var disk at 83%",
       unverifiedRadiologists: (count: number) =>
         count === 1
-          ? "1 radiologist is awaiting verification of their registration number"
-          : `${count} radiologists are awaiting verification of their registration number`,
+          ? "1 radiologist’s supporting document is awaiting review"
+          : `${count} radiologists’ supporting documents are awaiting review`,
       newRequests: (count: number) =>
         `${count} contact request${count === 1 ? " is" : "s are"} awaiting a reply`,
     },

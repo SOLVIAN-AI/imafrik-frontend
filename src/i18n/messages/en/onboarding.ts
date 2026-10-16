@@ -23,13 +23,21 @@ export const onboarding: AppMessages["onboarding"] = {
       termine: { title: "Done", lead: "Your service is up and running." },
     },
     radiologist: {
+      exercice: {
+        title: "Your practice",
+        lead: "It determines the supporting document the IMAFRIK team will ask for.",
+      },
+      justificatifs: {
+        title: "Your supporting document",
+        lead: "The IMAFRIK team reviews it before opening your access to examinations.",
+      },
       profil: {
         title: "Your profile",
-        lead: "What will be printed below your signature, and the registration number the IMAFRIK team will verify.",
+        lead: "What will be printed under your signature.",
       },
       termine: {
-        title: "Done",
-        lead: "Your profile is saved.",
+        title: "Approval",
+        lead: "Where the review of your file stands.",
       },
     },
     admin: {
@@ -79,11 +87,5 @@ export const onboarding: AppMessages["onboarding"] = {
     openWorklist: "Open the worklist",
     openControlTower: "Open the control tower",
     ready: "Everything is set up.",
-    pendingTitle: "Your registration number is being verified.",
-    pendingDetail:
-      "The IMAFRIK team checks it with the medical council before opening your worklist: a signed report commits a physician. Examinations will appear as soon as it is verified; there is nothing else you need to do.",
-    missingTitle: "Your registration number is still missing.",
-    missingDetail:
-      "Without it, the IMAFRIK team cannot approve your access to examinations. Go back to the previous step, or add it later in your settings.",
   },
 };

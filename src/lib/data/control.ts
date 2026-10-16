@@ -30,8 +30,9 @@ import {
   demoSettings,
   demoSystem,
   demoUsers,
-  isUnverifiedRadiologist,
+  credentialReviewDue,
 } from "@/lib/demo/control";
+import type { CredentialState, PracticeStatus } from "@/lib/credentials";
 import { isDemoMode } from "@/lib/demo/mode";
 import type { Locale } from "@/lib/i18n/locale";
 import type { OrgKind, UserRole } from "@/lib/session/types";
@@ -541,10 +542,16 @@ export interface AdminUser {
   /** `null` quand l'information n'est pas disponible. */
   mfaEnabled: boolean | null;
   /**
-   * Validation du numéro d'ordre par l'équipe IMAFRIK ; `null` tant
-   * qu'elle reste à faire, ou depuis un changement de numéro.
+   * Habilitation enregistrée par l'équipe IMAFRIK ; `null` tant qu'elle
+   * reste à faire, ou depuis un changement d'identité ou d'exercice.
    */
   credentialsVerifiedAt: Date | null;
+  /** Exercice déclaré ; `null` tant qu'il ne l'est pas. */
+  practiceStatus: PracticeStatus | null;
+  /** Résident : dernier jour de validité de l'attestation acceptée. */
+  credentialsValidUntil: string | null;
+  /** État d'habilitation calculé par la base. */
+  credentialState: CredentialState;
   /**
    * Fin de la relation : depuis quand le compte n'a plus aucune
    * appartenance à une organisation active ; `null` s'il en garde une.
@@ -560,7 +567,7 @@ export interface UserFilters {
   query?: string;
   /** Seulement les comptes sans appartenance. */
   pending?: boolean;
-  /** Seulement les radiologues dont le numéro d'ordre attend sa validation. */
+  /** Seulement les radiologues dont un justificatif attend la décision. */
   unverified?: boolean;
 }
 
@@ -575,7 +582,7 @@ export async function listUsers(
     rows = demoUsers().filter(
       (user) =>
         (!filters.pending || user.memberships.length === 0) &&
-        (!filters.unverified || isUnverifiedRadiologist(user)) &&
+        (!filters.unverified || credentialReviewDue(user)) &&
         (!needle ||
           user.full_name.toLocaleLowerCase("fr").includes(needle) ||
           (user.email ?? "").toLocaleLowerCase("fr").includes(needle)),
@@ -597,6 +604,9 @@ export async function listUsers(
     lastSignInAt: toDate(row.last_sign_in_at),
     mfaEnabled: row.mfa_enabled,
     credentialsVerifiedAt: toDate(row.credentials_verified_at ?? null),
+    practiceStatus: row.practice_status ?? null,
+    credentialsValidUntil: row.credentials_valid_until ?? null,
+    credentialState: row.credential_state,
     inactiveSince: toDate(row.inactive_since ?? null),
     memberships: row.memberships.map((membership) => ({
       membershipId: membership.membership_id,

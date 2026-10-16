@@ -3,7 +3,10 @@ import type { Metadata } from "next";
 
 import { AnonymizeDialog } from "@/components/admin/anonymize-dialog";
 import { ControlBody, Section, Segmented } from "@/components/admin/control-ui";
-import { CredentialsActions } from "@/components/admin/credentials-actions";
+import {
+  CredentialReview,
+  RevokeCredentials,
+} from "@/components/admin/credentials-actions";
 import { GrantDialog } from "@/components/admin/grant-dialog";
 import { MfaResetButton } from "@/components/admin/mfa-reset-button";
 import { RelativeTime } from "@/components/admin/relative-time";
@@ -14,7 +17,6 @@ import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { needsMembershipRemoval } from "@/lib/account-anonymization";
 import { parseUserFilter, userListHref } from "@/lib/admin-params";
-import { credentialStatus } from "@/lib/credentials";
 import { listOrganizations } from "@/lib/data/admin";
 import { type AdminUser, listUsers } from "@/lib/data/control";
 import { formatPersonName } from "@/lib/format";
@@ -33,9 +35,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * Trois usages. **Rattacher** : un compte inscrit n'est rattaché à rien,
  * donc ne voit rien ; le filtre « En attente » les isole, et un geste les
  * rattache. **Valider** : un radiologue ne voit aucun examen tant que
- * l'équipe IMAFRIK n'a pas vérifié son numéro d'ordre auprès de l'Ordre ;
- * le filtre « À valider » (`?validation=attente`, l'adresse de l'alerte
- * du cockpit) les isole, et la validation se fait depuis la ligne.
+ * l'équipe IMAFRIK n'a pas examiné son justificatif (diplôme et numéro
+ * d'ordre, ou attestation d'inscription) ; le filtre « À valider »
+ * (`?validation=attente`, l'adresse de l'alerte du cockpit) les isole, et
+ * l'examen se fait depuis la ligne.
  * **Vérifier** : qui a accès à quoi, qui n'a pas activé la double
  * authentification, qui ne s'est pas connecté depuis des mois.
  * **Effacer** : une personne qui exerce son droit à l'effacement est
@@ -284,8 +287,9 @@ function UserRow({
 }
 
 /**
- * Validation du numéro d'ordre : état, numéro déclaré, date de
- * validation, et le geste qui valide ou retire la validation.
+ * Habilitation du radiologue : état calculé par la base, exercice, numéro
+ * déclaré, date d'habilitation ou de fin d'attestation, et les gestes :
+ * examiner le dossier, retirer l'habilitation.
  */
 function CredentialRow({
   user,
@@ -297,38 +301,55 @@ function CredentialRow({
   t: AppMessages;
 }) {
   const text = t.admin.credentials;
-  const status = credentialStatus({
-    hasLicenseNumber: Boolean(user.licenseNumber?.trim()),
-    credentialsVerified: user.credentialsVerifiedAt !== null,
-  });
+  const state = user.credentialState;
+  const name = formatPersonName(user.title, user.fullName);
   return (
     <div
       // Dernière rangée de la ligne, sous les actions de la double
       // authentification placées en dernière colonne à partir de 768 px.
       className="order-last col-span-2 flex flex-wrap items-center gap-x-3 gap-y-2 md:col-span-4"
-      data-credentials-row={status}
+      data-credentials-row={state}
     >
-      <CredentialChip status={status} label={text.status[status]} />
+      <CredentialChip state={state} label={text.status[state]} />
+      {user.practiceStatus && (
+        <span className="text-2xs text-secondary">
+          {text.practice[user.practiceStatus]}
+        </span>
+      )}
       {user.licenseNumber && (
         <span className="text-2xs text-secondary">
           {text.licenseLabel}{" "}
           <span className="font-mono text-primary">{user.licenseNumber}</span>
         </span>
       )}
-      {status === "verified" && user.credentialsVerifiedAt && (
+      {state === "verified" && user.credentialsVerifiedAt && (
         <span className="text-2xs text-tertiary">
           {text.verifiedOn}{" "}
           <DateTime date={user.credentialsVerifiedAt} withTime={false} />
         </span>
       )}
-      <div className="ml-auto">
-        <CredentialsActions
-          profileId={user.id}
-          fullName={formatPersonName(user.title, user.fullName)}
-          licenseNumber={user.licenseNumber}
-          verified={status === "verified"}
-          isSelf={isSelf}
-        />
+      {user.credentialsValidUntil && (
+        <span className="text-2xs text-tertiary">
+          {text.validUntil}{" "}
+          <DateTime
+            date={new Date(`${user.credentialsValidUntil}T00:00:00Z`)}
+            withTime={false}
+          />
+        </span>
+      )}
+      <div className="ml-auto flex flex-wrap gap-2">
+        {user.practiceStatus && (
+          <CredentialReview
+            profileId={user.id}
+            fullName={name}
+            licenseNumber={user.licenseNumber}
+            practiceStatus={user.practiceStatus}
+            isSelf={isSelf}
+          />
+        )}
+        {user.credentialsVerifiedAt && (
+          <RevokeCredentials profileId={user.id} fullName={name} />
+        )}
       </div>
     </div>
   );

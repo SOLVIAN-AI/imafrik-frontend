@@ -4,7 +4,6 @@ import { AlertTriangle } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
-import { CredentialChip } from "@/components/domain/credential-chip";
 import { Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +24,6 @@ import {
   updateProfile,
 } from "@/lib/actions/profile";
 import {
-  credentialStatus,
   identityChangeResetsValidation,
   licenseChangeResetsValidation,
   normalizeLicenseNumber,
@@ -110,13 +108,13 @@ export function ProfileForm({
     reason: "license" | "identity";
   } | null>(null);
 
-  const status = credentialStatus({
-    hasLicenseNumber: normalizeLicenseNumber(profile.licenseNumber) !== "",
-    credentialsVerified: profile.credentialsVerified,
-  });
+  // Un résident signe sans numéro d'ordre : le champ ne concerne qu'un
+  // inscrit à l'Ordre (ou un compte validé avant les justificatifs).
+  const asksLicense = isRadiologist && profile.practiceStatus !== "resident";
+  // Seul un radiologue habilité a une validation à perdre.
+  const verified = isRadiologist && profile.credentialState === "verified";
   const resetsValidation =
-    isRadiologist &&
-    licenseChangeResetsValidation(profile.licenseNumber, license);
+    verified && licenseChangeResetsValidation(profile.licenseNumber, license);
 
   const save = (input: ProfileInput) =>
     startTransition(async () => {
@@ -130,15 +128,15 @@ export function ProfileForm({
     const input: ProfileInput = {
       fullName: String(form.get("fullName") ?? ""),
       title: String(form.get("title") ?? ""),
-      // Le champ n'existe que pour un radiologue : sans lui, le numéro
+      // Le champ n'existe que pour un inscrit : sans lui, le numéro
       // enregistré n'est pas touché.
-      ...(isRadiologist
+      ...(asksLicense
         ? { licenseNumber: String(form.get("licenseNumber") ?? "") }
         : {}),
     };
     if (resetsValidation) setAwaiting({ input, reason: "license" });
     else if (
-      isRadiologist &&
+      verified &&
       identityChangeResetsValidation(profile, {
         fullName: input.fullName,
         title: input.title,
@@ -180,31 +178,20 @@ export function ProfileForm({
             maxLength={100}
           />
         </Field>
-        {isRadiologist && (
+        {asksLicense && (
           <div className="flex flex-col gap-1.5">
             <Field
               id="licenseNumber"
               label={text.license}
               hint={text.licenseHint}
             >
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Input
-                  id="licenseNumber"
-                  name="licenseNumber"
-                  value={license}
-                  onChange={(event) => setLicense(event.target.value)}
-                  maxLength={50}
-                  aria-describedby="licenseNumber-status licenseNumber-description"
-                  className="sm:flex-1"
-                />
-                {/* Relié au champ : un lecteur d'écran l'annonce avec lui. */}
-                <CredentialChip
-                  id="licenseNumber-status"
-                  status={status}
-                  label={text.licenseStatus[status]}
-                  className="self-start sm:self-center"
-                />
-              </div>
+              <Input
+                id="licenseNumber"
+                name="licenseNumber"
+                value={license}
+                onChange={(event) => setLicense(event.target.value)}
+                maxLength={50}
+              />
             </Field>
             {resetsValidation && (
               <p
@@ -219,13 +206,6 @@ export function ProfileForm({
               </p>
             )}
           </div>
-        )}
-        {!isRadiologist && (
-          <input
-            type="hidden"
-            name="licenseNumber"
-            value={profile.licenseNumber}
-          />
         )}
       </Section>
 

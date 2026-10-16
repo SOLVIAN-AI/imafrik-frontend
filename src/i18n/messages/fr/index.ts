@@ -1,6 +1,7 @@
 import { admin } from "@/i18n/messages/fr/admin";
 import { clinic } from "@/i18n/messages/fr/clinic";
 import { common } from "@/i18n/messages/fr/common";
+import { credentials } from "@/i18n/messages/fr/credentials";
 import { nav } from "@/i18n/messages/fr/nav";
 import { onboarding } from "@/i18n/messages/fr/onboarding";
 import { reading } from "@/i18n/messages/fr/reading";
@@ -20,6 +21,7 @@ import { worklist } from "@/i18n/messages/fr/worklist";
  *   erreurs), verrouillage, mot de passe ;
  * - `worklist`, `reading` : portail radiologue, file et écran de lecture ;
  * - `clinic`, `onboarding` : portail clinique, mise en service ;
+ * - `credentials` : habilitation des radiologues, partout où elle se dit ;
  * - `settings` : paramètres ;
  * - `admin` : tour de contrôle.
  */
@@ -31,6 +33,7 @@ export const fr = {
   reading,
   clinic,
   onboarding,
+  credentials,
   settings,
   admin,
 };
