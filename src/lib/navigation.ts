@@ -159,6 +159,12 @@ const CLINIC_NAV: NavGroup[] = [
  * ses promesses, en ce moment et dans la durée ? **Réseau** : qui est
  * raccordé, qui attend, qui a écrit ? **Plateforme** : ce qui se facture,
  * ce qui tourne, ce qui s'est passé, ce qui se règle.
+ *
+ * Un quatrième, **Portails**, ouvre en consultation les écrans des
+ * radiologues sur toute la plateforme : la file à lire, les
+ * comptes-rendus, les modèles. IMAFRIK supervise son service comme ses
+ * utilisateurs le vivent ; les gestes médicaux (prise en charge,
+ * rédaction, signature) restent aux radiologues.
  */
 const ADMIN_NAV: NavGroup[] = [
   {
@@ -179,6 +185,14 @@ const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/utilisateurs", key: "accounts", icon: "users" },
       { href: "/admin/examens", key: "studies", icon: "studies" },
       { href: "/admin/demandes", key: "requests", icon: "inbox" },
+    ],
+  },
+  {
+    key: "portals",
+    items: [
+      { href: "/worklist", key: "worklist", icon: "worklist" },
+      { href: "/comptes-rendus", key: "reports", icon: "reports" },
+      { href: "/modeles", key: "templates", icon: "templates" },
     ],
   },
   {
@@ -258,9 +272,18 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
     "/equipe",
     "/parametres",
   ],
-  // L'administration consulte aussi les images, en lecture seule : même
-  // écran que la clinique, ouverture tracée à son nom.
-  platform_admin: ["/admin", "/lecture", "/parametres"],
+  // L'administration consulte aussi les portails, en lecture seule : la
+  // file, les comptes-rendus, les modèles et les images, sur toute la
+  // plateforme (policies RLS *_select_admin). Ouverture des images
+  // tracée à son nom.
+  platform_admin: [
+    "/admin",
+    "/worklist",
+    "/comptes-rendus",
+    "/modeles",
+    "/lecture",
+    "/parametres",
+  ],
 };
 
 /**

@@ -14,6 +14,7 @@ import {
 } from "@/components/domain/metrics";
 import { ReadingTable } from "@/components/domain/reading-table";
 import { WorklistFilterBar } from "@/components/domain/worklist-filters";
+import { useSession } from "@/components/providers/session-provider";
 import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { AppMessages } from "@/i18n";
@@ -46,8 +47,19 @@ function buildMetrics(
   now: number,
   t: AppMessages,
   locale: Locale,
+  supervising: boolean,
 ): Metric[] {
   const labels = t.worklist.metrics;
+  // En consultation, rien n'est « chez vous » : la précision compte ce
+  // que les radiologues ont en cours.
+  const reading = sections.mine.length + sections.colleagues.length;
+  const hint = supervising
+    ? reading > 0
+      ? t.worklist.supervision.readingHint(reading)
+      : undefined
+    : sections.mine.length > 0
+      ? labels.mineHint(sections.mine.length)
+      : undefined;
   const actionable = [...sections.mine, ...sections.open];
   const urgent = sections.open.filter((study) => study.urgent);
   // `now` vaut 0 au rendu serveur : aucune échéance n'y est calculable
@@ -63,10 +75,7 @@ function buildMetrics(
     {
       label: labels.toTake,
       value: String(sections.open.length),
-      hint:
-        sections.mine.length > 0
-          ? labels.mineHint(sections.mine.length)
-          : undefined,
+      hint,
       icon: METRIC_ICONS.inbox,
       tone: "accent",
     },
@@ -101,8 +110,9 @@ function describeScope(
   studies: Study[],
   t: AppMessages,
   locale: Locale,
+  supervising: boolean,
 ): string {
-  const scope = t.worklist.scope;
+  const scope = supervising ? t.worklist.supervision.scope : t.worklist.scope;
   const intl = INTL_LOCALE[locale];
   const clinics = [...new Set(studies.map((study) => study.clinic))].sort(
     (a, b) => a.localeCompare(b, intl),
@@ -190,6 +200,9 @@ export function WorklistView({
   const t = useMessages();
   const locale = useLocale();
   const labels = t.worklist;
+  // L'équipe IMAFRIK consulte la file de toute la plateforme : elle n'y
+  // prend rien en charge, et rien n'y est « à elle ».
+  const supervising = useSession().active.role === "platform_admin";
   useAutoRefresh(REFRESH_MS);
   useUrgentArrivals(sections.open);
 
@@ -207,13 +220,13 @@ export function WorklistView({
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden">
       <PageHeader
         title={t.nav.items.worklist}
-        description={describeScope(all, t, locale)}
+        description={describeScope(all, t, locale, supervising)}
         actions={<ListToolbar scope="worklist" search={search} urgentFilter />}
       />
       {/* Numéro d'ordre non validé : la file est vide, le bandeau dit pourquoi. */}
       <CredentialsBanner className="mx-4 mb-4 sm:mx-6" />
       <MetricGrid
-        metrics={buildMetrics(sections, now, t, locale)}
+        metrics={buildMetrics(sections, now, t, locale, supervising)}
         className="px-4 pb-4 sm:px-6"
       />
       <WorklistFilterBar filters={filters} options={options} />
@@ -227,28 +240,45 @@ export function WorklistView({
       <div className="flex flex-col px-4 pb-6 sm:px-6 lg:min-h-0 lg:flex-1">
         <Panel className="flex flex-col overflow-hidden lg:min-h-0">
           <ReadingTable
-            groups={[
-              {
-                key: "mine",
-                ...labels.groups.mine,
-                studies: sections.mine,
-                follow: "status",
-              },
-              {
-                key: "open",
-                ...labels.groups.open,
-                studies: sections.open,
-                follow: "none",
-              },
-              {
-                key: "colleagues",
-                ...labels.groups.colleagues,
-                studies: sections.colleagues,
-                collapsible: true,
-                muted: true,
-                follow: "reader",
-              },
-            ]}
+            groups={
+              supervising
+                ? [
+                    {
+                      key: "reading",
+                      ...labels.supervision.reading,
+                      studies: [...sections.mine, ...sections.colleagues],
+                      follow: "reader",
+                    },
+                    {
+                      key: "open",
+                      ...labels.groups.open,
+                      studies: sections.open,
+                      follow: "none",
+                    },
+                  ]
+                : [
+                    {
+                      key: "mine",
+                      ...labels.groups.mine,
+                      studies: sections.mine,
+                      follow: "status",
+                    },
+                    {
+                      key: "open",
+                      ...labels.groups.open,
+                      studies: sections.open,
+                      follow: "none",
+                    },
+                    {
+                      key: "colleagues",
+                      ...labels.groups.colleagues,
+                      studies: sections.colleagues,
+                      collapsible: true,
+                      muted: true,
+                      follow: "reader",
+                    },
+                  ]
+            }
             hrefFor={(study) => `/lecture/${study.id}`}
             refreshNote={labels.refreshNote(REFRESH_MS / 1000)}
             empty={filtered ? labels.noResults : undefined}

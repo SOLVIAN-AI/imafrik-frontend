@@ -30,6 +30,7 @@ export const nav = {
     facility: "Établissement",
     network: "Réseau",
     platform: "Plateforme",
+    portals: "Portails",
   },
   mainNavigation: "Navigation principale",
   switchOrganisation: "Changer d’organisation",

@@ -11,6 +11,18 @@ export const worklist = {
     count: (count: number) =>
       `File de travail du groupe : ${count} établissements`,
   },
+  /** La file vue par l'équipe IMAFRIK, en consultation. */
+  supervision: {
+    scope: {
+      empty: "Toute la plateforme, en consultation",
+      clinics: (list: string) =>
+        `Toute la plateforme, en consultation : ${list}`,
+      count: (count: number) =>
+        `Toute la plateforme, en consultation : ${count} établissements`,
+    },
+    readingHint: (count: number) => `et ${count} en cours de lecture`,
+    reading: { title: "En cours de lecture", hint: "chez un radiologue" },
+  },
   metrics: {
     toTake: "À prendre",
     mineHint: (count: number) => `et ${count} chez vous`,

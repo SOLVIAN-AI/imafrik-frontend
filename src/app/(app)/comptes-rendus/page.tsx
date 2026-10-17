@@ -29,7 +29,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ReportsPage({
   searchParams,
 }: PageProps<"/comptes-rendus">) {
-  const session = await requireSession(["clinic_staff", "radiologist"]);
+  const session = await requireSession([
+    "clinic_staff",
+    "radiologist",
+    "platform_admin",
+  ]);
   const search = await readListSearch("comptes-rendus", session);
   const params = await searchParams;
   const { studies, total, nextCursor } = await listStudyPageAt(

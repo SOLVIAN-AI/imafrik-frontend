@@ -37,8 +37,11 @@ function normalize(text: string): string {
  */
 export function TemplatesBrowser({
   templates,
+  canDelete = true,
 }: {
   templates: ReportTemplate[];
+  /** Faux en consultation : aucun bouton de suppression. */
+  canDelete?: boolean;
 }) {
   const labels = useMessages().reading.templates;
   // Nom courant d'une modalité, à défaut son code DICOM.
@@ -193,12 +196,12 @@ export function TemplatesBrowser({
                 <Lock className="size-3" aria-hidden />
                 {labels.providedByImafrik}
               </span>
-            ) : (
+            ) : canDelete ? (
               <DeleteTemplateButton
                 templateId={selected.id}
                 name={selected.name}
               />
-            )}
+            ) : null}
           </div>
           {/* Rendu par le même composant que les comptes-rendus signés :
               un modèle se juge dans la forme exacte qu'il aura une fois

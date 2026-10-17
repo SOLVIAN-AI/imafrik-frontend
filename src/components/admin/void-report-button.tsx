@@ -34,13 +34,19 @@ const REASON_MAX = 500;
  *
  * @param reportId     Compte-rendu signé.
  * @param patientLabel Patient de l'examen, rappelé dans la confirmation.
+ * @param redirectTo   Écran où aller ensuite. Depuis la page du
+ *                     compte-rendu, qui n'existe plus une fois annulé :
+ *                     l'examen, de nouveau dans la file. Sinon, l'écran
+ *                     courant se relit.
  */
 export function VoidReportButton({
   reportId,
   patientLabel,
+  redirectTo,
 }: {
   reportId: string;
   patientLabel: string;
+  redirectTo?: string;
 }) {
   const text = useMessages().admin.voidReport;
   const common = useMessages().common;
@@ -61,6 +67,7 @@ export function VoidReportButton({
       }
       toast.success(text.done(patientLabel));
       setOpen(false);
+      if (redirectTo) router.push(redirectTo);
       router.refresh();
     });
   };

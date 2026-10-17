@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * page sert à les relire, et à supprimer ceux de l'organisation.
  */
 export default async function TemplatesPage() {
-  await requireSession(["radiologist"]);
+  const session = await requireSession(["radiologist", "platform_admin"]);
   const [{ t }, templates] = await Promise.all([
     getMessages(),
     listTemplates(),
@@ -56,7 +56,12 @@ export default async function TemplatesPage() {
           </Panel>
         </div>
       ) : (
-        <TemplatesBrowser templates={templates} />
+        <TemplatesBrowser
+          templates={templates}
+          // L'administration consulte les modèles de toute la plateforme,
+          // sans les supprimer : ils appartiennent aux organisations.
+          canDelete={session.active.role === "radiologist"}
+        />
       )}
     </>
   );

@@ -50,8 +50,16 @@ describe("isRouteAllowed", () => {
 
   it("ouvre la consultation des images à l'administration", () => {
     expect(isRouteAllowed("platform_admin", "/lecture/1")).toBe(true);
-    // Consultation seulement : la file de travail reste aux radiologues.
-    expect(isRouteAllowed("platform_admin", "/worklist")).toBe(false);
+  });
+
+  it("ouvre les portails des radiologues à l'administration, en consultation", () => {
+    for (const path of ["/worklist", "/comptes-rendus/r-1", "/modeles"]) {
+      expect(isRouteAllowed("platform_admin", path)).toBe(true);
+    }
+    // Ce qui n'est qu'à soi ou qu'à la clinique reste fermé.
+    for (const path of ["/mes-examens", "/envoyer", "/equipe"]) {
+      expect(isRouteAllowed("platform_admin", path)).toBe(false);
+    }
   });
 
   it("partage la mise en service, l'accueil et le mot de passe entre les rôles", () => {

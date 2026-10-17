@@ -8,6 +8,16 @@ export const worklist: AppMessages["worklist"] = {
     count: (count: number) =>
       `Group worklist: ${count} ${count === 1 ? "facility" : "facilities"}`,
   },
+  supervision: {
+    scope: {
+      empty: "The whole platform, read-only",
+      clinics: (list: string) => `The whole platform, read-only: ${list}`,
+      count: (count: number) =>
+        `The whole platform, read-only: ${count} facilities`,
+    },
+    readingHint: (count: number) => `and ${count} being read`,
+    reading: { title: "Being read", hint: "by a radiologist" },
+  },
   metrics: {
     toTake: "To claim",
     mineHint: (count: number) => `plus ${count} assigned to you`,
