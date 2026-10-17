@@ -91,3 +91,29 @@ test("un compte-rendu signé se corrige par un addendum", async ({ page }) => {
   await expect(page.locator("#addenda")).toBeVisible();
   await expect(page.getByLabel("Nouvel addendum")).toBeVisible();
 });
+
+/**
+ * Plein écran refusé par le navigateur (messagerie, Safari sur iPhone) :
+ * le volet d'images couvre quand même toute la fenêtre. Signalé le
+ * 17 octobre 2026 : le bouton ne faisait rien.
+ */
+test("le plein écran couvre la fenêtre quand le navigateur le refuse", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Element.prototype.requestFullscreen = () =>
+      Promise.reject(new Error("refusé"));
+  });
+  await page.goto("/lecture/1");
+  await page
+    .getByRole("button", { name: "Ouvrir les images en plein écran" })
+    .click();
+  const pane = page.locator('[data-fullscreen="window"]');
+  await expect(pane).toBeVisible();
+  const box = await pane.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box?.width).toBe(viewport?.width);
+  expect(box?.height).toBe(viewport?.height);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("[data-fullscreen]")).toHaveCount(0);
+});

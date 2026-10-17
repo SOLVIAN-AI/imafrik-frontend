@@ -394,6 +394,9 @@ export const en: MarketingCopy = {
   },
   verifyPage: {
     validTitle: "Authentic document",
+    voidedTitle: "Document voided",
+    voidedText:
+      "This report was voided on {date} by the IMAFRIK team: it must not be used. Ask the facility that performed the examination for the current report.",
     validText:
       "This code matches a report signed on the IMAFRIK platform. To protect the patient, only the initial of their name is shown; neither their full identity nor the content of the report is displayed.",
     signedBy: "Signed by",

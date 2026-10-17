@@ -14,6 +14,7 @@ import {
   contractEndResultSchema,
   credentialsStateSchema,
   documentViewSchema,
+  reportVoidResultSchema,
   mfaResetSchema,
   platformSettingsSchema,
 } from "@/lib/api/contracts";
@@ -409,6 +410,45 @@ export async function decideCredentials(
   });
   revalidatePath("/admin/utilisateurs");
   // L'alerte du cockpit compte les justificatifs à examiner.
+  revalidatePath("/admin");
+  return result;
+}
+
+/**
+ * Annule un compte-rendu signé par erreur : un essai signé sur un examen
+ * réel, un document rédigé sur le mauvais examen.
+ *
+ * Le service archive le document tel quel (PDF compris), avec le motif,
+ * le retire des comptes-rendus en vigueur, remet l'examen dans la file et
+ * trace le geste. La vérification publique le dit annulé.
+ *
+ * @param reportId Compte-rendu à annuler.
+ * @param reason   Motif, de 10 à 500 caractères, conservé avec l'archive.
+ */
+export async function voidReport(
+  reportId: string,
+  reason: string,
+): Promise<ActionResult> {
+  const { t } = await getMessages();
+  if (isDemoMode()) {
+    return await demoUnavailable(t.admin.voidReport.demoAction);
+  }
+  const motif = typeof reason === "string" ? reason.trim() : "";
+  if (motif.length < 10 || motif.length > 500) {
+    return { ok: false, error: t.admin.voidReport.reasonInvalid, status: 422 };
+  }
+  const invalid = await rejectInvalidIds(reportId);
+  if (invalid) return invalid;
+  const result = await run(async () => {
+    await apiSend(
+      `/admin/reports/${encodeURIComponent(reportId)}/void`,
+      "POST",
+      { reason: motif },
+      reportVoidResultSchema,
+    );
+    return undefined;
+  });
+  revalidatePath("/admin/examens");
   revalidatePath("/admin");
   return result;
 }

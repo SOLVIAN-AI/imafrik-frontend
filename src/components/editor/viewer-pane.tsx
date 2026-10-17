@@ -50,9 +50,18 @@ export function ViewerPane({
 }) {
   const labels = useMessages().reading.viewer;
   const locale = useLocale();
-  const { pane, fullscreen, toggleFullscreen } = useFullscreen();
+  const { pane, fullscreen, inWindow, toggleFullscreen } = useFullscreen();
   return (
-    <div ref={pane} className="flex h-full min-h-0 flex-col bg-ink-950">
+    <div
+      ref={pane}
+      data-fullscreen={inWindow ? "window" : fullscreen ? "native" : undefined}
+      className={cn(
+        "flex h-full min-h-0 flex-col bg-ink-950",
+        // Repli quand le navigateur refuse le plein écran : le volet couvre
+        // toute la fenêtre, au-dessus du reste de l'application.
+        inWindow && "fixed inset-0 z-[80] h-dvh w-screen",
+      )}
+    >
       {/* Le noir absolu n'est pas décoratif : c'est le fond de référence
           d'une lecture diagnostique. Toute autre teinte autour d'une image
           en niveaux de gris en décalerait la perception. */}
@@ -129,29 +138,54 @@ export function ViewerPane({
  * compte-rendu exactement où on les avait laissés. L'ancien bouton
  * ouvrait le viewer dans un nouvel onglet, sans aucun chemin de retour
  * vers IMAFRIK : signalé le 15 octobre 2026.
+ *
+ * **Repli dans la fenêtre.** Certains navigateurs de téléphone n'offrent
+ * pas le plein écran d'un élément, ou le refusent : celui qu'ouvre une
+ * messagerie (lien reçu par WhatsApp), Safari sur iPhone. Le bouton ne
+ * faisait alors rien (signalé le 17 octobre 2026). Le volet couvre
+ * désormais toute la fenêtre dans ce cas, et le même bouton, ou Échap,
+ * l'y remet.
  */
 function useFullscreen() {
   const pane = React.useRef<HTMLDivElement>(null);
-  const [fullscreen, setFullscreen] = React.useState(false);
+  const [native, setNative] = React.useState(false);
+  const [inWindow, setInWindow] = React.useState(false);
 
   React.useEffect(() => {
     // Suit l'état réel : Échap, ou la sortie imposée par le navigateur,
     // ne passent pas par le bouton.
-    const sync = () =>
-      setFullscreen(document.fullscreenElement === pane.current);
+    const sync = () => setNative(document.fullscreenElement === pane.current);
     document.addEventListener("fullscreenchange", sync);
     return () => document.removeEventListener("fullscreenchange", sync);
   }, []);
 
+  React.useEffect(() => {
+    if (!inWindow) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setInWindow(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [inWindow]);
+
   const toggleFullscreen = React.useCallback(() => {
+    if (inWindow) {
+      setInWindow(false);
+      return;
+    }
     if (document.fullscreenElement) {
       void document.exitFullscreen();
-    } else {
-      void pane.current?.requestFullscreen();
+      return;
     }
-  }, []);
+    const element = pane.current;
+    if (!element?.requestFullscreen || !document.fullscreenEnabled) {
+      setInWindow(true);
+      return;
+    }
+    element.requestFullscreen().catch(() => setInWindow(true));
+  }, [inWindow]);
 
-  return { pane, fullscreen, toggleFullscreen };
+  return { pane, fullscreen: native || inWindow, inWindow, toggleFullscreen };
 }
 
 /**
