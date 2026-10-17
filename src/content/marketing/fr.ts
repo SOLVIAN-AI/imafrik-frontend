@@ -393,6 +393,9 @@ export const fr: MarketingCopy = {
   },
   verifyPage: {
     validTitle: "Document authentique",
+    voidedTitle: "Document annulé",
+    voidedText:
+      "Ce compte-rendu a été annulé le {date} par l’équipe IMAFRIK : il ne doit pas être utilisé. Demandez le compte-rendu en vigueur à l’établissement qui a réalisé l’examen.",
     validText:
       "Ce code correspond à un compte-rendu signé sur la plateforme IMAFRIK. Pour protéger le patient, seule l’initiale de son nom est affichée : ni son identité complète ni le contenu du compte-rendu ne le sont.",
     signedBy: "Signé par",

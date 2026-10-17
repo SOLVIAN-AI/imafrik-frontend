@@ -437,6 +437,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/reports/{report_id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Annuler un compte-rendu signé par erreur
+         * @description Annule un compte-rendu signé par erreur, et remet l'examen dans la file.
+         *
+         *     Un compte-rendu signé ne se modifie pas : une correction passe par un
+         *     addendum. L'annulation couvre ce que l'addendum ne couvre pas, un
+         *     document signé sur le mauvais examen ou un essai signé sur un examen
+         *     réel : l'examen ne pourrait sinon plus recevoir son vrai compte-rendu.
+         *
+         *     Le document est archivé tel quel (``voided_reports``), PDF compris, avec
+         *     le motif et l'auteur de l'annulation ; la page de vérification publique
+         *     le dit annulé. Tout le travail est fait par la base
+         *     (``void_signed_report``), en une transaction.
+         *
+         *     Raises:
+         *         NotFound: Compte-rendu introuvable.
+         *         Unprocessable: Brouillon, ou compte-rendu complété par un addendum.
+         */
+        post: operations["void_report_admin_reports__report_id__void_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/settings": {
         parameters: {
             query?: never;
@@ -2050,7 +2084,8 @@ export interface paths {
          *         Les éléments d'authentification du document.
          *
          *     Raises:
-         *         NotFound: Aucun compte-rendu signé ne porte ce jeton.
+         *         NotFound: Aucun compte-rendu signé, en vigueur ou annulé, ne porte
+         *             ce jeton.
          */
         get: operations["verify_report_verify__verify_token__get"];
         put?: never;
@@ -3650,6 +3685,29 @@ export interface components {
             };
         };
         /**
+         * ReportVoid
+         * @description Annulation d'un compte-rendu signé par erreur.
+         */
+        ReportVoid: {
+            /**
+             * Reason
+             * @description Motif de l'annulation, conservé avec le document annulé : essai signé sur un examen réel, compte-rendu rédigé sur le mauvais examen…
+             */
+            reason: string;
+        };
+        /**
+         * ReportVoidResult
+         * @description Issue d'une annulation.
+         */
+        ReportVoidResult: {
+            /**
+             * Study Id
+             * Format: uuid
+             * @description Examen remis dans la file, pour une vraie lecture.
+             */
+            study_id: string;
+        };
+        /**
          * RetentionUpdate
          * @description Durée de conservation des images d'une clinique, fixée par contrat.
          */
@@ -4199,7 +4257,9 @@ export interface components {
          * @description Éléments permettant d'authentifier un compte-rendu imprimé.
          *
          *     Attributes:
-         *         valid: Toujours ``True`` — une vérification négative renvoie 404.
+         *         valid: ``True`` pour un document en vigueur ; ``False`` pour un
+         *             document annulé par l'équipe IMAFRIK, qui ne doit pas être
+         *             utilisé. Un code inconnu renvoie 404.
          *         patient_initial: Première lettre du nom, suivie d'un point.
          *             Suffit à recouper avec le document en main, sans divulguer
          *             l'identité.
@@ -4217,6 +4277,9 @@ export interface components {
          *             document imprimé reste authentique, mais un tiers doit savoir
          *             qu'il a été complété — leur contenu, médical, n'est pas
          *             public.
+         *         voided_at: Instant de l'annulation, au format ISO, pour un
+         *             document annulé. Son motif n'est pas public : il peut parler
+         *             du patient.
          */
         VerificationResult: {
             /**
@@ -4245,6 +4308,8 @@ export interface components {
              * @default true
              */
             valid: boolean;
+            /** Voided At */
+            voided_at?: string | null;
         };
         /**
          * ViewerToken
@@ -4312,7 +4377,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -4851,6 +4916,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PipelineStudy"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    void_report_admin_reports__report_id__void_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportVoid"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportVoidResult"];
                 };
             };
             /** @description Validation Error */

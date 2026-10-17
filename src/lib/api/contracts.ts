@@ -169,6 +169,8 @@ export const verificationSchema = z.object({
   license_number: z.string().nullable(),
   sha256: z.string().nullable(),
   addenda_count: z.number().int(),
+  // Document annulé par l'équipe IMAFRIK : à ne pas utiliser.
+  voided_at: isoDate.nullable().optional(),
 });
 const _verification: Matches<
   z.input<typeof verificationSchema>,
@@ -782,6 +784,13 @@ const _anonymizationResult: Matches<
   Schemas["AnonymizationResult"]
 > = true;
 
+/** Issue de l'annulation d'un compte-rendu signé par erreur. */
+export const reportVoidResultSchema = z.object({ study_id: uuid });
+const _reportVoidResult: Matches<
+  z.input<typeof reportVoidResultSchema>,
+  Schemas["ReportVoidResult"]
+> = true;
+
 export const credentialsStateSchema = z.object({
   license_number: z.string().nullable(),
   credentials_verified_at: isoDate.nullable(),
@@ -800,6 +809,7 @@ const _credentialsState: Matches<
  */
 export const CONTRACT_CHECKS = [
   _uploadToken,
+  _reportVoidResult,
   _credentialDocument,
   _documentToken,
   _documentView,

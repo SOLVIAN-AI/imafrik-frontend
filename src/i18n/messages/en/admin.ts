@@ -439,6 +439,21 @@ export const admin: AppMessages["admin"] = {
       "A radiologist appears here as soon as they upload a supporting document, and again if they change their name, title or registration number.",
   },
 
+  voidReport: {
+    trigger: "Void the report",
+    title: (patient: string) => `Void the report for ${patient}`,
+    description:
+      "Only for a mistake an addendum cannot fix: a test signed on a real examination, a report written on the wrong examination. The document is archived as it is and withdrawn; the examination returns to the worklist for a real reading; public verification shows it as voided. The action is logged.",
+    reason: "Reason for voiding",
+    reasonHint:
+      "Kept with the voided document, never made public. At least 10 characters.",
+    reasonInvalid: "Give a reason of 10 to 500 characters.",
+    submit: "Void the report",
+    done: (patient: string) =>
+      `Report for ${patient} voided: the examination is back in the worklist.`,
+    demoAction: "Voiding a report",
+  },
+
   credentials: {
     status: {
       verified: "Approved",
@@ -670,6 +685,7 @@ export const admin: AppMessages["admin"] = {
       "report.addendum": "Addendum added",
       "report.delivered": "Report delivered",
       "report.downloaded": "Report downloaded",
+      "report.voided": "Report voided",
       "report.ai_reviewed": "Draft reviewed by AI",
       "membership.created": "Member added",
       "membership.removed": "Member removed",

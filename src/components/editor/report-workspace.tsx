@@ -40,6 +40,7 @@ import {
   TemplatePicker,
 } from "@/components/editor/template-tools";
 import { ViewerPane } from "@/components/editor/viewer-pane";
+import { VoidReportButton } from "@/components/admin/void-report-button";
 import {
   StudyStatusChip,
   UrgentMarker,
@@ -181,6 +182,11 @@ export type WorkspaceMode =
        * figé pour de bon.
        */
       addendumReportId?: string;
+      /**
+       * Équipe IMAFRIK : compte-rendu signé qu'elle peut annuler s'il l'a
+       * été par erreur (essai, mauvais examen).
+       */
+      voidableReportId?: string;
       /**
        * Consultation sans compte-rendu signé (clinique, administration) :
        * le volet de rédaction cède la place à un état d'attente. Un
@@ -634,8 +640,17 @@ function ReportWorkspace({
       </Button>
     ) : null;
 
+  const voidable =
+    mode.kind === "readonly" && mode.voidableReportId ? (
+      <VoidReportButton
+        reportId={mode.voidableReportId}
+        patientLabel={formatPatientName(study.patientName)}
+      />
+    ) : null;
+
   const actions = signed ? (
     <>
+      {voidable}
       {correct}
       {next}
     </>

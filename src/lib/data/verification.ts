@@ -36,6 +36,11 @@ export interface Verification {
    * des addenda, médical, n'est pas public.
    */
   addendaCount: number;
+  /**
+   * Annulé par l'équipe IMAFRIK (signé par erreur) : le document ne doit
+   * pas être utilisé. `null` pour un document en vigueur.
+   */
+  voidedAt: Date | null;
   token: string;
 }
 
@@ -74,6 +79,7 @@ export async function verifyReport(
       patientInitial: study.patientName ? `${study.patientName[0]}.` : null,
       sha256: null,
       addendaCount: 0,
+      voidedAt: null,
       token,
     };
   }
@@ -85,7 +91,9 @@ export async function verifyReport(
       notFoundAsNull: true,
     },
   );
-  if (!result || !result.valid) return null;
+  if (!result) return null;
+  // Un document qui n'est ni en vigueur ni annulé n'existe pas.
+  if (!result.valid && !result.voided_at) return null;
   return {
     radiologist: result.radiologist,
     licenseNumber: result.license_number,
@@ -96,6 +104,7 @@ export async function verifyReport(
     patientInitial: result.patient_initial,
     sha256: result.sha256,
     addendaCount: result.addenda_count,
+    voidedAt: result.voided_at ? new Date(result.voided_at) : null,
     token,
   };
 }

@@ -3,6 +3,7 @@ import {
   CloudOff,
   FileCheck2,
   ShieldCheck,
+  ShieldX,
   Stethoscope,
 } from "lucide-react";
 import Link from "next/link";
@@ -60,7 +61,27 @@ export async function VerifyPage({
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center px-6 py-20 text-center md:py-28">
-      {attestation ? (
+      {attestation?.voidedAt ? (
+        // Annulé : le porteur du document l'apprend, avec la date, plutôt
+        // que de tomber sur un code inconnu.
+        <>
+          <span
+            className="flex size-14 items-center justify-center rounded-2xl bg-urgent-muted ring-1 ring-urgent/25 ring-inset"
+            aria-hidden
+          >
+            <ShieldX className="size-6 text-urgent" />
+          </span>
+          <h1 className="mt-6 text-2xl font-semibold">{t.voidedTitle}</h1>
+          <p className="mt-2 max-w-md text-sm leading-relaxed text-secondary">
+            {fill(t.voidedText, {
+              date: formatDate(attestation.voidedAt, locale),
+            })}
+          </p>
+          <p className="mt-6 font-mono text-2xs text-tertiary">
+            {fill(t.submittedCode, { code: token })}
+          </p>
+        </>
+      ) : attestation ? (
         <>
           <span
             className="flex size-14 items-center justify-center rounded-2xl bg-done-muted ring-1 ring-done/25 ring-inset"

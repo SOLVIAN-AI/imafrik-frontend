@@ -197,6 +197,10 @@ export interface MarketingCopy {
   };
   verifyPage: {
     validTitle: string;
+    /** Document annulé par l'équipe IMAFRIK. */
+    voidedTitle: string;
+    /** Avec `{date}`, la date de l'annulation. */
+    voidedText: string;
     validText: string;
     signedBy: string;
     /** `{number}` est remplacé. */

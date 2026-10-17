@@ -39,6 +39,10 @@ function workspaceMode(
     return {
       kind: "readonly",
       awaitingReport: report?.status !== "signed",
+      voidableReportId:
+        session.active.role === "platform_admin" && report?.status === "signed"
+          ? report.id
+          : undefined,
     };
   }
   if (report?.status === "signed") {

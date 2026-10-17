@@ -473,6 +473,22 @@ export const admin = {
    * La vérification elle-même (inscription à l'Ordre, droit d'exercer) se
    * fait hors de la plateforme ; le geste en enregistre le résultat.
    */
+  /** Annulation d'un compte-rendu signé par erreur. */
+  voidReport: {
+    trigger: "Annuler le compte-rendu",
+    title: (patient: string) => `Annuler le compte-rendu de ${patient}`,
+    description:
+      "Réservé à une erreur qu’un addendum ne répare pas : essai signé sur un examen réel, compte-rendu rédigé sur le mauvais examen. Le document est archivé tel quel et retiré ; l’examen revient dans la file pour une vraie lecture ; la vérification publique le dit annulé. Le geste est tracé.",
+    reason: "Motif de l’annulation",
+    reasonHint:
+      "Conservé avec le document annulé, jamais rendu public. 10 caractères au moins.",
+    reasonInvalid: "Indiquez un motif de 10 à 500 caractères.",
+    submit: "Annuler le compte-rendu",
+    done: (patient: string) =>
+      `Compte-rendu de ${patient} annulé : l’examen est de nouveau dans la file.`,
+    demoAction: "L’annulation d’un compte-rendu",
+  },
+
   credentials: {
     status: {
       verified: "Habilité",
@@ -719,6 +735,7 @@ export const admin = {
       "report.addendum": "Addendum ajouté",
       "report.delivered": "Compte-rendu remis",
       "report.downloaded": "Compte-rendu téléchargé",
+      "report.voided": "Compte-rendu annulé",
       "report.ai_reviewed": "Brouillon relu par l’IA",
       "membership.created": "Membre ajouté",
       "membership.removed": "Membre retiré",
