@@ -60,7 +60,9 @@ export const reading = {
     release: "Rendre au pool",
     sign: "Signer",
     claim: "Prendre en charge",
-    signedBanner: "Compte-rendu signé et transmis : il n’est plus modifiable.",
+    signedBanner:
+      "Compte-rendu signé et transmis : il n’est plus modifiable. Une correction se fait par un addendum, daté et signé.",
+    correct: "Corriger par un addendum",
     claimBanner:
       "Prenez l’examen en charge pour commencer le compte-rendu. Il vous sera réservé jusqu’à la signature, ou jusqu’à ce que vous le rendiez au pool.",
     clinicalInfo: "Renseignement clinique",

@@ -119,11 +119,15 @@ export const DOCUMENT_TEXT_CLASSES = [
   // Mesure de ligne limitée : au-delà d'environ 70 caractères, l'œil
   // perd la ligne suivante en revenant à la marge.
   "max-w-[68ch]",
-  "text-[0.9375rem] leading-[1.75]",
-  "[&_p]:min-h-[1.75em]",
-  // Un interligne entre paragraphes, jamais d'alinéa : la convention du
+  // Interligne et espace entre paragraphes calqués sur le PDF signé
+  // (1,5 et 1,5 mm, soit environ 0,4 em) : le radiologue voit en rédigeant
+  // ce qui sera imprimé. Plus aérés à l'écran, des résultats tapés ligne
+  // à ligne s'étalaient sur deux fois la hauteur du document.
+  "text-[0.9375rem] leading-[1.6]",
+  "[&_p]:min-h-[1.6em]",
+  // Un espace entre paragraphes, jamais d'alinéa : la convention du
   // document administratif et médical français.
-  "[&_p+p]:mt-3",
+  "[&_p+p]:mt-1.5",
   "[&_strong]:font-semibold",
   "[&_s]:text-tertiary",
   "[&_mark]:rounded-[3px] [&_mark]:bg-progress-muted [&_mark]:px-0.5 [&_mark]:text-primary",

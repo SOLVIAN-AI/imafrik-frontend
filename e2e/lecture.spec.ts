@@ -71,3 +71,23 @@ test("les surimpressions du viewer ne se chevauchent pas, même étroites", asyn
   });
   expect(overlaps).toEqual([false, false]);
 });
+
+/**
+ * Un compte-rendu signé ne se modifie plus : l'écran de lecture mène à
+ * son addendum. Retour d'un radiologue, octobre 2026 : sans ce lien, il
+ * cherchait comment corriger un texte qu'il venait de signer.
+ */
+test("un compte-rendu signé se corrige par un addendum", async ({ page }) => {
+  await page.goto("/lecture/10");
+  await expect(page.getByText(/se fait par un addendum/)).toBeVisible();
+  const corriger = page.getByRole("link", {
+    name: "Corriger par un addendum",
+  });
+  await expect(corriger).toHaveAttribute(
+    "href",
+    /^\/comptes-rendus\/[^/]+#addenda$/,
+  );
+  await corriger.click();
+  await expect(page.locator("#addenda")).toBeVisible();
+  await expect(page.getByLabel("Nouvel addendum")).toBeVisible();
+});
