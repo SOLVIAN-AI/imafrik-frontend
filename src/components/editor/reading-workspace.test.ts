@@ -52,7 +52,11 @@ vi.mock("@/lib/actions/reading", () => ({
   saveReportDraft: vi.fn(),
   signReport: vi.fn(),
 }));
-vi.mock("@/hooks/use-media-query", () => ({ useMediaQuery: () => true }));
+/** Largeur simulée : côte à côte (ordinateur) ou en onglets (téléphone). */
+const screen = { wide: true };
+vi.mock("@/hooks/use-media-query", () => ({
+  useMediaQuery: () => screen.wide,
+}));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: () => {}, push: () => {} }),
   usePathname: () => "/lecture/1",
@@ -88,6 +92,7 @@ let container: HTMLElement;
 let root: Root;
 
 beforeEach(() => {
+  screen.wide = true;
   mounts.viewer = 0;
   mounts.editor = 0;
   container = document.createElement("div");
@@ -153,5 +158,24 @@ describe("écran de lecture", () => {
     render("none:", "https://viewer.test/?token=1", { kind: "claimable" });
     expect(container.querySelector("header")).not.toBeNull();
     expect(container.querySelector('[data-testid="editor"]')).not.toBeNull();
+  });
+
+  it("sur téléphone, l’onglet du compte-rendu garde le viewer en place", () => {
+    screen.wide = false;
+    render("none:", "https://viewer.test/?token=1", { kind: "claimable" });
+    const images = () => container.querySelector("#pane-images");
+    const tab = (id: string) =>
+      container.querySelector<HTMLButtonElement>(`#tab-${id}`)!;
+
+    act(() => tab("report").click());
+    // Masqué, mais pas retiré de la mise en page : à `display: none`, le
+    // viewer recalculait ses volets sur une largeur nulle et revenait
+    // décalé (signalé le 15 octobre 2026).
+    expect(images()?.className).toContain("invisible");
+    expect(images()?.className).not.toMatch(/\bhidden\b/);
+
+    act(() => tab("images").click());
+    expect(images()?.className).not.toContain("invisible");
+    expect(mounts.viewer).toBe(1);
   });
 });
