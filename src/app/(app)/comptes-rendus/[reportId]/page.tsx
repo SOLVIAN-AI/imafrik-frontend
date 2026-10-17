@@ -1,6 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 import { notFound } from "next/navigation";
 
+import { VoidReportButton } from "@/components/admin/void-report-button";
 import { AddendaPanel } from "@/components/domain/addenda-panel";
 import { DateTime } from "@/components/domain/date-time";
 import { DownloadPdfButton } from "@/components/domain/download-pdf-button";
@@ -30,7 +31,11 @@ const SITE_URL = (
 export default async function ReportPage({
   params,
 }: PageProps<"/comptes-rendus/[reportId]">) {
-  const session = await requireSession(["clinic_staff", "radiologist"]);
+  const session = await requireSession([
+    "clinic_staff",
+    "radiologist",
+    "platform_admin",
+  ]);
   const { reportId } = await params;
   const report = await getReport(reportId);
   const study = report ? await getStudy(report.studyId) : null;
@@ -46,7 +51,19 @@ export default async function ReportPage({
       <PageHeader
         title={formatPatientName(study.patientName)}
         description={`${study.patientId || "—"} · ${study.modality} ${study.bodyPart ?? ""} · ${study.clinic}`}
-        actions={<DownloadPdfButton reportId={report.id} />}
+        actions={
+          <>
+            {/* Équipe IMAFRIK : annuler un compte-rendu signé par erreur. */}
+            {session.active.role === "platform_admin" && (
+              <VoidReportButton
+                reportId={report.id}
+                patientLabel={formatPatientName(study.patientName)}
+                redirectTo={`/lecture/${study.id}`}
+              />
+            )}
+            <DownloadPdfButton reportId={report.id} />
+          </>
+        }
       />
 
       <div className="min-h-0 flex-1 overflow-auto px-4 pb-6 sm:px-6">

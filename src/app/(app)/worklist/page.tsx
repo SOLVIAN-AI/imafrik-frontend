@@ -44,7 +44,7 @@ export async function generateMetadata({
   searchParams,
 }: PageProps<"/worklist">): Promise<Metadata> {
   const { t } = await getMessages();
-  const session = await requireSession(["radiologist"]);
+  const session = await requireSession(["radiologist", "platform_admin"]);
   const filters = parseFilters(await searchParams);
   const search = await readListSearch("worklist", session);
   const { studies } = await loadQueue(search);
@@ -62,7 +62,8 @@ export async function generateMetadata({
  * **Lue côté serveur.** L'appel part avec le jeton de l'utilisateur, et
  * ce sont les politiques RLS qui décident des lignes renvoyées : un
  * radiologue voit les examens des établissements que son groupe sert, ou
- * de la clinique qui l'emploie.
+ * de la clinique qui l'emploie. L'administration, en consultation, voit
+ * la file de toute la plateforme.
  *
  * La file ne contient que ce qui reste à rendre, dans l'ordre des
  * échéances promises (`order=deadline`). La recherche, qui porte un nom de
@@ -74,7 +75,7 @@ export async function generateMetadata({
 export default async function WorklistPage({
   searchParams,
 }: PageProps<"/worklist">) {
-  const session = await requireSession(["radiologist"]);
+  const session = await requireSession(["radiologist", "platform_admin"]);
   const filters = parseFilters(await searchParams);
   const search = await readListSearch("worklist", session);
 

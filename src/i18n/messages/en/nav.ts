@@ -30,6 +30,7 @@ export const nav: AppMessages["nav"] = {
     facility: "Facility",
     network: "Network",
     platform: "Platform",
+    portals: "Portals",
   },
   mainNavigation: "Main navigation",
   switchOrganisation: "Switch organisation",
