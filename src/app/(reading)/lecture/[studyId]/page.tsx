@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import type { WorkspaceMode } from "@/components/editor/report-workspace";
-import { ReportWorkspace } from "@/components/editor/report-workspace";
+import { ReadingWorkspace } from "@/components/editor/report-workspace";
 import { EMPTY_REPORT_SECTIONS } from "@/components/editor/sections";
 import type { AppMessages } from "@/i18n";
 import { getMessages } from "@/i18n/server";
@@ -41,7 +41,14 @@ function workspaceMode(
       awaitingReport: report?.status !== "signed",
     };
   }
-  if (report?.status === "signed") return { kind: "readonly" };
+  if (report?.status === "signed") {
+    // Signé : la correction passe par un addendum, que seul un radiologue
+    // habilité peut signer.
+    return {
+      kind: "readonly",
+      addendumReportId: credentialBlock(session) ? undefined : report.id,
+    };
+  }
 
   // Radiologue pas encore habilité : ni prise en charge ni rédaction. La
   // base masque déjà les examens et le service refuse ces gestes ; l'écran
@@ -130,10 +137,11 @@ export default async function ReadingPage({
   const aiReview = mode.kind === "author" && (await isAiReviewAvailable());
 
   return (
-    <ReportWorkspace
+    <ReadingWorkspace
       // Une nouvelle clé à chaque changement de brouillon remet l'éditeur
-      // à l'état du serveur après une prise en charge ou une signature.
-      key={`${report?.id ?? "none"}:${report?.status ?? ""}`}
+      // à l'état du serveur après une prise en charge ou une signature,
+      // sans recharger le viewer.
+      draftKey={`${report?.id ?? "none"}:${report?.status ?? ""}`}
       study={study}
       viewerUrl={viewerUrl}
       mode={mode}

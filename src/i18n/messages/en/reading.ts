@@ -48,7 +48,9 @@ export const reading: AppMessages["reading"] = {
     release: "Return to pool",
     sign: "Sign",
     claim: "Claim",
-    signedBanner: "Report signed and sent: it can no longer be edited.",
+    signedBanner:
+      "Report signed and sent: it can no longer be edited. Corrections are made with a dated, signed addendum.",
+    correct: "Correct with an addendum",
     claimBanner:
       "Claim the examination to start the report. It will be reserved for you until you sign it or return it to the pool.",
     clinicalInfo: "Clinical information",

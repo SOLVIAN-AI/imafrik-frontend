@@ -40,7 +40,12 @@ export function AddendaPanel({
   if (addenda.length === 0 && !canAdd) return null;
 
   return (
-    <Panel className="mt-4 flex flex-col overflow-hidden">
+    // Ancre `#addenda` : l'écran de lecture y mène pour corriger un
+    // compte-rendu signé.
+    <Panel
+      className="mt-4 flex scroll-mt-4 flex-col overflow-hidden"
+      id="addenda"
+    >
       <h2 className="label-eyebrow flex h-11 items-center border-b border-border-subtle px-4">
         {labels.title}
       </h2>

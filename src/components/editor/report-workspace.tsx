@@ -7,6 +7,7 @@ import {
   CloudUpload,
   CornerDownLeft,
   FileClock,
+  FilePen,
   Hand,
   Languages,
   Lock,
@@ -16,6 +17,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import {
   Group,
@@ -174,6 +176,12 @@ export type WorkspaceMode =
       kind: "readonly";
       notice?: string;
       /**
+       * Compte-rendu signé qu'un radiologue habilité peut corriger par un
+       * addendum : l'écran y mène, plutôt que de laisser croire le texte
+       * figé pour de bon.
+       */
+      addendumReportId?: string;
+      /**
        * Consultation sans compte-rendu signé (clinique, administration) :
        * le volet de rédaction cède la place à un état d'attente. Un
        * formulaire vide aux sections « obligatoires » laissait croire à la
@@ -310,21 +318,14 @@ function StudyBar({
 }
 
 /**
- * Écran de lecture : images à gauche, compte-rendu à droite.
+ * Compte-rendu et barre d'actions de l'écran de lecture.
  *
- * **Pourquoi côte à côte plutôt qu'en onglets.** Un compte-rendu se
- * rédige en regardant l'image, pas de mémoire. Deux onglets obligeraient
- * à basculer à chaque mesure relevée.
- *
- * **Pourquoi l'image à gauche.** On lit de gauche à droite : l'observation
- * précède sa transcription. C'est aussi la disposition des consoles de
- * lecture auxquelles les radiologues sont habitués.
- *
- * **Le même écran sert la consultation** (`mode.kind === "readonly"`) :
- * images et compte-rendu tel qu'il est, sans mise en forme ni signature.
+ * Remis à zéro, par sa clé, à chaque changement du brouillon en base
+ * (prise en charge, signature) : l'éditeur repart de l'état du serveur.
+ * Il s'affiche dans les emplacements que lui prête {@link ReadingWorkspace},
+ * si bien que cette remise à zéro ne touche jamais au viewer.
  *
  * @param study      Examen lu.
- * @param viewerUrl  URL signée du viewer, `null` s'il n'est pas joignable.
  * @param mode       Ce que l'utilisateur peut faire — voir {@link WorkspaceMode}.
  * @param initial    Contenu du compte-rendu tel qu'il est en base.
  * @param signed     Le compte-rendu est déjà signé.
@@ -332,10 +333,10 @@ function StudyBar({
  * @param templates  Modèles proposés à l'auteur — ceux de la modalité.
  * @param nextStudyId Prochain examen de la file, proposé après la
  *                    signature : on enchaîne sans repasser par la liste.
+ * @param slots      Emplacements de la barre et du compte-rendu.
  */
-export function ReportWorkspace({
+function ReportWorkspace({
   study,
-  viewerUrl,
   mode,
   initial,
   signed: initiallySigned,
@@ -343,9 +344,9 @@ export function ReportWorkspace({
   templates = [],
   nextStudyId = null,
   aiReview: aiReviewOffered = false,
+  slots,
 }: {
   study: WorkspaceStudy;
-  viewerUrl: string | null;
   mode: WorkspaceMode;
   initial: ReportSections;
   signed: boolean;
@@ -354,9 +355,11 @@ export function ReportWorkspace({
   nextStudyId?: string | null;
   /** La relecture par IA est offerte à cet utilisateur (décidé par le service). */
   aiReview?: boolean;
+  /** Emplacements fournis par {@link ReadingWorkspace}, `null` avant leur montage. */
+  slots: WorkspaceSlots;
 }) {
   const router = useRouter();
-  const { isDemo, active } = useSession();
+  const { active } = useSession();
   const labels = useMessages().reading.workspace;
   const [sections, setSections] = React.useState<ReportSections>(initial);
   // Révision du contenu : incrémentée à chaque texte posé d'ailleurs que
@@ -365,12 +368,6 @@ export function ReportWorkspace({
   const [signed, setSigned] = React.useState(initiallySigned);
   const [confirming, setConfirming] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
-  const { groupRef, onLayoutChanged } = usePersistedLayout();
-  // Côte à côte à partir de 1024 px ; en dessous, chaque volet aurait
-  // moins de 340 px — ni l'image ni le texte n'y sont exploitables.
-  // Inconnu au rendu serveur (`null`) : une forme neutre, juste à toute
-  // largeur, plutôt qu'une disposition devinée.
-  const wide = useMediaQuery("(min-width: 1024px)", null);
 
   const author = mode.kind === "author" ? mode : null;
   const locked = signed || !author;
@@ -627,8 +624,21 @@ export function ReportWorkspace({
       </Button>
     ) : null;
 
+  const correct =
+    mode.kind === "readonly" && mode.addendumReportId ? (
+      <Button size="sm" variant="secondary" asChild>
+        <Link href={`/comptes-rendus/${mode.addendumReportId}#addenda`}>
+          <FilePen />
+          {labels.correct}
+        </Link>
+      </Button>
+    ) : null;
+
   const actions = signed ? (
-    next
+    <>
+      {correct}
+      {next}
+    </>
   ) : author ? (
     <>
       <TemplatePicker
@@ -659,9 +669,6 @@ export function ReportWorkspace({
     next
   );
 
-  const viewer = (
-    <ViewerPane study={study} viewerUrl={viewerUrl} demo={isDemo} />
-  );
   const report = (
     <div className="flex h-full min-h-0 flex-col">
       {signed && <Banner tone="done">{labels.signedBanner}</Banner>}
@@ -705,9 +712,106 @@ export function ReportWorkspace({
     </div>
   );
 
+  // La barre et le compte-rendu s'affichent dans les emplacements du
+  // cadre : remis à zéro avec le brouillon, ils laissent le viewer intact.
+  return (
+    <>
+      {slots.bar &&
+        createPortal(
+          <StudyBar study={study} signed={signed} actions={actions} />,
+          slots.bar,
+        )}
+      {slots.report && createPortal(report, slots.report)}
+
+      {author && (
+        <SignReportDialog
+          open={confirming}
+          onOpenChange={setConfirming}
+          sections={sections}
+          patientLabel={formatPatientName(study.patientName)}
+          signerName={signerName}
+          language={study.reportLanguage}
+          onConfirm={sign}
+          aiReview={aiReview}
+        />
+      )}
+    </>
+  );
+}
+
+/** Emplacements prêtés par le cadre de lecture à son compte-rendu. */
+interface WorkspaceSlots {
+  bar: HTMLElement | null;
+  report: HTMLElement | null;
+}
+
+/** Ce que reçoit l'écran de lecture. */
+type ReadingWorkspaceProps = Omit<
+  React.ComponentProps<typeof ReportWorkspace>,
+  "slots"
+> & {
+  /** URL signée du viewer, `null` s'il n'est pas joignable. */
+  viewerUrl: string | null;
+  /**
+   * Clé du brouillon en base : elle change à la prise en charge et à la
+   * signature, et remet alors l'éditeur à l'état du serveur.
+   */
+  draftKey: string;
+};
+
+/**
+ * Écran de lecture : images à gauche, compte-rendu à droite.
+ *
+ * **Pourquoi côte à côte plutôt qu'en onglets.** Un compte-rendu se
+ * rédige en regardant l'image, pas de mémoire. Deux onglets obligeraient
+ * à basculer à chaque mesure relevée.
+ *
+ * **Pourquoi l'image à gauche.** On lit de gauche à droite : l'observation
+ * précède sa transcription. C'est aussi la disposition des consoles de
+ * lecture auxquelles les radiologues sont habitués.
+ *
+ * **Le même écran sert la consultation** (`mode.kind === "readonly"`) :
+ * images et compte-rendu tel qu'il est, sans mise en forme ni signature.
+ *
+ * **Le viewer ne se recharge jamais en cours de lecture.** Ce cadre, qui
+ * le porte, n'est pas remis à zéro : seul le compte-rendu l'est, à la
+ * prise en charge et à la signature. Avant, l'écran entier était recréé,
+ * et le radiologue qui prenait en charge l'examen qu'il faisait défiler
+ * se retrouvait sur une autre série, à la première coupe. L'adresse du
+ * viewer est gardée pour l'examen ouvert : celle qu'émet chaque
+ * rafraîchissement, avec un nouveau jeton, rechargerait aussi le cadre.
+ */
+export function ReadingWorkspace({
+  viewerUrl,
+  draftKey,
+  ...workspace
+}: ReadingWorkspaceProps) {
+  const { isDemo } = useSession();
+  const { study } = workspace;
+  const { groupRef, onLayoutChanged } = usePersistedLayout();
+  // Côte à côte à partir de 1024 px ; en dessous, chaque volet aurait
+  // moins de 340 px — ni l'image ni le texte n'y sont exploitables.
+  // Inconnu au rendu serveur (`null`) : une forme neutre, juste à toute
+  // largeur, plutôt qu'une disposition devinée.
+  const wide = useMediaQuery("(min-width: 1024px)", null);
+  const [bar, setBar] = React.useState<HTMLElement | null>(null);
+  const [report, setReport] = React.useState<HTMLElement | null>(null);
+
+  // Adresse gardée tant que le même examen est ouvert ; reprise seulement
+  // pour un autre examen, ou si le viewer n'était pas joignable.
+  const [kept, setKept] = React.useState({ studyId: study.id, url: viewerUrl });
+  if (kept.studyId !== study.id || (kept.url === null && viewerUrl !== null)) {
+    setKept({ studyId: study.id, url: viewerUrl });
+  }
+
+  const viewer = (
+    <ViewerPane study={study} viewerUrl={kept.url} demo={isDemo} />
+  );
+  const reportSlot = <div ref={setReport} className="h-full min-h-0" />;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <StudyBar study={study} signed={signed} actions={actions} />
+      <div ref={setBar} className="contents" />
 
       {wide === null ? (
         <WorkspaceSkeleton />
@@ -735,25 +839,14 @@ export function ReportWorkspace({
           />
 
           <Panel id="report" defaultSize="44" minSize="34" className="min-w-0">
-            {report}
+            {reportSlot}
           </Panel>
         </Group>
       ) : (
-        <NarrowLayout viewer={viewer} report={report} />
+        <NarrowLayout viewer={viewer} report={reportSlot} />
       )}
 
-      {author && (
-        <SignReportDialog
-          open={confirming}
-          onOpenChange={setConfirming}
-          sections={sections}
-          patientLabel={formatPatientName(study.patientName)}
-          signerName={signerName}
-          language={study.reportLanguage}
-          onConfirm={sign}
-          aiReview={aiReview}
-        />
-      )}
+      <ReportWorkspace key={draftKey} {...workspace} slots={{ bar, report }} />
     </div>
   );
 }

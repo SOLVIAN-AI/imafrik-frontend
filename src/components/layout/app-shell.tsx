@@ -161,14 +161,18 @@ export function PageHeader({
  * l'autre.
  */
 export function Panel({
+  id,
   className,
   children,
 }: {
+  /** Ancre, quand une autre page y mène. */
+  id?: string;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
     <div
+      id={id}
       className={cn(
         "rounded-xl border border-border-subtle bg-surface-raised shadow-raised",
         className,
