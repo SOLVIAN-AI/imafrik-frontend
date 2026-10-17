@@ -2539,8 +2539,10 @@ export interface components {
          *             est ignorée — en silence, pour ne rien apprendre au robot.
          *         requester_kind: Établissement de santé ou radiologue : les deux
          *             demandes ne suivent pas le même chemin.
-         *         license_number: Numéro d'ordre, exigé d'un radiologue ; l'équipe
-         *             IMAFRIK le vérifie avant d'ouvrir le moindre accès.
+         *         license_number: Numéro d'ordre d'un radiologue inscrit à l'Ordre,
+         *             facultatif : un radiologue en cours de spécialisation n'en a
+         *             pas. L'équipe IMAFRIK vérifie, à l'inscription, le justificatif
+         *             qu'exige son exercice avant d'ouvrir le moindre accès.
          */
         ContactForm: {
             /**

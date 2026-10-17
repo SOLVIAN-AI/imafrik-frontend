@@ -57,11 +57,13 @@ export function validateContactForm(
   )
     errors.push("organization");
   if (!EMAIL.test(values.email.trim())) errors.push("email");
-  if (values.requesterKind === "radiologist") {
-    const license = values.licenseNumber.trim();
-    if (license.length === 0 || license.length > LICENSE_NUMBER_MAX_LENGTH)
-      errors.push("licenseNumber");
-  }
+  // Facultatif : un radiologue en cours de spécialisation n'a pas de
+  // numéro d'ordre. Seule sa longueur est bornée.
+  if (
+    values.requesterKind === "radiologist" &&
+    values.licenseNumber.trim().length > LICENSE_NUMBER_MAX_LENGTH
+  )
+    errors.push("licenseNumber");
   return errors;
 }
 

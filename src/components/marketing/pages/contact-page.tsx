@@ -306,7 +306,6 @@ export function ContactPage({ locale }: { locale: Locale }) {
                   }
                   maxLength={LICENSE_NUMBER_MAX_LENGTH}
                   autoComplete="off"
-                  required
                   aria-invalid={Boolean(fieldError("licenseNumber"))}
                   aria-describedby="licenseNumber-description"
                   className="h-10"

@@ -39,7 +39,7 @@ export const en: MarketingCopy = {
   },
   footer: {
     tagline:
-      "Teleradiology for Africa. Your examinations read by registered radiologists, with no equipment to buy.",
+      "Teleradiology for Africa. Your examinations read by radiologists whose right to practise is verified, with no equipment to buy.",
     columns: [
       {
         title: "Product",
@@ -236,12 +236,12 @@ export const en: MarketingCopy = {
       {
         question: "Who signs the report, and who is responsible for it?",
         answer:
-          "A named radiologist, registered with a professional medical council, whose registration number appears on the document. Responsibility for the interpretation lies with them, just as it would for an examination read on site. IMAFRIK ensures transmission and traceability.",
+          "A named radiologist, whose right to practise the IMAFRIK team has verified before giving them access to any examination; their name appears on the document. Responsibility for the interpretation lies with them, just as it would for an examination read on site. IMAFRIK ensures transmission and traceability.",
       },
       {
         question: "Who creates accounts, and how are radiologists admitted?",
         answer:
-          "Your facility creates the accounts for its own staff from its portal. A radiologist who wishes to read for the network applies through the contact form, giving their registration number. The IMAFRIK team checks it with the medical council: until this is done, no examinations are accessible to them, even if a clinic has invited them.",
+          "Your facility creates the accounts for its own staff from its portal. A radiologist who wishes to read for the network applies through the contact form, then uploads their proof of practice. The IMAFRIK team reviews it: until this is done, no examinations are accessible to them, even if a clinic has invited them.",
       },
       {
         question: "Where are our patients’ images stored?",
@@ -339,7 +339,7 @@ export const en: MarketingCopy = {
     sentText:
       "Thank you, {name}. We will get back to you at {email} to suggest a time.",
     sentTextRadiologist:
-      "Thank you, {name}. The IMAFRIK team will check your registration number with the medical council, then get back to you at {email}. Access to examinations opens once this check is complete.",
+      "Thank you, {name}. The IMAFRIK team will get back to you at {email}. You will then upload your proof of practice: access to examinations opens once it has been verified.",
     requester: {
       legend: "I am",
       clinic: "A healthcare facility",
@@ -347,7 +347,7 @@ export const en: MarketingCopy = {
         "Clinic, hospital or imaging centre: you would like your examinations to be read.",
       radiologist: "A radiologist",
       radiologistDetail:
-        "You would like to read examinations for the network. Your registration number is verified before any access.",
+        "You would like to read examinations for the network. Your right to practise is verified before any access.",
     },
     fields: {
       name: "Full name",
@@ -357,7 +357,7 @@ export const en: MarketingCopy = {
       organizationRadiologist: "Where you practise",
       licenseNumber: "Registration number",
       licenseNumberHint:
-        "Your medical council registration number, as it will appear below your signature.",
+        "If you are registered with the medical council, your registration number, as it will appear below your signature. Otherwise, leave this field blank.",
       email: "Email address",
       phone: "Phone",
       optional: "Optional.",
@@ -381,8 +381,7 @@ export const en: MarketingCopy = {
         "Please say whether you are writing for a healthcare facility or as a radiologist.",
       name: "Please enter your name.",
       organization: "Please enter the name of your facility.",
-      licenseNumber:
-        "Please enter your registration number (50 characters at most).",
+      licenseNumber: "The registration number is 50 characters at most.",
       email: "Please enter a valid email address.",
       rateLimited:
         "Too many requests from this connection. Please try again in an hour, or email us at contact@imafrik.tech",

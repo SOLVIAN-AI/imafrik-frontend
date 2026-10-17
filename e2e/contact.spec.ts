@@ -4,16 +4,17 @@ import { expect, test } from "./support/fixtures";
  * Formulaire de contact du site public.
  *
  * La première question, « Je suis », est obligatoire : un établissement
- * de santé ou un radiologue. Un radiologue doit donner son numéro
- * d'ordre ; l'établissement où il exerce devient facultatif. Les erreurs
- * s'affichent sous chaque champ, dans la langue de la page.
+ * de santé ou un radiologue. Le numéro d'ordre d'un radiologue est
+ * facultatif (un radiologue en cours de spécialisation n'en a pas), tout
+ * comme l'établissement où il exerce. Les erreurs s'affichent sous chaque
+ * champ, dans la langue de la page.
  *
  * En démonstration, aucun service n'enregistre la demande : une demande
  * valide aboutit au message « formulaire indisponible », ce qui prouve
  * qu'elle a franchi les contrôles de l'écran et de l'action serveur.
  */
 
-test("un radiologue doit donner son numéro d’ordre", async ({ page }) => {
+test("un radiologue peut écrire sans numéro d’ordre", async ({ page }) => {
   await page.goto("/contact");
   await page.getByRole("button", { name: "Envoyer la demande" }).click();
   await expect(
@@ -27,26 +28,17 @@ test("un radiologue doit donner son numéro d’ordre", async ({ page }) => {
   ).toBeFocused();
 
   await page.getByRole("radio", { name: /Un radiologue/ }).check();
-  await expect(
-    page.getByRole("textbox", { name: "Numéro d’ordre" }),
-  ).toBeVisible();
+  const numero = page.getByRole("textbox", { name: "Numéro d’ordre" });
+  await expect(numero).toBeVisible();
+  await expect(numero).not.toHaveAttribute("required");
+  await expect(page.getByText(/Sinon, laissez ce champ vide/)).toBeVisible();
   // L'établissement devient facultatif, sous un autre intitulé.
   await expect(page.getByLabel("Établissement où vous exercez")).toBeVisible();
   await expect(page.getByLabel("Volume mensuel estimé")).toHaveCount(0);
 
+  // Sans numéro, la demande franchit les contrôles de l'écran.
   await page.getByLabel("Nom complet").fill("Sena Akakpo");
   await page.getByLabel("Adresse électronique").fill("s.akakpo@exemple.tg");
-  await page.getByRole("button", { name: "Envoyer la demande" }).click();
-  await expect(
-    page.getByText("Indiquez votre numéro d’ordre (50 caractères au maximum)."),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("textbox", { name: "Numéro d’ordre" }),
-  ).toBeFocused();
-
-  await page
-    .getByRole("textbox", { name: "Numéro d’ordre" })
-    .fill("TG-RAD-0318");
   await page.getByRole("button", { name: "Envoyer la demande" }).click();
   await expect(page.locator("form").getByRole("alert")).toContainText(
     "Le formulaire n’est pas disponible pour le moment.",
@@ -92,10 +84,9 @@ test("the English form explains what is missing", async ({ page }) => {
   ).toBeChecked();
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.getByText("Please enter your name.")).toBeVisible();
+  // The registration number is optional.
   await expect(
-    page.getByText(
-      "Please enter your registration number (50 characters at most).",
-    ),
-  ).toBeVisible();
+    page.getByText(/registration number is 50 characters/),
+  ).toHaveCount(0);
   await expect(page.getByLabel("Where you practise")).toBeVisible();
 });
