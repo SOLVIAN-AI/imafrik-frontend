@@ -1056,21 +1056,36 @@ function NarrowLayout({
           </button>
         ))}
       </div>
-      <div
-        id="pane-images"
-        role="tabpanel"
-        aria-labelledby="tab-images"
-        className={cn("min-h-0 flex-1", tab !== "images" && "hidden")}
-      >
-        {viewer}
-      </div>
-      <div
-        id="pane-report"
-        role="tabpanel"
-        aria-labelledby="tab-report"
-        className={cn("min-h-0 flex-1", tab !== "report" && "hidden")}
-      >
-        {report}
+      {/* Les deux volets se superposent. Celui des images est masqué sans
+          être retiré de la mise en page (`invisible`, et non `hidden`) : à
+          `display: none`, le cadre du visualiseur tombait à zéro de large,
+          et OHIF recalculait ses volets sur cette largeur nulle. Au retour
+          sur « Images », l'image restait décalée, une bande noire à gauche
+          (signalé le 15 octobre 2026). Un élément invisible sort aussi de
+          l'ordre de tabulation et de l'arbre d'accessibilité. */}
+      <div className="relative min-h-0 flex-1">
+        <div
+          id="pane-images"
+          role="tabpanel"
+          aria-labelledby="tab-images"
+          className={cn(
+            "absolute inset-0",
+            tab !== "images" && "pointer-events-none invisible",
+          )}
+        >
+          {viewer}
+        </div>
+        <div
+          id="pane-report"
+          role="tabpanel"
+          aria-labelledby="tab-report"
+          className={cn(
+            "absolute inset-0 flex flex-col bg-surface-base",
+            tab !== "report" && "hidden",
+          )}
+        >
+          {report}
+        </div>
       </div>
     </div>
   );
