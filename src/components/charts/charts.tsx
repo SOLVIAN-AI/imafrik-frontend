@@ -385,8 +385,10 @@ export function Lines({
             })}
           </svg>
           {threshold && (
+            // Sur un fond plein : une courbe qui passe à cette hauteur ne
+            // brouille plus le libellé du seuil.
             <span
-              className="absolute right-0 -translate-y-full pb-0.5 text-2xs text-urgent"
+              className="absolute right-0 z-10 -translate-y-[calc(100%+2px)] rounded bg-surface-raised/90 px-1.5 py-px text-2xs text-urgent"
               style={{ top: `${y(threshold.value)}%` }}
             >
               {threshold.label}

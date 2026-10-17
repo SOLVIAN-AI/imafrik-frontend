@@ -212,18 +212,22 @@ export const OPS_FRESHNESS: Record<OpsKind, number> = {
  * Libellés et cibles viennent des textes de l'utilisateur ; le résumé,
  * rédigé par le service, s'affiche tel quel.
  *
- * @param runs   Exécutions à afficher.
- * @param locale Langue de l'utilisateur.
- * @param dense  Variante compacte, pour le cockpit.
+ * @param runs    Exécutions à afficher.
+ * @param locale  Langue de l'utilisateur.
+ * @param dense   Variante compacte, pour le cockpit.
+ * @param columns Deux colonnes à partir de 1024 px : la liste garde alors
+ *                la hauteur des panneaux voisins au lieu de les dépasser.
  */
 export function OpsList({
   runs,
   locale,
   dense = false,
+  columns = false,
 }: {
   runs: OpsRun[];
   locale: Locale;
   dense?: boolean;
+  columns?: boolean;
 }) {
   const t = messagesFor(locale).admin.ops;
   if (runs.length === 0) {
@@ -235,13 +239,21 @@ export function OpsList({
     );
   }
   return (
-    <ul className="divide-y divide-border-subtle">
+    <ul
+      className={cn(
+        columns
+          ? // Les séparateurs sont le fond de la grille, entre ses cases.
+            "grid gap-px bg-border-subtle lg:grid-cols-2"
+          : "divide-y divide-border-subtle",
+      )}
+    >
       {runs.map((run, index) => (
         <li
           key={`${run.kind}-${run.target}-${run.finishedAt.toISOString()}-${index}`}
           className={cn(
             "flex items-start gap-3 px-4",
             dense ? "py-2.5" : "py-3",
+            columns && "bg-surface-raised",
           )}
         >
           {run.ok ? (
@@ -283,6 +295,10 @@ export function OpsList({
           />
         </li>
       ))}
+      {/* Nombre impair : la dernière case prend le fond du panneau. */}
+      {columns && runs.length % 2 === 1 && (
+        <li aria-hidden className="hidden bg-surface-raised lg:block" />
+      )}
     </ul>
   );
 }

@@ -165,10 +165,11 @@ export function MetricCard({ metric }: { metric: Metric }) {
             </span>
           )}
         </div>
-        {/* Deux lignes plutôt qu'un libellé tronqué, à toute largeur : une
-            mesure dont on ne lit pas le nom ne sert à rien, et quatre
-            cartes côte à côte à 1024 px n'ont pas la place d'une ligne. */}
-        <p className="label-eyebrow mt-0.5 line-clamp-2">{metric.label}</p>
+        {/* Jamais tronqué, à toute largeur : une mesure dont on ne lit pas
+            le nom ne sert à rien. Quatre cartes côte à côte à 1024 px, ou
+            deux par rangée sur un téléphone, demandent parfois trois
+            lignes (« Comptes-rendus prêts »). */}
+        <p className="label-eyebrow mt-0.5">{metric.label}</p>
         {/* La précision vient sous le libellé, pas à côté du chiffre : à
             côté, elle lui disputait la largeur et finissait tronquée. */}
         {metric.hint && (

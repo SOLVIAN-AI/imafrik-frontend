@@ -338,15 +338,18 @@ function CredentialRow({
         </span>
       )}
       <div className="ml-auto flex flex-wrap gap-2">
-        {user.practiceStatus && (
-          <CredentialReview
-            profileId={user.id}
-            fullName={name}
-            licenseNumber={user.licenseNumber}
-            practiceStatus={user.practiceStatus}
-            isSelf={isSelf}
-          />
-        )}
+        {/* Rien à examiner pour un inscrit habilité ; un résident habilité
+            peut avoir déposé le renouvellement de son attestation. */}
+        {user.practiceStatus &&
+          (state !== "verified" || user.practiceStatus === "resident") && (
+            <CredentialReview
+              profileId={user.id}
+              fullName={name}
+              licenseNumber={user.licenseNumber}
+              practiceStatus={user.practiceStatus}
+              isSelf={isSelf}
+            />
+          )}
         {user.credentialsVerifiedAt && (
           <RevokeCredentials profileId={user.id} fullName={name} />
         )}

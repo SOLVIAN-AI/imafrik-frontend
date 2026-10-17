@@ -107,102 +107,114 @@ export default async function SystemPage() {
           />
         </section>
 
-        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-          <Section title={text.dependencies} flush>
-            <ul className="divide-y divide-border-subtle">
-              {system.services.map((service) => (
-                <li
-                  key={service.name}
-                  className="flex items-center gap-3 px-4 py-3"
-                >
-                  {service.ok ? (
-                    <CheckCircle2
-                      className="size-4 shrink-0 text-done"
-                      aria-label={text.up}
-                    />
-                  ) : (
-                    <XCircle
-                      className="size-4 shrink-0 text-urgent"
-                      aria-label={text.down}
-                    />
-                  )}
-                  <span className="text-sm font-medium">{service.name}</span>
+        {/* Dépendances en bandeau, filets de sécurité sur deux colonnes : côte
+            à côte, une liste de quatre lignes laissait un grand vide sous
+            elle, en face d'une liste deux fois plus longue. Les séparateurs
+            sont l'arrière-plan de la grille, visible entre ses cases. */}
+        <Section title={text.dependencies} flush>
+          <ul className="grid gap-px bg-border-subtle sm:grid-cols-2 xl:grid-cols-4">
+            {system.services.map((service) => (
+              <li
+                key={service.name}
+                className="flex items-start gap-3 bg-surface-raised px-4 py-3"
+              >
+                {service.ok ? (
+                  <CheckCircle2
+                    className="mt-0.5 size-4 shrink-0 text-done"
+                    aria-label={text.up}
+                  />
+                ) : (
+                  <XCircle
+                    className="mt-0.5 size-4 shrink-0 text-urgent"
+                    aria-label={text.down}
+                  />
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{service.name}</p>
                   {service.detail && (
-                    <span
+                    <p
                       className={cn(
-                        "ml-auto min-w-0 truncate text-right text-2xs",
+                        "mt-0.5 truncate text-2xs",
                         service.ok ? "text-tertiary" : "text-urgent",
                       )}
                       title={service.detail}
                     >
                       {service.detail}
-                    </span>
+                    </p>
                   )}
-                </li>
-              ))}
-            </ul>
-          </Section>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Section>
 
-          <Section
-            title={text.safetyNets}
-            description={text.safetyNetsDescription}
-            flush
-          >
-            <ul className="divide-y divide-border-subtle">
-              {OPS_ORDER.map((kind) => {
-                const run = latest.get(kind);
-                const healthy =
-                  run !== undefined &&
-                  run.ok &&
-                  system.checkedAt.getTime() - run.finishedAt.getTime() <=
-                    OPS_FRESHNESS[kind] * 3_600_000;
-                return (
-                  <li key={kind} className="flex gap-3 px-4 py-3">
-                    <span
-                      className={cn(
-                        "mt-1.5 size-2 shrink-0 rounded-full",
-                        run === undefined
-                          ? "bg-tertiary"
-                          : healthy
-                            ? "bg-done"
-                            : "bg-urgent",
-                      )}
-                      aria-hidden
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
-                        <span className="font-medium">{ops.labels[kind]}</span>
-                        <span className="text-2xs text-tertiary">
-                          {run ? (
-                            <RelativeTime
-                              date={run.finishedAt}
-                              staleAfterHours={OPS_FRESHNESS[kind]}
-                            />
-                          ) : (
-                            ops.neverRun
-                          )}
-                        </span>
+        <Section
+          title={text.safetyNets}
+          description={text.safetyNetsDescription}
+          flush
+        >
+          <ul className="grid gap-px bg-border-subtle lg:grid-cols-2">
+            {OPS_ORDER.map((kind) => {
+              const run = latest.get(kind);
+              const healthy =
+                run !== undefined &&
+                run.ok &&
+                system.checkedAt.getTime() - run.finishedAt.getTime() <=
+                  OPS_FRESHNESS[kind] * 3_600_000;
+              return (
+                <li
+                  key={kind}
+                  className="flex gap-3 bg-surface-raised px-4 py-3"
+                >
+                  <span
+                    className={cn(
+                      "mt-1.5 size-2 shrink-0 rounded-full",
+                      run === undefined
+                        ? "bg-tertiary"
+                        : healthy
+                          ? "bg-done"
+                          : "bg-urgent",
+                    )}
+                    aria-hidden
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
+                      <span className="font-medium">{ops.labels[kind]}</span>
+                      <span className="text-2xs text-tertiary">
+                        {run ? (
+                          <RelativeTime
+                            date={run.finishedAt}
+                            staleAfterHours={OPS_FRESHNESS[kind]}
+                          />
+                        ) : (
+                          ops.neverRun
+                        )}
+                      </span>
+                    </p>
+                    <p className="mt-0.5 text-2xs text-tertiary">
+                      {ops.purpose[kind]}
+                    </p>
+                    {run?.summary && (
+                      <p
+                        className={cn(
+                          "mt-1 text-2xs",
+                          run.ok ? "text-secondary" : "text-urgent",
+                        )}
+                      >
+                        {run.summary}
                       </p>
-                      <p className="mt-0.5 text-2xs text-tertiary">
-                        {ops.purpose[kind]}
-                      </p>
-                      {run?.summary && (
-                        <p
-                          className={cn(
-                            "mt-1 text-2xs",
-                            run.ok ? "text-secondary" : "text-urgent",
-                          )}
-                        >
-                          {run.summary}
-                        </p>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </Section>
-        </div>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+            {/* Nombre impair de tâches : la dernière case de la grille prend
+                le fond du panneau, pas la couleur des séparateurs. */}
+            {OPS_ORDER.length % 2 === 1 && (
+              <li aria-hidden className="hidden bg-surface-raised lg:block" />
+            )}
+          </ul>
+        </Section>
 
         <Section
           title={text.history}

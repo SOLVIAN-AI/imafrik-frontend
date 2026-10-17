@@ -71,7 +71,7 @@ export function SimulatedScan({
   // Position relative dans le volume, de 0 à 1 : elle module la taille des
   // poumons, plus larges au milieu du thorax qu'aux apex et aux bases.
   const depth = total > 1 ? (slice - 1) / (total - 1) : 0.5;
-  const lung = 0.55 + Math.sin(depth * Math.PI) * 0.45;
+  const lung = round(0.55 + Math.sin(depth * Math.PI) * 0.45);
   const region = regionOf(study.bodyPart);
   const demographics = formatDemographics(
     study.patientSex,
@@ -286,7 +286,7 @@ function regionOf(bodyPart: string | null): Region {
  * premier regard.
  */
 function HeadSlice({ depth, mr }: { depth: number; mr: boolean }) {
-  const ventricle = 0.6 + Math.sin(depth * Math.PI) * 0.4;
+  const ventricle = round(0.6 + Math.sin(depth * Math.PI) * 0.4);
   const bone = mr ? "#1c1c1c" : "#e4e4e4";
   const csf = mr ? "#d6d6d6" : "#2a2a2a";
   const gray = mr ? "#8a8a8a" : "#6e6e6e";
@@ -341,7 +341,7 @@ function AbdomenSlice({
   depth: number;
   softFill: string;
 }) {
-  const kidney = 0.7 + Math.sin(depth * Math.PI) * 0.3;
+  const kidney = round(0.7 + Math.sin(depth * Math.PI) * 0.3);
   return (
     <>
       <ellipse cx="256" cy="268" rx="200" ry="150" fill="#4f4f4f" />
@@ -414,7 +414,7 @@ function AbdomenSlice({
 
 /** Coupe d'un genou, à hauteur des condyles fémoraux. */
 function LimbSlice({ depth }: { depth: number }) {
-  const condyle = 0.85 + Math.sin(depth * Math.PI) * 0.15;
+  const condyle = round(0.85 + Math.sin(depth * Math.PI) * 0.15);
   return (
     <>
       <circle cx="256" cy="256" r="160" fill="#4f4f4f" />
@@ -475,27 +475,42 @@ const RIBS: [number, number, number][] = [
 ];
 
 /**
+ * Coordonnée arrondie au centième.
+ *
+ * Le serveur (Node) et le navigateur ne calculent pas sinus et cosinus au
+ * dernier bit près : sans arrondi, l'hydratation signalait des attributs
+ * `cx` et `cy` différents, à la quinzième décimale.
+ */
+function round(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+/**
  * Vaisseaux pulmonaires d'une coupe : petits points clairs dans chaque
  * poumon.
  *
  * Positions pseudo-aléatoires mais **déterministes** — dérivées du numéro
  * de coupe — pour que le rendu serveur et le rendu client tracent la même
- * image, et qu'une coupe revisitée soit identique.
+ * image, et qu'une coupe revisitée soit identique. Le tirage est fait en
+ * arithmétique entière (mulberry32) : un hachage par sinus amplifiait les
+ * écarts de calcul entre moteurs JavaScript.
  */
 function vessels(slice: number, lung: number): [number, number, number][] {
   const points: [number, number, number][] = [];
   const random = (seed: number) => {
-    const x = Math.sin(seed * 12.9898 + slice * 78.233) * 43_758.5453;
-    return x - Math.floor(x);
+    let t = (seed * 2_654_435_761 + slice * 40_503) >>> 0;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
   };
   for (let index = 0; index < 36; index += 1) {
     const side = index % 2 === 0 ? -1 : 1;
     const angle = random(index) * Math.PI * 2;
     const radius = Math.sqrt(random(index + 100)) * 0.85;
     points.push([
-      256 + side * 79 + Math.cos(angle) * radius * (60 * lung + 12),
-      252 + Math.sin(angle) * radius * (90 * lung + 10),
-      0.8 + random(index + 200) * 2.2,
+      round(256 + side * 79 + Math.cos(angle) * radius * (60 * lung + 12)),
+      round(252 + Math.sin(angle) * radius * (90 * lung + 10)),
+      round(0.8 + random(index + 200) * 2.2),
     ]);
   }
   return points;

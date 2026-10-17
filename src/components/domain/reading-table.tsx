@@ -361,15 +361,18 @@ export function ReadingTable({
               <th scope="col" className="w-[28%]">
                 <span className="label-eyebrow">{labels.columns.patient}</span>
               </th>
-              <th scope="col">
+              {/* À partir de 1536 px, l'examen garde la largeur du patient et
+                  le suivi prend le reste, aligné à droite contre la date : la
+                  colonne de l'examen ne s'étire plus en un grand vide. */}
+              <th scope="col" className="2xl:w-[28%]">
                 <span className="label-eyebrow">{labels.columns.study}</span>
               </th>
               {/* Assez large pour le statut le plus long des deux langues
                   (« In progress ») : une pastille tronquée ne se lit plus. */}
-              <th scope="col" className="w-36">
+              <th scope="col" className="w-36 2xl:w-auto 2xl:!text-right">
                 <span className="label-eyebrow">{labels.columns.follow}</span>
               </th>
-              <th scope="col" className="w-20 text-right">
+              <th scope="col" className="w-20 !text-right">
                 <span className="label-eyebrow">{labels.columns.received}</span>
               </th>
             </tr>
@@ -449,7 +452,7 @@ export function ReadingTable({
                       </div>
                     </td>
 
-                    <td className="truncate">
+                    <td className="truncate 2xl:text-right">
                       <Follow study={study} follow={group.follow} />
                     </td>
 

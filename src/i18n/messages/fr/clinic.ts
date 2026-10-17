@@ -18,6 +18,8 @@ export const clinic = {
     },
     readyTitle: "Comptes-rendus à télécharger",
     readyEmpty: "Aucun compte-rendu en attente de récupération.",
+    readyNote:
+      "Chaque PDF porte un code de vérification que votre patient ou un confrère peut contrôler sur imafrik.tech. Chaque téléchargement est tracé.",
     /** Suit la modalité : « IRM Genou, signé par Dr X ». */
     signedBy: (name: string) => `signé par ${name}`,
     recentTitle: "Derniers examens envoyés",

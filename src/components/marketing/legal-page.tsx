@@ -1,3 +1,4 @@
+import { LegalToc } from "@/components/marketing/legal-toc";
 import { fill, marketingCopy } from "@/content/marketing";
 import type { Locale } from "@/lib/i18n/locale";
 import { legalUpdatedAt } from "@/lib/legal";
@@ -7,6 +8,15 @@ const EYEBROW: Record<Locale, string> = {
   fr: "Informations légales",
   en: "Legal information",
 };
+
+/** Nom du sommaire, dans chaque langue. */
+const TOC: Record<Locale, string> = {
+  fr: "Sommaire",
+  en: "Contents",
+};
+
+/** Conteneur du texte, où le sommaire lit les intitulés. */
+const CONTENT_ID = "texte-legal";
 
 /**
  * Gabarit d'une page de texte long.
@@ -25,6 +35,10 @@ const EYEBROW: Record<Locale, string> = {
  * Une traduction rappelle, sous le titre, que la version française fait
  * foi : c'est elle que le contrat désigne.
  *
+ * À partir de 1280 px, un sommaire fixe occupe la droite du texte : le
+ * vide de part et d'autre d'une colonne de lecture devient un repère dans
+ * un long document.
+ *
  * @param locale Langue de la page.
  * @param title  Titre du document.
  */
@@ -39,35 +53,43 @@ export function LegalPage({
 }) {
   const t = marketingCopy(locale).legal;
   return (
-    <article className="mx-auto max-w-3xl px-6 py-16 md:py-24">
-      <p className="label-eyebrow text-accent">{EYEBROW[locale]}</p>
-      <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{title}</h1>
-      <p className="mt-3 text-xs text-tertiary">
-        {fill(t.updatedAt, { date: legalUpdatedAt(locale) })}
-      </p>
-      {t.translationNotice && (
-        <p className="mt-6 rounded-xl border border-border-subtle bg-surface-raised px-4 py-3 text-xs leading-relaxed text-secondary">
-          {t.translationNotice}
+    <div className="mx-auto max-w-3xl px-6 py-16 md:py-24 xl:grid xl:max-w-6xl xl:grid-cols-[minmax(0,48rem)_14rem] xl:justify-between xl:gap-16">
+      <article className="min-w-0">
+        <p className="label-eyebrow text-accent">{EYEBROW[locale]}</p>
+        <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{title}</h1>
+        <p className="mt-3 text-xs text-tertiary">
+          {fill(t.updatedAt, { date: legalUpdatedAt(locale) })}
         </p>
-      )}
+        {t.translationNotice && (
+          <p className="mt-6 rounded-xl border border-border-subtle bg-surface-raised px-4 py-3 text-xs leading-relaxed text-secondary">
+            {t.translationNotice}
+          </p>
+        )}
 
-      <div
-        className={[
-          "prose-justify mt-12 text-sm leading-relaxed text-secondary",
-          "[&>h2]:mt-10 [&>h2]:text-lg [&>h2]:font-semibold [&>h2]:text-primary",
-          "[&>h3]:mt-7 [&>h3]:text-sm [&>h3]:font-semibold [&>h3]:text-primary",
-          "[&>p]:mt-4",
-          "[&>ul]:mt-4 [&>ul]:flex [&>ul]:flex-col [&>ul]:gap-2 [&>ul]:pl-5",
-          "[&_li]:list-disc",
-          "[&_strong]:font-medium [&_strong]:text-primary",
-          "[&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2",
-          // Jamais de césure dans un lien : « contact@ima-frik.tech »,
-          // recopié tel quel, n'arriverait nulle part.
-          "[&_a]:[hyphens:none]",
-        ].join(" ")}
-      >
-        {children}
-      </div>
-    </article>
+        <div
+          id={CONTENT_ID}
+          className={[
+            // Une ancre visée ne se cache pas sous l'en-tête fixe du site.
+            "[&>h2]:scroll-mt-24",
+            "prose-justify mt-12 text-sm leading-relaxed text-secondary",
+            "[&>h2]:mt-10 [&>h2]:text-lg [&>h2]:font-semibold [&>h2]:text-primary",
+            "[&>h3]:mt-7 [&>h3]:text-sm [&>h3]:font-semibold [&>h3]:text-primary",
+            "[&>p]:mt-4",
+            "[&>ul]:mt-4 [&>ul]:flex [&>ul]:flex-col [&>ul]:gap-2 [&>ul]:pl-5",
+            "[&_li]:list-disc",
+            "[&_strong]:font-medium [&_strong]:text-primary",
+            "[&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2",
+            // Jamais de césure dans un lien : « contact@ima-frik.tech »,
+            // recopié tel quel, n'arriverait nulle part.
+            "[&_a]:[hyphens:none]",
+          ].join(" ")}
+        >
+          {children}
+        </div>
+      </article>
+      <aside className="hidden xl:block">
+        <LegalToc contentId={CONTENT_ID} label={TOC[locale]} />
+      </aside>
+    </div>
   );
 }

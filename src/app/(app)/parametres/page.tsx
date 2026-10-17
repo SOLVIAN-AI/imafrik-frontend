@@ -27,7 +27,8 @@ export async function generateMetadata(): Promise<Metadata> {
  *
  * Organisés par **objet** — moi, mon organisation, mon accès — et non par
  * écran d'origine : c'est la seule classification que l'utilisateur
- * puisse deviner.
+ * puisse deviner. Sur grand écran, « moi » à gauche, organisation et
+ * accès à droite.
  *
  * Chaque bloc enregistre réellement, auprès du service. Les réglages que
  * la plateforme ne sait pas encore appliquer ne sont pas affichés : un
@@ -53,18 +54,29 @@ export default async function SettingsPage() {
       />
 
       <div className="min-h-0 flex-1 overflow-auto px-4 pb-6 sm:px-6">
-        <div className="flex max-w-2xl flex-col gap-4">
-          {isRadiologist && (
-            <CredentialFileCard profile={profile} documents={documents} />
-          )}
-          <ProfileForm profile={profile} isRadiologist={isRadiologist} />
-          <LanguageForm />
-          {organization && <PoolForm openToPool={organization.openToPool} />}
-          <PasswordForm />
-          <MfaCard
-            enrolled={mfaEnrolled}
-            required={roleRequiresMfa(session.active.role)}
-          />
+        {/* Deux colonnes à partir de 1280 px : à gauche ce qui vous décrit,
+            à droite votre organisation et votre accès. En dessous, une
+            seule colonne à largeur de lecture. Une colonne unique calée à
+            gauche laissait, sur un grand écran, la moitié de la page vide. */}
+        <div className="grid max-w-2xl gap-4 xl:max-w-none xl:grid-cols-2 xl:items-start">
+          <div className="flex min-w-0 flex-col gap-4">
+            {isRadiologist && (
+              <CredentialFileCard profile={profile} documents={documents} />
+            )}
+            <ProfileForm profile={profile} isRadiologist={isRadiologist} />
+            {/* Le dossier d'un radiologue occupe déjà la colonne de gauche :
+                sa langue passe à droite, et les deux colonnes s'équilibrent. */}
+            {!isRadiologist && <LanguageForm />}
+            {organization && <PoolForm openToPool={organization.openToPool} />}
+          </div>
+          <div className="flex min-w-0 flex-col gap-4">
+            {isRadiologist && <LanguageForm />}
+            <PasswordForm />
+            <MfaCard
+              enrolled={mfaEnrolled}
+              required={roleRequiresMfa(session.active.role)}
+            />
+          </div>
         </div>
       </div>
     </>

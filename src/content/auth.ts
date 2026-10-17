@@ -71,7 +71,7 @@ const fr: AuthCopy = {
       {
         title: "Une signature nommée",
         detail:
-          "Chaque compte-rendu porte le nom et le numéro d’ordre de son auteur.",
+          "Chaque compte-rendu porte le nom de son auteur, dont l’équipe IMAFRIK a vérifié le droit d’exercer.",
       },
       {
         title: "Images chiffrées, accès tracés",
@@ -141,7 +141,7 @@ const en: AuthCopy = {
       {
         title: "A named signature",
         detail:
-          "Every report bears the name and registration number of the radiologist who signed it.",
+          "Every report bears the name of the radiologist who signed it, whose right to practise the IMAFRIK team has verified.",
       },
       {
         title: "Encrypted images, logged access",

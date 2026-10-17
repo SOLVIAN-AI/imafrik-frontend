@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Upload } from "lucide-react";
+import { ArrowRight, ShieldCheck, Upload } from "lucide-react";
 import Link from "next/link";
 
 import { DateTime } from "@/components/domain/date-time";
@@ -119,10 +119,11 @@ export function ClinicDashboardView({
         className="px-4 pb-4 sm:px-6"
       />
 
-      {/* `items-start` : les deux panneaux prennent la hauteur de leur
-          contenu. Étirés sur toute la fenêtre, ils laisseraient de larges
-          zones vides qui donnent à l'écran un air inachevé. */}
-      <div className="grid min-h-0 flex-1 items-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">
+      {/* `content-start` : la rangée prend la hauteur de son contenu, pas
+          celle de la fenêtre ; étirée jusqu'en bas, elle laisserait de
+          larges zones vides. Les deux panneaux, eux, s'alignent sur le plus
+          haut : des bords bas décalés donnent à l'écran un air inachevé. */}
+      <div className="grid min-h-0 flex-1 content-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">
         {/* Ce qui appelle une action occupe la place principale. */}
         <Panel className="flex flex-col overflow-hidden lg:col-span-2">
           <SectionTitle
@@ -163,6 +164,11 @@ export function ClinicDashboardView({
               ))}
             </ul>
           )}
+          {/* En pied de panneau : ce que garantit chaque document remis. */}
+          <p className="mt-auto flex items-start gap-2 border-t border-border-subtle px-4 py-3 text-2xs leading-relaxed text-tertiary">
+            <ShieldCheck className="mt-px size-3.5 shrink-0" aria-hidden />
+            {messages.readyNote}
+          </p>
         </Panel>
 
         {/* Ce qui n'appelle que de la patience tient dans une colonne. */}
