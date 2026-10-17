@@ -675,7 +675,7 @@ export interface ClinicDetail {
 export async function getClinic(id: string): Promise<ClinicDetail | null> {
   // Une adresse tapée à la main n'est pas une erreur du service : un
   // identifiant mal formé est une clinique introuvable, pas un 422.
-  if (!isDemoMode() && !z.string().uuid().safeParse(id).success) return null;
+  if (!isDemoMode() && !z.guid().safeParse(id).success) return null;
   const raw = isDemoMode()
     ? demoClinic(id, Date.now(), await getLocale())
     : await apiGet(

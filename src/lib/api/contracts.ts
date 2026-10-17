@@ -35,7 +35,9 @@ type Schemas = components["schemas"];
  */
 type Matches<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 
-const uuid = z.string().uuid();
+// Le format qu'accepte le type `uuid` de Postgres, sans exiger de version
+// RFC 9562 : `z.uuid()` refuserait les identifiants fixes du jeu de départ.
+const uuid = z.guid();
 const isoDate = z.string();
 
 /** Adresse que le navigateur ouvrira : `https`, jamais `javascript:` — voir `lib/security/urls.ts`. */

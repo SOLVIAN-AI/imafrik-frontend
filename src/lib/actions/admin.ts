@@ -57,7 +57,7 @@ export async function setOrganizationActive(
  */
 const adminInvitationSchema = (m: AppMessages["admin"]["validation"]) =>
   z.object({
-    organizationId: z.string().uuid(),
+    organizationId: z.guid(),
     email: z.string().trim().email(m.emailInvalid),
     fullName: z.string().trim().min(1, m.nameRequired).max(200),
     role: z.enum(["clinic_staff", "radiologist", "platform_admin"]),
