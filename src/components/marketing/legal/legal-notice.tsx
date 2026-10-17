@@ -104,9 +104,10 @@ function French() {
         IMAFRIK est une plateforme technique de transmission d’examens
         d’imagerie médicale et de production de comptes-rendus. Les
         interprétations sont réalisées par des médecins radiologues
-        indépendants, inscrits à un ordre professionnel, seuls responsables du
-        contenu médical des documents qu’ils signent. IMAFRIK n’exerce aucune
-        activité de soins et ne se substitue pas au médecin prescripteur.
+        indépendants, dont IMAFRIK vérifie le droit d’exercer, seuls
+        responsables du contenu médical des documents qu’ils signent. IMAFRIK
+        n’exerce aucune activité de soins et ne se substitue pas au médecin
+        prescripteur.
       </p>
 
       <h2>Propriété intellectuelle</h2>
@@ -185,8 +186,8 @@ function English() {
       <p>
         IMAFRIK is a technical platform for transmitting medical imaging
         examinations and producing reports. Examinations are interpreted by
-        independent radiologists registered with a professional medical council,
-        who are solely responsible for the medical content of the documents they
+        independent radiologists whose right to practise IMAFRIK verifies, who
+        are solely responsible for the medical content of the documents they
         sign. IMAFRIK does not provide healthcare services and does not take the
         place of the referring physician.
       </p>

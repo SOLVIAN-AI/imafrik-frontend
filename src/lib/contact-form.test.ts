@@ -43,10 +43,11 @@ describe("formulaire de contact", () => {
     );
   });
 
-  it("exige le numéro d’ordre d’un radiologue, dans la limite de la base", () => {
+  it("le numéro d’ordre d’un radiologue est facultatif, dans la limite de la base", () => {
+    // Un radiologue en cours de spécialisation n'en a pas.
     expect(
       validateContactForm({ ...radiologist, licenseNumber: "  " }),
-    ).toEqual(["licenseNumber"]);
+    ).toEqual([]);
     expect(
       validateContactForm({ ...radiologist, licenseNumber: "X".repeat(51) }),
     ).toEqual(["licenseNumber"]);
@@ -61,7 +62,7 @@ describe("formulaire de contact", () => {
         name: "",
         organization: "",
         email: "pas-une-adresse",
-        licenseNumber: "",
+        licenseNumber: "X".repeat(51),
       }),
     ).toEqual(["name", "email", "licenseNumber"]);
   });

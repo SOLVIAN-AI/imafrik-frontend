@@ -38,7 +38,7 @@ export const fr: MarketingCopy = {
   },
   footer: {
     tagline:
-      "Téléradiologie pour l’Afrique. Vos examens lus par des radiologues inscrits à l’Ordre, sans investissement matériel.",
+      "Téléradiologie pour l’Afrique. Vos examens lus par des radiologues dont le droit d’exercer est vérifié, sans investissement matériel.",
     columns: [
       {
         title: "Produit",
@@ -235,13 +235,13 @@ export const fr: MarketingCopy = {
       {
         question: "Qui signe le compte-rendu, et qui en est responsable ?",
         answer:
-          "Un radiologue nommément identifié, inscrit à un ordre professionnel, dont le numéro figure sur le document. La responsabilité de l’interprétation lui incombe, comme pour un examen lu sur place. IMAFRIK assure la transmission et la traçabilité.",
+          "Un radiologue nommément identifié, dont l’équipe IMAFRIK a vérifié le droit d’exercer avant de lui ouvrir le moindre examen ; son nom figure sur le document. La responsabilité de l’interprétation lui incombe, comme pour un examen lu sur place. IMAFRIK assure la transmission et la traçabilité.",
       },
       {
         question:
           "Qui crée les comptes, et comment un radiologue est-il admis ?",
         answer:
-          "Votre établissement crée lui-même les comptes de son personnel, depuis son portail. Un radiologue qui souhaite lire pour le réseau en fait la demande par le formulaire de contact, avec son numéro d’ordre. L’équipe IMAFRIK le vérifie auprès de l’Ordre des médecins : tant que ce n’est pas fait, aucun examen ne lui est accessible, y compris s’il a été invité par une clinique.",
+          "Votre établissement crée lui-même les comptes de son personnel, depuis son portail. Un radiologue qui souhaite lire pour le réseau en fait la demande par le formulaire de contact, puis dépose ses justificatifs d’exercice. L’équipe IMAFRIK les examine : tant que ce n’est pas fait, aucun examen ne lui est accessible, y compris s’il a été invité par une clinique.",
       },
       {
         question: "Où sont stockées les images de nos patients ?",
@@ -334,7 +334,7 @@ export const fr: MarketingCopy = {
     sentText:
       "Merci {name}. Nous revenons vers vous à l’adresse {email} avec une proposition de créneau.",
     sentTextRadiologist:
-      "Merci {name}. L’équipe IMAFRIK vérifie votre numéro d’ordre auprès de l’Ordre, puis revient vers vous à l’adresse {email}. L’accès aux examens s’ouvre une fois cette vérification faite.",
+      "Merci {name}. L’équipe IMAFRIK revient vers vous à l’adresse {email}. Vous déposerez ensuite vos justificatifs d’exercice : l’accès aux examens s’ouvre une fois qu’ils ont été vérifiés.",
     requester: {
       legend: "Je suis",
       clinic: "Un établissement de santé",
@@ -342,7 +342,7 @@ export const fr: MarketingCopy = {
         "Clinique, hôpital, centre d’imagerie : vous souhaitez faire lire vos examens.",
       radiologist: "Un radiologue",
       radiologistDetail:
-        "Vous souhaitez lire des examens pour le réseau. Votre numéro d’ordre est vérifié avant tout accès.",
+        "Vous souhaitez lire des examens pour le réseau. Votre droit d’exercer est vérifié avant tout accès.",
     },
     fields: {
       name: "Nom complet",
@@ -352,7 +352,7 @@ export const fr: MarketingCopy = {
       organizationRadiologist: "Établissement où vous exercez",
       licenseNumber: "Numéro d’ordre",
       licenseNumberHint:
-        "Celui de votre inscription à l’Ordre des médecins, tel qu’il figurera sous votre signature.",
+        "Si vous êtes inscrit à l’Ordre des médecins, celui de votre inscription, tel qu’il figurera sous votre signature. Sinon, laissez ce champ vide.",
       email: "Adresse électronique",
       phone: "Téléphone",
       optional: "Facultatif.",
@@ -381,8 +381,7 @@ export const fr: MarketingCopy = {
         "Indiquez si vous écrivez pour un établissement de santé ou en tant que radiologue.",
       name: "Indiquez votre nom.",
       organization: "Indiquez le nom de votre établissement.",
-      licenseNumber:
-        "Indiquez votre numéro d’ordre (50 caractères au maximum).",
+      licenseNumber: "Le numéro d’ordre compte 50 caractères au plus.",
       email: "Adresse électronique invalide.",
       rateLimited:
         "Trop de demandes depuis cette connexion. Réessayez dans une heure, ou écrivez-nous : contact@imafrik.tech",

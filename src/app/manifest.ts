@@ -16,7 +16,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "IMAFRIK · Téléradiologie",
     short_name: "IMAFRIK",
     description:
-      "Vos examens lus par des radiologues inscrits à l’Ordre, le compte-rendu signé le jour même.",
+      "Vos examens lus par des radiologues dont le droit d’exercer est vérifié, le compte-rendu signé le jour même.",
     lang: "fr",
     start_url: "/connexion",
     display: "standalone",
