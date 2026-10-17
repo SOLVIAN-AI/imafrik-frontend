@@ -129,47 +129,17 @@ export default async function ClinicPage({
           </div>
         )}
 
-        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
-          <div className="flex min-w-0 flex-col gap-4">
-            <Section
-              title={text.onboarding}
-              description={text.stepsDone(done, clinic.onboarding.length)}
-            >
-              <Onboarding steps={clinic.onboarding} t={t} />
-            </Section>
-            <Section
-              title={text.retention}
-              description={
-                clinic.imageRetentionDays === null
-                  ? text.noLimit
-                  : text.retentionDays(clinic.imageRetentionDays)
-              }
-            >
-              {ended ? (
-                <ReadOnly text={t.admin.contract.readOnly} />
-              ) : (
-                <RetentionForm
-                  clinicId={clinic.id}
-                  clinicName={clinic.name}
-                  days={clinic.imageRetentionDays}
-                  purged={clinic.imagesPurged}
-                />
-              )}
-            </Section>
-            <Section
-              title={t.admin.reportLanguage.title}
-              description={LOCALE_NAMES[clinic.reportLanguage]}
-            >
-              {ended ? (
-                <ReadOnly text={t.admin.contract.readOnly} />
-              ) : (
-                <ReportLanguageForm
-                  clinicId={clinic.id}
-                  language={clinic.reportLanguage}
-                />
-              )}
-            </Section>
-          </div>
+        {/* Mise en service à gauche, chiffres et volumes à droite : deux
+            blocs de même hauteur. Les réglages du contrat suivent, côte à
+            côte. Empilés sous la mise en service, ils laissaient un grand
+            vide sous l'histogramme. */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <Section
+            title={text.onboarding}
+            description={text.stepsDone(done, clinic.onboarding.length)}
+          >
+            <Onboarding steps={clinic.onboarding} t={t} />
+          </Section>
 
           <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
             <section
@@ -220,8 +190,9 @@ export default async function ClinicPage({
               title={shared.receivedStudies}
               description={text.lastThirtyDays}
               aside={<Legend series={series} />}
+              className="flex-1"
             >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex h-full flex-col gap-4 sm:flex-row sm:items-center">
                 <div className="min-w-0 flex-1">
                   <StackedBars
                     caption={text.receivedCaption}
@@ -243,6 +214,41 @@ export default async function ClinicPage({
               </div>
             </Section>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Section
+            title={text.retention}
+            description={
+              clinic.imageRetentionDays === null
+                ? text.noLimit
+                : text.retentionDays(clinic.imageRetentionDays)
+            }
+          >
+            {ended ? (
+              <ReadOnly text={t.admin.contract.readOnly} />
+            ) : (
+              <RetentionForm
+                clinicId={clinic.id}
+                clinicName={clinic.name}
+                days={clinic.imageRetentionDays}
+                purged={clinic.imagesPurged}
+              />
+            )}
+          </Section>
+          <Section
+            title={t.admin.reportLanguage.title}
+            description={LOCALE_NAMES[clinic.reportLanguage]}
+          >
+            {ended ? (
+              <ReadOnly text={t.admin.contract.readOnly} />
+            ) : (
+              <ReportLanguageForm
+                clinicId={clinic.id}
+                language={clinic.reportLanguage}
+              />
+            )}
+          </Section>
         </div>
 
         <Section

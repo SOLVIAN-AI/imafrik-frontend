@@ -74,7 +74,9 @@ export default async function CockpitPage() {
 
         <MetricGrid metrics={liveMetrics(overview, t, locale)} />
 
-        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
+        {/* Cartes d'une même rangée à la même hauteur : des bords bas
+            décalés font une page inachevée. */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Section
             title={t.admin.shared.receivedStudies}
             description={text.receivedDescription}
@@ -94,7 +96,7 @@ export default async function CockpitPage() {
           </Section>
 
           <Section title={text.sla} description={text.slaDescription}>
-            <div className="flex flex-col gap-5">
+            <div className="flex h-full flex-col justify-center gap-5">
               <SlaRow
                 label={t.admin.shared.urgentPlural}
                 target={overview.targets.urgent}
@@ -113,7 +115,7 @@ export default async function CockpitPage() {
           </Section>
         </div>
 
-        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Section title={text.network} flush>
             <ul className="divide-y divide-border-subtle">
               <NetworkRow
@@ -153,7 +155,7 @@ export default async function CockpitPage() {
             flush
             className="lg:col-span-2"
           >
-            <OpsList runs={overview.ops} locale={locale} dense />
+            <OpsList runs={overview.ops} locale={locale} dense columns />
           </Section>
         </div>
 

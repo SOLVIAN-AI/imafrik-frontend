@@ -224,10 +224,11 @@ test.describe("dossier du radiologue", () => {
     await expect(
       dossier.getByLabel("Inscrit à l’Ordre des médecins"),
     ).toBeChecked();
-    await expect(dossier.getByText("Diplôme", { exact: true })).toBeVisible();
-    await expect(
-      dossier.getByRole("button", { name: "Envoyer" }),
-    ).toBeDisabled();
+    // Inscrit et habilité : rien à redéposer, pas de zone de dépôt.
+    await expect(dossier.getByText("Validé par IMAFRIK")).toBeVisible();
+    await expect(dossier.getByRole("button", { name: "Envoyer" })).toHaveCount(
+      0,
+    );
 
     // Changer d'exercice prévient de la suspension avant d'enregistrer.
     await dossier.getByLabel("En cours de spécialisation").check();

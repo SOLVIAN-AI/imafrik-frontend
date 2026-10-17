@@ -23,7 +23,7 @@ import type { Locale } from "@/lib/i18n/locale";
 export type Localized = Record<Locale, string>;
 
 /** Date de la dernière mise à jour des pages légales (AAAA-MM-JJ). */
-export const LEGAL_UPDATED_ON = "2026-10-08";
+export const LEGAL_UPDATED_ON = "2026-10-17";
 
 /**
  * Date de dernière mise à jour, écrite dans une langue.

@@ -75,6 +75,11 @@ function French() {
       <h3>Données traitées</h3>
       <ul>
         <li>Identité : nom, titre, numéro d’inscription à l’ordre</li>
+        <li>
+          Justificatifs d’exercice des radiologues : diplôme, ou attestation
+          d’inscription en spécialisation et sa date de fin ; consultés par la
+          seule équipe IMAFRIK, chaque consultation étant tracée
+        </li>
         <li>Coordonnées : adresse électronique, téléphone professionnel</li>
         <li>Données de compte : mot de passe chiffré, organisation, rôle</li>
         <li>
@@ -89,6 +94,10 @@ function French() {
       <ul>
         <li>Fournir le service et gérer les accès : exécution du contrat</li>
         <li>
+          Vérifier le droit d’exercer d’un radiologue avant tout accès aux
+          examens : intérêt légitime à la sécurité des patients
+        </li>
+        <li>
           Assurer la traçabilité des accès aux données de santé : obligation
           légale et intérêt légitime à la sécurité
         </li>
@@ -97,6 +106,10 @@ function French() {
       <h3>Durée de conservation</h3>
       <ul>
         <li>{RETENTION.accounts.fr}</li>
+        <li>
+          Justificatifs : tant que le compte existe ; un justificatif remplacé
+          avant décision est effacé, et tous le sont à l’anonymisation du compte
+        </li>
         <li>
           Journal des accès aux examens : {lowerFirst(RETENTION.accessLogs.fr)}
         </li>
@@ -229,6 +242,11 @@ function English() {
       <h3>Data processed</h3>
       <ul>
         <li>Identity: name, title, professional council registration number</li>
+        <li>
+          Radiologists’ proof of practice: diploma, or specialist training
+          enrolment certificate and its end date; viewed by the IMAFRIK team
+          only, every viewing being logged
+        </li>
         <li>Contact details: email address, work telephone number</li>
         <li>Account data: encrypted password, organisation, role</li>
         <li>Usage data: log of sign-ins and of access to examinations</li>
@@ -243,6 +261,10 @@ function English() {
           Providing the service and managing access: performance of the contract
         </li>
         <li>
+          Verifying a radiologist’s right to practise before any access to
+          examinations: legitimate interest in patient safety
+        </li>
+        <li>
           Ensuring the traceability of access to health data: legal obligation
           and legitimate interest in security
         </li>
@@ -254,6 +276,11 @@ function English() {
       <h3>Retention period</h3>
       <ul>
         <li>{RETENTION.accounts.en}</li>
+        <li>
+          Proof of practice: for as long as the account exists; a document
+          replaced before a decision is erased, and all of them are erased when
+          the account is anonymised
+        </li>
         <li>
           Log of access to examinations: {lowerFirst(RETENTION.accessLogs.en)}
         </li>

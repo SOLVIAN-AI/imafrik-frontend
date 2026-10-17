@@ -18,6 +18,8 @@ export const clinic: AppMessages["clinic"] = {
     },
     readyTitle: "Reports to download",
     readyEmpty: "No reports waiting to be downloaded.",
+    readyNote:
+      "Each PDF carries a verification code that your patient or a colleague can check on imafrik.tech. Every download is logged.",
     signedBy: (name: string) => `signed by ${name}`,
     recentTitle: "Latest examinations sent",
     recentEmpty: "No examinations sent yet.",
