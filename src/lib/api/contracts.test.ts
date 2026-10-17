@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   contractEndResultSchema,
   invitationWelcomeSchema,
+  organizationSchema,
   reportSchema,
   studyPageSchema,
 } from "@/lib/api/contracts";
@@ -97,5 +98,21 @@ describe("contrat d'API", () => {
       contractEndResultSchema.parse({ ...ended, export_command: "export" })
         .abandoned_studies,
     ).toBe(2);
+  });
+
+  it("accepte tout identifiant que la base accepte, sans exiger de version RFC", () => {
+    const organization = {
+      // Identifiant fixe du jeu de départ du backend (`db/seed.sql`).
+      id: "11111111-0000-0000-0000-000000000001",
+      name: "Clinique Saint-Joseph",
+      kind: "clinic",
+      city: "Lomé",
+      open_to_pool: false,
+      member_count: 3,
+    };
+    expect(organizationSchema.parse(organization).id).toBe(organization.id);
+    expect(() =>
+      organizationSchema.parse({ ...organization, id: "org-1" }),
+    ).toThrow();
   });
 });

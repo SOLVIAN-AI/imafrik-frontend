@@ -59,12 +59,12 @@ const settingsSchema = (m: Validation) =>
   z
     .object({
       urgentMinutes: z.coerce
-        .number({ invalid_type_error: m.urgentInvalid })
+        .number({ error: m.urgentInvalid })
         .int(m.urgentInteger)
         .min(5, m.urgentMin)
         .max(720, m.urgentMax),
       routineMinutes: z.coerce
-        .number({ invalid_type_error: m.routineInvalid })
+        .number({ error: m.routineInvalid })
         .int(m.routineInteger)
         .min(15, m.routineMin)
         .max(2880, m.routineMax),
@@ -120,7 +120,7 @@ export async function updatePlatformSettings(
 const grantSchema = (m: Validation) =>
   z.object({
     profileId: z.string().min(1),
-    organizationId: z.string().uuid(m.organisationInvalid),
+    organizationId: z.guid(m.organisationInvalid),
     role: z.enum(["clinic_staff", "radiologist", "platform_admin"]),
   });
 
@@ -338,7 +338,7 @@ export type CredentialsDecision =
 const decisionSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("verify"),
-    documentId: z.string().uuid(),
+    documentId: z.guid(),
     licenseNumber: z.string().max(50).optional(),
     validUntil: z
       .string()
@@ -347,7 +347,7 @@ const decisionSchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     kind: z.literal("reject"),
-    documentId: z.string().uuid(),
+    documentId: z.guid(),
     reason: z.string().trim().min(1).max(500),
   }),
   z.object({ kind: z.literal("revoke") }),
@@ -506,7 +506,7 @@ const retentionSchema = (m: Validation) =>
   z.object({
     clinicId: z.string().min(1),
     days: z
-      .number({ invalid_type_error: m.retentionInvalid })
+      .number({ error: m.retentionInvalid })
       .int(m.retentionInteger)
       .min(30, m.retentionMin)
       .max(7300, m.retentionMax)

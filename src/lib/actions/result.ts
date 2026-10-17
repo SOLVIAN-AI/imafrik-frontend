@@ -62,8 +62,8 @@ export async function demoUnavailable<T>(
   };
 }
 
-/** Identifiant de ressource : un UUID, comme en base. */
-const resourceId = z.string().uuid();
+/** Identifiant de ressource : un UUID au format qu'accepte la base (voir `api/contracts.ts`). */
+const resourceId = z.guid();
 
 /**
  * Refuse un identifiant mal formé avant tout appel au service.
