@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { messagesFor } from "@/i18n";
 import type { Locale } from "@/lib/i18n/locale";
 import { localeOfPath } from "@/lib/i18n/routes";
+import { reportScreenError } from "@/lib/monitoring/report-error";
 import { isServiceUnavailable } from "@/lib/service-unavailable";
 
 /** Textes de l'écran, dans chaque langue. */
@@ -53,7 +54,8 @@ const COPY: Record<
  *
  * Le détail technique n'est pas affiché : il ne dirait rien à un
  * radiologue et pourrait révéler la structure du service. Il part vers
- * la console et, en production, vers la supervision.
+ * la console et, quand il est configuré, vers le suivi des erreurs
+ * (`lib/monitoring/report-error.ts`).
  *
  * **Une panne du service n'est pas présentée comme un défaut.** Quand
  * l'API ou le service d'authentification ne répond pas, l'écran le dit
@@ -77,7 +79,7 @@ export default function ErrorScreen({
   React.useEffect(() => {
     // Le `digest` est la seule information à communiquer au support :
     // il permet de retrouver la trace serveur sans exposer son contenu.
-    console.error("[imafrik]", error.digest ?? error.message);
+    reportScreenError(error);
   }, [error]);
 
   if (isServiceUnavailable(error)) {

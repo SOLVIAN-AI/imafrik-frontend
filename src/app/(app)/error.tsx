@@ -6,6 +6,7 @@ import * as React from "react";
 import { Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { useMessages } from "@/i18n/client";
+import { reportScreenError } from "@/lib/monitoring/report-error";
 import { isServiceUnavailable } from "@/lib/service-unavailable";
 
 /**
@@ -35,7 +36,7 @@ export default function AppError({
   const copy = unavailable ? t.session.serviceUnavailable : t.session.appError;
 
   React.useEffect(() => {
-    console.error("[imafrik]", error.digest ?? error.message);
+    reportScreenError(error);
   }, [error]);
 
   return (
