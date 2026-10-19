@@ -5,7 +5,7 @@ export const training: AppMessages["training"] = {
   page: {
     title: "Training",
     description:
-      "Three real, anonymised examinations to get to grips with the reading screen. Nothing you do here reaches a patient or a clinic.",
+      "Three real, anonymised examinations to learn the tool with no patient or clinic involved.",
     stepsTitle: "The workflow, as on a real examination",
     steps: [
       "Take the exercise.",

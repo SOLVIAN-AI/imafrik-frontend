@@ -169,6 +169,8 @@ export const trainingCaseSchema = z.object({
   position: z.number().int(),
   modality: z.string(),
   body_part: z.string().nullable(),
+  series_count: z.number().int().nullable(),
+  instance_count: z.number().int().nullable(),
   title: z.string(),
   indication: z.string(),
   source: trainingSourceSchema,

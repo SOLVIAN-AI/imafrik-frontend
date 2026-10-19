@@ -27,6 +27,8 @@ export const DEMO_TRAINING_CASES: TrainingCase[] = [
     position: 1,
     modality: "CR",
     bodyPart: "Thorax",
+    seriesCount: 1,
+    instanceCount: 1,
     title: "Radiographie du thorax",
     indication:
       "Radiographie thoracique de face, dans le bilan d’un patient adressé pour suspicion de lésion pulmonaire.",
@@ -44,6 +46,8 @@ export const DEMO_TRAINING_CASES: TrainingCase[] = [
     position: 2,
     modality: "CT",
     bodyPart: "Thorax",
+    seriesCount: 1,
+    instanceCount: 133,
     title: "Scanner thoracique",
     indication:
       "Scanner thoracique sans injection, à la recherche de nodules pulmonaires chez un patient à risque.",
@@ -61,6 +65,8 @@ export const DEMO_TRAINING_CASES: TrainingCase[] = [
     position: 3,
     modality: "MR",
     bodyPart: "Rachis lombaire",
+    seriesCount: 3,
+    instanceCount: 45,
     title: "IRM du rachis lombaire",
     indication: "Lombalgies chroniques : recherche d’une pathologie discale.",
     source: {

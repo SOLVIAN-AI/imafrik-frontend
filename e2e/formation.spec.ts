@@ -114,13 +114,16 @@ test("un exercice signé montre le corrigé, les addenda et le PDF spécimen", a
   ).toBeVisible();
   await expect(apres.getByLabel("Nouvel addendum")).toBeVisible();
 
+  // Audité avant le message qui suit le clic : pendant son animation,
+  // son contraste partiel ferait échouer l'audit au hasard.
+  await checkA11y();
+
   await page
     .getByRole("button", { name: "Télécharger le PDF spécimen" })
     .click();
   await expect(
     page.getByText("Le PDF spécimen n’est pas produit en démonstration."),
   ).toBeVisible();
-  await checkA11y();
 });
 
 test.describe("en anglais", () => {

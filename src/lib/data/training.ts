@@ -44,6 +44,9 @@ export interface TrainingCase {
   position: number;
   modality: string;
   bodyPart: string | null;
+  /** Séries et images de l'étude, relevées à son dépôt dans le PACS. */
+  seriesCount: number;
+  instanceCount: number;
   title: string;
   indication: string;
   source: { name: string; license: string; url: string; doi: string | null };
@@ -93,6 +96,8 @@ export function toTrainingCase(row: ApiTrainingCase): TrainingCase {
     position: row.position,
     modality: row.modality,
     bodyPart: row.body_part,
+    seriesCount: row.series_count ?? 0,
+    instanceCount: row.instance_count ?? 0,
     title: row.title,
     indication: row.indication,
     source: row.source,
@@ -263,8 +268,8 @@ export async function trainingStudy(
         ? "in_progress"
         : "received",
     urgent: false,
-    seriesCount: 0,
-    instanceCount: 0,
+    seriesCount: trainingCase.seriesCount,
+    instanceCount: trainingCase.instanceCount,
     receivedAt: received,
     assignedTo: null,
     assignedToName: null,

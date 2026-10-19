@@ -4605,6 +4605,8 @@ export interface components {
          *         position: Rang dans la liste des exercices.
          *         modality: Modalité DICOM (``CT``, ``MR``, ``CR``…).
          *         body_part: Région examinée.
+         *         series_count: Séries de l'étude, une fois déposée.
+         *         instance_count: Images de l'étude, une fois déposée.
          *         title: Titre, dans la langue de l'appelant.
          *         indication: Contexte clinique, dans la langue de l'appelant.
          *         source: Origine des images.
@@ -4630,6 +4632,8 @@ export interface components {
             id: string;
             /** Indication */
             indication: string;
+            /** Instance Count */
+            instance_count: number | null;
             /** Modality */
             modality: string;
             /** Position */
@@ -4638,6 +4642,8 @@ export interface components {
             published: boolean;
             /** Reviewed By */
             reviewed_by: string | null;
+            /** Series Count */
+            series_count: number | null;
             /** Slug */
             slug: string;
             source: components["schemas"]["TrainingSource"];

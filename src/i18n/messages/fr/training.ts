@@ -7,7 +7,7 @@ export const training = {
   page: {
     title: "Formation",
     description:
-      "Trois examens réels, anonymisés, pour prendre en main l’écran de lecture. Rien de ce que vous faites ici n’atteint un patient ni une clinique.",
+      "Trois examens réels anonymisés, pour prendre l’outil en main sans patient ni clinique.",
     stepsTitle: "Le parcours, comme sur un vrai examen",
     steps: [
       "Prenez l’exercice en charge.",
