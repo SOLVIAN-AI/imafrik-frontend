@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Clock, Loader2 } from "lucide-react";
+import { CheckCircle2, Clock, GraduationCap, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -475,6 +475,27 @@ export function DoneStep({ step, previousSlug }: StepProps) {
           <CheckCircle2 className="size-4" aria-hidden />
           {t.ready}
         </p>
+      )}
+      {/* Validé ou non, un radiologue peut s'exercer tout de suite : sur
+          des examens d'exemple, jamais sur un vrai patient. */}
+      {active.role === "radiologist" && (
+        <Link
+          href="/formation"
+          className="mt-4 flex items-start gap-3 rounded-xl border border-border-subtle bg-surface-raised px-4 py-3 transition-colors hover:border-accent/40"
+        >
+          <GraduationCap
+            className="mt-0.5 size-4 shrink-0 text-accent"
+            aria-hidden
+          />
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-primary">
+              {messages.training.onboarding.link}
+            </span>
+            <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
+              {messages.training.onboarding.hint}
+            </span>
+          </span>
+        </Link>
       )}
     </StepShell>
   );

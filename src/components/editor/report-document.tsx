@@ -37,6 +37,10 @@ function DocumentSection({ title, html }: { title: string; html: string }) {
         // Mêmes classes que l'éditeur : un document signé a exactement
         // l'allure qu'il avait pendant sa rédaction.
         class: DOCUMENT_TEXT_CLASSES,
+        // Le texte figé reste une zone de texte pour les lecteurs d'écran :
+        // elle porte le nom de sa section.
+        "aria-label": title,
+        "aria-readonly": "true",
       },
     },
   });

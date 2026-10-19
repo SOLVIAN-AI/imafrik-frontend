@@ -2,10 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import {
-  REPORT_SECTIONS,
-  type ReportSections,
-} from "@/components/editor/sections";
+import type { ReportSections } from "@/components/editor/sections";
 import { getMessages } from "@/i18n/server";
 import { apiGet, apiSend } from "@/lib/api/client";
 import {
@@ -23,6 +20,7 @@ import {
 } from "@/lib/actions/result";
 import type { AiReviewResult } from "@/components/editor/ai-review";
 import { isDemoMode } from "@/lib/demo/mode";
+import { ADDENDUM_MAX_LENGTH, isSectionsPayload } from "@/lib/editor/payload";
 
 /**
  * Le circuit de lecture : prise en charge, rédaction, signature.
@@ -108,28 +106,6 @@ export async function releaseStudy(studyId: string): Promise<ActionResult> {
   revalidatePath("/worklist");
   revalidatePath("/mes-examens");
   return result;
-}
-
-/** Taille maximale d'une section, en caractères de HTML. */
-const SECTION_MAX_LENGTH = 200_000;
-
-/**
- * Vrai si le brouillon reçu a la forme attendue : les sections connues,
- * chacune du texte de taille raisonnable, et rien d'autre.
- *
- * Le service valide aussi ; ce contrôle évite de lui relayer n'importe
- * quel objet venu du navigateur.
- */
-function isSectionsPayload(value: unknown): value is ReportSections {
-  if (typeof value !== "object" || value === null || Array.isArray(value))
-    return false;
-  const known = new Set<string>(REPORT_SECTIONS.map((section) => section.key));
-  return Object.entries(value).every(
-    ([key, html]) =>
-      known.has(key) &&
-      typeof html === "string" &&
-      html.length <= SECTION_MAX_LENGTH,
-  );
 }
 
 /**
@@ -265,9 +241,6 @@ export async function getReportPdfLink(
   revalidatePath("/tableau-de-bord");
   return result;
 }
-
-/** Longueur maximale d'un addendum — celle que le service impose. */
-const ADDENDUM_MAX_LENGTH = 10_000;
 
 /**
  * Ajoute un addendum à un compte-rendu signé.

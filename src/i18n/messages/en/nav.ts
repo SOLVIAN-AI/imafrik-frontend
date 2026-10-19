@@ -7,6 +7,7 @@ export const nav: AppMessages["nav"] = {
     myStudies: "My examinations",
     reports: "Reports",
     templates: "Templates",
+    training: "Training",
     settings: "Settings",
     dashboard: "Dashboard",
     send: "Send an examination",

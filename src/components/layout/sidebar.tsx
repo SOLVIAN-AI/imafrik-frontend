@@ -9,12 +9,14 @@ import {
   FileStack,
   FileText,
   Gauge,
+  GraduationCap,
   Hospital,
   Inbox,
   LayoutDashboard,
   LayoutList,
   Loader2,
   LogOut,
+  type LucideIcon,
   Receipt,
   ScrollText,
   Server,
@@ -25,7 +27,6 @@ import {
   User,
   UserCog,
   Users,
-  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -82,6 +83,7 @@ export const NAV_ICONS = {
   system: Server,
   audit: ScrollText,
   controls: SlidersHorizontal,
+  training: GraduationCap,
 } satisfies Record<string, LucideIcon>;
 
 export type NavIconKey = keyof typeof NAV_ICONS;

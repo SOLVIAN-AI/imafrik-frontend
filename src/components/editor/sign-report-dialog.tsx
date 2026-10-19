@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { messagesFor } from "@/i18n";
 import { useMessages } from "@/i18n/client";
+import type { AppMessages } from "@/i18n";
 import type { Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +56,9 @@ import { cn } from "@/lib/utils";
  *                     nommées comme dans l'éditeur.
  * @param onConfirm    Déclenche la signature. Doit rejeter en cas d'échec.
  */
+/** Textes de la fenêtre de signature. */
+export type SignDialogLabels = AppMessages["reading"]["sign"];
+
 export function SignReportDialog({
   open,
   onOpenChange,
@@ -64,6 +68,7 @@ export function SignReportDialog({
   language,
   onConfirm,
   aiReview = NO_AI_REVIEW,
+  labels: overrides,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -74,9 +79,14 @@ export function SignReportDialog({
   onConfirm: () => Promise<void>;
   /** Relecture par IA, lancée à l'ouverture ; elle ne bloque jamais. */
   aiReview?: AiReviewController;
+  /**
+   * Textes propres à un autre usage que la signature d'un vrai
+   * compte-rendu : un exercice de formation n'est transmis à personne.
+   */
+  labels?: SignDialogLabels;
 }) {
   const t = useMessages();
-  const labels = t.reading.sign;
+  const labels = overrides ?? t.reading.sign;
   const sectionTitles = messagesFor(language).reading.sections.titles;
   const [signing, setSigning] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);

@@ -6,6 +6,7 @@ export const nav = {
     myStudies: "Mes examens",
     reports: "Comptes-rendus",
     templates: "Modèles",
+    training: "Formation",
     settings: "Paramètres",
     dashboard: "Tableau de bord",
     send: "Envoyer un examen",

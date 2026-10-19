@@ -8,6 +8,7 @@ import { onboarding } from "@/i18n/messages/en/onboarding";
 import { reading } from "@/i18n/messages/en/reading";
 import { session } from "@/i18n/messages/en/session";
 import { settings } from "@/i18n/messages/en/settings";
+import { training } from "@/i18n/messages/en/training";
 import { worklist } from "@/i18n/messages/en/worklist";
 
 /**
@@ -37,5 +38,6 @@ export const en: AppMessages = {
   onboarding,
   credentials,
   settings,
+  training,
   admin,
 };

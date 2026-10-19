@@ -33,7 +33,10 @@ import {
   type ReportSections,
   type SectionKey,
 } from "@/components/editor/report-editor";
-import { SignReportDialog } from "@/components/editor/sign-report-dialog";
+import {
+  SignReportDialog,
+  type SignDialogLabels,
+} from "@/components/editor/sign-report-dialog";
 import { useAiReview } from "@/components/editor/use-ai-review";
 import {
   SaveAsTemplate,
@@ -51,7 +54,9 @@ import { Button } from "@/components/ui/button";
 import { type SaveOutcome, useAutosave } from "@/hooks/use-autosave";
 import { WorkspaceSkeleton } from "@/components/editor/workspace-skeleton";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import type { AppMessages } from "@/i18n";
 import { useLocale, useMessages } from "@/i18n/client";
+import type { ActionResult } from "@/lib/actions/result";
 import {
   claimStudy,
   readDraftVersion,
@@ -196,6 +201,59 @@ export type WorkspaceMode =
       awaitingReport?: boolean;
     };
 
+/** Textes de l'espace de travail qu'un autre usage peut remplacer. */
+type AdaptableLabels = Pick<
+  AppMessages["reading"]["workspace"],
+  | "claim"
+  | "claimBanner"
+  | "sign"
+  | "signedToast"
+  | "signedBanner"
+  | "release"
+  | "releaseConfirm"
+>;
+
+/**
+ * Le même écran, pour un autre texte qu'un vrai compte-rendu.
+ *
+ * L'espace de formation (docs/formation.md du backend) s'exerce dans
+ * l'écran de lecture réel : mêmes volets, même éditeur, même signature.
+ * Seuls changent les actions (un exercice, jamais un examen), quelques
+ * libellés, la destination du retour, et ce que la barre propose une
+ * fois le texte signé. Sans adaptateur, l'écran est celui d'un vrai
+ * compte-rendu, à l'identique.
+ */
+export interface WorkspaceAdapter {
+  /** Enregistre le texte ; mêmes réponses que `saveReportDraft`. */
+  save: (
+    id: string,
+    sections: ReportSections,
+    version: number,
+  ) => Promise<ActionResult<{ version: number }>>;
+  /** Version en base, pour résoudre un conflit d'enregistrement. */
+  readVersion: (
+    id: string,
+  ) => Promise<ActionResult<{ version: number; signed: boolean }>>;
+  /** Signe le texte à la version relue. */
+  sign: (id: string, version: number) => Promise<ActionResult>;
+  /** Prend en charge : ouvre le texte à rédiger. */
+  claim: () => Promise<ActionResult<unknown>>;
+  /** Abandonne le texte en cours, puis mène à `homeHref`. */
+  release: (id: string) => Promise<ActionResult>;
+  /** Destination du retour et de l'abandon. */
+  homeHref: string;
+  /** Titre de la barre, à la place du nom d'un patient. */
+  title: string;
+  /** Bandeau permanent, au-dessus du texte. */
+  notice: string;
+  labels: AdaptableLabels;
+  signLabels: SignDialogLabels;
+  /** Actions de la barre une fois le texte signé. */
+  signedActions?: React.ReactNode;
+  /** Contenu sous l'éditeur : corrigé, addenda. */
+  footer?: React.ReactNode;
+}
+
 /**
  * Langue du compte-rendu, signalée quand elle diffère de celle de l'écran.
  *
@@ -239,13 +297,18 @@ function StudyBar({
   study,
   signed,
   actions,
+  adapter,
 }: {
   study: WorkspaceStudy;
   signed: boolean;
   actions: React.ReactNode;
+  adapter?: WorkspaceAdapter;
 }) {
   const { active } = useSession();
-  const returnPath = useReturnPath(homeFor(active.role));
+  const storedReturnPath = useReturnPath(homeFor(active.role));
+  // Un exercice ramène toujours à la liste des exercices, pas à la
+  // dernière liste du portail visitée.
+  const returnPath = adapter?.homeHref ?? storedReturnPath;
   const t = useMessages();
   const locale = useLocale();
   // L'âge est celui du jour de l'examen : c'est lui qui compte pour
@@ -283,7 +346,7 @@ function StudyBar({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <h1 className="truncate text-sm font-semibold tracking-[-0.01em]">
-            {formatPatientName(study.patientName)}
+            {adapter?.title ?? formatPatientName(study.patientName)}
           </h1>
           {study.urgent && <UrgentMarker />}
           {/* L'échéance reste sous les yeux pendant la rédaction : la file
@@ -291,6 +354,7 @@ function StudyBar({
               radiologue seulement : côté clinique, « reste 22 min » se
               lirait comme une promesse de remise. */}
           {active.role === "radiologist" &&
+            !adapter &&
             !signed &&
             OPEN_STATUSES.has(study.status) && <DeadlineBadge study={study} />}
           <ReportLanguageChip language={study.reportLanguage} />
@@ -306,7 +370,9 @@ function StudyBar({
       </div>
 
       <div className="flex shrink-0 items-center gap-3">
-        <StudyStatusChip status={signed ? "reported" : study.status} />
+        {!adapter && (
+          <StudyStatusChip status={signed ? "reported" : study.status} />
+        )}
         {signed && (
           <span className="hidden items-center gap-1.5 text-2xs text-done sm:flex">
             <Lock className="size-3" aria-hidden />
@@ -350,6 +416,7 @@ function ReportWorkspace({
   templates = [],
   nextStudyId = null,
   aiReview: aiReviewOffered = false,
+  adapter,
   slots,
 }: {
   study: WorkspaceStudy;
@@ -361,12 +428,18 @@ function ReportWorkspace({
   nextStudyId?: string | null;
   /** La relecture par IA est offerte à cet utilisateur (décidé par le service). */
   aiReview?: boolean;
+  /** Autre usage de l'écran : voir {@link WorkspaceAdapter}. */
+  adapter?: WorkspaceAdapter;
   /** Emplacements fournis par {@link ReadingWorkspace}, `null` avant leur montage. */
   slots: WorkspaceSlots;
 }) {
   const router = useRouter();
   const { active } = useSession();
-  const labels = useMessages().reading.workspace;
+  const readingLabels = useMessages().reading.workspace;
+  const labels = React.useMemo(
+    () => (adapter ? { ...readingLabels, ...adapter.labels } : readingLabels),
+    [adapter, readingLabels],
+  );
   const [sections, setSections] = React.useState<ReportSections>(initial);
   // Révision du contenu : incrémentée à chaque texte posé d'ailleurs que
   // par la frappe — voir `replaceSections`.
@@ -396,7 +469,7 @@ function ReportWorkspace({
       if (!author) return "saved";
       // Réseau coupé : l'appel de l'action rejette au lieu de répondre. Les
       // deux cas mènent à la copie de secours.
-      const result = await saveReportDraft(
+      const result = await (adapter?.save ?? saveReportDraft)(
         author.reportId,
         value,
         version.current,
@@ -423,7 +496,7 @@ function ReportWorkspace({
       }
       return "failed";
     },
-    [author, backupKey],
+    [adapter, author, backupKey],
   );
 
   /**
@@ -488,7 +561,9 @@ function ReportWorkspace({
    */
   const keepMine = React.useCallback(async () => {
     if (!author) return;
-    const current = await readDraftVersion(author.reportId).catch(() => null);
+    const current = await (adapter?.readVersion ?? readDraftVersion)(
+      author.reportId,
+    ).catch(() => null);
     if (!current?.ok) {
       toast.error(labels.conflictKeepFailed);
       return;
@@ -500,7 +575,7 @@ function ReportWorkspace({
     version.current = current.data.version;
     if (await resume()) toast.success(labels.conflictKept);
     else toast.error(labels.conflictKeepFailed);
-  }, [author, labels, resume]);
+  }, [adapter, author, labels, resume]);
 
   // Reprise d'une copie de secours laissée par une coupure ou un conflit.
   // Elle est toujours proposée, jamais imposée ni écartée en silence : si
@@ -581,7 +656,10 @@ function ReportWorkspace({
     }
     // La version que l'écran montre, après l'enregistrement ci-dessus : un
     // texte enregistré depuis un autre onglet fait refuser la signature.
-    const result = await signReport(author.reportId, version.current);
+    const result = await (adapter?.sign ?? signReport)(
+      author.reportId,
+      version.current,
+    );
     if (!result.ok) throw new Error(result.error);
     setSigned(true);
     toast.success(labels.signedToast, {
@@ -593,11 +671,13 @@ function ReportWorkspace({
         : undefined,
     });
     router.refresh();
-  }, [author, flush, labels, nextStudyId, router, state]);
+  }, [adapter, author, flush, labels, nextStudyId, router, state]);
 
   const claim = () =>
     startTransition(async () => {
-      const result = await claimStudy(study.id);
+      const result = adapter
+        ? await adapter.claim()
+        : await claimStudy(study.id);
       if (!result.ok) {
         toast.error(result.error);
         router.refresh();
@@ -609,13 +689,16 @@ function ReportWorkspace({
   const release = () => {
     if (!window.confirm(labels.releaseConfirm)) return;
     startTransition(async () => {
-      const result = await releaseStudy(study.id);
+      const result =
+        adapter && author
+          ? await adapter.release(author.reportId)
+          : await releaseStudy(study.id);
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
       if (author) clearReportBackup(author.reportId);
-      router.push("/worklist");
+      router.push(adapter?.homeHref ?? "/worklist");
       router.refresh();
     });
   };
@@ -649,11 +732,15 @@ function ReportWorkspace({
     ) : null;
 
   const actions = signed ? (
-    <>
-      {voidable}
-      {correct}
-      {next}
-    </>
+    adapter ? (
+      adapter.signedActions
+    ) : (
+      <>
+        {voidable}
+        {correct}
+        {next}
+      </>
+    )
   ) : author ? (
     <>
       <TemplatePicker
@@ -686,6 +773,7 @@ function ReportWorkspace({
 
   const report = (
     <div className="flex h-full min-h-0 flex-col">
+      {adapter && <Banner tone="neutral">{adapter.notice}</Banner>}
       {signed && <Banner tone="done">{labels.signedBanner}</Banner>}
       {!signed && mode.kind === "readonly" && mode.notice && (
         <Banner tone="neutral">{mode.notice}</Banner>
@@ -724,6 +812,7 @@ function ReportWorkspace({
           aiReview={aiReview}
         />
       )}
+      {adapter?.footer}
     </div>
   );
 
@@ -733,7 +822,12 @@ function ReportWorkspace({
     <>
       {slots.bar &&
         createPortal(
-          <StudyBar study={study} signed={signed} actions={actions} />,
+          <StudyBar
+            study={study}
+            signed={signed}
+            actions={actions}
+            adapter={adapter}
+          />,
           slots.bar,
         )}
       {slots.report && createPortal(report, slots.report)}
@@ -743,11 +837,12 @@ function ReportWorkspace({
           open={confirming}
           onOpenChange={setConfirming}
           sections={sections}
-          patientLabel={formatPatientName(study.patientName)}
+          patientLabel={adapter?.title ?? formatPatientName(study.patientName)}
           signerName={signerName}
           language={study.reportLanguage}
           onConfirm={sign}
           aiReview={aiReview}
+          labels={adapter?.signLabels}
         />
       )}
     </>

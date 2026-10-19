@@ -34,8 +34,9 @@ const EXCLUDED = [
   /^lib\/i18n\//,
   /^lib\/legal\.ts$/,
   /^lib\/api\/schema\.d\.ts$/,
-  // Données de démonstration : patients, comptes-rendus, modèles.
-  /^lib\/demo\/(studies|reports)\.ts$/,
+  // Données de démonstration : patients, comptes-rendus, modèles, et les
+  // cas d'exemple de l'espace de formation.
+  /^lib\/demo\/(studies|reports|training)\.ts$/,
   // Organisations, personnes et demandes de contact fictives de la tour de
   // contrôle : ses textes d’interface, eux, viennent des dictionnaires.
   /^lib\/demo\/control\.ts$/,

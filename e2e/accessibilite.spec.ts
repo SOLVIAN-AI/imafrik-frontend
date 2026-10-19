@@ -39,8 +39,18 @@ const SCREENS: {
   {
     membership: "m-radio",
     paths: {
-      fr: ["/worklist", "/lecture/1", "/parametres"],
-      en: ["/worklist", "/lecture/1", "/parametres"],
+      // Un compte-rendu signé (consultation et écran de lecture) et
+      // l'espace de formation : leur texte figé doit rester lisible au
+      // clavier et nommé pour les lecteurs d'écran.
+      fr: [
+        "/worklist",
+        "/lecture/1",
+        "/lecture/10",
+        "/comptes-rendus/r-10",
+        "/formation",
+        "/parametres",
+      ],
+      en: ["/worklist", "/lecture/1", "/comptes-rendus/r-10", "/parametres"],
     },
   },
   {
