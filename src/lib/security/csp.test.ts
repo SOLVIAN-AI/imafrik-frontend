@@ -30,6 +30,25 @@ describe("contentSecurityPolicy", () => {
     expect(policy).toContain("connect-src 'self' https://api.imafrik.tech");
   });
 
+  it("ouvre la connexion au suivi des erreurs, s'il vise l'Union européenne", () => {
+    vi.stubEnv("NEXT_PUBLIC_API_URL", "https://api.imafrik.tech");
+    vi.stubEnv(
+      "NEXT_PUBLIC_SENTRY_DSN",
+      "https://abc@o451.ingest.de.sentry.io/4510000000000001",
+    );
+    expect(contentSecurityPolicy("n", true)).toContain(
+      "connect-src 'self' https://api.imafrik.tech https://o451.ingest.de.sentry.io",
+    );
+
+    const warning = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv(
+      "NEXT_PUBLIC_SENTRY_DSN",
+      "https://abc@o451.ingest.us.sentry.io/1",
+    );
+    expect(contentSecurityPolicy("n", true)).not.toContain("sentry.io");
+    warning.mockRestore();
+  });
+
   it("produit un nonce différent à chaque appel", () => {
     expect(createNonce()).not.toBe(createNonce());
   });

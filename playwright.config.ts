@@ -33,6 +33,8 @@ const DEMO_ENV: Record<string, string> = {
   NEXT_PUBLIC_API_URL: "",
   NEXT_PUBLIC_SITE_URL: "",
   NEXT_PUBLIC_VIEWER_URL: "",
+  // Aucun rapport d'erreur des tests vers le suivi de production.
+  NEXT_PUBLIC_SENTRY_DSN: "",
   // Une production incomplète refuse de servir : ces deux signaux ne
   // doivent pas fuir d'un environnement de déploiement vers les tests.
   IMAFRIK_ENV: "",

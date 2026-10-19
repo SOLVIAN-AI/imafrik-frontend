@@ -20,12 +20,16 @@
  *   qu'aucun nonce ne peut couvrir. Une injection de style ne permet pas
  *   d'exécuter du code.
  * - `frame-src` : le seul cadre autorisé est le viewer d'imagerie.
- * - `connect-src` : cette application, et l'API pour le seul dépôt
- *   d'examens — trop volumineux pour transiter par l'application. Tout le
- *   reste, Supabase compris, est appelé côté serveur.
+ * - `connect-src` : cette application, l'API pour le seul dépôt
+ *   d'examens — trop volumineux pour transiter par l'application — et,
+ *   s'il est configuré, le suivi des erreurs, qui reçoit les rapports du
+ *   navigateur (`lib/monitoring/error-tracking.ts`). Tout le reste,
+ *   Supabase compris, est appelé côté serveur.
  * - `frame-ancestors 'none'` : personne ne peut encadrer l'application —
  *   pas de détournement de clic sur un bouton « Signer ».
  */
+
+import { sentryOrigin } from "@/lib/monitoring/error-tracking";
 
 /** Origine du viewer d'imagerie, seul cadre autorisé. */
 function viewerOrigin(): string | null {
@@ -79,6 +83,7 @@ export function contentSecurityPolicy(nonce: string, secure: boolean): string {
   const development = process.env.NODE_ENV === "development";
   const viewer = viewerOrigin();
   const api = apiOrigin();
+  const errorTracking = sentryOrigin();
 
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
@@ -94,6 +99,7 @@ export function contentSecurityPolicy(nonce: string, secure: boolean): string {
     "connect-src": [
       "'self'",
       ...(api ? [api] : []),
+      ...(errorTracking ? [errorTracking] : []),
       ...(development ? ["ws:"] : []),
     ],
     "frame-src": viewer ? [viewer] : ["'none'"],
