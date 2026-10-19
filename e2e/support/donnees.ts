@@ -35,6 +35,7 @@ export const NAV_BY_MEMBERSHIP: Record<DemoMembership, string[]> = {
   "m-radio": [
     "/worklist",
     "/mes-examens",
+    "/formation",
     "/comptes-rendus",
     "/modeles",
     "/parametres",
@@ -58,6 +59,7 @@ export const NAV_BY_MEMBERSHIP: Record<DemoMembership, string[]> = {
     "/worklist",
     "/comptes-rendus",
     "/modeles",
+    "/formation",
     "/admin/facturation",
     "/admin/systeme",
     "/admin/audit",
@@ -77,6 +79,9 @@ export const APP_SCREENS: Record<DemoMembership, string[]> = {
     "/lecture/1",
     "/lecture/2",
     "/lecture/10",
+    "/formation/radio-thorax",
+    "/formation/scanner-thorax",
+    "/formation/irm-foie",
     "/bienvenue",
   ],
   "m-clinic": [

@@ -52,6 +52,15 @@ describe("isRouteAllowed", () => {
     expect(isRouteAllowed("platform_admin", "/lecture/1")).toBe(true);
   });
 
+  it("ouvre l'espace de formation aux radiologues et à l'équipe, pas aux cliniques", () => {
+    for (const path of ["/formation", "/formation/scanner-thorax"]) {
+      expect(isRouteAllowed("radiologist", path)).toBe(true);
+      expect(isRouteAllowed("platform_admin", path)).toBe(true);
+      expect(isRouteAllowed("clinic_staff", path)).toBe(false);
+    }
+    expect(isRouteAllowed("radiologist", "/formation/x/pdf")).toBe(true);
+  });
+
   it("ouvre les portails des radiologues à l'administration, en consultation", () => {
     for (const path of ["/worklist", "/comptes-rendus/r-1", "/modeles"]) {
       expect(isRouteAllowed("platform_admin", path)).toBe(true);

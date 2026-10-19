@@ -631,7 +631,19 @@ export function ReportEditor({
         <Outline sections={sections} titles={titles} idPrefix={idPrefix} />
       )}
 
-      <div className="min-h-0 flex-1 overflow-auto px-3 py-4 sm:px-5 sm:py-6">
+      <div
+        className="min-h-0 flex-1 overflow-auto px-3 py-4 outline-none focus-visible:ring-2 focus-visible:ring-accent/40 sm:px-5 sm:py-6"
+        // En lecture seule, le texte ne reçoit plus le focus : la zone qui
+        // défile doit le recevoir elle-même, sans quoi un utilisateur au
+        // clavier ne peut pas lire la fin d'un compte-rendu signé.
+        {...(readOnly
+          ? {
+              tabIndex: 0,
+              role: "region",
+              "aria-label": t.reading.workspace.panes.report,
+            }
+          : {})}
+      >
         {/* La « feuille » : une surface élevée, centrée, détachée de son
             fond sur les quatre côtés. C'est ce détachement, autant que
             les marges intérieures, qui donne l'impression de document. */}

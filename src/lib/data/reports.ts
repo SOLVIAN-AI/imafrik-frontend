@@ -91,7 +91,9 @@ export function toReport(row: ApiReport): Report {
 }
 
 /** Ne garde que les sections connues de l'éditeur. */
-function pickSections(raw: Record<string, string>): Partial<ReportSections> {
+export function pickSections(
+  raw: Record<string, string>,
+): Partial<ReportSections> {
   const known = Object.keys(EMPTY_REPORT_SECTIONS) as (keyof ReportSections)[];
   return Object.fromEntries(
     known

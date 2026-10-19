@@ -96,6 +96,9 @@ const RADIOLOGIST_NAV: NavGroup[] = [
         icon: "studies",
         count: "mine",
       },
+      // Ouverte dès l'inscription, dossier validé ou non : c'est là qu'on
+      // prend l'outil en main, sans patient (docs/formation.md du backend).
+      { href: "/formation", key: "training", icon: "training" },
     ],
   },
   {
@@ -193,6 +196,9 @@ const ADMIN_NAV: NavGroup[] = [
       { href: "/worklist", key: "worklist", icon: "worklist" },
       { href: "/comptes-rendus", key: "reports", icon: "reports" },
       { href: "/modeles", key: "templates", icon: "templates" },
+      // L'équipe prévisualise aussi les cas en relecture, pour les faire
+      // relire avant publication.
+      { href: "/formation", key: "training", icon: "training" },
     ],
   },
   {
@@ -259,6 +265,7 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
     "/examens",
     "/comptes-rendus",
     "/modeles",
+    "/formation",
     "/parametres",
   ],
   clinic_staff: [
@@ -282,6 +289,7 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
     "/comptes-rendus",
     "/modeles",
     "/lecture",
+    "/formation",
     "/parametres",
   ],
 };

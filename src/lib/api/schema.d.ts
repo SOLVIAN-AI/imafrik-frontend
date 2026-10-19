@@ -517,6 +517,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/training": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Avancement de chacun dans l'espace de formation
+         * @description Renvoie, par utilisateur, les exercices signés et ceux en cours.
+         *
+         *     Pour accompagner un nouveau venu : savoir s'il s'est exercé, pas ce
+         *     qu'il a écrit.
+         *
+         *     Args:
+         *         _principal: Membre de l'équipe IMAFRIK.
+         *
+         *     Returns:
+         *         Une ligne par utilisateur ayant au moins un exercice, du plus
+         *         récemment actif au moins récent.
+         */
+        get: operations["progress_admin_training_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/users": {
         parameters: {
             query?: never;
@@ -1994,6 +2024,292 @@ export interface paths {
          *             IMAFRIK.
          */
         delete: operations["delete_template_templates__template_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/training/attempts/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Recommencer un exercice
+         * @description Efface l'exercice de l'appelant, signé ou non.
+         *
+         *     Un exercice n'engage personne et n'existe que pour son auteur : il
+         *     s'efface entièrement. Rien n'est conservé ailleurs, le PDF n'étant
+         *     jamais stocké.
+         *
+         *     Args:
+         *         attempt_id: Tentative à effacer.
+         *         principal: Auteur de la tentative.
+         *
+         *     Raises:
+         *         NotFound: Tentative absente, ou appartenant à un autre.
+         */
+        delete: operations["reset_training_attempts__attempt_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Enregistrer un exercice
+         * @description Fusionne les sections reçues dans l'exercice en cours.
+         *
+         *     Même contrat que l'enregistrement d'un brouillon : envoi partiel,
+         *     ``version`` incrémentée par la base, refus si ``expected_version`` ne
+         *     correspond plus (un autre onglet a écrit entre-temps).
+         *
+         *     Args:
+         *         attempt_id: Tentative à mettre à jour.
+         *         body: Sections modifiées et, en option, la version attendue.
+         *         principal: Auteur de la tentative.
+         *
+         *     Returns:
+         *         La tentative après fusion.
+         *
+         *     Raises:
+         *         Conflict: Tentative absente, déjà signée ou modifiée ailleurs.
+         */
+        patch: operations["autosave_training_attempts__attempt_id__patch"];
+        trace?: never;
+    };
+    "/training/attempts/{attempt_id}/addenda": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ajouter un addendum à un exercice signé
+         * @description Ajoute un addendum d'exercice, comme sur un vrai compte-rendu signé.
+         *
+         *     Args:
+         *         attempt_id: Tentative signée à compléter.
+         *         body: Texte de l'addendum.
+         *         principal: Auteur de la tentative.
+         *
+         *     Returns:
+         *         La tentative, addendum compris.
+         *
+         *     Raises:
+         *         NotFound: Tentative absente, ou appartenant à un autre.
+         *         Conflict: Exercice pas encore signé : il se corrige directement.
+         *         Unprocessable: Texte vide, ou trop d'addenda.
+         */
+        post: operations["add_addendum_training_attempts__attempt_id__addenda_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/training/attempts/{attempt_id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Télécharger le PDF spécimen d'un exercice
+         * @description Rend le PDF spécimen d'un exercice signé.
+         *
+         *     Le document est produit à chaque demande et n'est conservé nulle
+         *     part : rien à purger, et il porte toujours les derniers addenda. Un
+         *     verrou court évite qu'un même utilisateur lance plusieurs rendus à la
+         *     fois, WeasyPrint étant gourmand.
+         *
+         *     Args:
+         *         attempt_id: Tentative signée.
+         *         principal: Auteur de la tentative.
+         *
+         *     Returns:
+         *         Le PDF, à afficher dans le navigateur.
+         *
+         *     Raises:
+         *         NotFound: Tentative absente, ou appartenant à un autre.
+         *         Conflict: Exercice pas encore signé.
+         *         TooManyRequests: Un rendu est déjà en cours pour cet utilisateur.
+         */
+        get: operations["download_pdf_training_attempts__attempt_id__pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/training/attempts/{attempt_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Signer un exercice
+         * @description Signe l'exercice : le texte est figé, le PDF spécimen disponible.
+         *
+         *     Les conditions sont celles d'un vrai compte-rendu (sections
+         *     obligatoires remplies, version relue), sauf le dossier validé : on
+         *     s'exerce avant. Aucun PDF n'est déposé : il est rendu à la demande.
+         *
+         *     Args:
+         *         attempt_id: Tentative à signer.
+         *         body: Version relue par l'auteur.
+         *         principal: Auteur de la tentative.
+         *
+         *     Returns:
+         *         La tentative signée, corrigé compris s'il existe.
+         *
+         *     Raises:
+         *         NotFound: Tentative absente, ou appartenant à un autre.
+         *         Conflict: Déjà signée, ou modifiée depuis la relecture.
+         *         Unprocessable: Une section obligatoire est vide.
+         */
+        post: operations["submit_training_attempts__attempt_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/training/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lister les exercices
+         * @description Renvoie le catalogue, avec l'état de chaque exercice de l'appelant.
+         *
+         *     Les cas publiés pour tous ; l'équipe IMAFRIK voit aussi ceux en
+         *     relecture, déposés mais pas encore publiés, pour les faire relire.
+         *
+         *     Args:
+         *         principal: Radiologue ou membre de l'équipe IMAFRIK.
+         *
+         *     Returns:
+         *         Les cas, dans l'ordre de la liste.
+         */
+        get: operations["list_cases_training_cases_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/training/cases/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lire un exercice
+         * @description Renvoie un cas et l'exercice de l'appelant.
+         *
+         *     Args:
+         *         slug: Nom court du cas.
+         *         principal: Radiologue ou membre de l'équipe IMAFRIK.
+         *
+         *     Returns:
+         *         Le cas, et la tentative de l'appelant s'il en a une.
+         *
+         *     Raises:
+         *         NotFound: Aucun cas publié de ce nom.
+         */
+        get: operations["read_case_training_cases__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/training/cases/{slug}/attempt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Prendre un exercice en charge
+         * @description Ouvre l'exercice de l'appelant sur un cas, ou le reprend.
+         *
+         *     Idempotent : une seconde prise en charge renvoie la tentative en
+         *     cours, signée ou non. Répond 201 à la création, 200 à la reprise.
+         *
+         *     Args:
+         *         slug: Nom court du cas.
+         *         response: Réponse, pour son code.
+         *         principal: Radiologue ou membre de l'équipe IMAFRIK.
+         *
+         *     Returns:
+         *         La tentative.
+         *
+         *     Raises:
+         *         NotFound: Aucun cas publié de ce nom.
+         *         Conflict: Cas en relecture : il se prévisualise, sans exercice.
+         */
+        post: operations["open_attempt_training_cases__slug__attempt_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/training/cases/{slug}/viewer-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ouvrir l'examen d'un exercice
+         * @description Émet un jeton de visualisation limité à l'étude du cas.
+         *
+         *     Le mécanisme est celui des vrais examens (AD-4) : jeton opaque de
+         *     quinze minutes, contrôlé par ``StudyInstanceUID``. Il n'ouvre que
+         *     l'étude du cas. Faute de clinique propriétaire, c'est l'organisation
+         *     de l'appelant qui en répond : sa suspension le révoque.
+         *
+         *     Args:
+         *         slug: Nom court du cas.
+         *         principal: Radiologue ou membre de l'équipe IMAFRIK.
+         *
+         *     Returns:
+         *         Le jeton, sa durée de vie et l'URL du viewer.
+         *
+         *     Raises:
+         *         NotFound: Aucun cas publié de ce nom.
+         */
+        post: operations["viewer_token_training_cases__slug__viewer_token_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4085,18 +4401,23 @@ export interface components {
          * @description Réponse du webhook.
          *
          *     Attributes:
-         *         study_id: Identifiant métier de l'étude, côté Supabase.
+         *         study_id: Identifiant métier de l'étude, côté Supabase. Absent pour
+         *             une étude de l'espace de formation, qui n'est pas un examen.
          *         created: ``True`` si l'étude vient d'être créée.
          *         within_quota: ``False`` si la clinique dépasse son quota mensuel.
+         *         training: ``True`` si l'étude est un cas de l'espace de formation,
+         *             ignoré en silence (docs/formation.md).
          */
         StudyStableResult: {
             /** Created */
             created: boolean;
+            /** Study Id */
+            study_id: string | null;
             /**
-             * Study Id
-             * Format: uuid
+             * Training
+             * @default false
              */
-            study_id: string;
+            training: boolean;
             /** Within Quota */
             within_quota: boolean;
         };
@@ -4178,6 +4499,218 @@ export interface components {
             sections?: {
                 [key: string]: string;
             };
+        };
+        /**
+         * TraineeProgress
+         * @description Avancement d'un utilisateur, pour l'équipe IMAFRIK.
+         *
+         *     Le contenu des exercices n'y figure pas : il n'appartient qu'à leur
+         *     auteur.
+         *
+         *     Attributes:
+         *         profile_id: Utilisateur.
+         *         submitted: Cas signés, par leur nom court.
+         *         in_progress: Cas pris en charge mais pas encore signés.
+         *         last_activity_at: Dernière modification d'un de ses exercices.
+         */
+        TraineeProgress: {
+            /** In Progress */
+            in_progress: string[];
+            /**
+             * Last Activity At
+             * Format: date-time
+             */
+            last_activity_at: string;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /** Submitted */
+            submitted: string[];
+        };
+        /**
+         * TrainingAddendum
+         * @description Addendum d'exercice.
+         *
+         *     Attributes:
+         *         body: Texte de la correction.
+         *         created_at: Instant de l'ajout.
+         */
+        TrainingAddendum: {
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * TrainingAttempt
+         * @description Exercice de l'appelant sur un cas.
+         *
+         *     Attributes:
+         *         id: Identifiant de la tentative.
+         *         case_id: Cas exercé.
+         *         sections: Texte rédigé, aux clés des sections d'un compte-rendu.
+         *         version: Incrémentée à chaque enregistrement du texte.
+         *         submitted_at: Signature de l'exercice ; ``None`` tant qu'il est en
+         *             cours.
+         *         addenda: Addenda d'exercice, dans l'ordre.
+         *         reference: Corrigé, s'il existe et que l'exercice est signé.
+         *         created_at: Prise en charge.
+         *         updated_at: Dernière modification.
+         */
+        TrainingAttempt: {
+            /** Addenda */
+            addenda: components["schemas"]["TrainingAddendum"][];
+            /**
+             * Case Id
+             * Format: uuid
+             */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            reference: components["schemas"]["TrainingReference"] | null;
+            /** Sections */
+            sections: {
+                [key: string]: string;
+            };
+            /** Submitted At */
+            submitted_at: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * TrainingCase
+         * @description Un cas du catalogue, avec l'état de l'exercice de l'appelant.
+         *
+         *     Attributes:
+         *         id: Identifiant du cas.
+         *         slug: Nom court, dans l'adresse de l'écran.
+         *         position: Rang dans la liste des exercices.
+         *         modality: Modalité DICOM (``CT``, ``MR``, ``CR``…).
+         *         body_part: Région examinée.
+         *         series_count: Séries de l'étude, une fois déposée.
+         *         instance_count: Images de l'étude, une fois déposée.
+         *         title: Titre, dans la langue de l'appelant.
+         *         indication: Contexte clinique, dans la langue de l'appelant.
+         *         source: Origine des images.
+         *         state: Exercice à faire, en cours ou signé.
+         *         attempt_id: Tentative de l'appelant, s'il en a une.
+         *         submitted_at: Signature de l'exercice, s'il est signé.
+         *         has_reference: Un corrigé validé par un radiologue existe.
+         *         reviewed_by: Radiologue qui a relu le contexte clinique.
+         *         published: Visible de tous. Un cas en relecture ne se montre qu'à
+         *             l'équipe IMAFRIK, en prévisualisation, sans exercice possible.
+         */
+        TrainingCase: {
+            /** Attempt Id */
+            attempt_id: string | null;
+            /** Body Part */
+            body_part: string | null;
+            /** Has Reference */
+            has_reference: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Indication */
+            indication: string;
+            /** Instance Count */
+            instance_count: number | null;
+            /** Modality */
+            modality: string;
+            /** Position */
+            position: number;
+            /** Published */
+            published: boolean;
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /** Series Count */
+            series_count: number | null;
+            /** Slug */
+            slug: string;
+            source: components["schemas"]["TrainingSource"];
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "todo" | "draft" | "submitted";
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * TrainingCaseDetail
+         * @description Un cas et l'exercice de l'appelant, pour l'écran de lecture.
+         *
+         *     Attributes:
+         *         case: Le cas.
+         *         attempt: L'exercice de l'appelant, ``None`` s'il ne l'a pas pris en
+         *             charge.
+         */
+        TrainingCaseDetail: {
+            attempt: components["schemas"]["TrainingAttempt"] | null;
+            case: components["schemas"]["TrainingCase"];
+        };
+        /**
+         * TrainingReference
+         * @description Corrigé d'un cas, montré après la signature de l'exercice.
+         *
+         *     Attributes:
+         *         sections: Compte-rendu de référence, aux clés des sections.
+         *         author: Radiologue qui l'a écrit ou validé.
+         *         validated_at: Date de sa validation.
+         */
+        TrainingReference: {
+            /** Author */
+            author: string;
+            /** Sections */
+            sections: {
+                [key: string]: string;
+            };
+            /**
+             * Validated At
+             * Format: date-time
+             */
+            validated_at: string;
+        };
+        /**
+         * TrainingSource
+         * @description Origine des images d'un cas, citée comme la licence l'exige.
+         *
+         *     Attributes:
+         *         name: Jeu de données et auteurs.
+         *         license: Licence Creative Commons du jeu.
+         *         url: Page du jeu de données.
+         *         doi: Identifiant DOI, quand le jeu en a un.
+         */
+        TrainingSource: {
+            /** Doi */
+            doi: string | null;
+            /** License */
+            license: string;
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
         };
         /**
          * UploadResult
@@ -5019,6 +5552,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SystemStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    progress_admin_training_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraineeProgress"][];
                 };
             };
             /** @description Validation Error */
@@ -6555,6 +7119,311 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_training_attempts__attempt_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    autosave_training_attempts__attempt_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SectionsPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrainingAttempt"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_addendum_training_attempts__attempt_id__addenda_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddendumCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrainingAttempt"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_pdf_training_attempts__attempt_id__pdf_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_training_attempts__attempt_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrainingAttempt"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_cases_training_cases_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrainingCase"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_case_training_cases__slug__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrainingCaseDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    open_attempt_training_cases__slug__attempt_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrainingAttempt"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    viewer_token_training_cases__slug__viewer_token_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewerToken"];
+                };
             };
             /** @description Validation Error */
             422: {

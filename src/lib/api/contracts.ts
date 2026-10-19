@@ -147,6 +147,100 @@ export const pdfLinkSchema = z.object({
 });
 const _pdf: Matches<z.input<typeof pdfLinkSchema>, Schemas["PdfLink"]> = true;
 
+// ─── Espace de formation (docs/formation.md du backend) ─────────────
+
+export const trainingSourceSchema = z.object({
+  name: z.string(),
+  license: z.string(),
+  // Lien ouvert depuis l'écran du cas : https uniquement.
+  url: browserUrl,
+  doi: z.string().nullable(),
+});
+const _trainingSource: Matches<
+  z.input<typeof trainingSourceSchema>,
+  Schemas["TrainingSource"]
+> = true;
+
+export const trainingStateSchema = z.enum(["todo", "draft", "submitted"]);
+
+export const trainingCaseSchema = z.object({
+  id: uuid,
+  slug: z.string(),
+  position: z.number().int(),
+  modality: z.string(),
+  body_part: z.string().nullable(),
+  series_count: z.number().int().nullable(),
+  instance_count: z.number().int().nullable(),
+  title: z.string(),
+  indication: z.string(),
+  source: trainingSourceSchema,
+  state: trainingStateSchema,
+  attempt_id: uuid.nullable(),
+  submitted_at: isoDate.nullable(),
+  has_reference: z.boolean(),
+  reviewed_by: z.string().nullable(),
+  published: z.boolean(),
+});
+const _trainingCase: Matches<
+  z.input<typeof trainingCaseSchema>,
+  Schemas["TrainingCase"]
+> = true;
+
+export const trainingAddendumSchema = z.object({
+  body: z.string(),
+  created_at: isoDate,
+});
+const _trainingAddendum: Matches<
+  z.input<typeof trainingAddendumSchema>,
+  Schemas["TrainingAddendum"]
+> = true;
+
+export const trainingReferenceSchema = z.object({
+  sections: z.record(z.string(), z.string()),
+  author: z.string(),
+  validated_at: isoDate,
+});
+const _trainingReference: Matches<
+  z.input<typeof trainingReferenceSchema>,
+  Schemas["TrainingReference"]
+> = true;
+
+export const trainingAttemptSchema = z.object({
+  id: uuid,
+  case_id: uuid,
+  sections: z.record(z.string(), z.string()),
+  version: z.number().int(),
+  submitted_at: isoDate.nullable(),
+  addenda: z.array(trainingAddendumSchema),
+  reference: trainingReferenceSchema.nullable(),
+  created_at: isoDate,
+  updated_at: isoDate,
+});
+const _trainingAttempt: Matches<
+  z.input<typeof trainingAttemptSchema>,
+  Schemas["TrainingAttempt"]
+> = true;
+
+export const trainingCaseDetailSchema = z.object({
+  case: trainingCaseSchema,
+  attempt: trainingAttemptSchema.nullable(),
+});
+const _trainingCaseDetail: Matches<
+  z.input<typeof trainingCaseDetailSchema>,
+  Schemas["TrainingCaseDetail"]
+> = true;
+
+export const traineeProgressSchema = z.object({
+  profile_id: uuid,
+  submitted: z.array(z.string()),
+  in_progress: z.array(z.string()),
+  last_activity_at: isoDate,
+});
+const _traineeProgress: Matches<
+  z.input<typeof traineeProgressSchema>,
+  Schemas["TraineeProgress"]
+> = true;
+
 export const templateSchema = z.object({
   id: uuid,
   organization_id: uuid.nullable(),
@@ -826,6 +920,13 @@ export const CONTRACT_CHECKS = [
   _report,
   _viewer,
   _pdf,
+  _trainingSource,
+  _trainingCase,
+  _trainingAddendum,
+  _trainingReference,
+  _trainingAttempt,
+  _trainingCaseDetail,
+  _traineeProgress,
   _template,
   _verification,
   _metrics,
@@ -859,6 +960,8 @@ export const CONTRACT_CHECKS = [
 export type ApiStudy = z.output<typeof studySchema>;
 export type ApiReport = z.output<typeof reportSchema>;
 export type ApiAddendum = z.output<typeof addendumSchema>;
+export type ApiTrainingCase = z.output<typeof trainingCaseSchema>;
+export type ApiTrainingAttempt = z.output<typeof trainingAttemptSchema>;
 export type ApiMember = z.output<typeof memberSchema>;
 export type ApiAdminOrganization = z.output<typeof adminOrganizationSchema>;
 export type ApiContactRequest = z.output<typeof contactRequestSchema>;

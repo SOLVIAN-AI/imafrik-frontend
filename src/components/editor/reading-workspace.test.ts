@@ -87,6 +87,7 @@ const { ReadingWorkspace } =
   await import("@/components/editor/report-workspace");
 const { DEMO_STUDIES } = await import("@/lib/demo/studies");
 const { EMPTY_REPORT_SECTIONS } = await import("@/components/editor/sections");
+const { messagesFor } = await import("@/i18n");
 
 let container: HTMLElement;
 let root: Root;
@@ -105,7 +106,12 @@ afterEach(() => {
 });
 
 /** L'écran de lecture, dans un état donné du brouillon. */
-function render(draftKey: string, viewerUrl: string | null, mode: object) {
+function render(
+  draftKey: string,
+  viewerUrl: string | null,
+  mode: object,
+  extra: Record<string, unknown> = {},
+) {
   act(() =>
     root.render(
       createElement(ReadingWorkspace, {
@@ -116,6 +122,7 @@ function render(draftKey: string, viewerUrl: string | null, mode: object) {
         initial: EMPTY_REPORT_SECTIONS,
         signed: false,
         signerName: "Dr Adjo Kponton",
+        ...extra,
       }),
     ),
   );
@@ -177,5 +184,74 @@ describe("écran de lecture", () => {
     act(() => tab("images").click());
     expect(images()?.className).not.toContain("invisible");
     expect(mounts.viewer).toBe(1);
+  });
+});
+
+describe("écran de lecture, en mode formation", () => {
+  const labels = messagesFor("fr").training;
+
+  function adapter(overrides: Record<string, unknown> = {}) {
+    return {
+      save: vi.fn(),
+      readVersion: vi.fn(),
+      sign: vi.fn(),
+      claim: vi.fn(async () => ({ ok: true, data: undefined })),
+      release: vi.fn(),
+      homeHref: "/formation",
+      title: "Scanner thoracique",
+      notice: labels.workspace.notice,
+      labels: labels.workspace,
+      signLabels: labels.sign,
+      ...overrides,
+    };
+  }
+
+  it("annonce l'exercice et le titre du cas, jamais un patient ni une échéance", () => {
+    render("none:", null, { kind: "claimable" }, { adapter: adapter() });
+    const text = container.textContent ?? "";
+    expect(text).toContain(labels.workspace.notice);
+    expect(container.querySelector("h1")?.textContent).toBe(
+      "Scanner thoracique",
+    );
+    expect(container.querySelector("time")).toBeNull();
+    expect(container.querySelector("a[aria-label]")?.getAttribute("href")).toBe(
+      "/formation",
+    );
+  });
+
+  it("prend l'exercice en charge par l'adaptateur, jamais par l'examen", async () => {
+    const actions = await import("@/lib/actions/reading");
+    const exercise = adapter();
+    render("none:", null, { kind: "claimable" }, { adapter: exercise });
+    const claim = [...container.querySelectorAll("button")].find(
+      (button) => button.textContent === labels.workspace.claim,
+    );
+    expect(claim).toBeDefined();
+    await act(async () => claim!.click());
+    expect(exercise.claim).toHaveBeenCalledTimes(1);
+    expect(actions.claimStudy).not.toHaveBeenCalled();
+  });
+
+  it("une fois signé, propose les gestes de l'exercice à la place de ceux du compte-rendu", () => {
+    render(
+      "a1:signed",
+      null,
+      { kind: "readonly" },
+      {
+        signed: true,
+        adapter: adapter({
+          signedActions: createElement(
+            "button",
+            { type: "button" },
+            "PDF spécimen",
+          ),
+          footer: createElement("section", { "data-testid": "afterword" }),
+        }),
+      },
+    );
+    const text = container.textContent ?? "";
+    expect(text).toContain("PDF spécimen");
+    expect(text).toContain(labels.workspace.signedBanner);
+    expect(container.querySelector('[data-testid="afterword"]')).not.toBeNull();
   });
 });

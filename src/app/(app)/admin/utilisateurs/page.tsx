@@ -19,6 +19,11 @@ import { needsMembershipRemoval } from "@/lib/account-anonymization";
 import { parseUserFilter, userListHref } from "@/lib/admin-params";
 import { listOrganizations } from "@/lib/data/admin";
 import { type AdminUser, listUsers } from "@/lib/data/control";
+import {
+  listTrainingCases,
+  listTrainingProgress,
+  type TraineeProgress,
+} from "@/lib/data/training";
 import { formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
@@ -54,17 +59,29 @@ export default async function UsersPage({
   const query = typeof params.q === "string" ? params.q : undefined;
   const filter = parseUserFilter(params);
 
-  const [users, pendingCount, unverifiedCount, organizations] =
-    await Promise.all([
-      listUsers({
-        query,
-        pending: filter === "pending",
-        unverified: filter === "unverified",
-      }),
-      listUsers({ pending: true }).then((rows) => rows.length),
-      listUsers({ unverified: true }).then((rows) => rows.length),
-      listOrganizations(),
-    ]);
+  const [
+    users,
+    pendingCount,
+    unverifiedCount,
+    organizations,
+    trainingProgress,
+    trainingTotal,
+  ] = await Promise.all([
+    listUsers({
+      query,
+      pending: filter === "pending",
+      unverified: filter === "unverified",
+    }),
+    listUsers({ pending: true }).then((rows) => rows.length),
+    listUsers({ unverified: true }).then((rows) => rows.length),
+    listOrganizations(),
+    // L'avancement en formation est un repère pour accompagner un nouveau
+    // venu : son absence ne prive pas la page des comptes.
+    listTrainingProgress(),
+    listTrainingCases()
+      .then((cases) => cases.filter((c) => c.published).length)
+      .catch(() => 0),
+  ]);
   const grantable = organizations
     .filter((org) => org.active)
     .map((org) => ({ id: org.id, name: org.name, kind: org.kind }));
@@ -150,6 +167,14 @@ export default async function UsersPage({
                   user={user}
                   organizations={grantable}
                   isSelf={user.id === session.user.id}
+                  training={
+                    trainingTotal > 0
+                      ? {
+                          progress: trainingProgress.get(user.id) ?? null,
+                          total: trainingTotal,
+                        }
+                      : null
+                  }
                   t={t}
                 />
               ))}
@@ -185,14 +210,23 @@ function isRadiologistAccount(user: AdminUser): boolean {
 }
 
 /** Une ligne de compte. */
+/** Avancement d'un radiologue dans l'espace de formation. */
+interface TrainingSummary {
+  progress: TraineeProgress | null;
+  /** Exercices publiés. */
+  total: number;
+}
+
 function UserRow({
   user,
   organizations,
   isSelf,
+  training,
   t,
 }: {
   user: AdminUser;
   isSelf: boolean;
+  training: TrainingSummary | null;
   organizations: {
     id: string;
     name: string;
@@ -281,7 +315,9 @@ function UserRow({
         )}
       </p>
 
-      {radiologist && <CredentialRow user={user} isSelf={isSelf} t={t} />}
+      {radiologist && (
+        <CredentialRow user={user} isSelf={isSelf} training={training} t={t} />
+      )}
     </li>
   );
 }
@@ -294,10 +330,12 @@ function UserRow({
 function CredentialRow({
   user,
   isSelf,
+  training,
   t,
 }: {
   user: AdminUser;
   isSelf: boolean;
+  training: TrainingSummary | null;
   t: AppMessages;
 }) {
   const text = t.admin.credentials;
@@ -328,6 +366,7 @@ function CredentialRow({
           <DateTime date={user.credentialsVerifiedAt} withTime={false} />
         </span>
       )}
+      {training && <TrainingProgressNote summary={training} t={t} />}
       {user.credentialsValidUntil && (
         <span className="text-2xs text-tertiary">
           {text.validUntil}{" "}
@@ -386,6 +425,38 @@ function MfaState({
     >
       <ShieldAlert className="size-3.5" aria-hidden />
       {required ? text.mfaMissing : text.mfaNone}
+    </span>
+  );
+}
+
+/**
+ * Avancement en formation : combien d'exercices signés, et en cours.
+ *
+ * Jamais leur contenu : il n'appartient qu'à leur auteur.
+ */
+function TrainingProgressNote({
+  summary,
+  t,
+}: {
+  summary: TrainingSummary;
+  t: AppMessages;
+}) {
+  const text = t.training.admin;
+  const done = summary.progress?.submitted.length ?? 0;
+  const ongoing = summary.progress?.inProgress.length ?? 0;
+  return (
+    <span className="text-2xs text-tertiary" data-training-progress={done}>
+      {text.label}{" "}
+      <span className="text-secondary">
+        {done || ongoing
+          ? [
+              text.progress(done, summary.total),
+              ongoing > 0 && text.inProgress(ongoing),
+            ]
+              .filter(Boolean)
+              .join(" · ")
+          : text.none}
+      </span>
     </span>
   );
 }
