@@ -27,7 +27,7 @@ test("la liste dit le parcours, chaque cas, son état et sa source", async ({
   for (const [titre, etat, action] of [
     ["Radiographie du thorax", "Signé", "Revoir"],
     ["Scanner thoracique", "En cours", "Reprendre"],
-    ["IRM du rachis lombaire", "À faire", "Commencer"],
+    ["IRM du foie", "À faire", "Commencer"],
   ]) {
     const carte = page.locator("li", {
       has: page.getByRole("heading", { level: 2, name: titre }),
@@ -45,11 +45,11 @@ test("un cas à faire s'ouvre dans l'écran de lecture, annoncé comme exercice"
 }) => {
   await page.goto("/formation");
   await page.getByRole("link", { name: "Commencer" }).click();
-  await expect(page).toHaveURL("/formation/irm-rachis-lombaire");
+  await expect(page).toHaveURL("/formation/irm-foie");
   await settle(page);
 
   await expect(
-    page.getByRole("heading", { level: 1, name: "IRM du rachis lombaire" }),
+    page.getByRole("heading", { level: 1, name: "IRM du foie" }),
   ).toBeVisible();
   await expect(
     page.getByText(/Exercice de formation : rien de ce que vous faites ici/),
@@ -58,7 +58,7 @@ test("un cas à faire s'ouvre dans l'écran de lecture, annoncé comme exercice"
   // Le contexte clinique du cas, comme le renseignement d'une clinique.
   await expect(
     page.getByText(
-      "Lombalgies chroniques : recherche d’une pathologie discale.",
+      "IRM hépatique sans puis avec injection, dans le bilan d’une lésion du foie.",
     ),
   ).toBeVisible();
   await expect(

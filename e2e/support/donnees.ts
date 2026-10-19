@@ -81,7 +81,7 @@ export const APP_SCREENS: Record<DemoMembership, string[]> = {
     "/lecture/10",
     "/formation/radio-thorax",
     "/formation/scanner-thorax",
-    "/formation/irm-rachis-lombaire",
+    "/formation/irm-foie",
     "/bienvenue",
   ],
   "m-clinic": [
