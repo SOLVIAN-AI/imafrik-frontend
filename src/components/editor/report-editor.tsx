@@ -573,6 +573,7 @@ export function ReportEditor({
   return (
     <div
       onKeyDownCapture={onKeyDownCapture}
+      data-tour="editor"
       className={cn(
         "flex min-h-0 flex-1 flex-col bg-surface-base",
         // Plein écran : le document seul, au-dessus de tout le reste.

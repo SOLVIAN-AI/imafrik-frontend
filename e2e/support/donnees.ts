@@ -186,3 +186,18 @@ export function without(text: string, phrases: string[]): string {
  */
 export const FRENCH_COMMON_WORDS =
   /(?<![\p{L}\p{N}])(les|des|vos|nous|examens?|établissement|données|à|être|avec|pour)(?![\p{L}\p{N}])/giu;
+
+/** Compte de la démonstration, le même dans les trois portails (`lib/demo/studies.ts`). */
+export const DEMO_USER_ID = "demo-user";
+
+/**
+ * Visites guidées de l'application (`components/tour/tours.ts`), et la clé
+ * où l'appareil retient celles qui sont faites (`components/tour/storage.ts`).
+ */
+export const TOUR_IDS = [
+  "radiologue-file",
+  "lecture",
+  "clinique-accueil",
+  "equipe-cockpit",
+];
+export const TOURS_STORAGE_PREFIX = "imafrik-visites:";

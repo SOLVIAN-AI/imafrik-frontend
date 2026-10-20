@@ -8,6 +8,7 @@ import { onboarding } from "@/i18n/messages/en/onboarding";
 import { reading } from "@/i18n/messages/en/reading";
 import { session } from "@/i18n/messages/en/session";
 import { settings } from "@/i18n/messages/en/settings";
+import { tour } from "@/i18n/messages/en/tour";
 import { training } from "@/i18n/messages/en/training";
 import { worklist } from "@/i18n/messages/en/worklist";
 
@@ -26,6 +27,8 @@ import { worklist } from "@/i18n/messages/en/worklist";
  * - `clinic`, `onboarding` : portail clinique, mise en service ;
  * - `credentials` : habilitation des radiologues, partout où elle se dit ;
  * - `settings` : paramètres ;
+ * - `training` : espace de formation ;
+ * - `tour` : visites guidées, la prise en main écran par écran ;
  * - `admin` : tour de contrôle.
  */
 export const en: AppMessages = {
@@ -39,5 +42,6 @@ export const en: AppMessages = {
   credentials,
   settings,
   training,
+  tour,
   admin,
 };

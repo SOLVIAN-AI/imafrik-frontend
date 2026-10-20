@@ -11,6 +11,7 @@ import {
   usePaletteShortcut,
 } from "@/components/layout/command-palette";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { HelpMenu } from "@/components/tour/help-menu";
 import { useSession } from "@/components/providers/session-provider";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ function SearchTrigger() {
         type="button"
         onClick={openPalette}
         aria-label={t.common.actions.search}
+        data-tour="search"
         className="flex size-10 shrink-0 items-center justify-center rounded-lg text-secondary transition-colors hover:bg-surface-hover hover:text-primary sm:hidden"
       >
         <Search className="size-4.5" aria-hidden />
@@ -50,6 +52,7 @@ function SearchTrigger() {
       <button
         type="button"
         onClick={openPalette}
+        data-tour="search"
         className={cn(
           "group hidden h-8 w-full max-w-md items-center gap-2 rounded-lg px-2.5 sm:flex",
           "border border-border-subtle bg-surface-base/60 shadow-edge",
@@ -177,6 +180,7 @@ export function Topbar({ counts }: { counts: NavCounts | null }) {
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <DemoBadge />
+        <HelpMenu />
         <ThemeToggle />
       </div>
     </div>

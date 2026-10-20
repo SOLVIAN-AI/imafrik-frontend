@@ -55,6 +55,12 @@ export interface Session {
    */
   locale: Locale;
   /**
+   * Visites guidées déjà faites (`profiles.tours_completed`) : elles ne
+   * démarrent plus seules, sur aucun appareil. Vide en démonstration, où
+   * l'appareil seul les retient (`components/tour/storage.ts`).
+   */
+  toursCompleted: string[];
+  /**
    * Vraie session Supabase, ou jeu de démonstration.
    *
    * Exposé pour que l'interface puisse le dire — un écran qui affiche

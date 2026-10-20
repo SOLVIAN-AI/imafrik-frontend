@@ -105,7 +105,7 @@ export function ClinicDashboardView({
           .filter(Boolean)
           .join(" · ")}
         actions={
-          <Button size="sm" asChild>
+          <Button size="sm" asChild data-tour="send-study">
             <Link href="/envoyer">
               <Upload />
               {messages.send}
@@ -117,6 +117,7 @@ export function ClinicDashboardView({
       <MetricGrid
         metrics={buildMetrics(metrics, messages.metrics, locale)}
         className="px-4 pb-4 sm:px-6"
+        tour="clinic-stats"
       />
 
       {/* `content-start` : la rangée prend la hauteur de son contenu, pas
@@ -125,7 +126,10 @@ export function ClinicDashboardView({
           haut : des bords bas décalés donnent à l'écran un air inachevé. */}
       <div className="grid min-h-0 flex-1 content-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">
         {/* Ce qui appelle une action occupe la place principale. */}
-        <Panel className="flex flex-col overflow-hidden lg:col-span-2">
+        <Panel
+          className="flex flex-col overflow-hidden lg:col-span-2"
+          tour="reports-ready"
+        >
           <SectionTitle
             title={messages.readyTitle}
             action={{ label: t.common.actions.seeAll, href: "/comptes-rendus" }}

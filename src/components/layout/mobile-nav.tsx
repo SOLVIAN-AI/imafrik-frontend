@@ -32,6 +32,7 @@ export function MobileNav({ counts }: { counts: NavCounts | null }) {
         <button
           type="button"
           aria-label={t.nav.openNavigation}
+          data-tour="menu"
           className="flex size-10 shrink-0 items-center justify-center rounded-lg text-secondary transition-colors hover:bg-surface-hover hover:text-primary lg:hidden"
         >
           <Menu className="size-5" aria-hidden />

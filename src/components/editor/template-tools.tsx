@@ -74,7 +74,7 @@ export function TemplatePicker({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" data-tour="templates">
           <FileStack />
           {labels.picker}
         </Button>

@@ -1,6 +1,7 @@
 import { HtmlLang } from "@/components/i18n/html-lang";
 import { AppShell } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { TourProvider } from "@/components/tour/tour-provider";
 import { getPlatformSettings } from "@/lib/data/control";
 import { getMetrics } from "@/lib/data/metrics";
 import type { NavCounts } from "@/lib/navigation";
@@ -59,9 +60,13 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <SessionProvider session={session}>
       {/* La langue de l'utilisateur, celle de son profil. */}
       <HtmlLang lang={session.locale} />
-      <AppShell counts={counts} banner={settings?.maintenanceMessage ?? null}>
-        {children}
-      </AppShell>
+      {/* Visites guidées : la prise en main de chaque écran, à la
+          première ouverture. */}
+      <TourProvider>
+        <AppShell counts={counts} banner={settings?.maintenanceMessage ?? null}>
+          {children}
+        </AppShell>
+      </TourProvider>
     </SessionProvider>
   );
 }

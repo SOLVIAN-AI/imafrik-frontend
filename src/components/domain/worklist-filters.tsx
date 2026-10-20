@@ -33,9 +33,12 @@ import {
 export function WorklistFilterBar({
   filters,
   options,
+  tour,
 }: {
   filters: WorklistFilters;
   options: { modalities: FilterOption[]; clinics: FilterOption[] };
+  /** Repère de la visite guidée (`data-tour`, voir `components/tour`). */
+  tour?: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -61,6 +64,9 @@ export function WorklistFilterBar({
 
   return (
     <div
+      data-tour={tour}
+      // La barre porte la marge de la page : la visite montre les filtres.
+      data-tour-fit={tour ? "content" : undefined}
       className={cn(
         "flex flex-wrap items-center gap-2 px-4 pb-3 sm:px-6",
         pending && "opacity-70",
