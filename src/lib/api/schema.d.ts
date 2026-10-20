@@ -127,6 +127,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics/{clinic_id}/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Logo d'une clinique
+         * @description Renvoie le logo enregistré d'une clinique, pour l'aperçu de l'équipe.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable, ou sans logo.
+         */
+        get: operations["get_clinic_logo_admin_clinics__clinic_id__logo_get"];
+        /**
+         * Poser le logo d'une clinique
+         * @description Pose ou remplace le logo imprimé en filigrane des comptes-rendus.
+         *
+         *     L'image est relue et normalisée (:func:`app.services.clinic_logo.normalize`) :
+         *     ce qui est gardé est un PNG neuf, sans métadonnées. Les comptes-rendus
+         *     déjà signés gardent le logo de leur PDF ; le nouveau vaut pour les
+         *     suivants. Le changement est tracé.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         *         Unprocessable: Fichier illisible, trop lourd ou d'un format refusé.
+         */
+        put: operations["set_clinic_logo_admin_clinics__clinic_id__logo_put"];
+        post?: never;
+        /**
+         * Retirer le logo d'une clinique
+         * @description Retire le logo : les comptes-rendus suivants n'ont plus de filigrane.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable, ou sans logo.
+         */
+        delete: operations["remove_clinic_logo_admin_clinics__clinic_id__logo_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/clinics/{clinic_id}/report-language": {
         parameters: {
             query?: never;
@@ -2836,6 +2879,11 @@ export interface components {
             is_active: boolean;
             /** Last Received At */
             last_received_at: string | null;
+            /**
+             * Logo Updated At
+             * @description Pose du logo imprimé en filigrane des comptes-rendus ; None : aucun logo.
+             */
+            logo_updated_at?: string | null;
             /** Name */
             name: string;
             /** Onboarding */
@@ -2850,6 +2898,26 @@ export interface components {
              * @enum {string}
              */
             report_language: "fr" | "en";
+        };
+        /**
+         * ClinicLogo
+         * @description Logo enregistré d'une clinique, tel qu'il sera imprimé.
+         */
+        ClinicLogo: {
+            /** Height */
+            height: number;
+            /**
+             * Image Base64
+             * @description PNG normalisé, encodé en base64.
+             */
+            image_base64: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Width */
+            width: number;
         };
         /**
          * ClinicalInfo
@@ -3398,6 +3466,17 @@ export interface components {
             urgent_waiting: number;
             /** Waiting */
             waiting: number;
+        };
+        /**
+         * LogoUpload
+         * @description Logo d'une clinique, déposé par l'équipe IMAFRIK.
+         */
+        LogoUpload: {
+            /**
+             * Image Base64
+             * @description Fichier PNG, JPEG ou WebP, encodé en base64 (2 Mo au plus).
+             */
+            image_base64: string;
         };
         /**
          * LogoutResult
@@ -4910,7 +4989,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -5035,6 +5114,107 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ContractEndResult"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_clinic_logo_admin_clinics__clinic_id__logo_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicLogo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_clinic_logo_admin_clinics__clinic_id__logo_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogoUpload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicLogo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_clinic_logo_admin_clinics__clinic_id__logo_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

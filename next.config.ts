@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
     // signature) revalide les pages qu'il touche, et la file se rafraîchit
     // de toute façon toutes les 30 secondes.
     staleTimes: { dynamic: 30, static: 30 },
+    // Le logo d'une clinique (2 Mo au plus) part en base64 dans une action
+    // serveur : 2,7 Mo, au-delà du mégaoctet par défaut. Vercel plafonne
+    // de toute façon le corps d'une requête à 4,5 Mo.
+    serverActions: { bodySizeLimit: "3mb" },
   },
 };
 

@@ -10,6 +10,7 @@ import {
   anonymizationResultSchema,
   aiFeaturesSchema,
   clinicDetailSchema,
+  clinicLogoSchema,
   contactTrackingSchema,
   contractEndResultSchema,
   credentialsStateSchema,
@@ -24,6 +25,7 @@ import {
   run,
   rejectInvalidIds,
 } from "@/lib/actions/result";
+import { clinicLogoMaxBase64Length } from "@/lib/clinic-logo";
 import { unreportedCount } from "@/lib/contract-end";
 import {
   type CredentialDocument,
@@ -588,6 +590,76 @@ export async function setClinicReportLanguage(
       "PUT",
       { report_language: language },
       clinicDetailSchema,
+    );
+    return undefined;
+  });
+  revalidatePath(`/admin/organisations/${clinicId}`);
+  return result;
+}
+
+/** Contenu base64 : alphabet standard, remplissage final. */
+const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
+
+/**
+ * Pose ou remplace le logo qu'une clinique imprime en filigrane de ses
+ * comptes-rendus.
+ *
+ * Le service relit l'image et n'en garde qu'un PNG neuf, sans
+ * métadonnées ; il refuse ce qui n'est pas un PNG, un JPEG ou un WebP.
+ * Les comptes-rendus déjà signés gardent leur logo. Le changement est
+ * tracé (`organization.logo_changed`).
+ *
+ * @param clinicId    Clinique.
+ * @param imageBase64 Fichier déposé, encodé en base64.
+ */
+export async function setClinicLogo(
+  clinicId: string,
+  imageBase64: string,
+): Promise<ActionResult> {
+  const { t } = await getMessages();
+  if (
+    typeof imageBase64 !== "string" ||
+    imageBase64.length > clinicLogoMaxBase64Length()
+  )
+    return { ok: false, error: t.admin.clinicLogo.tooLarge, status: 422 };
+  if (!BASE64.test(imageBase64))
+    return { ok: false, error: t.admin.clinicLogo.unreadable, status: 422 };
+  if (isDemoMode())
+    return await demoUnavailable(t.admin.demoActions.clinicLogo);
+  const invalid = await rejectInvalidIds(clinicId);
+  if (invalid) return invalid;
+  const result = await run(async () => {
+    await apiSend(
+      `/admin/clinics/${encodeURIComponent(clinicId)}/logo`,
+      "PUT",
+      { image_base64: imageBase64 },
+      clinicLogoSchema,
+    );
+    return undefined;
+  });
+  revalidatePath(`/admin/organisations/${clinicId}`);
+  return result;
+}
+
+/**
+ * Retire le logo d'une clinique : les comptes-rendus suivants n'ont plus
+ * de filigrane. Tracé comme la pose.
+ *
+ * @param clinicId Clinique.
+ */
+export async function removeClinicLogo(
+  clinicId: string,
+): Promise<ActionResult> {
+  if (isDemoMode()) {
+    const { t } = await getMessages();
+    return await demoUnavailable(t.admin.demoActions.clinicLogo);
+  }
+  const invalid = await rejectInvalidIds(clinicId);
+  if (invalid) return invalid;
+  const result = await run(async () => {
+    await apiSend(
+      `/admin/clinics/${encodeURIComponent(clinicId)}/logo`,
+      "DELETE",
     );
     return undefined;
   });
