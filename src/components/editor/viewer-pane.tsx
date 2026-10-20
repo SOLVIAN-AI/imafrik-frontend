@@ -54,6 +54,7 @@ export function ViewerPane({
   return (
     <div
       ref={pane}
+      data-tour="viewer"
       data-fullscreen={inWindow ? "window" : fullscreen ? "native" : undefined}
       className={cn(
         "flex h-full min-h-0 flex-col bg-ink-950",

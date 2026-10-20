@@ -42,6 +42,8 @@ vi.mock("@/components/editor/template-tools", () => ({
   SaveAsTemplate: () => null,
   TemplatePicker: () => null,
 }));
+// Le bouton d'aide suppose le moteur des visites, posé par la disposition.
+vi.mock("@/components/tour/help-menu", () => ({ HelpMenu: () => null }));
 vi.mock("@/components/editor/use-ai-review", () => ({
   useAiReview: () => ({ status: "idle", stale: false, run: () => {} }),
 }));

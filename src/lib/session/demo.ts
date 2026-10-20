@@ -95,6 +95,7 @@ export function demoSession(
     memberships: DEMO_MEMBERSHIPS,
     active,
     locale,
+    toursCompleted: [],
     isDemo: true,
   };
 }

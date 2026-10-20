@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 
 import { expect } from "@playwright/test";
 
+import { TOUR_IDS } from "../../support/donnees";
 import { environnement } from "./environnement";
 import { totpNow } from "./totp";
 
@@ -120,11 +121,16 @@ export async function creerCompte(
   // Le profil naît avec le compte (déclencheur) ; son nom est posé ici,
   // comme le ferait l'accueil. L'insertion couvre une base où le
   // déclencheur manquerait : le parcours échouerait alors plus loin, sur
-  // un symptôme sans rapport.
+  // un symptôme sans rapport. Les visites guidées sont notées faites : un
+  // parcours éprouve le métier, pas la prise en main, et une visite
+  // ouverte couvrirait l'écran.
   sql(
-    `insert into public.profiles (id, full_name) values (:'id', :'nom')
-     on conflict (id) do update set full_name = excluded.full_name;`,
-    { nom: fullName, id: body.id },
+    `insert into public.profiles (id, full_name, tours_completed)
+     values (:'id', :'nom', :'visites'::text[])
+     on conflict (id) do update
+       set full_name = excluded.full_name,
+           tours_completed = excluded.tours_completed;`,
+    { nom: fullName, id: body.id, visites: `{${TOUR_IDS.join(",")}}` },
   );
   return { id: body.id, email, password, fullName };
 }

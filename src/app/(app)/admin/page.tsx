@@ -70,7 +70,11 @@ export default async function CockpitPage() {
       />
 
       <ControlBody>
-        <AlertList alerts={overview.alerts} locale={locale} />
+        <AlertList
+          alerts={overview.alerts}
+          locale={locale}
+          tour="cockpit-alerts"
+        />
 
         <MetricGrid metrics={liveMetrics(overview, t, locale)} />
 

@@ -47,6 +47,12 @@ stockage local sont posés avant le premier chargement
 | Portail | cookie `imafrik-demo-membership` | `m-radio`, `m-clinic`, `m-admin` |
 | Langue | cookie `imafrik-langue` | `fr`, `en` |
 | Thème | `localStorage.theme` (next-themes) | `dark`, `light` |
+| Visites guidées | `localStorage["imafrik-visites:demo-user"]` | `faites` (défaut), `a-faire` |
+
+Les visites guidées sont notées faites par défaut : une visite ouverte
+couvre la page, et seuls les tests qui la concernent (`visite.spec.ts`)
+la voient, avec `visites: "a-faire"`. Les parcours réels créent leurs
+comptes avec toutes les visites faites (`profiles.tours_completed`).
 
 Chaque test échoue s'il a produit une erreur JavaScript ou un
 `console.error`. Un test qui en attend une (le 404 d'une adresse
@@ -65,6 +71,7 @@ sans attendre réellement.
 | `connexion.spec.ts` | La connexion mène à l'accueil de chaque portail ; un mot de passe vide est refusé ; la langue du site suit à la connexion ; la déconnexion ramène à l'écran de connexion. |
 | `portails.spec.ts` | Pour chaque portail et chaque langue, chaque entrée de la navigation ouvre son écran, sans erreur. |
 | `worklist.spec.ts` | Sections de la file, navigation au clavier `j` / `k` / `Entrée`, filtres portés par l'adresse et conservés au rechargement, relecture au plus une fois toutes les trente secondes. |
+| `visite.spec.ts` | Visites guidées d'un premier venu, dans les trois portails : démarrage seul, chaque étape dans la fenêtre sans recouvrir l'élément montré (ordinateur et téléphone), clavier (flèches, Entrée, Échap) sans effet sur la page dessous, focus rendu au bouton d'aide, visite qui ne revient plus, relance par le bouton d'aide, accessibilité visite ouverte, anglais. |
 | `lecture.spec.ts` | L'écran de lecture s'ouvre depuis la file ; la pastille de langue du compte-rendu apparaît quand l'interface est dans une autre langue, et seulement alors. |
 | `anglais.spec.ts` | Chaque écran des trois portails, en anglais : `<html lang="en">` et aucun libellé d'interface français. Les données de démonstration restent en français, et ne sont pas recherchées. |
 | `mise-en-page.spec.ts` | Chevauchements de texte, défilement horizontal, texte rogné et cibles tactiles trop petites, sur un échantillon de pages à 1440 × 900 et 390 × 844, en clair et en sombre ; plus une contre-épreuve qui prouve que l'audit détecte bien ces anomalies. |

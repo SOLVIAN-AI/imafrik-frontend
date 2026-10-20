@@ -326,6 +326,7 @@ function NavLink({
       onFocus={showIntent}
       onTouchStart={showIntent}
       aria-current={active ? "page" : undefined}
+      data-tour={`nav-${item.key}`}
       className={cn(
         "group relative flex h-9 items-center gap-2.5 rounded-lg px-2.5",
         "text-sm transition-all duration-100 ease-(--ease-out-quart)",

@@ -163,16 +163,20 @@ export function PageHeader({
 export function Panel({
   id,
   className,
+  tour,
   children,
 }: {
   /** Ancre, quand une autre page y mène. */
   id?: string;
   className?: string;
+  /** Repère de la visite guidée (`data-tour`, voir `components/tour`). */
+  tour?: string;
   children: React.ReactNode;
 }) {
   return (
     <div
       id={id}
+      data-tour={tour}
       className={cn(
         "rounded-xl border border-border-subtle bg-surface-raised shadow-raised",
         className,
@@ -212,7 +216,13 @@ export function AppShell({
   const t = useMessages();
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-surface-base">
+    // `relative` : sans lui, les éléments positionnés sans ancêtre
+    // positionné (les textes réservés aux lecteurs d'écran d'une longue
+    // liste) échappaient au rognage et agrandissaient le document. Sur
+    // téléphone, toute l'application glissait alors sous le doigt, barre
+    // supérieure comprise (constaté le 20 octobre 2026 : 322 px de trop
+    // sur la file).
+    <div className="relative flex h-dvh overflow-hidden bg-surface-base">
       <SkipLink label={t.common.skipToContent} />
       {/* Barre latérale fixe à partir de 1024 px ; en dessous, la même
           navigation s'ouvre en tiroir depuis la barre supérieure. */}

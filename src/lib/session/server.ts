@@ -75,6 +75,7 @@ interface ProfileRow {
   title: string | null;
   active_membership_id: string | null;
   locale: string | null;
+  tours_completed: string[] | null;
 }
 
 /**
@@ -167,7 +168,7 @@ const loadAccount = cache(async (): Promise<Account | "anonymous"> => {
   const [profileResult, membershipsResult, stateResult] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, title, active_membership_id, locale")
+      .select("full_name, title, active_membership_id, locale, tours_completed")
       .eq("id", user.id)
       .maybeSingle<ProfileRow>(),
     supabase
@@ -275,6 +276,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
     memberships,
     active,
     locale: isLocale(profile?.locale) ? profile.locale : DEFAULT_LOCALE,
+    toursCompleted: profile?.tours_completed ?? [],
     isDemo: false,
   };
 });

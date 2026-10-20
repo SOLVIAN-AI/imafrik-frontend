@@ -1,13 +1,15 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
 import { auditAccessibility, type AuditOptions } from "./accessibilite";
+import { DEMO_USER_ID, TOUR_IDS, TOURS_STORAGE_PREFIX } from "./donnees";
 
 /**
  * Fixtures communes aux tests de bout en bout.
  *
  * Chaque test déclare, par `test.use`, le contexte dans lequel il tourne :
- * le portail de démonstration (`membership`), la langue (`langue`) et le
- * thème (`theme`). Les cookies et le stockage local sont posés **avant**
+ * le portail de démonstration (`membership`), la langue (`langue`), le
+ * thème (`theme`) et les visites guidées (`visites`). Les cookies et le
+ * stockage local sont posés **avant**
  * le premier chargement, comme les poserait un visiteur revenu sur le
  * site : aucun test ne dépend d'un clic préalable pour se placer.
  *
@@ -51,6 +53,13 @@ interface Options {
   langue: Langue | null;
   /** Thème de l'application ; `null` laisse le thème par défaut (sombre). */
   theme: Theme | null;
+  /**
+   * Visites guidées : `faites` (par défaut) pour un utilisateur qui a déjà
+   * pris l'application en main, `a-faire` pour un premier venu. Une
+   * visite ouverte couvre la page : seuls les tests qui la concernent la
+   * voient.
+   */
+  visites: "faites" | "a-faire";
   /** Erreurs de console attendues, à justifier là où elles sont déclarées. */
   ignoredErrors: RegExp[];
 }
@@ -70,9 +79,13 @@ export const test = base.extend<Options & Fixtures>({
   membership: [null, { option: true }],
   langue: [null, { option: true }],
   theme: [null, { option: true }],
+  visites: ["faites", { option: true }],
   ignoredErrors: [[], { option: true }],
 
-  context: async ({ context, baseURL, membership, langue, theme }, use) => {
+  context: async (
+    { context, baseURL, membership, langue, theme, visites },
+    use,
+  ) => {
     if (!baseURL) throw new Error("baseURL manquant dans playwright.config.ts");
     const cookies = [];
     if (membership)
@@ -90,6 +103,14 @@ export const test = base.extend<Options & Fixtures>({
       await context.addInitScript((value) => {
         window.localStorage.setItem("theme", value);
       }, theme);
+    }
+    if (visites === "faites") {
+      await context.addInitScript(
+        ({ key, tours }) => {
+          window.localStorage.setItem(key, JSON.stringify(tours));
+        },
+        { key: `${TOURS_STORAGE_PREFIX}${DEMO_USER_ID}`, tours: TOUR_IDS },
+      );
     }
     await use(context);
   },

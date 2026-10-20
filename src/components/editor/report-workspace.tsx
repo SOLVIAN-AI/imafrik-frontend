@@ -50,6 +50,7 @@ import {
 } from "@/components/domain/study-status";
 import { DeadlineBadge } from "@/components/domain/reading-table";
 import { useSession } from "@/components/providers/session-provider";
+import { HelpMenu } from "@/components/tour/help-menu";
 import { Button } from "@/components/ui/button";
 import { type SaveOutcome, useAutosave } from "@/hooks/use-autosave";
 import { WorkspaceSkeleton } from "@/components/editor/workspace-skeleton";
@@ -336,6 +337,7 @@ function StudyBar({
         variant="ghost"
         size="icon"
         aria-label={t.common.actions.back}
+        data-tour="back"
         asChild
       >
         <Link href={returnPath}>
@@ -370,6 +372,7 @@ function StudyBar({
       </div>
 
       <div className="flex shrink-0 items-center gap-3">
+        <HelpMenu />
         {!adapter && (
           <StudyStatusChip status={signed ? "reported" : study.status} />
         )}
@@ -757,13 +760,13 @@ function ReportWorkspace({
         <Undo2 />
         {labels.release}
       </Button>
-      <Button size="sm" onClick={openSigning}>
+      <Button size="sm" onClick={openSigning} data-tour="sign">
         <PenTool />
         {labels.sign}
       </Button>
     </>
   ) : mode.kind === "claimable" ? (
-    <Button size="sm" onClick={claim} loading={pending}>
+    <Button size="sm" onClick={claim} loading={pending} data-tour="claim">
       <Hand />
       {labels.claim}
     </Button>
@@ -1077,7 +1080,10 @@ function ClinicalContext({
   const labels = useMessages().reading.workspace;
   if (!info) return null;
   return (
-    <div className="flex shrink-0 items-start gap-3 border-b border-border-subtle bg-surface-sunken/50 px-4 py-2.5">
+    <div
+      data-tour="clinical-info"
+      className="flex shrink-0 items-start gap-3 border-b border-border-subtle bg-surface-sunken/50 px-4 py-2.5"
+    >
       <ClipboardList
         className="mt-0.5 size-3.5 shrink-0 text-tertiary"
         aria-hidden
@@ -1139,6 +1145,7 @@ function NarrowLayout({
             id={`tab-${entry.id}`}
             aria-selected={tab === entry.id}
             aria-controls={`pane-${entry.id}`}
+            data-tour={entry.id === "report" ? "report-tab" : undefined}
             onClick={() => setTab(entry.id)}
             className={cn(
               "h-9 flex-1 rounded-md text-sm font-medium transition-colors",

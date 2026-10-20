@@ -97,12 +97,18 @@ const TONE_STYLES: Record<
 export function MetricGrid({
   metrics,
   className,
+  tour,
 }: {
   metrics: Metric[];
   className?: string;
+  /** Repère de la visite guidée (`data-tour`, voir `components/tour`). */
+  tour?: string;
 }) {
   return (
     <div
+      data-tour={tour}
+      // La grille porte la marge de la page : la visite montre les cartes.
+      data-tour-fit={tour ? "content" : undefined}
       className={cn(
         "grid shrink-0 grid-cols-2 gap-3 lg:grid-cols-4",
         className,

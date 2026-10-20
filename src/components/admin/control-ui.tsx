@@ -134,21 +134,27 @@ const SEVERITY = {
 export function AlertList({
   alerts,
   locale,
+  tour,
 }: {
   alerts: Alert[];
   locale: Locale;
+  /** Repère de la visite guidée (`data-tour`, voir `components/tour`). */
+  tour?: string;
 }) {
   const t = messagesFor(locale).admin.alerts;
   if (alerts.length === 0) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-done/25 bg-done-muted px-4 py-3">
+      <div
+        data-tour={tour}
+        className="flex items-center gap-3 rounded-xl border border-done/25 bg-done-muted px-4 py-3"
+      >
         <CheckCircle2 className="size-4 shrink-0 text-done" aria-hidden />
         <p className="text-sm">{t.allClear}</p>
       </div>
     );
   }
   return (
-    <ul className="flex flex-col gap-2" aria-label={t.label}>
+    <ul data-tour={tour} className="flex flex-col gap-2" aria-label={t.label}>
       {alerts.map((alert) => {
         const style = SEVERITY[alert.severity];
         const Icon = style.icon;

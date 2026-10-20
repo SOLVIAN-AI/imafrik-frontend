@@ -228,8 +228,13 @@ export function WorklistView({
       <MetricGrid
         metrics={buildMetrics(sections, now, t, locale, supervising)}
         className="px-4 pb-4 sm:px-6"
+        tour="worklist-metrics"
       />
-      <WorklistFilterBar filters={filters} options={options} />
+      <WorklistFilterBar
+        filters={filters}
+        options={options}
+        tour="worklist-filters"
+      />
       {truncated && (
         <p className="px-4 pb-3 text-xs text-progress sm:px-6">
           {labels.truncated}
@@ -238,7 +243,10 @@ export function WorklistView({
       {/* Compressible à partir de 1024 px seulement : sur téléphone, la
           page défile et le tableau garde sa hauteur naturelle. */}
       <div className="flex flex-col px-4 pb-6 sm:px-6 lg:min-h-0 lg:flex-1">
-        <Panel className="flex flex-col overflow-hidden lg:min-h-0">
+        <Panel
+          className="flex flex-col overflow-hidden lg:min-h-0"
+          tour="worklist-table"
+        >
           <ReadingTable
             groups={
               supervising
