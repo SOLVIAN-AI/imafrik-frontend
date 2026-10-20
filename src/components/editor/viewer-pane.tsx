@@ -2,10 +2,15 @@
 
 import { Archive, ImageOff, Maximize2, Minimize2 } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 import { DateTime } from "@/components/domain/date-time";
 import { SimulatedScan } from "@/components/editor/simulated-scan";
 import { Button } from "@/components/ui/button";
+import {
+  type ViewerSession,
+  useViewerSession,
+} from "@/hooks/use-viewer-session";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
 import { formatCount } from "@/lib/format";
@@ -30,25 +35,41 @@ import { cn } from "@/lib/utils";
  * chargement bloqué. En démonstration, où aucun PACS n'existe, il montre
  * une coupe simulée et signalée comme telle — voir {@link SimulatedScan}.
  *
+ * Le jeton est **prolongé tant que l'examen reste ouvert** (voir
+ * {@link useViewerSession}) : émis pour quinze minutes, il expirait
+ * pendant la rédaction, et le viewer refusait ensuite toute série non
+ * encore chargée (signalé le 21 octobre 2026).
+ *
  * Le cadre est restreint (`sandbox`) à ce dont le viewer a besoin :
  * exécuter ses scripts, appeler son propre serveur, passer en plein
- * écran. Il ne peut ni naviguer la page parente ni ouvrir de fenêtres.
+ * écran, copier dans le presse-papiers (le détail d'une erreur, à
+ * transmettre au support : sans cette permission, le bouton « Copier »
+ * du viewer échouait à son tour). Il ne peut ni naviguer la page parente
+ * ni ouvrir de fenêtres.
  *
  * @param study     Examen affiché, pour la légende sous l'image.
  * @param viewerUrl URL signée du viewer, ou `null` s'il n'est pas encore
  *                  disponible.
+ * @param session   Prolongation et réouverture du jeton.
  */
 export function ViewerPane({
   study,
   viewerUrl,
   demo = false,
+  session,
 }: {
   study: Study;
   viewerUrl: string | null;
   /** Démonstration : aucun PACS n'existe, l'absence d'images est normale. */
   demo?: boolean;
+  session?: ViewerSession;
 }) {
   const labels = useMessages().reading.viewer;
+  const { url, reopened } = useViewerSession(viewerUrl, session);
+  React.useEffect(() => {
+    if (reopened === "ok") toast.info(labels.reopened);
+    if (reopened === "failed") toast.error(labels.reopenFailed);
+  }, [labels, reopened]);
   const locale = useLocale();
   const { pane, fullscreen, inWindow, toggleFullscreen } = useFullscreen();
   return (
@@ -67,12 +88,12 @@ export function ViewerPane({
           d'une lecture diagnostique. Toute autre teinte autour d'une image
           en niveaux de gris en décalerait la perception. */}
       <div className="relative flex min-h-0 flex-1 items-center justify-center">
-        {viewerUrl ? (
+        {url ? (
           <iframe
-            src={viewerUrl}
+            src={url}
             title={labels.frameTitle(study.studyInstanceUid)}
             className="size-full border-0"
-            allow="fullscreen"
+            allow="fullscreen; clipboard-write"
             sandbox="allow-scripts allow-same-origin allow-downloads"
             referrerPolicy="no-referrer"
           />
@@ -114,7 +135,7 @@ export function ViewerPane({
           className={cn("shrink-0", !demo && "ml-auto")}
           // Le volet entier passe en plein écran : la coupe simulée de la
           // démonstration aussi.
-          disabled={!viewerUrl && !demo}
+          disabled={!url && !demo}
           aria-label={
             fullscreen ? labels.closeFullscreen : labels.openFullscreen
           }

@@ -53,11 +53,13 @@ import { useSession } from "@/components/providers/session-provider";
 import { HelpMenu } from "@/components/tour/help-menu";
 import { Button } from "@/components/ui/button";
 import { type SaveOutcome, useAutosave } from "@/hooks/use-autosave";
+import type { ViewerSession } from "@/hooks/use-viewer-session";
 import { WorkspaceSkeleton } from "@/components/editor/workspace-skeleton";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { AppMessages } from "@/i18n";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { ActionResult } from "@/lib/actions/result";
+import { renewViewerToken, reopenViewer } from "@/lib/actions/viewer";
 import {
   claimStudy,
   readDraftVersion,
@@ -253,6 +255,8 @@ export interface WorkspaceAdapter {
   signedActions?: React.ReactNode;
   /** Contenu sous l'éditeur : corrigé, addenda. */
   footer?: React.ReactNode;
+  /** Prolongation du jeton du viewer, pour l'étude de l'exercice. */
+  viewer: ViewerSession;
 }
 
 /**
@@ -917,8 +921,26 @@ export function ReadingWorkspace({
     setKept({ studyId: study.id, url: viewerUrl });
   }
 
+  // Le jeton du viewer est prolongé tant que l'examen reste ouvert : sans
+  // quoi il expirait pendant la rédaction (voir ViewerPane).
+  const adapterViewer = workspace.adapter?.viewer;
+  const viewerSession = React.useMemo<ViewerSession>(
+    () =>
+      adapterViewer ?? {
+        renew: (token) =>
+          renewViewerToken({ kind: "study", studyId: study.id }, token),
+        reopen: () => reopenViewer({ kind: "study", studyId: study.id }),
+      },
+    [adapterViewer, study.id],
+  );
+
   const viewer = (
-    <ViewerPane study={study} viewerUrl={kept.url} demo={isDemo} />
+    <ViewerPane
+      study={study}
+      viewerUrl={kept.url}
+      demo={isDemo}
+      session={viewerSession}
+    />
   );
   const reportSlot = <div ref={setReport} className="h-full min-h-0" />;
 

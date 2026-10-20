@@ -391,6 +391,12 @@ export const reading = {
     unavailableTitle: "Images indisponibles",
     unavailableDetail:
       "Le jeton de visualisation n’a pas pu être obtenu. Actualisez la page ; si le problème persiste, l’examen est peut-être encore en cours de transfert depuis la clinique.",
+    /** Ce qui est indisponible en démonstration. */
+    name: "Le viewer",
+    reopened:
+      "La session des images avait expiré : le viewer a été rouvert sur l’examen.",
+    reopenFailed:
+      "Les images ne peuvent plus être affichées. Actualisez la page pour rouvrir l’examen.",
   },
   /** Coupe simulée de la démonstration. */
   scan: {

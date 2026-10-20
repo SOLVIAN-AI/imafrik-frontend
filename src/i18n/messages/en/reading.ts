@@ -359,6 +359,12 @@ export const reading: AppMessages["reading"] = {
     unavailableTitle: "Images unavailable",
     unavailableDetail:
       "The viewing token could not be obtained. Reload the page; if the problem persists, the examination may still be transferring from the clinic.",
+    /** What is unavailable in the demo. */
+    name: "The viewer",
+    reopened:
+      "The image session had expired: the viewer was reopened on the examination.",
+    reopenFailed:
+      "The images can no longer be displayed. Reload the page to reopen the examination.",
   },
   scan: {
     label: (slice: number, total: number) =>
