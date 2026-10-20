@@ -348,6 +348,24 @@ export const admin: AppMessages["admin"] = {
     saved: "AI features saved.",
   },
 
+  clinicLogo: {
+    title: "Watermark logo",
+    none: "No logo",
+    since: "Set",
+    explanation:
+      "The clinic’s logo is printed large, pale and slightly blurred, in the middle of every page of the signed report, behind the text. Reports already signed keep their logo; a change applies to the next ones.",
+    preview: "Current clinic logo",
+    choose: "Choose a logo",
+    replace: "Replace the logo",
+    remove: "Remove the logo",
+    formats:
+      "PNG, JPEG or WebP, 2 MB at most. A transparent background looks best.",
+    saved: "Logo saved: it will be printed on the next reports.",
+    removed: "Logo removed: the next reports will have no watermark.",
+    tooLarge: "This file is larger than 2 MB.",
+    badType: "Upload a PNG, JPEG or WebP file.",
+    unreadable: "This file could not be read.",
+  },
   reportLanguage: {
     title: "Report language",
     explanation:
@@ -693,6 +711,7 @@ export const admin: AppMessages["admin"] = {
       "organization.pool_changed": "Pool access changed",
       "organization.retention_changed": "Retention period changed",
       "organization.report_language_changed": "Report language changed",
+      "organization.logo_changed": "Report logo changed",
       "organization.contract_ended": "Clinic contract ended",
       "organization.exported": "Organisation data exported",
       "organization.ai_features_changed": "AI features enabled or disabled",
@@ -779,6 +798,7 @@ export const admin: AppMessages["admin"] = {
     confirmAccountNameRequired: "Type the account name to confirm",
   },
   demoActions: {
+    clinicLogo: "The report logo",
     settings: "Changing the settings",
     grant: "Attaching an account",
     tracking: "Following up on requests",

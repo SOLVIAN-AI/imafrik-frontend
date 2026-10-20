@@ -369,6 +369,25 @@ export const admin = {
     saved: "Fonctions d’IA enregistrées.",
   },
 
+  clinicLogo: {
+    title: "Logo en filigrane",
+    none: "Aucun logo",
+    since: "Posé",
+    explanation:
+      "Le logo de la clinique s’imprime en grand, pâle et légèrement flouté, au centre de chaque page du compte-rendu signé, derrière le texte. Les comptes-rendus déjà signés gardent leur logo ; le changement vaut pour les suivants.",
+    preview: "Logo actuel de la clinique",
+    choose: "Choisir un logo",
+    replace: "Remplacer le logo",
+    remove: "Retirer le logo",
+    formats:
+      "PNG, JPEG ou WebP, 2 Mo au plus. Un fond transparent donne le meilleur rendu.",
+    saved: "Logo enregistré : il s’imprimera sur les prochains comptes-rendus.",
+    removed:
+      "Logo retiré : les prochains comptes-rendus n’auront plus de filigrane.",
+    tooLarge: "Ce fichier dépasse 2 Mo.",
+    badType: "Déposez un PNG, un JPEG ou un WebP.",
+    unreadable: "Ce fichier n’a pas pu être lu.",
+  },
   reportLanguage: {
     title: "Langue des comptes-rendus",
     explanation:
@@ -744,6 +763,7 @@ export const admin = {
       "organization.retention_changed": "Durée de conservation modifiée",
       "organization.report_language_changed":
         "Langue des comptes-rendus modifiée",
+      "organization.logo_changed": "Logo des comptes-rendus modifié",
       "organization.contract_ended": "Contrat de la clinique terminé",
       "organization.exported": "Données de l’organisation exportées",
       "organization.ai_features_changed": "Fonctions d’IA activées ou coupées",
@@ -833,6 +853,7 @@ export const admin = {
     confirmAccountNameRequired: "Saisissez le nom du compte pour confirmer",
   },
   demoActions: {
+    clinicLogo: "Le logo des comptes-rendus",
     settings: "La modification des réglages",
     grant: "Le rattachement",
     tracking: "Le suivi des demandes",

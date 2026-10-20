@@ -14,6 +14,7 @@ import {
   auditEntrySchema,
   billingLineSchema,
   clinicDetailSchema,
+  clinicLogoSchema,
   controlAnalyticsSchema,
   controlOverviewSchema,
   pipelineStudySchema,
@@ -663,7 +664,18 @@ export interface ClinicDetail {
    * et sa fiche ne se lit plus qu'en lecture seule.
    */
   contractEndedAt: Date | null;
+  /** Pose du logo imprimé en filigrane des comptes-rendus ; `null` : aucun logo. */
+  logoUpdatedAt: Date | null;
   onboarding: OnboardingStep[];
+}
+
+/** Logo d'une clinique, prêt à afficher. */
+export interface ClinicLogo {
+  /** Image PNG, en URI `data:` (la politique de sécurité l'admet). */
+  src: string;
+  width: number;
+  height: number;
+  updatedAt: Date;
 }
 
 /**
@@ -696,11 +708,34 @@ export async function getClinic(id: string): Promise<ClinicDetail | null> {
     imagesPurged: raw.images_purged,
     reportLanguage: raw.report_language,
     contractEndedAt: toDate(raw.contract_ended_at ?? null),
+    logoUpdatedAt: toDate(raw.logo_updated_at ?? null),
     onboarding: raw.onboarding.map((step) => ({
       key: step.key,
       done: step.done,
       doneAt: toDate(step.done_at),
     })),
+  };
+}
+
+/**
+ * Logo d'une clinique, pour l'aperçu de l'équipe IMAFRIK.
+ *
+ * @returns Le logo normalisé par le service, ou `null` sans logo. La
+ *          démonstration n'en a pas : la rubrique montre son état vide.
+ */
+export async function getClinicLogo(id: string): Promise<ClinicLogo | null> {
+  if (isDemoMode() || !z.guid().safeParse(id).success) return null;
+  const raw = await apiGet(
+    `/admin/clinics/${encodeURIComponent(id)}/logo`,
+    clinicLogoSchema,
+    { notFoundAsNull: true },
+  );
+  if (!raw) return null;
+  return {
+    src: `data:image/png;base64,${raw.image_base64}`,
+    width: raw.width,
+    height: raw.height,
+    updatedAt: new Date(raw.updated_at),
   };
 }
 

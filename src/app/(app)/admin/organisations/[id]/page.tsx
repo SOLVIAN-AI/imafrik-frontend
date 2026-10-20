@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ClinicLogoForm } from "@/components/admin/clinic-logo-form";
 import { ContractPanel } from "@/components/admin/contract-panel";
 import { ControlBody, Figure, Section } from "@/components/admin/control-ui";
 import { FlowList, SegmentLegend } from "@/components/admin/flow-list";
@@ -17,11 +18,13 @@ import {
   type OnboardingStep,
   getAnalytics,
   getClinic,
+  getClinicLogo,
   getPipeline,
 } from "@/lib/data/control";
 import {
   formatBytes,
   formatCount,
+  formatDate,
   formatDayShort,
   formatMinutes,
   formatRate,
@@ -65,9 +68,10 @@ export default async function ClinicPage({
   const clinic = await getClinic(id);
   if (!clinic) notFound();
 
-  const [analytics, recent] = await Promise.all([
+  const [analytics, recent, logo] = await Promise.all([
     getAnalytics(30, clinic.id),
     getPipeline(15, clinic.id),
+    getClinicLogo(clinic.id),
   ]);
   const activity = analytics.byClinic[0];
   const done = clinic.onboarding.filter((step) => step.done).length;
@@ -247,6 +251,20 @@ export default async function ClinicPage({
                 clinicId={clinic.id}
                 language={clinic.reportLanguage}
               />
+            )}
+          </Section>
+          <Section
+            title={t.admin.clinicLogo.title}
+            description={
+              clinic.logoUpdatedAt
+                ? `${t.admin.clinicLogo.since} ${formatDate(clinic.logoUpdatedAt, locale)}`
+                : t.admin.clinicLogo.none
+            }
+          >
+            {ended ? (
+              <ReadOnly text={t.admin.contract.readOnly} />
+            ) : (
+              <ClinicLogoForm clinicId={clinic.id} logo={logo} />
             )}
           </Section>
         </div>

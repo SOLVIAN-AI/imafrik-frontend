@@ -798,6 +798,8 @@ export const clinicDetailSchema = z.object({
   report_language: z.enum(["fr", "en"]),
   // Absent d'une réponse antérieure à la fin de contrat encadrée.
   contract_ended_at: isoDate.nullable().optional(),
+  // Absent d'une réponse antérieure au logo en filigrane.
+  logo_updated_at: isoDate.nullable().optional(),
   onboarding: z.array(
     z.object({
       key: z.enum([
@@ -817,6 +819,18 @@ export const clinicDetailSchema = z.object({
 const _clinicDetail: Matches<
   z.input<typeof clinicDetailSchema>,
   Schemas["ClinicDetail"]
+> = true;
+
+/** Logo d'une clinique, tel qu'il s'imprime en filigrane des comptes-rendus. */
+export const clinicLogoSchema = z.object({
+  image_base64: z.string(),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  updated_at: isoDate,
+});
+const _clinicLogo: Matches<
+  z.input<typeof clinicLogoSchema>,
+  Schemas["ClinicLogo"]
 > = true;
 
 /**
@@ -949,6 +963,7 @@ export const CONTRACT_CHECKS = [
   _userMembership,
   _adminUser,
   _clinicDetail,
+  _clinicLogo,
   _contractEndResult,
   _invitationWelcome,
   _contactTracking,
