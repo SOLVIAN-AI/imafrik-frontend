@@ -3,6 +3,7 @@ import { FinalCta } from "@/components/marketing/cta";
 import { Faq } from "@/components/marketing/faq";
 import { Hero } from "@/components/marketing/hero";
 import { HowItWorks } from "@/components/marketing/how-it-works";
+import { Journey } from "@/components/marketing/journey/journey";
 import { Pricing } from "@/components/marketing/pricing";
 import { SecurityTeaser } from "@/components/marketing/security-teaser";
 import type { Locale } from "@/lib/i18n/locale";
@@ -15,13 +16,21 @@ import type { Locale } from "@/lib/i18n/locale";
  * combien, et les objections. Chacune répond à la question que soulève
  * la précédente.
  *
- * @param locale Langue de la page.
+ * @param locale  Langue de la page.
+ * @param journey Le parcours animé à la place de « Fonctionnement » :
+ *                l'aperçu `/apercu/parcours`, avant sa mise en ligne.
  */
-export function HomePage({ locale }: { locale: Locale }) {
+export function HomePage({
+  locale,
+  journey = false,
+}: {
+  locale: Locale;
+  journey?: boolean;
+}) {
   return (
     <>
       <Hero locale={locale} />
-      <HowItWorks locale={locale} />
+      {journey ? <Journey locale={locale} /> : <HowItWorks locale={locale} />}
       <Audiences locale={locale} />
       <SecurityTeaser locale={locale} />
       <Pricing locale={locale} />

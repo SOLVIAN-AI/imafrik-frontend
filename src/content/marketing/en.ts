@@ -112,6 +112,67 @@ export const en: MarketingCopy = {
     commitmentsNote:
       "Turnaround times are set in the contract and run from receipt of the examination.",
   },
+  journey: {
+    eyebrow: "The journey",
+    title: "From the clinic’s scanner to the signed report",
+    lead: "Follow one examination, from the Kara polyclinic to the radiologist who reads it in Lomé. Nothing travels but the examination.",
+    steps: [
+      {
+        title: "The gateway receives",
+        detail:
+          "The scanner sends the examination to the clinic’s computer, like any destination on its network. The gateway accepts it at once, even when the connection is down.",
+      },
+      {
+        title: "The examination travels",
+        detail:
+          "As soon as the link allows, it leaves compressed and encrypted for the platform. The radiologist receives it wherever they are.",
+      },
+      {
+        title: "A radiologist reads",
+        detail:
+          "The examination enters their list, urgent ones first. Images and report side by side: they scroll through the slices, measure and write.",
+      },
+      {
+        title: "The report comes back",
+        detail:
+          "Signed and locked, it is available to the clinic at once, as a PDF. Its printed code lets anyone check online that it is authentic.",
+      },
+    ],
+    scene: {
+      clinic: "Kara polyclinic",
+      gateway: "IMAFRIK gateway",
+      received: "{count} slices received",
+      offline: "Accepted, even offline",
+      route: "Kara → Lomé · 380 km",
+      compressed: "Compressed",
+      encrypted: "Encrypted",
+      worklist: "To read",
+      byDeadline: "by deadline",
+      urgent: "Urgent",
+      deadline: "22 min left",
+      exam: "CT · Chest",
+      otherRows: [
+        { name: "TETTEH Kossi", exam: "MR · Knee", deadline: "1 h 15 left" },
+        { name: "BOKO Essi", exam: "MG · Breast", deadline: "3 h 40 left" },
+      ],
+      patient: "KOFFI Ama",
+      radiologist: "Dr Adjo Kponton · Lomé",
+      indicationLabel: "Indication",
+      findingsLabel: "Findings",
+      conclusionLabel: "Conclusion",
+      conclusion: "27 mm left pulmonary nodule. Follow-up CT advised.",
+      saved: "Saved",
+      sign: "Sign",
+      signed: "Signed",
+      reportTitle: "Chest CT report",
+      signedOn: "Signed on 21 October 2026",
+      delivered: "Delivered to the clinic",
+      verify: "Verifiable online",
+    },
+    credit:
+      "CT slices: LIDC-IDRI, The Cancer Imaging Archive, CC BY 3.0 licence. Patients, doctor and facilities are fictitious.",
+    creditLink: "Image source",
+  },
   howItWorks: {
     eyebrow: "How it works",
     title: "Three steps, nothing to install on your workstations",

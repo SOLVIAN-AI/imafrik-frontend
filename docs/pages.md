@@ -103,8 +103,32 @@ manipule des données de santé.
 | `/mentions-legales` | Éditeur, hébergeur, directeur de publication. | V1 |
 | `/confidentialite` | Politique de confidentialité et traitement des données de santé. | V1 |
 | `/cgu` | Conditions d'utilisation et contrat de service. | V1 |
+| `/apercu/parcours` | **Aperçu** de l'accueil avec le parcours animé, à valider avant qu'il ne remplace la section « Fonctionnement ». Jamais indexé, absent du plan du site. Voir ci-dessous. | V1 |
 
-**10 écrans**, chacun en français et en anglais pour ce qui est en ligne.
+**10 écrans**, plus l'aperçu, chacun en français et en anglais pour ce qui est en ligne.
+
+### Le parcours animé
+
+Un examen réel suivi de bout en bout, en quatre actes : la passerelle
+de la clinique le reçoit, il traverse vers Lomé compressé et chiffré, un
+radiologue le lit (file, pile de coupes, mesure du nodule, conclusion,
+signature), le compte-rendu signé revient à la clinique.
+
+- **Matière réelle.** Les coupes sont celles d'un scanner thoracique
+  public (LIDC-IDRI-0064, licence CC BY 3.0, crédit affiché sous la
+  section), fenêtre pulmonaire ; la carte du Togo vient de Natural
+  Earth (domaine public).
+- **Trois lectures, une seule scène.** Sur grand écran, l'histoire
+  avance avec le défilement (piste de quatre écrans, scène collante) ;
+  sur téléphone, chaque carte se joue une fois à son arrivée ; avec
+  « moins de mouvement », chaque scène s'affiche achevée. La
+  chorégraphie est faite de fonctions pures
+  (`components/marketing/journey/timeline.ts`), testées sans navigateur.
+- **Performance.** Seules l'opacité et la transformation s'animent ; les
+  coupes ne se chargent qu'à l'approche de la section.
+- **Tests.** `e2e/parcours-anime.spec.ts` : non-indexation, les trois
+  lectures, absence de débordement sur téléphone, audit d'accessibilité
+  des scènes achevées dans les deux thèmes.
 
 ### Version anglaise
 
@@ -121,6 +145,7 @@ son adresse dans sa langue :
 | `/mentions-legales` | `/en/legal-notice` |
 | `/confidentialite` | `/en/privacy` |
 | `/cgu` | `/en/terms` |
+| `/apercu/parcours` | `/en/preview/journey` |
 
 - **Les textes** vivent dans `src/content/marketing/fr.ts` et `en.ts`,
   deux objets du même type (`MarketingCopy`) : une entrée oubliée dans

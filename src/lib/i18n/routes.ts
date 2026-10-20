@@ -29,6 +29,9 @@ const PAGES: readonly { fr: string; en: string; prefix?: true }[] = [
   { fr: "/confidentialite", en: "/en/privacy" },
   { fr: "/mentions-legales", en: "/en/legal-notice" },
   { fr: "/verifier", en: "/en/verify", prefix: true },
+  // Aperçu de la page d'accueil avec le parcours animé, à valider avant
+  // sa mise en ligne. Jamais indexé, absent du plan du site.
+  { fr: "/apercu/parcours", en: "/en/preview/journey" },
 ];
 
 /**

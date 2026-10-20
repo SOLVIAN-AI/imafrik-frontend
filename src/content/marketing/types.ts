@@ -87,6 +87,43 @@ export interface MarketingCopy {
     commitments: { value: string; label: string }[];
     commitmentsNote: string;
   };
+  /** Le parcours d'un examen, animé (components/marketing/journey). */
+  journey: {
+    eyebrow: string;
+    title: string;
+    lead: string;
+    steps: CardCopy[];
+    scene: {
+      clinic: string;
+      gateway: string;
+      received: string;
+      offline: string;
+      route: string;
+      compressed: string;
+      encrypted: string;
+      worklist: string;
+      byDeadline: string;
+      urgent: string;
+      deadline: string;
+      exam: string;
+      otherRows: { name: string; exam: string; deadline: string }[];
+      patient: string;
+      radiologist: string;
+      indicationLabel: string;
+      findingsLabel: string;
+      conclusionLabel: string;
+      conclusion: string;
+      saved: string;
+      sign: string;
+      signed: string;
+      reportTitle: string;
+      signedOn: string;
+      delivered: string;
+      verify: string;
+    };
+    credit: string;
+    creditLink: string;
+  };
   howItWorks: {
     eyebrow: string;
     title: string;

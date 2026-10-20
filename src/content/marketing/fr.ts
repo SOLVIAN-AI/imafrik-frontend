@@ -111,6 +111,68 @@ export const fr: MarketingCopy = {
     commitmentsNote:
       "Délais fixés au contrat, à compter de la réception de l’examen.",
   },
+  journey: {
+    eyebrow: "Le parcours",
+    title: "De la console de la clinique au compte-rendu signé",
+    lead: "Suivez un examen, de la Polyclinique de Kara au radiologue qui le lit à Lomé. Rien ne se déplace, sauf l’examen.",
+    steps: [
+      {
+        title: "La passerelle reçoit",
+        detail:
+          "Le scanner envoie l’examen au poste de la clinique, comme à n’importe quelle destination du réseau. La passerelle l’accepte aussitôt, même si la connexion est coupée.",
+      },
+      {
+        title: "L’examen traverse",
+        detail:
+          "Dès que la liaison le permet, il part compressé et chiffré vers la plateforme. Le radiologue le reçoit où qu’il soit.",
+      },
+      {
+        title: "Un radiologue lit",
+        detail:
+          "L’examen entre dans sa file, les urgences en tête. Images et compte-rendu côte à côte : il parcourt les coupes, mesure et rédige.",
+      },
+      {
+        title: "Le compte-rendu revient",
+        detail:
+          "Signé et verrouillé, il est aussitôt disponible pour la clinique, en PDF. Son code imprimé permet à chacun d’en vérifier l’authenticité en ligne.",
+      },
+    ],
+    scene: {
+      clinic: "Polyclinique de Kara",
+      gateway: "Passerelle IMAFRIK",
+      received: "{count} coupes reçues",
+      offline: "Acceptées, même hors connexion",
+      route: "Kara → Lomé · 380 km",
+      compressed: "Compressé",
+      encrypted: "Chiffré",
+      worklist: "À lire",
+      byDeadline: "par échéance",
+      urgent: "Urgent",
+      deadline: "reste 22 min",
+      exam: "CT · Thorax",
+      otherRows: [
+        { name: "TETTEH Kossi", exam: "MR · Genou", deadline: "reste 1 h 15" },
+        { name: "BOKO Essi", exam: "MG · Sein", deadline: "reste 3 h 40" },
+      ],
+      patient: "KOFFI Ama",
+      radiologist: "Dr Adjo Kponton · Lomé",
+      indicationLabel: "Indication",
+      findingsLabel: "Résultats",
+      conclusionLabel: "Conclusion",
+      conclusion:
+        "Nodule pulmonaire gauche de 27 mm. Contrôle scanographique conseillé.",
+      saved: "Enregistré",
+      sign: "Signer",
+      signed: "Signé",
+      reportTitle: "Compte-rendu de scanner thoracique",
+      signedOn: "Signé le 21/10/2026",
+      delivered: "Remis à la clinique",
+      verify: "Vérifiable en ligne",
+    },
+    credit:
+      "Coupes de scanner : LIDC-IDRI, The Cancer Imaging Archive, licence CC BY 3.0. Patients, médecin et établissements fictifs.",
+    creditLink: "Source des images",
+  },
   howItWorks: {
     eyebrow: "Fonctionnement",
     title: "Trois étapes, rien à installer sur vos postes",
