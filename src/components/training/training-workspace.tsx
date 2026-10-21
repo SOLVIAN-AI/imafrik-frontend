@@ -23,6 +23,7 @@ import {
   saveTrainingDraft,
   submitTraining,
 } from "@/lib/actions/training";
+import { renewViewerToken, reopenViewer } from "@/lib/actions/viewer";
 import type { TrainingAttempt } from "@/lib/data/training";
 import { clearReportBackup } from "@/lib/editor/backup";
 import { ADDENDUM_MAX_LENGTH } from "@/lib/editor/payload";
@@ -89,6 +90,10 @@ export function TrainingWorkspace({
             onChanged={() => router.refresh()}
           />
         ) : null,
+      viewer: {
+        renew: (token) => renewViewerToken({ kind: "training", slug }, token),
+        reopen: () => reopenViewer({ kind: "training", slug }),
+      },
     }),
     [attempt, preview, router, signed, slug, t, title],
   );

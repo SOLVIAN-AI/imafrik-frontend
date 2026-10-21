@@ -141,6 +141,14 @@ const _viewer: Matches<
   Schemas["ViewerToken"]
 > = true;
 
+export const viewerTokenRenewedSchema = z.object({
+  expires_in: z.number().int(),
+});
+const _viewerRenewed: Matches<
+  z.input<typeof viewerTokenRenewedSchema>,
+  Schemas["ViewerTokenRenewed"]
+> = true;
+
 export const pdfLinkSchema = z.object({
   url: browserUrl,
   expires_in: z.number().int(),
@@ -933,6 +941,7 @@ export const CONTRACT_CHECKS = [
   _studyPage,
   _report,
   _viewer,
+  _viewerRenewed,
   _pdf,
   _trainingSource,
   _trainingCase,

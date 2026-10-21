@@ -1995,6 +1995,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/studies/{study_id}/viewer-token/renew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Prolonger le jeton du viewer
+         * @description Prolonge le jeton du viewer tant que l'examen reste ouvert.
+         *
+         *     Le droit de voir l'étude est revérifié à chaque prolongation, comme à
+         *     l'émission : un membre retiré, une accréditation retirée ou une
+         *     clinique suspendue ne prolongent plus rien. Le geste n'est pas
+         *     journalisé : l'ouverture l'a été (``study.viewed``), et une
+         *     prolongation toutes les cinq minutes noierait le journal.
+         *
+         *     Args:
+         *         study_id: Examen ouvert.
+         *         body: Jeton à prolonger.
+         *         principal: Appelant, titulaire du jeton.
+         *
+         *     Returns:
+         *         La nouvelle durée de vie du jeton.
+         *
+         *     Raises:
+         *         NotFound: Examen hors du périmètre de l'appelant, ou jeton
+         *             inconnu, expiré, à un autre ou au terme de sa durée de vie :
+         *             le portail en demande alors un nouveau.
+         *         Conflict: Images archivées depuis l'ouverture.
+         */
+        post: operations["renew_viewer_token_studies__study_id__viewer_token_renew_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/templates": {
         parameters: {
             query?: never;
@@ -2352,6 +2392,42 @@ export interface paths {
          *         NotFound: Aucun cas publié de ce nom.
          */
         post: operations["viewer_token_training_cases__slug__viewer_token_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/training/cases/{slug}/viewer-token/renew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Prolonger le jeton du viewer d'un exercice
+         * @description Prolonge le jeton du viewer tant que l'exercice reste ouvert.
+         *
+         *     Même règle que pour un vrai examen (voir
+         *     ``studies.renew_viewer_token``) : le cas doit rester à la portée de
+         *     l'appelant, le jeton être le sien et pour l'étude du cas.
+         *
+         *     Args:
+         *         slug: Nom court du cas.
+         *         body: Jeton à prolonger.
+         *         principal: Radiologue ou membre de l'équipe IMAFRIK.
+         *
+         *     Returns:
+         *         La nouvelle durée de vie du jeton.
+         *
+         *     Raises:
+         *         NotFound: Cas hors de portée, ou jeton inconnu, expiré, à un
+         *             autre ou au terme de sa durée de vie.
+         */
+        post: operations["renew_viewer_token_training_cases__slug__viewer_token_renew_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4942,6 +5018,28 @@ export interface components {
             /** Viewer Url */
             viewer_url: string;
         };
+        /**
+         * ViewerTokenRenewal
+         * @description Jeton de visualisation à prolonger.
+         *
+         *     Attributes:
+         *         token: Jeton reçu à l'ouverture de l'étude.
+         */
+        ViewerTokenRenewal: {
+            /** Token */
+            token: string;
+        };
+        /**
+         * ViewerTokenRenewed
+         * @description Résultat d'une prolongation.
+         *
+         *     Attributes:
+         *         expires_in: Nouvelle durée de vie restante, en secondes.
+         */
+        ViewerTokenRenewed: {
+            /** Expires In */
+            expires_in: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -7209,6 +7307,43 @@ export interface operations {
             };
         };
     };
+    renew_viewer_token_studies__study_id__viewer_token_renew_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewerTokenRenewal"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewerTokenRenewed"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_templates_templates_get: {
         parameters: {
             query?: {
@@ -7603,6 +7738,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ViewerToken"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    renew_viewer_token_training_cases__slug__viewer_token_renew_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewerTokenRenewal"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewerTokenRenewed"];
                 };
             };
             /** @description Validation Error */
