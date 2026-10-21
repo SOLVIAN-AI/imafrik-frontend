@@ -2,6 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AssignDialog } from "@/components/admin/assign-dialog";
 import { Segmented } from "@/components/admin/control-ui";
 import { StudyAge } from "@/components/domain/study-age";
 import {
@@ -22,6 +23,13 @@ import { requireSession } from "@/lib/session/server";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getMessages } from "@/i18n/server";
+
+/** Un examen s'attribue tant que son compte-rendu n'est pas signé. */
+function isAssignable(status: string): boolean {
+  return (
+    status === "received" || status === "assigned" || status === "in_progress"
+  );
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getMessages()).t.admin.studies.metaTitle };
@@ -157,6 +165,13 @@ export default async function AdminStudiesPage({
                     muted={study.status === "delivered"}
                   />
                   <StudyStatusChip status={study.status} />
+                  {isAssignable(study.status) && (
+                    <AssignDialog
+                      studyId={study.id}
+                      patient={formatPatientName(study.patientName)}
+                      compact
+                    />
+                  )}
                 </div>
               </li>
             ))}
@@ -166,7 +181,7 @@ export default async function AdminStudiesPage({
             <table className="w-full border-separate border-spacing-0 text-sm">
               <thead className="sticky top-0 z-10">
                 <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
-                  <th scope="col" className="w-[24%]">
+                  <th scope="col" className="w-[22%]">
                     <span className="label-eyebrow">
                       {text.columns.patient}
                     </span>
@@ -182,7 +197,7 @@ export default async function AdminStudiesPage({
                   <th scope="col" className="w-[14%]">
                     <span className="label-eyebrow">{text.columns.status}</span>
                   </th>
-                  <th scope="col" className="w-[14%]">
+                  <th scope="col" className="w-[16%]">
                     <span className="label-eyebrow">
                       {text.columns.radiologist}
                     </span>
@@ -243,10 +258,21 @@ export default async function AdminStudiesPage({
                       <StudyStatusChip status={study.status} />
                     </td>
 
-                    <td className="truncate text-secondary">
-                      {study.assignedToName ?? (
-                        <span className="text-tertiary">—</span>
-                      )}
+                    <td>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-secondary">
+                          {study.assignedToName ?? (
+                            <span className="text-tertiary">—</span>
+                          )}
+                        </span>
+                        {isAssignable(study.status) && (
+                          <AssignDialog
+                            studyId={study.id}
+                            patient={formatPatientName(study.patientName)}
+                            compact
+                          />
+                        )}
+                      </div>
                     </td>
 
                     <td>

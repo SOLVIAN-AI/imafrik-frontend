@@ -528,6 +528,40 @@ export const admin: AppMessages["admin"] = {
     },
   },
 
+  /** Assignment of an examination to a radiologist by the team. */
+  assign: {
+    trigger: "Assign",
+    triggerLabel: (patient: string) => `Assign ${patient}’s examination`,
+    title: "Assign the examination",
+    description:
+      "The chosen radiologist finds it in “My examinations”; only they can take it on, and they are notified by email.",
+    current: "Current holder",
+    currentSince: "assigned on",
+    claimedByRadiologist: "taken on by the radiologist",
+    nobody: "Nobody: the examination is in the shared queue.",
+    candidates: "Radiologists who would see this examination",
+    noCandidates:
+      "No credentialed radiologist reads this clinic’s examinations: check the affiliations and the service contract.",
+    pool: "Freelance",
+    clinicRadiologist: "Clinic radiologist",
+    load: (count: number) =>
+      count === 0
+        ? "No examination in progress"
+        : `${count} examination${count > 1 ? "s" : ""} in progress`,
+    draftWarning: (name: string) =>
+      `${name} has started writing this report. Their draft will be discarded.`,
+    confirmDraft: "Understood: discard the draft",
+    submit: "Assign",
+    reassign: "Reassign",
+    release: "Return to the queue",
+    assigned: (name: string) => `Examination assigned to ${name}.`,
+    assignedNotNotified: (name: string) =>
+      `Examination assigned to ${name}. The email was not sent: let them know directly.`,
+    released: "Examination returned to the shared queue.",
+    signed: "Report signed: the examination can no longer be assigned.",
+    loading: "Loading radiologists…",
+  },
+
   grant: {
     trigger: "Attach",
     title: (name: string) => `Attach ${name}`,
@@ -697,6 +731,8 @@ export const admin: AppMessages["admin"] = {
       "study.viewed": "Examination viewed",
       "study.claimed": "Examination claimed",
       "study.released": "Examination returned to the pool",
+      "study.assigned": "Examination assigned to a radiologist",
+      "study.unassigned": "Examination returned to the queue",
       "study.updated": "Urgency or clinical information changed",
       "study.images_purged": "Images purged from the PACS",
       "report.signed": "Report signed",
@@ -798,6 +834,7 @@ export const admin: AppMessages["admin"] = {
     confirmAccountNameRequired: "Type the account name to confirm",
   },
   demoActions: {
+    assignment: "Assigning examinations",
     clinicLogo: "The report logo",
     settings: "Changing the settings",
     grant: "Attaching an account",

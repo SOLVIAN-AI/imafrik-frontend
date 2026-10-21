@@ -536,6 +536,52 @@ export interface paths {
         patch: operations["update_settings_admin_settings_patch"];
         trace?: never;
     };
+    "/admin/studies/{study_id}/assignment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Attribution d'un examen
+         * @description Titulaire de l'examen et radiologues à qui l'attribuer.
+         *
+         *     Raises:
+         *         NotFound: Examen introuvable.
+         */
+        get: operations["get_assignment_admin_studies__study_id__assignment_get"];
+        /**
+         * Attribuer un examen à un radiologue
+         * @description Réserve l'examen au radiologue choisi, et le prévient.
+         *
+         *     Réattribuer à son titulaire actuel ne change rien et ne renvoie pas de
+         *     courriel. Réattribuer un examen en cours de rédaction efface le
+         *     brouillon du titulaire précédent, sur confirmation seulement.
+         *
+         *     Raises:
+         *         NotFound: Examen introuvable.
+         *         Conflict: Compte-rendu déjà signé, ou brouillon en cours sans
+         *             confirmation.
+         *         Unprocessable: Le radiologue ne verrait pas l'examen.
+         */
+        put: operations["assign_admin_studies__study_id__assignment_put"];
+        post?: never;
+        /**
+         * Remettre un examen dans la file
+         * @description Rend l'examen à la file commune, ouvert à tous les radiologues éligibles.
+         *
+         *     Raises:
+         *         NotFound: Examen introuvable.
+         *         Conflict: Compte-rendu déjà signé, ou brouillon en cours sans
+         *             confirmation.
+         */
+        delete: operations["unassign_admin_studies__study_id__assignment_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/system": {
         parameters: {
             query?: never;
@@ -2795,6 +2841,94 @@ export interface components {
             outcome: "kept" | "deleted";
         };
         /**
+         * AssignmentCandidate
+         * @description Radiologue à qui l'examen peut être attribué.
+         *
+         *     Attributes:
+         *         profile_id: Profil du radiologue.
+         *         name: Titre et nom.
+         *         organization_name: Clinique ou groupe par lequel il lit l'examen.
+         *         via_pool: Vrai pour un libéral, qui lit par un groupe sous contrat.
+         *         open_studies: Examens qu'il détient déjà sans les avoir signés.
+         */
+        AssignmentCandidate: {
+            /** Name */
+            name: string;
+            /** Open Studies */
+            open_studies: number;
+            /** Organization Name */
+            organization_name: string;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /** Via Pool */
+            via_pool: boolean;
+        };
+        /**
+         * AssignmentRequest
+         * @description Attribution ou réattribution d'un examen.
+         *
+         *     Attributes:
+         *         radiologist_id: Radiologue choisi.
+         *         discard_draft: Confirme l'effacement du brouillon du titulaire
+         *             actuel, quand il en a commencé un.
+         */
+        AssignmentRequest: {
+            /**
+             * Discard Draft
+             * @default false
+             */
+            discard_draft: boolean;
+            /**
+             * Radiologist Id
+             * Format: uuid
+             */
+            radiologist_id: string;
+        };
+        /**
+         * AssignmentState
+         * @description Attribution d'un examen, telle qu'elle est.
+         *
+         *     Attributes:
+         *         study_id: Examen.
+         *         status: Étape du cycle de vie.
+         *         assigned_to: Titulaire, s'il y en a un.
+         *         assigned_to_name: Son nom.
+         *         assigned_at: Instant de l'attribution par l'équipe ; nul quand le
+         *             radiologue a pris l'examen en charge lui-même.
+         *         draft_in_progress: Vrai si le titulaire a commencé à rédiger : une
+         *             réattribution effacerait son texte.
+         *         candidates: Radiologues éligibles, les moins chargés d'abord.
+         *         notified: Après une attribution, vrai si le radiologue a été
+         *             prévenu par courriel ; nul en lecture.
+         */
+        AssignmentState: {
+            /** Assigned At */
+            assigned_at: string | null;
+            /** Assigned To */
+            assigned_to: string | null;
+            /** Assigned To Name */
+            assigned_to_name: string | null;
+            /** Candidates */
+            candidates: components["schemas"]["AssignmentCandidate"][];
+            /** Draft In Progress */
+            draft_in_progress: boolean;
+            /** Notified */
+            notified?: boolean | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "received" | "assigned" | "in_progress" | "reported" | "delivered";
+            /**
+             * Study Id
+             * Format: uuid
+             */
+            study_id: string;
+        };
+        /**
          * AuditEntry
          * @description Une ligne du journal d'audit.
          */
@@ -4381,6 +4515,8 @@ export interface components {
          *         priority: Routine ou urgence.
          *         assigned_to: Radiologue qui a pris l'examen en charge.
          *         assigned_to_name: Son nom, quand l'appelant a le droit de le voir.
+         *         assigned_at: Instant de l'attribution par l'équipe IMAFRIK ; nul
+         *             quand le radiologue a pris l'examen en charge lui-même.
          *         clinical_info: Renseignement clinique saisi par la clinique.
          *         received_at: Arrivée sur la plateforme.
          *         reported_at: Signature du compte-rendu, s'il l'est.
@@ -4398,6 +4534,8 @@ export interface components {
          *             contrôle.
          */
         Study: {
+            /** Assigned At */
+            assigned_at?: string | null;
             /** Assigned To */
             assigned_to: string | null;
             /** Assigned To Name */
@@ -5087,7 +5225,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.assigned" | "study.unassigned" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -5799,6 +5937,111 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlatformSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_assignment_admin_studies__study_id__assignment_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assign_admin_studies__study_id__assignment_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unassign_admin_studies__study_id__assignment_delete: {
+        parameters: {
+            query?: {
+                discard_draft?: boolean;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentState"];
                 };
             };
             /** @description Validation Error */

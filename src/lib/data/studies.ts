@@ -51,6 +51,12 @@ export interface Study {
   assignedTo: string | null;
   /** Son nom, quand l'utilisateur a le droit de le voir. */
   assignedToName: string | null;
+  /**
+   * Attribution par l'équipe IMAFRIK : l'examen est réservé à son
+   * titulaire. `null` ou absent : pris en charge par le radiologue
+   * lui-même, ou libre.
+   */
+  assignedAt?: Date | null;
   /** Compte-rendu visible par l'utilisateur, s'il existe. */
   reportId: string | null;
   /** Date de signature du compte-rendu. */
@@ -97,6 +103,7 @@ function toStudy(row: ApiStudy): Study {
     receivedAt: new Date(row.received_at),
     assignedTo: row.assigned_to,
     assignedToName: row.assigned_to_name,
+    assignedAt: row.assigned_at ? new Date(row.assigned_at) : null,
     reportId: row.report_id,
     reportedAt: row.reported_at ? new Date(row.reported_at) : null,
     reportedBy: row.reported_by_name,
