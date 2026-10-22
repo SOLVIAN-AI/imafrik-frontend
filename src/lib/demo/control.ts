@@ -1,5 +1,6 @@
 import type {
   ApiAdminUser,
+  ApiAssignmentState,
   ApiCredentialDocument,
   ApiContactRequest,
   ApiAuditEntry,
@@ -13,7 +14,11 @@ import type {
   ApiSystemStatus,
 } from "@/lib/api/contracts";
 import { quantile } from "@/lib/charts";
-import { DEMO_CLINIC_IDS, DEMO_RADIOLOGISTS } from "@/lib/demo/studies";
+import {
+  DEMO_CLINIC_IDS,
+  DEMO_RADIOLOGISTS,
+  DEMO_STUDIES,
+} from "@/lib/demo/studies";
 import { messagesFor } from "@/i18n";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 
@@ -1353,4 +1358,44 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
       created_at: at(310),
     },
   ];
+}
+
+/**
+ * Attribution d'un examen de démonstration : son titulaire, et les
+ * radiologues du groupe, les moins chargés d'abord.
+ *
+ * Tous lisent par le groupe sous contrat, comme les libéraux : la
+ * démonstration n'a pas de radiologue propre à une clinique.
+ *
+ * @param studyId Examen de démonstration.
+ * @returns L'état, ou `null` pour un examen inconnu.
+ */
+export function demoAssignment(studyId: string): ApiAssignmentState | null {
+  const study = DEMO_STUDIES.find((candidate) => candidate.id === studyId);
+  if (!study) return null;
+  const open = (id: string) =>
+    DEMO_STUDIES.filter(
+      (other) =>
+        other.assignedTo === id &&
+        (other.status === "assigned" || other.status === "in_progress"),
+    ).length;
+  const holder = READERS.find((reader) => reader.id === study.assignedTo);
+  return {
+    study_id: study.id,
+    status: study.status,
+    assigned_to: study.assignedTo,
+    assigned_to_name: holder ? `${holder.title} ${holder.name}` : null,
+    assigned_at: null,
+    draft_in_progress: study.status === "in_progress",
+    candidates: READERS.map((reader) => ({
+      profile_id: reader.id,
+      name: `${reader.title} ${reader.name}`,
+      organization_name: DEMO_GROUP.name,
+      via_pool: true,
+      open_studies: open(reader.id),
+    })).sort(
+      (a, b) => a.open_studies - b.open_studies || a.name.localeCompare(b.name),
+    ),
+    notified: null,
+  };
 }

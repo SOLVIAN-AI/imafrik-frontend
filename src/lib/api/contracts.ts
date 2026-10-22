@@ -74,6 +74,8 @@ export const studySchema = z.object({
   priority: z.enum(["routine", "urgent"]),
   assigned_to: uuid.nullable(),
   assigned_to_name: z.string().nullable(),
+  // Absent d'une réponse antérieure à l'attribution par l'équipe.
+  assigned_at: isoDate.nullable().optional(),
   clinical_info: z.string().nullable(),
   received_at: isoDate,
   reported_at: isoDate.nullable(),
@@ -85,6 +87,29 @@ export const studySchema = z.object({
   due_at: isoDate,
 });
 const _study: Matches<z.input<typeof studySchema>, Schemas["Study"]> = true;
+
+export const assignmentStateSchema = z.object({
+  study_id: uuid,
+  status: studyStatusSchema,
+  assigned_to: uuid.nullable(),
+  assigned_to_name: z.string().nullable(),
+  assigned_at: isoDate.nullable(),
+  draft_in_progress: z.boolean(),
+  candidates: z.array(
+    z.object({
+      profile_id: uuid,
+      name: z.string(),
+      organization_name: z.string(),
+      via_pool: z.boolean(),
+      open_studies: z.number().int(),
+    }),
+  ),
+  notified: z.boolean().nullable().optional(),
+});
+const _assignment: Matches<
+  z.input<typeof assignmentStateSchema>,
+  Schemas["AssignmentState"]
+> = true;
 
 export const studyPageSchema = z.object({
   items: z.array(studySchema),
@@ -938,6 +963,7 @@ export const CONTRACT_CHECKS = [
   _aiReview,
   _aiFeatures,
   _study,
+  _assignment,
   _studyPage,
   _report,
   _viewer,
@@ -982,6 +1008,7 @@ export const CONTRACT_CHECKS = [
 ] as const;
 
 export type ApiStudy = z.output<typeof studySchema>;
+export type ApiAssignmentState = z.output<typeof assignmentStateSchema>;
 export type ApiReport = z.output<typeof reportSchema>;
 export type ApiAddendum = z.output<typeof addendumSchema>;
 export type ApiTrainingCase = z.output<typeof trainingCaseSchema>;

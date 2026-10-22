@@ -565,6 +565,40 @@ export const admin = {
   },
 
   /** Rattachement d'un compte à une organisation. */
+  /** Attribution d'un examen à un radiologue par l'équipe. */
+  assign: {
+    trigger: "Attribuer",
+    triggerLabel: (patient: string) => `Attribuer l’examen de ${patient}`,
+    title: "Attribuer l’examen",
+    description:
+      "Le radiologue choisi le trouve dans « Mes examens » ; lui seul peut le prendre en charge, et il est prévenu par courriel.",
+    current: "Titulaire actuel",
+    currentSince: "attribué le",
+    claimedByRadiologist: "pris en charge par le radiologue",
+    nobody: "Personne : l’examen est dans la file commune.",
+    candidates: "Radiologues qui verraient cet examen",
+    noCandidates:
+      "Aucun radiologue habilité ne lit les examens de cette clinique : vérifiez les rattachements et le contrat de service.",
+    pool: "Libéral",
+    clinicRadiologist: "Radiologue de la clinique",
+    load: (count: number) =>
+      count === 0
+        ? "Aucun examen en cours"
+        : `${count} examen${count > 1 ? "s" : ""} en cours`,
+    draftWarning: (name: string) =>
+      `${name} a commencé à rédiger ce compte-rendu. Son brouillon sera effacé.`,
+    confirmDraft: "J’ai compris : effacer le brouillon",
+    submit: "Attribuer",
+    reassign: "Réattribuer",
+    release: "Remettre dans la file",
+    assigned: (name: string) => `Examen attribué à ${name}.`,
+    assignedNotNotified: (name: string) =>
+      `Examen attribué à ${name}. Le courriel n’est pas parti : prévenez-le directement.`,
+    released: "Examen remis dans la file commune.",
+    signed: "Compte-rendu signé : l’examen ne s’attribue plus.",
+    loading: "Chargement des radiologues…",
+  },
+
   grant: {
     trigger: "Rattacher",
     title: (name: string) => `Rattacher ${name}`,
@@ -748,6 +782,8 @@ export const admin = {
       "study.viewed": "Examen consulté",
       "study.claimed": "Examen pris en charge",
       "study.released": "Examen rendu au pool",
+      "study.assigned": "Examen attribué à un radiologue",
+      "study.unassigned": "Examen remis dans la file",
       "study.updated": "Urgence ou renseignement clinique modifié",
       "study.images_purged": "Images purgées du PACS",
       "report.signed": "Compte-rendu signé",
@@ -853,6 +889,7 @@ export const admin = {
     confirmAccountNameRequired: "Saisissez le nom du compte pour confirmer",
   },
   demoActions: {
+    assignment: "L’attribution des examens",
     clinicLogo: "Le logo des comptes-rendus",
     settings: "La modification des réglages",
     grant: "Le rattachement",
