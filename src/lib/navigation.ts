@@ -1,5 +1,6 @@
 import type { NavIconKey } from "@/components/layout/sidebar";
 import type { AppMessages } from "@/i18n";
+import { isPublicSitePath } from "@/lib/i18n/routes";
 import type { UserRole } from "@/lib/session/types";
 
 /** Clé d'une entrée de navigation ; son libellé dépend de la langue. */
@@ -302,22 +303,21 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
 const SHARED_ROUTES = ["/bienvenue", "/invitation", "/nouveau-mot-de-passe"];
 
 /**
- * Adresses accessibles sans session.
+ * Adresses accessibles sans session, en plus des pages du site public.
  *
  * Tout le reste est protégé par défaut. C'est le bon sens de la liste
  * blanche : ajouter un écran ne doit pas pouvoir l'exposer par oubli, et
  * dans une application qui manipule des données de santé, l'oubli se
  * paie cher.
+ *
+ * Les pages du site public, elles, ne sont pas répétées ici : elles
+ * viennent de leur liste unique (`PAGES`, `lib/i18n/routes.ts`), dans
+ * chaque langue. Répétées, l'une avait été oubliée : `/apercu/parcours`
+ * menait à la connexion en production (22 octobre 2026).
  */
 const PUBLIC_ROUTES = [
-  "/",
-  "/securite",
-  "/contact",
-  "/mentions-legales",
-  "/confidentialite",
-  "/cgu",
-  "/verifier",
-  // Le site public en anglais : uniquement des pages de vitrine.
+  // Le site public en anglais : uniquement des pages de vitrine. Une
+  // adresse inconnue y répond par la page introuvable, sans connexion.
   "/en",
   "/connexion",
   "/mot-de-passe-oublie",
@@ -343,7 +343,10 @@ function under(pathname: string, root: string): boolean {
  * @param pathname Adresse demandée.
  */
 export function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some((route) => under(pathname, route));
+  return (
+    isPublicSitePath(pathname) ||
+    PUBLIC_ROUTES.some((route) => under(pathname, route))
+  );
 }
 
 /**
