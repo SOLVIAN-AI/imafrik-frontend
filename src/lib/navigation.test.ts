@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { publicSitePaths } from "@/lib/i18n/routes";
 import {
   homeFor,
   isActive,
@@ -23,6 +24,16 @@ describe("isPublicRoute", () => {
     }
   });
 
+  it("ouvre chaque page du site public, dans chaque langue", () => {
+    // Une page ajoutée au site l'est aussi ici : `/apercu/parcours` menait
+    // à la connexion quand la liste était tenue en double.
+    const pages = publicSitePaths();
+    expect(pages).toContain("/apercu/parcours");
+    for (const path of pages) {
+      expect(isPublicRoute(path), path).toBe(true);
+    }
+  });
+
   it("protège tout le reste, y compris les préfixes trompeurs", () => {
     for (const path of [
       "/worklist",
@@ -30,6 +41,8 @@ describe("isPublicRoute", () => {
       "/admin",
       "/contactez",
       "/verifierx",
+      "/apercu",
+      "/apercu/parcoursx",
       // L'accueil d'un invité exige la session ouverte par son lien.
       "/invitation",
     ]) {

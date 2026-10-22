@@ -177,6 +177,11 @@ export const BILINGUAL_SCREENS: readonly string[] = [
 ];
 
 /** Vrai si le chemin est une page du site public, dans l'une ou l'autre langue. */
+/** Adresses de toutes les pages du site public, dans chaque langue. */
+export function publicSitePaths(): string[] {
+  return PAGES.flatMap((page) => LOCALES.map((locale) => page[locale]));
+}
+
 export function isPublicSitePath(pathname: string): boolean {
   return LOCALES.some((locale) => findPage(pathname, locale) !== null);
 }
