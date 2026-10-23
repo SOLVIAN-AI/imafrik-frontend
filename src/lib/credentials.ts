@@ -99,6 +99,30 @@ export function daysUntil(
 export const RENEWAL_NOTICE_DAYS = 30;
 
 /**
+ * Jours restants si une date de fin saisie est anormalement proche,
+ * sinon `null`.
+ *
+ * Une attestation d'inscription vaut une année universitaire : une fin
+ * dans moins d'un mois est rare, et le plus souvent une erreur de
+ * saisie. Le 17 octobre 2026, une attestation déposée et acceptée « jusqu'au
+ * 18/10/2026 » a fermé l'accès d'un résident deux jours plus tard. Le seuil
+ * est celui du rappel de renouvellement : en deçà, le rappel partirait
+ * aussitôt.
+ *
+ * @param validUntil Date de fin saisie (`AAAA-MM-JJ`), ou vide.
+ * @param today      Date du jour (`AAAA-MM-JJ`).
+ * @returns Les jours restants (0 le dernier jour), ou `null` si la date
+ *          est absente, passée ou assez lointaine.
+ */
+export function shortValidity(
+  validUntil: string | null,
+  today: string,
+): number | null {
+  const days = daysUntil(validUntil || null, today);
+  return days !== null && days >= 0 && days < RENEWAL_NOTICE_DAYS ? days : null;
+}
+
+/**
  * Normalise un numéro d'ordre saisi : espaces de bord retirés.
  *
  * @param value Saisie brute.

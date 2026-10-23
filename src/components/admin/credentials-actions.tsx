@@ -4,7 +4,11 @@ import { ExternalLink, FileSearch, ShieldOff } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
-import { formatDay, todayIso } from "@/components/credentials/document-upload";
+import {
+  formatDay,
+  ShortValidityWarning,
+  todayIso,
+} from "@/components/credentials/document-upload";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,7 +26,11 @@ import {
   loadCredentialDocuments,
   viewCredentialDocument,
 } from "@/lib/actions/control";
-import { type PracticeStatus, REQUIRED_DOCUMENT } from "@/lib/credentials";
+import {
+  type PracticeStatus,
+  REQUIRED_DOCUMENT,
+  shortValidity,
+} from "@/lib/credentials";
 import type { CredentialDocument } from "@/lib/data/credentials";
 import { formatBytes, formatDate } from "@/lib/format";
 
@@ -84,6 +92,14 @@ export function CredentialReview({
     null,
   );
   const [validUntil, setValidUntil] = React.useState("");
+  // Fin à moins d'un mois : l'habilitation attend que la date soit
+  // confirmée, relue sur le document (le 17 octobre 2026, « jusqu'au
+  // lendemain » avait été accepté tel quel).
+  const [shortConfirmed, setShortConfirmed] = React.useState(false);
+  const short =
+    practiceStatus === "resident"
+      ? shortValidity(validUntil, todayIso())
+      : null;
   const [rejecting, setRejecting] = React.useState(false);
   const [reason, setReason] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
@@ -107,6 +123,7 @@ export function CredentialReview({
       setDocuments(result.data);
       const current = documentUnderReview(result.data, practiceStatus);
       setValidUntil(current?.validUntil ?? "");
+      setShortConfirmed(false);
     });
   };
 
@@ -252,9 +269,29 @@ export function CredentialReview({
                 className="sm:max-w-56"
                 value={validUntil}
                 min={todayIso()}
-                onChange={(event) => setValidUntil(event.target.value)}
+                onChange={(event) => {
+                  setValidUntil(event.target.value);
+                  setShortConfirmed(false);
+                }}
                 suppressHydrationWarning
               />
+              <ShortValidityWarning
+                days={short}
+                message={text.review.validUntilShort}
+              />
+              {short !== null && (
+                <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs font-medium">
+                  <input
+                    type="checkbox"
+                    checked={shortConfirmed}
+                    onChange={(event) =>
+                      setShortConfirmed(event.target.checked)
+                    }
+                    className="size-3.5 accent-[var(--accent)]"
+                  />
+                  {text.review.validUntilShortConfirm}
+                </label>
+              )}
             </Field>
           )}
           {practiceStatus === "resident" && document?.validUntil && (
@@ -317,7 +354,8 @@ export function CredentialReview({
                 loading={pending}
                 disabled={
                   (practiceStatus === "registered" && !number) ||
-                  (practiceStatus === "resident" && !validUntil)
+                  (practiceStatus === "resident" && !validUntil) ||
+                  (short !== null && !shortConfirmed)
                 }
                 onClick={() => decide("verify")}
               >

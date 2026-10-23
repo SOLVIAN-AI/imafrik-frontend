@@ -540,6 +540,10 @@ export const admin = {
       validUntil: "Date de fin lue sur l’attestation",
       validUntilHint:
         "Corrigez-la si elle diffère de celle déclarée. L’accès se ferme le lendemain.",
+      /** Fin à moins d'un mois : à confirmer avant d'habiliter. */
+      validUntilShort: (days: number) =>
+        `L’accès se fermerait ${days === 0 ? "dès demain" : `dans ${days + 1} jours`} : une attestation vaut d’ordinaire une année universitaire.`,
+      validUntilShortConfirm: "J’ai vérifié cette date sur l’attestation",
       accept: "Accepter et habiliter",
       accepted: (name: string) =>
         `${name} est habilité : son accès aux examens est ouvert.`,

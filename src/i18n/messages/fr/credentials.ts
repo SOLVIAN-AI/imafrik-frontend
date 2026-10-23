@@ -111,6 +111,9 @@ export const credentials = {
     validUntilRequired: "Indiquez la date de fin de votre attestation.",
     validUntilPast:
       "Cette date est passée : déposez votre attestation la plus récente.",
+    /** Fin à moins d'un mois : avertissement, sans bloquer. */
+    validUntilShort: (days: number) =>
+      `Votre accès se fermerait ${days === 0 ? "dès demain" : `dans ${days + 1} jours`} : vérifiez la date imprimée sur votre attestation.`,
     history: "Vos dépôts",
     uploadedOn: (date: string) => `Déposé le ${date}`,
     validUntilOn: (date: string) => `Valable jusqu’au ${date}`,
