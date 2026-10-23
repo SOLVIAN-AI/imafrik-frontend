@@ -26,7 +26,7 @@ const STATE_STYLES: Record<TrainingCase["state"], string> = {
 /**
  * Espace de formation : la liste des exercices.
  *
- * Trois examens réels anonymisés, à lire et rédiger dans le vrai écran de
+ * Des examens réels anonymisés, à lire et rédiger dans le vrai écran de
  * lecture, sans patient ni clinique (docs/formation.md du backend). La
  * liste dit d'abord le parcours, puis chaque cas avec son état et sa
  * source, citée comme la licence l'exige.
@@ -50,7 +50,10 @@ export default async function TrainingPage() {
         description={labels.page.description}
       />
 
-      <div className="flex flex-col gap-6 px-4 pb-8 sm:px-6">
+      {/* La zone défile : le cadre de l'application tient dans l'écran et
+          masque ce qui dépasse. Sans elle, les derniers cas étaient coupés,
+          sans défilement possible (signalé le 23 octobre 2026). */}
+      <div className="min-h-0 flex-1 space-y-6 overflow-auto px-4 pb-8 sm:px-6">
         <Panel className="px-5 py-4">
           <h2 className="label-eyebrow">{labels.page.stepsTitle}</h2>
           <ol className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

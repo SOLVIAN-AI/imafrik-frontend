@@ -124,7 +124,12 @@ export function ClinicDashboardView({
           celle de la fenêtre ; étirée jusqu'en bas, elle laisserait de
           larges zones vides. Les deux panneaux, eux, s'alignent sur le plus
           haut : des bords bas décalés donnent à l'écran un air inachevé. */}
-      <div className="grid min-h-0 flex-1 content-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">
+      {/* `auto-rows-max` : chaque panneau garde la hauteur de son contenu,
+          et la zone défile. Sans lui, les rangées se partageaient la
+          hauteur de l'écran ; sur un téléphone, le bas des listes était
+          masqué par les panneaux, sans défilement possible (23 octobre
+          2026). */}
+      <div className="grid min-h-0 flex-1 auto-rows-max content-start gap-4 overflow-auto px-4 pb-6 sm:px-6 lg:grid-cols-3">
         {/* Ce qui appelle une action occupe la place principale. */}
         <Panel
           className="flex flex-col overflow-hidden lg:col-span-2"

@@ -27,7 +27,7 @@ import { isConfiguredViewer } from "@/lib/security/urls";
 /**
  * L'espace de formation, tel que l'interface le manipule.
  *
- * Trois examens réels anonymisés, ouverts dans le vrai écran de lecture :
+ * Des examens réels anonymisés, ouverts dans le vrai écran de lecture :
  * on y prend en charge, rédige, signe et télécharge un PDF spécimen, sans
  * jamais toucher un patient (docs/formation.md du backend). Rien ici ne
  * lit ni n'écrit un examen ou un compte-rendu réels : le service garde
