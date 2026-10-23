@@ -504,6 +504,10 @@ export const admin: AppMessages["admin"] = {
       validUntil: "End date read on the certificate",
       validUntilHint:
         "Correct it if it differs from the one declared. Access closes the following day.",
+      /** Ends within a month: to be confirmed before approving. */
+      validUntilShort: (days: number) =>
+        `Access would close ${days === 0 ? "tomorrow" : `in ${days + 1} days`}: a certificate usually covers a full academic year.`,
+      validUntilShortConfirm: "I have checked this date on the certificate",
       accept: "Accept and approve",
       accepted: (name: string) =>
         `${name} is approved: their access to examinations is open.`,

@@ -6,6 +6,7 @@ import {
   daysUntil,
   identityChangeResetsValidation,
   licenseChangeResetsValidation,
+  shortValidity,
 } from "@/lib/credentials";
 import { demoSession } from "@/lib/session/demo";
 import type { Session } from "@/lib/session/types";
@@ -53,6 +54,24 @@ describe("habilitation du radiologue", () => {
     // Premier numéro : rien de validé à perdre.
     expect(licenseChangeResetsValidation("", "TG-1")).toBe(false);
     expect(licenseChangeResetsValidation("  ", "TG-1")).toBe(false);
+  });
+});
+
+describe("date de fin anormalement proche", () => {
+  const today = "2026-10-17";
+
+  it("signale une fin à moins d'un mois, le jour même compris", () => {
+    expect(shortValidity("2026-10-18", today)).toBe(1);
+    expect(shortValidity("2026-10-17", today)).toBe(0);
+    expect(shortValidity("2026-11-15", today)).toBe(29);
+  });
+
+  it("laisse passer une fin lointaine, absente ou passée", () => {
+    expect(shortValidity("2026-11-16", today)).toBeNull();
+    expect(shortValidity("2027-09-30", today)).toBeNull();
+    expect(shortValidity("", today)).toBeNull();
+    expect(shortValidity(null, today)).toBeNull();
+    expect(shortValidity("2026-10-16", today)).toBeNull();
   });
 });
 

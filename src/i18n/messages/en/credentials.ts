@@ -97,6 +97,9 @@ export const credentials: AppMessages["credentials"] = {
     validUntilHint:
       "Your access to examinations runs until this date; IMAFRIK reminds you 30 days before.",
     validUntilRequired: "Enter your certificate’s end date.",
+    /** Ends within a month: a warning, not a block. */
+    validUntilShort: (days: number) =>
+      `Your access would close ${days === 0 ? "tomorrow" : `in ${days + 1} days`}: check the date printed on your certificate.`,
     validUntilPast:
       "This date has passed: upload your most recent certificate.",
     history: "Your uploads",

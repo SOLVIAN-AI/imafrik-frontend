@@ -16,11 +16,12 @@ import { useLocale, useMessages } from "@/i18n/client";
 import { getDocumentGrant } from "@/lib/actions/credentials";
 import { sendDocument } from "@/lib/credential-upload";
 import {
+  daysUntil,
   DOCUMENT_ACCEPT,
   type DocumentKind,
   MAX_DOCUMENT_BYTES,
   RENEWAL_NOTICE_DAYS,
-  daysUntil,
+  shortValidity,
 } from "@/lib/credentials";
 import type { CredentialDocument } from "@/lib/data/credentials";
 import { formatBytes, formatDate } from "@/lib/format";
@@ -29,6 +30,28 @@ import { cn } from "@/lib/utils";
 
 /** Types reconnus par le service ; le contenu réel est revérifié là-bas. */
 const ACCEPTED_TYPES = new Set(DOCUMENT_ACCEPT.split(","));
+
+/**
+ * Avertissement sous une date de fin anormalement proche : sans bloquer,
+ * il fait relire la date imprimée sur le document (voir `shortValidity`).
+ *
+ * @param days    Jours restants, ou `null` : rien ne s'affiche.
+ * @param message Texte, selon les jours restants.
+ */
+export function ShortValidityWarning({
+  days,
+  message,
+}: {
+  days: number | null;
+  message: (days: number) => string;
+}) {
+  if (days === null) return null;
+  return (
+    <p role="status" className="mt-1.5 text-xs font-medium text-progress">
+      {message(days)}
+    </p>
+  );
+}
 
 /** Date du jour, `AAAA-MM-JJ`, en temps universel comme le service. */
 export function todayIso(): string {
@@ -235,6 +258,10 @@ export function DocumentPicker({
             onChange={(event) => upload.setValidUntil(event.target.value)}
             disabled={sending}
             suppressHydrationWarning
+          />
+          <ShortValidityWarning
+            days={shortValidity(upload.validUntil, todayIso())}
+            message={t.validUntilShort}
           />
         </Field>
       )}
