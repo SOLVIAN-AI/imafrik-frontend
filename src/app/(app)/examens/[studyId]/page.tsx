@@ -1,6 +1,6 @@
 import { FileText, ImageOff, Maximize2, PenTool } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type * as React from "react";
 
 import { AddendaPanel } from "@/components/domain/addenda-panel";
@@ -39,8 +39,18 @@ import type { Locale } from "@/lib/i18n/locale";
 export default async function StudySheetPage({
   params,
 }: PageProps<"/examens/[studyId]">) {
-  const session = await requireSession(["clinic_staff", "radiologist"]);
+  const session = await requireSession([
+    "clinic_staff",
+    "radiologist",
+    "platform_admin",
+  ]);
   const { studyId } = await params;
+  // L'équipe IMAFRIK contrôle l'examen dans l'écran de lecture, qui montre
+  // tout : images, renseignement, compte-rendu même en cours, attribution
+  // et annulation. La fiche de la clinique n'en montrerait qu'une part.
+  if (session.active.role === "platform_admin") {
+    redirect(`/lecture/${encodeURIComponent(studyId)}`);
+  }
   const { t, locale } = await getMessages();
   const messages = t.clinic.study;
 

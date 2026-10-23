@@ -9,6 +9,10 @@ export const reading: AppMessages["reading"] = {
     loading: "Opening the examination",
     claimedBy: (name: string) => `Examination claimed by ${name}.`,
     claimedByOther: "Examination claimed by another radiologist.",
+    /** IMAFRIK team: the draft being written, read-only. */
+    adminDraft: (author: string, savedAt: string) =>
+      `Unsigned draft by ${author}, saved on ${savedAt}. The clinic cannot see it yet; this screen follows the writing.`,
+    adminDraftAuthorUnknown: "a radiologist",
   },
   reportLanguage: {
     chip: {

@@ -12,11 +12,7 @@ import {
 } from "@/lib/api/contracts";
 import { isDemoMode } from "@/lib/demo/mode";
 import { DEMO_REPORTS } from "@/lib/demo/reports";
-import {
-  DEMO_STUDIES,
-  DEMO_USER_ID,
-  demoDraftSections,
-} from "@/lib/demo/studies";
+import { DEMO_STUDIES, demoDraftSections } from "@/lib/demo/studies";
 
 /**
  * Correction apportée à un compte-rendu signé.
@@ -69,6 +65,8 @@ export interface Report {
   verifyToken: string | null;
   /** Corrections apportées depuis la signature, de la plus ancienne à la plus récente. */
   addenda: Addendum[];
+  /** Dernier enregistrement : ce que l'équipe voit d'un brouillon en cours. */
+  updatedAt: Date;
 }
 
 /** Traduit la forme de l'API vers celle de l'interface. */
@@ -87,6 +85,7 @@ export function toReport(row: ApiReport): Report {
     sha256: row.pdf_sha256,
     verifyToken: row.verify_token,
     addenda: row.addenda.map(toAddendum),
+    updatedAt: new Date(row.updated_at),
   };
 }
 
@@ -124,19 +123,22 @@ function demoReport(
       sha256: null,
       verifyToken: signed.verifyToken,
       addenda: [],
+      updatedAt: signed.signedAt,
     };
   }
+  // Tout examen en cours a son brouillon, comme dans le service : celui de
+  // l'utilisateur s'ouvre en rédaction, celui d'un confrère en lecture.
   const draft = DEMO_STUDIES.find(
     (study) =>
-      study.assignedTo === DEMO_USER_ID &&
+      study.assignedTo !== null &&
       study.status === "in_progress" &&
       predicate(study.id, `draft-${study.id}`),
   );
-  if (!draft) return null;
+  if (!draft?.assignedTo) return null;
   return {
     id: `draft-${draft.id}`,
     studyId: draft.id,
-    authorId: DEMO_USER_ID,
+    authorId: draft.assignedTo,
     status: "draft",
     sections: { ...EMPTY_REPORT_SECTIONS, ...demoDraftSections(draft.id) },
     version: 1,
@@ -147,6 +149,8 @@ function demoReport(
     sha256: null,
     verifyToken: null,
     addenda: [],
+    // Repris il y a douze minutes : un brouillon de démonstration vivant.
+    updatedAt: new Date(Date.now() - 12 * 60_000),
   };
 }
 

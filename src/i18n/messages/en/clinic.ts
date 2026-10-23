@@ -180,6 +180,19 @@ export const clinic: AppMessages["clinic"] = {
     title: "Reports",
     descriptionClinic: "Signed documents sent to your facility",
     descriptionRadiologist: "The reports you have signed",
+    /** IMAFRIK team: every report on the platform. */
+    descriptionAdmin: (count: number) =>
+      `${count} report${count > 1 ? "s" : ""} across all clinics, drafts in progress included`,
+    filter: "Report status",
+    filters: {
+      all: "All",
+      draft: "Being written",
+      signed: "Signed",
+      delivered: "Delivered",
+    },
+    draftBy: (name: string) => `Being written · ${name}`,
+    emptyAdmin:
+      "Reports from every clinic appear here as soon as they start being written.",
     noResult: "No results",
     noResultDetail: "Try another name or ID.",
     empty: "No reports",

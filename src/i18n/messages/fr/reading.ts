@@ -16,6 +16,10 @@ export const reading = {
     loading: "Ouverture de l’examen",
     claimedBy: (name: string) => `Examen pris en charge par ${name}.`,
     claimedByOther: "Examen pris en charge par un autre radiologue.",
+    /** Équipe IMAFRIK : le brouillon en cours, en consultation. */
+    adminDraft: (author: string, savedAt: string) =>
+      `Brouillon non signé de ${author}, enregistré le ${savedAt}. La clinique ne le voit pas encore ; cet écran suit la rédaction.`,
+    adminDraftAuthorUnknown: "un radiologue",
   },
   /**
    * Langue du compte-rendu, quand elle diffère de celle de l'écran.

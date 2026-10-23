@@ -16,7 +16,8 @@ import {
 import { listTemplatesOrNone } from "@/lib/data/templates";
 import { credentialBlock } from "@/lib/credentials";
 import { reportBackupKey } from "@/lib/editor/backup-key";
-import { formatPersonName } from "@/lib/format";
+import { formatDateTime, formatPersonName } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/locale";
 import { requireSession } from "@/lib/session/server";
 import type { Session } from "@/lib/session/types";
 
@@ -34,7 +35,22 @@ function workspaceMode(
   study: Study,
   report: Report | null,
   t: AppMessages,
+  locale: Locale,
 ): WorkspaceMode {
+  // Équipe IMAFRIK : tout se contrôle, le brouillon en cours compris
+  // (demandé le 23 octobre 2026). Il s'affiche tel qu'il est enregistré,
+  // en consultation, et l'écran suit la rédaction ; la clinique, elle, ne
+  // voit un compte-rendu qu'une fois signé.
+  if (session.active.role === "platform_admin" && report?.status === "draft") {
+    return {
+      kind: "readonly",
+      live: true,
+      notice: t.reading.page.adminDraft(
+        study.assignedToName ?? t.reading.page.adminDraftAuthorUnknown,
+        formatDateTime(report.updatedAt, locale),
+      ),
+    };
+  }
   if (session.active.role !== "radiologist") {
     return {
       kind: "readonly",
@@ -122,16 +138,17 @@ export default async function ReadingPage({
   const { studyId } = await params;
 
   const radiologist = session.active.role === "radiologist";
-  const [{ t }, study, report, viewerUrl, nextStudyId] = await Promise.all([
-    getMessages(),
-    getStudy(studyId),
-    getReportForStudy(studyId),
-    getViewerUrl(studyId),
-    radiologist ? findNextStudy(studyId) : null,
-  ]);
+  const [{ t, locale }, study, report, viewerUrl, nextStudyId] =
+    await Promise.all([
+      getMessages(),
+      getStudy(studyId),
+      getReportForStudy(studyId),
+      getViewerUrl(studyId),
+      radiologist ? findNextStudy(studyId) : null,
+    ]);
   if (!study) notFound();
 
-  const mode = workspaceMode(session, study, report, t);
+  const mode = workspaceMode(session, study, report, t, locale);
   // Les modèles ne servent qu'à l'auteur ; inutile de les charger sinon.
   // Facultatifs : leur échec ne bloque pas l'écran.
   const templates =
@@ -145,7 +162,12 @@ export default async function ReadingPage({
       // Une nouvelle clé à chaque changement de brouillon remet l'éditeur
       // à l'état du serveur après une prise en charge ou une signature,
       // sans recharger le viewer.
-      draftKey={`${report?.id ?? "none"}:${report?.status ?? ""}`}
+      // En consultation suivie (l'équipe face à un brouillon), la version
+      // en fait partie : chaque enregistrement du radiologue s'affiche. Pas
+      // pour l'auteur, dont l'éditeur serait remis à zéro en pleine frappe.
+      draftKey={`${report?.id ?? "none"}:${report?.status ?? ""}${
+        mode.kind === "readonly" && mode.live ? `:${report?.version}` : ""
+      }`}
       study={study}
       viewerUrl={viewerUrl}
       mode={mode}

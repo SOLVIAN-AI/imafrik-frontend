@@ -103,7 +103,13 @@ function study(
     receivedAt,
     assignedTo: reader?.id ?? null,
     assignedToName: reader?.name ?? null,
-    reportId: signed ? `r-${fields.id}` : null,
+    // Comme le service : tout examen en cours a son brouillon, rattaché à
+    // l'examen (le même que `demoReport`, dans lib/data/reports.ts).
+    reportId: signed
+      ? `r-${fields.id}`
+      : fields.status === "in_progress" && reader
+        ? `draft-${fields.id}`
+        : null,
     reportedAt: signed
       ? new Date(
           receivedAt.getTime() + (fields.turnaroundMinutes ?? 60) * MINUTE,

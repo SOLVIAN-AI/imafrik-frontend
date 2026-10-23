@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { ClinicStudiesActions } from "@/components/domain/clinic-studies-actions";
 import { ListPagination } from "@/components/domain/list-pagination";
@@ -35,7 +36,13 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function StudiesPage({
   searchParams,
 }: PageProps<"/examens">) {
-  const session = await requireSession(["clinic_staff", "radiologist"]);
+  const session = await requireSession([
+    "clinic_staff",
+    "radiologist",
+    "platform_admin",
+  ]);
+  // L'équipe IMAFRIK a sa liste, toutes cliniques confondues.
+  if (session.active.role === "platform_admin") redirect("/admin/examens");
   const search = await readListSearch("examens", session);
   const params = await searchParams;
   const { studies, total, nextCursor } = await listStudyPageAt(

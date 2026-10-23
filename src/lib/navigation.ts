@@ -290,6 +290,9 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
     "/comptes-rendus",
     "/modeles",
     "/lecture",
+    // Les adresses de la clinique mènent aux écrans de l'équipe : un lien
+    // d'examen reçu d'une clinique s'ouvre, au lieu de renvoyer au cockpit.
+    "/examens",
     "/formation",
     "/parametres",
   ],
