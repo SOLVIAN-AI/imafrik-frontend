@@ -55,6 +55,7 @@ import { Button } from "@/components/ui/button";
 import { type SaveOutcome, useAutosave } from "@/hooks/use-autosave";
 import type { ViewerSession } from "@/hooks/use-viewer-session";
 import { WorkspaceSkeleton } from "@/components/editor/workspace-skeleton";
+import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { AppMessages } from "@/i18n";
 import { useLocale, useMessages } from "@/i18n/client";
@@ -159,6 +160,18 @@ function usePersistedLayout() {
  * - `readonly` — consultation : clinique, examen pris par un collègue,
  *   compte-rendu signé.
  */
+/** Intervalle de relecture d'une consultation suivie, en millisecondes. */
+const LIVE_REFRESH_MS = 30_000;
+
+/**
+ * Relit l'écran à intervalles réguliers, sans le remonter : monté
+ * seulement en consultation suivie (voir `WorkspaceMode`).
+ */
+function LiveRefresh() {
+  useAutoRefresh(LIVE_REFRESH_MS);
+  return null;
+}
+
 /** Volet du compte-rendu tant qu'aucun radiologue ne l'a signé. */
 function AwaitingReport() {
   const labels = useMessages().reading.page;
@@ -202,6 +215,11 @@ export type WorkspaceMode =
        * clinique qu'elle devait le remplir.
        */
       awaitingReport?: boolean;
+      /**
+       * Consultation suivie : l'écran se relit à intervalles réguliers
+       * (l'équipe IMAFRIK face à un brouillon en cours de rédaction).
+       */
+      live?: boolean;
     };
 
 /** Textes de l'espace de travail qu'un autre usage peut remplacer. */
@@ -785,6 +803,7 @@ function ReportWorkspace({
       {!signed && mode.kind === "readonly" && mode.notice && (
         <Banner tone="neutral">{mode.notice}</Banner>
       )}
+      {mode.kind === "readonly" && mode.live && <LiveRefresh />}
       {!signed && mode.kind === "claimable" && (
         <Banner tone="neutral">{labels.claimBanner}</Banner>
       )}

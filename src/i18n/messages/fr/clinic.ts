@@ -210,6 +210,19 @@ export const clinic = {
     title: "Comptes-rendus",
     descriptionClinic: "Documents signés et transmis à votre établissement",
     descriptionRadiologist: "Les comptes-rendus que vous avez signés",
+    /** Équipe IMAFRIK : tous les comptes-rendus de la plateforme. */
+    descriptionAdmin: (count: number) =>
+      `${count} compte${count > 1 ? "s" : ""}-rendu${count > 1 ? "s" : ""}, toutes cliniques confondues, en cours de rédaction compris`,
+    filter: "État des comptes-rendus",
+    filters: {
+      all: "Tous",
+      draft: "En cours de rédaction",
+      signed: "Signés",
+      delivered: "Remis",
+    },
+    draftBy: (name: string) => `En rédaction · ${name}`,
+    emptyAdmin:
+      "Les comptes-rendus de toutes les cliniques apparaissent ici, dès que leur rédaction commence.",
     noResult: "Aucun résultat",
     noResultDetail: "Essayez un autre nom ou un autre identifiant.",
     empty: "Aucun compte-rendu",

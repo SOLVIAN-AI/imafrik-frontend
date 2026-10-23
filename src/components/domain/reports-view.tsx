@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, SearchX } from "lucide-react";
+import { FilePen, FileText, SearchX } from "lucide-react";
 import Link from "next/link";
 import type * as React from "react";
 
@@ -33,31 +33,55 @@ import { cn } from "@/lib/utils";
  * signataire, date) : la liste ne coûte qu'un appel, quel que soit le
  * nombre de documents.
  *
+ * **L'équipe IMAFRIK contrôle tout** (demandé le 23 octobre 2026) : elle
+ * voit les comptes-rendus de toutes les cliniques, en cours de rédaction
+ * compris, avec leur clinique et leur radiologue. Un brouillon ouvre
+ * l'écran de lecture, où il se suit en consultation ; un document signé,
+ * sa fiche. Elle télécharge tout PDF signé depuis la liste.
+ *
  * @param studies Examens rendus de la page, chacun avec son compte-rendu.
  * @param search  Recherche en cours, relue par la page serveur.
  * @param footer  Pied de liste : pagination, rendue par la page serveur.
+ * @param total   Nombre de comptes-rendus du filtre, pour l'équipe.
+ * @param filter  Filtre par état, pour l'équipe, rendu par la page serveur.
  */
 export function ReportsView({
   studies,
   search,
   footer,
+  total,
+  filter,
 }: {
   studies: Study[];
   search?: string;
   footer?: React.ReactNode;
+  total?: number;
+  filter?: React.ReactNode;
 }) {
   const { active } = useSession();
   const t = useMessages().clinic.reports;
 
   const isClinic = active.role === "clinic_staff";
+  const isAdmin = active.role === "platform_admin";
   const rows = studies.filter((study) => study.reportId);
 
   return (
     <>
       <PageHeader
         title={t.title}
-        description={isClinic ? t.descriptionClinic : t.descriptionRadiologist}
-        actions={<ListToolbar scope="comptes-rendus" search={search} />}
+        description={
+          isAdmin
+            ? t.descriptionAdmin(total ?? rows.length)
+            : isClinic
+              ? t.descriptionClinic
+              : t.descriptionRadiologist
+        }
+        actions={
+          <>
+            {filter}
+            <ListToolbar scope="comptes-rendus" search={search} />
+          </>
+        }
       />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
@@ -66,7 +90,13 @@ export function ReportsView({
             <EmptyState
               icon={search ? SearchX : FileText}
               title={search ? t.noResult : t.empty}
-              detail={search ? t.noResultDetail : t.emptyDetail}
+              detail={
+                search
+                  ? t.noResultDetail
+                  : isAdmin
+                    ? t.emptyAdmin
+                    : t.emptyDetail
+              }
             />
           ) : (
             <ul className="min-h-0 flex-1 divide-y divide-border-subtle overflow-auto">
@@ -74,24 +104,46 @@ export function ReportsView({
                 const exam = [study.modality, study.bodyPart]
                   .filter(Boolean)
                   .join(" · ");
+                const draft = study.status === "in_progress";
                 const party = isClinic
                   ? (study.reportedBy ?? "—")
                   : study.clinic;
+                // L'équipe voit aussi qui rédige ou a signé.
+                const author = draft
+                  ? t.draftBy(study.assignedToName ?? "—")
+                  : (study.reportedBy ?? "—");
                 const toDownload = isClinic && study.status === "reported";
+                const downloadable = toDownload || (isAdmin && !draft);
                 return (
                   <li
                     key={study.reportId}
                     className="flex items-center gap-2 pr-3 transition-colors hover:bg-surface-hover"
                   >
                     <Link
-                      href={`/comptes-rendus/${study.reportId}`}
+                      href={
+                        draft
+                          ? `/lecture/${study.id}`
+                          : `/comptes-rendus/${study.reportId}`
+                      }
                       className={cn(
                         "flex min-w-0 flex-1 items-center gap-3 py-3 pl-4 text-left sm:gap-4",
                         "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent",
                       )}
                     >
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-done-muted">
-                        <FileText className="size-4 text-done" aria-hidden />
+                      <span
+                        className={cn(
+                          "flex size-8 shrink-0 items-center justify-center rounded-lg",
+                          draft ? "bg-progress-muted" : "bg-done-muted",
+                        )}
+                      >
+                        {draft ? (
+                          <FilePen
+                            className="size-4 text-progress"
+                            aria-hidden
+                          />
+                        ) : (
+                          <FileText className="size-4 text-done" aria-hidden />
+                        )}
                       </span>
 
                       {/* Le nom ne cède jamais sa place : sur un téléphone,
@@ -106,6 +158,7 @@ export function ReportsView({
                           <span className="font-mono">{study.patientId}</span>
                           <span className="sm:hidden">
                             {exam && ` · ${exam}`} · {party}
+                            {isAdmin && ` · ${author}`}
                           </span>
                         </span>
                       </span>
@@ -118,13 +171,36 @@ export function ReportsView({
                         {party}
                       </span>
 
+                      {isAdmin && (
+                        <span
+                          className={cn(
+                            "hidden min-w-0 flex-1 truncate text-xs sm:block",
+                            draft ? "text-progress" : "text-secondary",
+                          )}
+                        >
+                          {author}
+                        </span>
+                      )}
+
                       <span className="flex shrink-0 flex-col items-end gap-0.5 sm:flex-row sm:items-center sm:gap-4">
-                        {study.reportedAt && (
+                        {study.reportedAt ? (
                           <DateTime
                             date={study.reportedAt}
                             withTime={false}
-                            className="text-2xs text-tertiary tabular-nums"
+                            className={cn(
+                              "text-2xs text-tertiary tabular-nums",
+                              isAdmin && "sm:w-28 sm:text-right",
+                            )}
                           />
+                        ) : (
+                          // Un brouillon n'a pas de date de signature : la
+                          // place reste, pour que les colonnes s'alignent.
+                          isAdmin && (
+                            <span
+                              aria-hidden
+                              className="hidden sm:block sm:w-28"
+                            />
+                          )
                         )}
                         {isClinic && (
                           <span
@@ -141,8 +217,19 @@ export function ReportsView({
                     {/* Téléchargement direct depuis la liste : ouvrir le
                         document pour cliquer ensuite sur « Télécharger »
                         coûtait un écran de plus, à chaque compte-rendu. */}
-                    {toDownload && (
+                    {downloadable && (
                       <DownloadPdfButton reportId={study.reportId} compact />
+                    )}
+                    {/* Même largeur que le bouton du PDF, pour l'alignement
+                        des colonnes : un brouillon n'en a pas encore. */}
+                    {isAdmin && draft && (
+                      <span
+                        aria-hidden
+                        inert
+                        className="invisible hidden sm:block"
+                      >
+                        <DownloadPdfButton reportId={study.reportId} compact />
+                      </span>
                     )}
                   </li>
                 );
