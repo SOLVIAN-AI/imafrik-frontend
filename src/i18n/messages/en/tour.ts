@@ -23,15 +23,15 @@ export const tour: AppMessages["tour"] = {
         body: "In one minute, here is where to find your examinations, how to open them and where to practise. You can replay this tour at any time from the help button.",
       },
       worklist: {
-        title: "Your reading list",
+        title: "The worklist",
         body: "Examinations sent by clinics arrive here, sorted by deadline. The counter shows how many are waiting for a reader; it turns red while an urgent examination is not reported.",
       },
       metrics: {
         title: "The essentials at a glance",
-        body: "Examinations to take, unclaimed urgent ones, overdue ones and the next deadline: these figures refresh with the list, every thirty seconds.",
+        body: "Examinations to claim, unclaimed urgent ones, overdue ones and the next deadline: these figures refresh with the worklist, every thirty seconds.",
       },
       filters: {
-        title: "Filter the list",
+        title: "Filter the worklist",
         body: "Keep a single modality or a single clinic. The filter stays in the page address, so it survives a reload.",
       },
       table: {
@@ -40,7 +40,7 @@ export const tour: AppMessages["tour"] = {
       },
       mine: {
         title: "Your examinations",
-        body: "The ones you have taken, until they are signed: find them here without searching the list.",
+        body: "The ones you have claimed, until they are signed: find them here without searching the worklist.",
       },
       training: {
         title: "Practise safely",
@@ -65,12 +65,12 @@ export const tour: AppMessages["tour"] = {
         body: "What comes with the examination. While your report’s indication is empty, one click copies it there.",
       },
       claim: {
-        title: "Take the examination",
-        body: "Take the examination to write its report. On a real examination it is then reserved for you: nobody else can write it, and you can hand it back at any time.",
+        title: "Claim the examination",
+        body: "Claim the examination to write its report. On a real examination it is then reserved for you: nobody else can write it, and you can return it to the pool at any time.",
       },
       editor: {
         title: "The report",
-        body: "Five sections, saved automatically as you write. Type / at the start of a line to insert a standard sentence.",
+        body: "Five sections, saved automatically as you write. Type / at the start of a line to insert a standard phrase.",
       },
       templates: {
         title: "Your templates",

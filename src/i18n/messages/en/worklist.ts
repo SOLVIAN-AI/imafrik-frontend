@@ -13,7 +13,7 @@ export const worklist: AppMessages["worklist"] = {
       empty: "The whole platform, read-only",
       clinics: (list: string) => `The whole platform, read-only: ${list}`,
       count: (count: number) =>
-        `The whole platform, read-only: ${count} facilities`,
+        `The whole platform, read-only: ${count} ${count === 1 ? "facility" : "facilities"}`,
     },
     readingHint: (count: number) => `and ${count} being read`,
     reading: { title: "Being read", hint: "by a radiologist" },

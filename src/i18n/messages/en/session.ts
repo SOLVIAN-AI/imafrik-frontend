@@ -11,7 +11,7 @@ export const session: AppMessages["session"] = {
       install:
         "Install an authenticator app on your phone: Google Authenticator, Microsoft Authenticator or 2FAS.",
       scan: "Open the app, tap “Add account” or “+”, then use it to scan the QR code that will appear. Your phone’s camera on its own will not work. If you cannot scan, a key you can type in will also be provided.",
-      enterCode: "Enter here the six-digit code the app then displays.",
+      enterCode: "Enter the six-digit code that the app then displays.",
     },
     setUp: "Set up my authenticator app",
     codeLabel: "Six-digit code",

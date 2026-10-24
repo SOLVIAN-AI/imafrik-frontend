@@ -5,7 +5,7 @@ import type { AppMessages } from "@/i18n/messages/fr";
  * facility service agreement. In English. Same shape as the French.
  */
 export const agreements: AppMessages["agreements"] = {
-  demoAction: "accepting an agreement",
+  demoAction: "Accepting an agreement",
 
   page: {
     title: "Your agreements",

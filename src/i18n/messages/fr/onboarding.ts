@@ -50,7 +50,7 @@ export const onboarding = {
       },
       termine: {
         title: "Validation",
-        lead: "Où en est l’examen de votre dossier.",
+        lead: "Où en est la vérification de votre dossier.",
       },
     },
     admin: {
