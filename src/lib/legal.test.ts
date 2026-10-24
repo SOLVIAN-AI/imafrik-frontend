@@ -64,6 +64,6 @@ describe("faits juridiques", () => {
   it("disent ce qu'il manque encore à l'éditeur", () => {
     // Liste attendue tant que l'éditeur n'a pas fourni ses informations ;
     // ce test change le jour où elles le sont.
-    expect(missingLegalFacts()).toContain("numéro d’immatriculation");
+    expect(missingLegalFacts()).toContain("numéro d’immatriculation (RCCM)");
   });
 });
