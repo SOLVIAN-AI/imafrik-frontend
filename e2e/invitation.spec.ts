@@ -13,7 +13,7 @@ import { expect, test } from "./support/fixtures";
  */
 
 /** Mot de passe conforme aux règles affichées. */
-const PASSWORD = "Bienvenue-Lome-2026";
+const PASSWORD = "Bienvenue-Lome-2026"; // gitleaks:allow (mot de passe fictif de test)
 
 test.describe("en français", () => {
   test.use({ langue: "fr" });
