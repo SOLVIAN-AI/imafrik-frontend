@@ -2779,6 +2779,122 @@ export interface components {
             title: string | null;
         };
         /**
+         * AgreementAcceptance
+         * @description Acceptation enregistrée d'un engagement.
+         */
+        AgreementAcceptance: {
+            /**
+             * Accepted At
+             * Format: date-time
+             */
+            accepted_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "radiologist_agreement" | "clinic_agreement";
+            /** Sha256 */
+            sha256: string;
+            /** Version */
+            version: string;
+        };
+        /**
+         * AgreementAcceptanceCreate
+         * @description Acceptation d'un engagement, telle que l'écran l'envoie.
+         */
+        AgreementAcceptanceCreate: {
+            /**
+             * Declares Authority
+             * @description Convention : le signataire déclare être habilité à engager l'établissement.
+             * @default false
+             */
+            declares_authority?: boolean;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "radiologist_agreement" | "clinic_agreement";
+            /**
+             * Sha256
+             * @description Empreinte du texte français lu, telle qu'affichée.
+             */
+            sha256: string;
+            /**
+             * Signatory Capacity
+             * @description Convention : qualité du signataire.
+             */
+            signatory_capacity?: string | null;
+            /**
+             * Version
+             * @description Version lue, telle qu'affichée.
+             */
+            version: string;
+        };
+        /**
+         * AgreementDocument
+         * @description Texte d'une version d'un engagement, dans une langue.
+         */
+        AgreementDocument: {
+            /** Authoritative */
+            authoritative: boolean;
+            /** Body Markdown */
+            body_markdown: string;
+            /**
+             * Effective Date
+             * Format: date
+             */
+            effective_date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "radiologist_agreement" | "clinic_agreement";
+            /**
+             * Locale
+             * @enum {string}
+             */
+            locale: "fr" | "en";
+            /** Sha256 */
+            sha256: string;
+            /** Title */
+            title: string;
+            /** Version */
+            version: string;
+        };
+        /**
+         * AgreementStatus
+         * @description Où un engagement dû en est pour le compte connecté.
+         */
+        AgreementStatus: {
+            /** Accepted At */
+            accepted_at?: string | null;
+            /** Accepted By */
+            accepted_by?: string | null;
+            /** Can Accept */
+            can_accept: boolean;
+            /**
+             * Effective Date
+             * Format: date
+             */
+            effective_date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "radiologist_agreement" | "clinic_agreement";
+            /** Sha256 */
+            sha256: string;
+            /** Title */
+            title: string;
+            /** Version */
+            version: string;
+        };
+        /**
          * AiFeatures
          * @description Fonctions d'IA activées pour une organisation (docs/ia.md, IA-8).
          */
@@ -5225,7 +5341,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.assigned" | "study.unassigned" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.assigned" | "study.unassigned" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;

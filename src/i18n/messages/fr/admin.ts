@@ -821,6 +821,7 @@ export const admin = {
       "user.anonymized": "Compte anonymisé",
       "platform.settings_changed": "Réglages modifiés",
       "contact_request.tracked": "Demande reçue suivie",
+      "agreement.accepted": "Engagement accepté",
     },
   },
 
