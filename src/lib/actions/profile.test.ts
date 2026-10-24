@@ -9,7 +9,7 @@ import { messagesFor } from "@/i18n";
  */
 
 const t = messagesFor("fr");
-const NEW_PASSWORD = "Nouveau-mot-de-passe-1";
+const NEW_PASSWORD = "Nouveau-mot-de-passe-1"; // gitleaks:allow (mot de passe fictif de test)
 
 const session = {
   getUser: vi.fn(),
