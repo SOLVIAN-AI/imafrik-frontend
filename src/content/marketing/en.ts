@@ -67,7 +67,7 @@ export const en: MarketingCopy = {
         ],
       },
     ],
-    publisher: "IMAFRIK is a service published by SOLVIAN AI LLC, Lomé, Togo.",
+    publisher: "IMAFRIK is a service published in Lomé, Togo.",
     hosting: "Images hosted in the European Union, encrypted at rest.",
   },
   appPreview: {

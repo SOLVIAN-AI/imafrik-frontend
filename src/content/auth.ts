@@ -78,7 +78,7 @@ const fr: AuthCopy = {
         detail: "Chaque consultation d’examen est enregistrée et attribuable.",
       },
     ],
-    publisher: "IMAFRIK est un service édité par SOLVIAN AI LLC, Lomé, Togo.",
+    publisher: "IMAFRIK est un service édité à Lomé, Togo.",
   },
   signIn: {
     metaTitle: "Connexion",
@@ -149,7 +149,7 @@ const en: AuthCopy = {
           "Every time an examination is opened, the access is recorded and attributed to a named user.",
       },
     ],
-    publisher: "IMAFRIK is a service published by SOLVIAN AI LLC, Lomé, Togo.",
+    publisher: "IMAFRIK is a service published in Lomé, Togo.",
   },
   signIn: {
     metaTitle: "Sign in",
