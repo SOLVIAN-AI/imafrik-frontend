@@ -9,7 +9,7 @@ export const worklist = {
     empty: "File de travail du groupe",
     clinics: (list: string) => `File de travail du groupe : ${list}`,
     count: (count: number) =>
-      `File de travail du groupe : ${count} établissements`,
+      `File de travail du groupe : ${count} établissement${count > 1 ? "s" : ""}`,
   },
   /** La file vue par l'équipe IMAFRIK, en consultation. */
   supervision: {
@@ -18,7 +18,7 @@ export const worklist = {
       clinics: (list: string) =>
         `Toute la plateforme, en consultation : ${list}`,
       count: (count: number) =>
-        `Toute la plateforme, en consultation : ${count} établissements`,
+        `Toute la plateforme, en consultation : ${count} établissement${count > 1 ? "s" : ""}`,
     },
     readingHint: (count: number) => `et ${count} en cours de lecture`,
     reading: { title: "En cours de lecture", hint: "chez un radiologue" },
@@ -92,7 +92,7 @@ export const worklist = {
     },
   },
   myStudies: {
-    description: "Examens que vous avez pris en charge et qui restent à rendre",
+    description: "Examens que vous avez pris en charge et qui restent à signer",
     empty: {
       title: "Aucun examen en cours",
       detail: "Prenez un examen en charge depuis la file « À lire ».",

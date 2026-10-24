@@ -83,7 +83,7 @@ export const reading: AppMessages["reading"] = {
     },
   },
   editor: {
-    requiredTitle: "Required section for signing",
+    requiredTitle: "Section required before signing",
     requiredLabel: "Required section, currently empty",
     offline: "Offline: copy kept on this device",
     conflict: "Changed elsewhere: text kept on this device",
@@ -362,7 +362,7 @@ export const reading: AppMessages["reading"] = {
       ": the images have left the platform. The report can still be viewed, and the originals are kept by the clinic.",
     unavailableTitle: "Images unavailable",
     unavailableDetail:
-      "The viewing token could not be obtained. Reload the page; if the problem persists, the examination may still be transferring from the clinic.",
+      "The images could not be loaded. Reload the page; if the problem persists, the examination may still be transferring from the clinic.",
     /** What is unavailable in the demo. */
     name: "The viewer",
     reopened:
@@ -381,7 +381,7 @@ export const reading: AppMessages["reading"] = {
   },
   templates: {
     description:
-      "Apply them from the reading screen; create them from a report in progress.",
+      "Apply them from the reading screen; create them from a report in progress",
     emptyTitle: "No templates",
     emptyDetail:
       "On the reading screen, “Save as template” turns the current text into a template for the whole organisation.",

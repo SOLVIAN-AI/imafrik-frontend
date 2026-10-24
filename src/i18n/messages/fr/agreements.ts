@@ -4,7 +4,7 @@
  * les conventions, et `lib/agreements.ts` pour les règles.
  */
 export const agreements = {
-  demoAction: "l’acceptation d’un engagement",
+  demoAction: "L’acceptation d’un engagement",
 
   /** Écran `/engagements` : une version nouvelle à accepter. */
   page: {
