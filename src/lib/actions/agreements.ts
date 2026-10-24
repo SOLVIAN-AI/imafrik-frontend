@@ -57,16 +57,17 @@ export async function acceptAgreement(
   }
   if (isDemoMode()) return demoUnavailable(t.agreements.demoAction);
 
+  const isClinic = parsed.data.kind === "clinic_agreement";
   const body: AgreementAcceptanceBody = {
     kind: parsed.data.kind,
     version: parsed.data.version,
     sha256: parsed.data.sha256,
-    ...(parsed.data.kind === "clinic_agreement"
-      ? {
-          signatory_capacity: parsed.data.signatoryCapacity?.trim(),
-          declares_authority: parsed.data.declaresAuthority === true,
-        }
-      : {}),
+    // Qualité et déclaration n'engagent qu'un établissement : un contrat
+    // de radiologue les envoie vides.
+    signatory_capacity: isClinic
+      ? (parsed.data.signatoryCapacity?.trim() ?? null)
+      : null,
+    declares_authority: isClinic && parsed.data.declaresAuthority === true,
   };
   const result = await run(async () => {
     await apiSend("/me/agreements", "POST", body, agreementAcceptanceSchema);

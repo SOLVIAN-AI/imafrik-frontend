@@ -335,7 +335,6 @@ export function AgreementForm({
       }}
       className="flex flex-col gap-6"
     >
-      <h2 className="text-lg font-semibold">{view.document.title}</h2>
       <AgreementFields view={view} />
       {view.status.canAccept && !view.status.acceptedAt && (
         <div className="flex justify-end border-t border-border-subtle pt-6">
