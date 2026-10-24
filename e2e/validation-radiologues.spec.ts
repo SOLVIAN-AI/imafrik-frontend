@@ -241,8 +241,19 @@ test.describe("dossier du radiologue", () => {
     ).toBeVisible();
   });
 
-  test("le parcours d’accueil compte quatre étapes", async ({ page }) => {
+  test("le parcours d’accueil compte cinq étapes, contrat en tête", async ({
+    page,
+  }) => {
     await page.goto("/bienvenue");
+    await expect(page).toHaveURL("/bienvenue/engagement");
+    await expect(
+      page.getByRole("heading", { name: "Votre contrat", level: 1 }),
+    ).toBeVisible();
+    // La démonstration n'engage personne : aucun contrat n'y est dû.
+    await expect(
+      page.getByText("Aucun engagement n’est à accepter pour le moment."),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Continuer" }).click();
     await expect(page).toHaveURL("/bienvenue/exercice");
     await expect(
       page.getByRole("heading", { name: "Votre exercice", level: 1 }),
@@ -256,5 +267,16 @@ test.describe("dossier du radiologue", () => {
     await page.getByRole("button", { name: "Continuer" }).click();
     await expect(page).toHaveURL("/bienvenue/justificatifs");
     await expect(page.getByText("Diplôme", { exact: true })).toBeVisible();
+  });
+});
+
+test.describe("engagements en démonstration", () => {
+  test.use({ membership: "m-radio", langue: "fr" });
+
+  test("l’écran des engagements renvoie au portail quand rien n’est dû", async ({
+    page,
+  }) => {
+    await page.goto("/engagements");
+    await expect(page).toHaveURL("/worklist");
   });
 });

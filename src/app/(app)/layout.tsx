@@ -1,7 +1,10 @@
+import { redirect } from "next/navigation";
+
 import { HtmlLang } from "@/components/i18n/html-lang";
 import { AppShell } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { TourProvider } from "@/components/tour/tour-provider";
+import { getPendingAgreements } from "@/lib/data/agreements";
 import { getPlatformSettings } from "@/lib/data/control";
 import { getMetrics } from "@/lib/data/metrics";
 import type { NavCounts } from "@/lib/navigation";
@@ -46,15 +49,24 @@ async function navCounts(): Promise<NavCounts | null> {
  * qu'elle enveloppe, et le proxy, qui la connaît, n'est pas rejoué quand
  * une action serveur rafraîchit la page après un changement
  * d'organisation.
+ *
+ * **Un engagement en vigueur non accepté renvoie vers `/engagements`** :
+ * contrat d'exercice d'un radiologue, convention d'un établissement,
+ * nouvelle version de l'un ou de l'autre. Le service refuserait de toute
+ * façon les opérations du portail ; la garde évite d'ouvrir des écrans
+ * qui échoueraient. Elle tolère une panne (voir `getPendingAgreements`) :
+ * la protection reste celle du service.
  */
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const session = await requireSession();
   // En parallèle : le bandeau ne doit pas retarder la navigation, ni
-  // l'inverse. Les deux lectures tolèrent un service muet.
-  const [counts, settings] = await Promise.all([
+  // l'inverse. Les trois lectures tolèrent un service muet.
+  const [counts, settings, pendingAgreements] = await Promise.all([
     navCounts(),
     getPlatformSettings(),
+    getPendingAgreements(),
   ]);
+  if (pendingAgreements.length > 0) redirect("/engagements");
 
   return (
     <SessionProvider session={session}>
