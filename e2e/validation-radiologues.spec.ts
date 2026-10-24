@@ -249,9 +249,9 @@ test.describe("dossier du radiologue", () => {
     await expect(
       page.getByRole("heading", { name: "Votre contrat", level: 1 }),
     ).toBeVisible();
-    // La démonstration n'engage personne : le contrat n'y est pas présenté.
+    // La démonstration n'engage personne : aucun contrat n'y est dû.
     await expect(
-      page.getByText("En démonstration, aucun engagement n’est présenté."),
+      page.getByText("Aucun engagement n’est à accepter pour le moment."),
     ).toBeVisible();
     await page.getByRole("button", { name: "Continuer" }).click();
     await expect(page).toHaveURL("/bienvenue/exercice");

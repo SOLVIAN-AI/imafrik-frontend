@@ -39,7 +39,7 @@ export const agreements: AppMessages["agreements"] = {
       "An authorised person at your facility must accept the agreement. Your portal will open as soon as they have done so.",
     changed:
       "The text changed while you were reading: please review the version in force.",
-    unavailable: "In the demonstration, no agreement is presented.",
+    unavailable: "There is no agreement to accept at the moment.",
   },
 
   settings: {

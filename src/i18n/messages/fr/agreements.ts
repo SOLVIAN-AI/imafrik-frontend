@@ -41,7 +41,7 @@ export const agreements = {
       "Une personne habilitée de votre établissement doit accepter la convention. Votre portail s’ouvrira dès qu’elle l’aura fait.",
     changed:
       "Le texte a changé pendant votre lecture : relisez la version en vigueur.",
-    unavailable: "En démonstration, aucun engagement n’est présenté.",
+    unavailable: "Aucun engagement n’est à accepter pour le moment.",
   },
 
   /** Carte des paramètres : les engagements acceptés. */

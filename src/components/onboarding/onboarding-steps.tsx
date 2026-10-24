@@ -49,7 +49,8 @@ export interface StepProps {
   documents: CredentialDocument[];
   /**
    * Étape « engagement » : le contrat ou la convention dû, avec son
-   * texte ; `null` en démonstration, où rien n'engage personne.
+   * texte ; `null` quand aucun n'est dû (démonstration, ou aucune version
+   * encore entrée en vigueur) : l'étape se franchit alors d'un clic.
    */
   agreement: AgreementView | null;
 }
