@@ -16,6 +16,7 @@ export const nav = {
     analytics: "Activité",
     flow: "Flux d’images",
     organisations: "Organisations",
+    gateways: "Passerelles",
     accounts: "Comptes",
     requests: "Demandes reçues",
     billing: "Facturation",

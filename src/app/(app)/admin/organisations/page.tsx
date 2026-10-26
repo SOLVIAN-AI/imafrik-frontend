@@ -2,6 +2,7 @@ import { Building2, Hospital } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { CreateClinicDialog } from "@/components/admin/gateways/create-clinic-dialog";
 import { OrganizationRowActions } from "@/components/admin/organization-row-actions";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
@@ -21,15 +22,16 @@ type Text = AppMessages["admin"]["organisations"];
 /**
  * Organisations de la plateforme.
  *
- * Écran de l'équipe IMAFRIK : volumes, état, et les deux gestes du
- * quotidien — inviter quelqu'un, suspendre ou réactiver.
+ * Écran de l'équipe IMAFRIK : volumes, état, et les gestes du
+ * quotidien : créer une clinique, inviter quelqu'un, suspendre ou
+ * réactiver.
  *
  * L'AE Title d'une clinique n'est pas affiché, seulement le fait qu'elle
  * soit raccordée : c'est son identifiant secret, et un écran n'a pas à le
- * montrer. **Le raccordement d'une clinique** — AE Title, certificat
- * DICOM TLS, paquet d'installation — se fait depuis le poste
- * d'exploitation (`make clinic`), qui détient les certificats : il n'a pas
- * sa place dans un navigateur.
+ * montrer. **Le raccordement d'une clinique** se fait depuis sa fiche :
+ * un code d'enrôlement, saisi dans le kit sur le poste, où naît la clé
+ * de la passerelle ; l'équipe approuve ensuite le poste. Aucune clé
+ * privée ne transite par la console.
  */
 export default async function AdminOrganizationsPage() {
   await requireSession(["platform_admin"]);
@@ -38,6 +40,9 @@ export default async function AdminOrganizationsPage() {
   const organizations = await listOrganizations();
   const clinics = organizations.filter((org) => org.kind === "clinic");
   const groups = organizations.length - clinics.length;
+  const radiologyGroups = organizations
+    .filter((org) => org.kind === "radiology_group" && org.active)
+    .map((org) => ({ id: org.id, name: org.name }));
 
   // Accord en nombre : « 1 cabinets » trahit une interface qui ne relit
   // pas ce qu'elle écrit, et c'est le genre de détail qu'on remarque
@@ -47,6 +52,7 @@ export default async function AdminOrganizationsPage() {
       <PageHeader
         title={t.nav.items.organisations}
         description={`${text.clinicCount(clinics.length)} · ${text.groupCount(groups)}`}
+        actions={<CreateClinicDialog groups={radiologyGroups} />}
       />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
