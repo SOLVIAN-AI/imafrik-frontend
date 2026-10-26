@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { VoidReportButton } from "@/components/admin/void-report-button";
 import { AddendaPanel } from "@/components/domain/addenda-panel";
+import { getSigningContext } from "@/lib/data/signing";
 import { DateTime } from "@/components/domain/date-time";
 import { DownloadPdfButton } from "@/components/domain/download-pdf-button";
 import { ReportDocument } from "@/components/editor/report-document";
@@ -44,6 +45,9 @@ export default async function ReportPage({
   if (!report || !study || report.status !== "signed") notFound();
 
   const messages = (await getMessages()).t.clinic.reports;
+  // Un radiologue peut ajouter un addendum : son code personnel est demandé.
+  const signing =
+    session.active.role === "radiologist" ? await getSigningContext() : null;
   const signer = formatPersonName(report.signerTitle, report.signedBy ?? "");
 
   return (
@@ -110,6 +114,7 @@ export default async function ReportPage({
             reportId={report.id}
             addenda={report.addenda}
             canAdd={session.active.role === "radiologist"}
+            signing={signing}
           />
         </div>
       </div>

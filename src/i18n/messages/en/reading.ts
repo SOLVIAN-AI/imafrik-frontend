@@ -345,6 +345,14 @@ export const reading: AppMessages["reading"] = {
     confirmAnyway: "Sign anyway",
     confirm: "Sign and send",
   },
+  signPin: {
+    applied: "Applied to the PDF",
+    appliedNone:
+      "No accepted signature or stamp: the PDF will carry your name and registration number.",
+    signatureAlt: "Your signature, applied to the PDF",
+    stampAlt: "Your stamp, applied to the PDF",
+    settings: "Manage in settings",
+  },
   viewer: {
     frameTitle: (uid: string) => `Images for examination ${uid}`,
     series: (count: number) => (count === 1 ? "1 series" : `${count} series`),
@@ -429,8 +437,9 @@ export const reading: AppMessages["reading"] = {
     title: "Addenda",
     license: (number: string) => `Reg. no. ${number}`,
     none: "No corrections since signing.",
-    confirm:
-      "Add this addendum? It will be signed in your name, visible to the clinic, and can no longer be changed.",
+    dialogTitle: "Sign the addendum",
+    dialogDescription:
+      "It will be signed in your name, visible to the clinic, and can no longer be changed.",
     added: "Addendum added and sent.",
     label: "New addendum",
     placeholder: "Correction or addition to the signed report…",

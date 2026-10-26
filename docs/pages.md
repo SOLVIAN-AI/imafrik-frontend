@@ -291,7 +291,7 @@ attend des comptes-rendus.
 | `/modeles` | Modèles de comptes-rendus, par modalité et par région. Table `report_templates` déjà en base. Gain de temps décisif sur les examens normaux. | V2 |
 | `/activite` | Volume lu, délais, répartition par modalité. | V3 |
 | `/honoraires` | Relevé de rémunération. Voir la décision n° 3. | V2 |
-| `/parametres` | Profil, signature, notifications, préférences de lecture. | V1 |
+| `/parametres` | Profil, justificatifs, **signature et cachet** (tracés ou importés, vérifiés par l'équipe IMAFRIK avant d'être imprimés) et **code personnel** à six chiffres, obligatoire pour signer et pour ajouter un addendum (créé ici, ou dans la fenêtre de la première signature). **Fait.** Notifications et préférences de lecture : à venir. | V1 |
 
 **9 écrans**, dont 2 déjà construits.
 

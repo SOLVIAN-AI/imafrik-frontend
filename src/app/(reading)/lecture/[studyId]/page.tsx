@@ -7,6 +7,7 @@ import type { AppMessages } from "@/i18n";
 import { getMessages } from "@/i18n/server";
 import { isAiReviewAvailable } from "@/lib/data/assist";
 import { getReportForStudy, type Report } from "@/lib/data/reports";
+import { getSigningContext } from "@/lib/data/signing";
 import {
   findNextStudyId,
   getStudy,
@@ -156,6 +157,10 @@ export default async function ReadingPage({
   // La relecture par IA ne concerne que l'auteur d'un brouillon ; le
   // service dit si elle lui est offerte.
   const aiReview = mode.kind === "author" && (await isAiReviewAvailable());
+  // Le code personnel est demandé à la signature : la fenêtre sait s'il
+  // faut le saisir ou le créer, et montre ce qui sera apposé.
+  const signing =
+    mode.kind === "author" ? await getSigningContext() : undefined;
 
   return (
     <ReadingWorkspace
@@ -177,6 +182,7 @@ export default async function ReadingPage({
       templates={templates}
       nextStudyId={nextStudyId}
       aiReview={aiReview}
+      signing={signing}
     />
   );
 }

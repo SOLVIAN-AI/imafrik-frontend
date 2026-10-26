@@ -10,10 +10,12 @@ import {
 import { CredentialFileCard } from "@/components/credentials/credential-file-card";
 import { AgreementsCard } from "@/components/settings/agreements-card";
 import { MfaCard } from "@/components/settings/mfa-card";
+import { SigningCard } from "@/components/settings/signing-card";
 import { getMyAgreements } from "@/lib/data/agreements";
 import { getMyCredentialDocuments } from "@/lib/data/credentials";
 import { getOrganization } from "@/lib/data/organization";
 import { getProfile } from "@/lib/data/profile";
+import { getMySigningPreviews, getSigningSetup } from "@/lib/data/signing";
 import { isDemoMode } from "@/lib/demo/mode";
 import { roleRequiresMfa } from "@/lib/session/mfa";
 import { requireSession } from "@/lib/session/server";
@@ -41,13 +43,14 @@ export default async function SettingsPage() {
   const { t } = await getMessages();
   const isClinic = session.active.role === "clinic_staff";
   const isRadiologist = session.active.role === "radiologist";
-  const [profile, organization, mfaEnrolled, documents, agreements] =
+  const [profile, organization, mfaEnrolled, documents, agreements, signing] =
     await Promise.all([
       getProfile(),
       isClinic ? getOrganization() : Promise.resolve(null),
       hasVerifiedFactor(session.active.role),
       isRadiologist ? getMyCredentialDocuments() : Promise.resolve([]),
       getMyAgreements(),
+      isRadiologist ? loadSigning() : Promise.resolve(null),
     ]);
 
   return (
@@ -67,6 +70,9 @@ export default async function SettingsPage() {
             {isRadiologist && (
               <CredentialFileCard profile={profile} documents={documents} />
             )}
+            {signing && (
+              <SigningCard setup={signing.setup} previews={signing.previews} />
+            )}
             <ProfileForm profile={profile} isRadiologist={isRadiologist} />
             {/* Le dossier d'un radiologue occupe déjà la colonne de gauche :
                 sa langue passe à droite, et les deux colonnes s'équilibrent. */}
@@ -85,6 +91,12 @@ export default async function SettingsPage() {
       </div>
     </>
   );
+}
+
+/** Signature, cachet et code du radiologue, avec les aperçus de ses images. */
+async function loadSigning() {
+  const setup = await getSigningSetup();
+  return { setup, previews: await getMySigningPreviews(setup) };
 }
 
 /**

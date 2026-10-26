@@ -559,6 +559,8 @@ export interface AdminUser {
    * Point de départ des cinq ans de conservation du compte.
    */
   inactiveSince: Date | null;
+  /** Images de signature ou de cachet déposées, à vérifier par l'équipe. */
+  signingReviewDue: number;
   memberships: UserMembership[];
 }
 
@@ -570,6 +572,8 @@ export interface UserFilters {
   pending?: boolean;
   /** Seulement les radiologues dont un justificatif attend la décision. */
   unverified?: boolean;
+  /** Seulement les radiologues dont une signature ou un cachet attend l'équipe. */
+  signing?: boolean;
 }
 
 /** Comptes de la plateforme, appartenances et dernière connexion. */
@@ -584,6 +588,7 @@ export async function listUsers(
       (user) =>
         (!filters.pending || user.memberships.length === 0) &&
         (!filters.unverified || credentialReviewDue(user)) &&
+        (!filters.signing || user.signing_review_due > 0) &&
         (!needle ||
           user.full_name.toLocaleLowerCase("fr").includes(needle) ||
           (user.email ?? "").toLocaleLowerCase("fr").includes(needle)),
@@ -593,6 +598,7 @@ export async function listUsers(
     if (query) params.set("q", query.slice(0, 100));
     if (filters.pending) params.set("pending", "true");
     if (filters.unverified) params.set("unverified", "true");
+    if (filters.signing) params.set("signing", "true");
     rows = await apiGet(`/admin/users?${params}`, z.array(adminUserSchema));
   }
   return rows.map((row) => ({
@@ -609,6 +615,7 @@ export async function listUsers(
     credentialsValidUntil: row.credentials_valid_until ?? null,
     credentialState: row.credential_state,
     inactiveSince: toDate(row.inactive_since ?? null),
+    signingReviewDue: row.signing_review_due,
     memberships: row.memberships.map((membership) => ({
       membershipId: membership.membership_id,
       organizationId: membership.organization_id,

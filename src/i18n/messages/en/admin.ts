@@ -454,6 +454,13 @@ export const admin: AppMessages["admin"] = {
     noUnverified: "No files to review",
     unverifiedHint:
       "A radiologist appears here as soon as they upload a supporting document, and again if they change their name, title or registration number.",
+    signingFilter: "Signature to review",
+    signingTitle: "Signatures and stamps to review",
+    signingDescription:
+      "Radiologists who have uploaded a new signature or stamp. The previous image stays printed until you decide: nothing is blocked.",
+    noSigning: "No image to review",
+    signingHint:
+      "A radiologist appears here as soon as they draw or upload a signature, or upload a stamp.",
   },
 
   voidReport: {
@@ -469,6 +476,67 @@ export const admin: AppMessages["admin"] = {
     done: (patient: string) =>
       `Report for ${patient} voided: the examination is back in the worklist.`,
     demoAction: "Voiding a report",
+  },
+
+  signing: {
+    trigger: "Signature",
+    due: "Signature to review",
+    title: (name: string) => `Signature and stamp of ${name}`,
+    description:
+      "Compare each uploaded image with the radiologist’s name and supporting document: a stamp must show the name and registration number. Each opening of this window is recorded in the log.",
+    loading: "Loading images…",
+    kinds: { signature: "Signature", stamp: "Stamp" },
+    current: {
+      signature: "Printed today",
+      stamp: "Printed today",
+    },
+    submitted: {
+      signature: (date: string) => `Uploaded on ${date}, to review`,
+      stamp: (date: string) => `Uploaded on ${date}, to review`,
+    },
+    noneCurrent: "None",
+    nothingPending: "Nothing to review.",
+    accept: "Accept",
+    reject: "Reject",
+    reason: "Reason for rejection",
+    reasonHint:
+      "The radiologist reads it in their settings and in the email that informs them.",
+    rejectSubmit: "Reject the image",
+    accepted: {
+      signature: "Signature accepted: the radiologist has been informed.",
+      stamp: "Stamp accepted: the radiologist has been informed.",
+    },
+    rejected: "Image rejected: the radiologist has been informed.",
+    reasonRequired:
+      "Give the reason for rejection: the radiologist will read it.",
+    reasonTooLong: "The reason exceeds 500 characters.",
+    self: "You cannot decide on your own images.",
+    imageAlt: {
+      current: {
+        signature: "Signature printed today",
+        stamp: "Stamp printed today",
+      },
+      pending: {
+        signature: "Signature uploaded, to review",
+        stamp: "Stamp uploaded, to review",
+      },
+    },
+    pin: {
+      title: "Personal code",
+      set: "Set",
+      notSet: "Not created yet",
+      locked: (time: string) => `Locked until ${time}`,
+      reset: "Erase the code",
+      resetConfirm: (name: string) =>
+        `Erase the personal code of ${name}? They will create a new one at their next signature, and will be informed by email. Only do this at their request, after checking their identity through another channel.`,
+      resetSubmit: "Erase the code",
+      resetDone: "Code erased: the radiologist will create a new one.",
+      self: "You cannot erase your own code.",
+    },
+    demoActions: {
+      review: "Reviewing a signature",
+      reset: "Erasing a personal code",
+    },
   },
 
   credentials: {
@@ -768,6 +836,14 @@ export const admin: AppMessages["admin"] = {
       "platform.settings_changed": "Settings changed",
       "contact_request.tracked": "Contact request followed up",
       "agreement.accepted": "Agreement accepted",
+      "signing.asset_changed": "Signature or stamp uploaded",
+      "signing.asset_reviewed": "Signature or stamp reviewed",
+      "signing.asset_viewed": "Signature or stamp viewed",
+      "signing.pin_set": "Personal code set",
+      "signing.pin_failed": "Wrong personal code",
+      "signing.pin_locked": "Personal code locked",
+      "signing.pin_reset_requested": "Personal code erasure requested",
+      "signing.pin_reset": "Personal code erased",
     },
   },
 
@@ -867,6 +943,10 @@ export const admin: AppMessages["admin"] = {
         count === 1
           ? "1 radiologist’s supporting document is awaiting review"
           : `${count} radiologists’ supporting documents are awaiting review`,
+      signingReviews: (count: number) =>
+        count === 1
+          ? "1 signature or stamp image awaits your review"
+          : `${count} signature or stamp images await your review`,
       newRequests: (count: number) =>
         `${count} contact request${count === 1 ? " is" : "s are"} awaiting a reply`,
     },

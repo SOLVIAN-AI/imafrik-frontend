@@ -79,6 +79,21 @@ export function formatDateTime(date: Date, locale: Locale = "fr"): string {
 }
 
 /**
+ * Heure seule, format court, en temps universel, comme les autres dates
+ * de l'interface (l'heure de Lomé).
+ *
+ * @param date   Instant à formater.
+ * @param locale Langue, français par défaut.
+ * @returns Par exemple « 14:32 ».
+ */
+export function formatTime(date: Date, locale: Locale = "fr"): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+    timeStyle: "short",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+/**
  * Taille de fichier lisible.
  *
  * @param bytes Taille en octets.
