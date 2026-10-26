@@ -47,6 +47,10 @@ const SAFE_HEADERS = new Set([
 /** Valeurs citées par PostgreSQL dans ses messages : « Key (col)=(valeur) ». */
 const QUOTED_VALUE = /=\([^)]*\)/g;
 const EMAIL = /[\w.+-]+@[\w-]+\.[\w.-]+/g;
+// Code personnel de signature et image envoyée, s'ils apparaissaient dans
+// un message (corps de requête recopié par une erreur) : jamais transmis.
+const SECRET_FIELD =
+  /(["']?(?:pin|current_pin|pin_confirmation|pinConfirmation|currentPin|image_base64|imageBase64)["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,}&]+)/gi;
 /**
  * Jeton d'une page de vérification publique (`/verifier/…`,
  * `/en/verify/…`) : il ouvre la fiche d'un compte-rendu signé.
@@ -107,7 +111,10 @@ export function sentryOrigin(): string | null {
  * @param text Message d'erreur ou d'exception.
  */
 export function maskText(text: string): string {
-  return text.replace(QUOTED_VALUE, "=(…)").replace(EMAIL, "<adresse>");
+  return text
+    .replace(SECRET_FIELD, "$1[…]")
+    .replace(QUOTED_VALUE, "=(…)")
+    .replace(EMAIL, "<adresse>");
 }
 
 /**

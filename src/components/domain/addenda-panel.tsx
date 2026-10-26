@@ -6,11 +6,21 @@ import { toast } from "sonner";
 
 import { DateTime } from "@/components/domain/date-time";
 import { Panel } from "@/components/layout/app-shell";
+import { PinEntry, usePinGesture } from "@/components/signing/pin-entry";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Field, Textarea } from "@/components/ui/input";
 import { useMessages } from "@/i18n/client";
 import { addAddendum } from "@/lib/actions/reading";
 import type { Addendum } from "@/lib/data/reports";
+import type { SigningContext } from "@/lib/data/signing";
 
 /**
  * Addenda d'un compte-rendu signé.
@@ -26,15 +36,19 @@ import type { Addendum } from "@/lib/data/reports";
  * @param reportId Compte-rendu signé.
  * @param addenda  Corrections existantes.
  * @param canAdd   Afficher le formulaire d'ajout.
+ * @param signing  Code personnel du radiologue, pour la fenêtre de
+ *                 signature de l'addendum.
  */
 export function AddendaPanel({
   reportId,
   addenda,
   canAdd,
+  signing = null,
 }: {
   reportId: string;
   addenda: Addendum[];
   canAdd: boolean;
+  signing?: SigningContext | null;
 }) {
   const labels = useMessages().reading.addenda;
   if (addenda.length === 0 && !canAdd) return null;
@@ -74,26 +88,50 @@ export function AddendaPanel({
         <p className="px-4 py-3 text-xs text-tertiary">{labels.none}</p>
       )}
 
-      {canAdd && <AddendumForm reportId={reportId} />}
+      {canAdd && <AddendumForm reportId={reportId} signing={signing} />}
     </Panel>
   );
 }
 
-/** Formulaire d'ajout. L'envoi est irréversible, comme la signature. */
-function AddendumForm({ reportId }: { reportId: string }) {
-  const labels = useMessages().reading.addenda;
+/**
+ * Formulaire d'ajout. L'envoi est irréversible, comme la signature : une
+ * fenêtre le rappelle et demande le code personnel de l'auteur (ou le
+ * lui fait créer, s'il n'en a pas encore).
+ */
+function AddendumForm({
+  reportId,
+  signing,
+}: {
+  reportId: string;
+  signing: SigningContext | null;
+}) {
+  const t = useMessages();
+  const labels = t.reading.addenda;
   const [body, setBody] = React.useState("");
+  const [confirming, setConfirming] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
+  const gesture = usePinGesture(signing?.status ?? null);
 
-  const submit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!window.confirm(labels.confirm)) return;
+  const changeOpen = (next: boolean) => {
+    if (pending) return;
+    if (!next) {
+      gesture.clear();
+      setError(null);
+    }
+    setConfirming(next);
+  };
+
+  const submit = () => {
+    setError(null);
     startTransition(async () => {
-      const result = await addAddendum(reportId, body);
+      const result = await addAddendum(reportId, body, gesture.proof());
       if (!result.ok) {
-        toast.error(result.error);
+        if (!(await gesture.fail(result))) setError(result.error);
         return;
       }
+      gesture.succeed();
+      setConfirming(false);
       setBody("");
       toast.success(labels.added);
     });
@@ -101,7 +139,10 @@ function AddendumForm({ reportId }: { reportId: string }) {
 
   return (
     <form
-      onSubmit={submit}
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (body.trim()) changeOpen(true);
+      }}
       className="flex flex-col gap-3 border-t border-border-subtle p-4"
     >
       <Field id="addendum" label={labels.label}>
@@ -115,16 +156,51 @@ function AddendumForm({ reportId }: { reportId: string }) {
         />
       </Field>
       <div className="flex justify-end">
-        <Button
-          type="submit"
-          size="sm"
-          loading={pending}
-          disabled={!body.trim()}
-        >
+        <Button type="submit" size="sm" disabled={!body.trim()}>
           <FilePlus2 />
           {labels.submit}
         </Button>
       </div>
+
+      <Dialog open={confirming} onOpenChange={changeOpen}>
+        <DialogContent aria-describedby="addendum-consequences">
+          <DialogHeader>
+            <DialogTitle>{labels.dialogTitle}</DialogTitle>
+            <DialogDescription id="addendum-consequences">
+              {labels.dialogDescription}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 px-5 pb-5">
+            <PinEntry gesture={gesture} idPrefix="addendum" autoFocus />
+            {error && (
+              <p role="alert" className="text-xs text-urgent">
+                {error}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={pending}
+              onClick={() => changeOpen(false)}
+            >
+              {t.common.actions.cancel}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              loading={pending}
+              disabled={!gesture.ready}
+              onClick={submit}
+            >
+              <FilePlus2 />
+              {labels.submit}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

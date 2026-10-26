@@ -20,6 +20,7 @@ import {
   DEMO_STUDIES,
 } from "@/lib/demo/studies";
 import { messagesFor } from "@/i18n";
+import { DEMO_SIGNING_REVIEW_PROFILE } from "@/lib/demo/signing";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 
 /**
@@ -510,6 +511,14 @@ export function demoOverview(
       message: text.unverifiedRadiologists(unverified),
       href: "/admin/utilisateurs?validation=attente",
     });
+  const signingReviews = demoSigningReviewsDue(now);
+  if (signingReviews)
+    alerts.push({
+      code: "signing_reviews",
+      severity: "info",
+      message: text.signingReviews(signingReviews),
+      href: "/admin/utilisateurs?signature=attente",
+    });
   alerts.push({
     code: "new_requests",
     severity: "info",
@@ -546,6 +555,7 @@ export function demoOverview(
       new_requests: DEMO_NEW_REQUESTS,
       unverified_radiologists:
         demoUsers(now).filter(credentialReviewDue).length,
+      signing_reviews_due: demoSigningReviewsDue(now),
     },
     received_14d: received14,
     sla_30d: sla(flows),
@@ -853,6 +863,15 @@ export function demoSettings(now = Date.now()): ApiPlatformSettings {
 }
 
 /** Comptes de la plateforme. */
+/**
+ * Images de signature ou de cachet à vérifier, dans la démonstration.
+ *
+ * @param now Instant de référence.
+ */
+export function demoSigningReviewsDue(now = Date.now()): number {
+  return demoUsers(now).reduce((sum, user) => sum + user.signing_review_due, 0);
+}
+
 export function demoUsers(now = Date.now()): ApiAdminUser[] {
   const ago = (hours: number | null) =>
     hours === null ? null : iso(now - hours * HOUR);
@@ -908,6 +927,9 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
     // date la base.
     inactive_since:
       memberships.length === 0 ? iso(now - createdDaysAgo * DAY) : null,
+    // Un radiologue de la démonstration a déposé un nouveau cachet, que
+    // l'équipe n'a pas encore vérifié (voir `lib/demo/signing.ts`).
+    signing_review_due: id === DEMO_SIGNING_REVIEW_PROFILE ? 1 : 0,
     memberships,
   });
   return [

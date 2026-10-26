@@ -485,6 +485,13 @@ export const admin = {
     noUnverified: "Aucun dossier à examiner",
     unverifiedHint:
       "Un radiologue apparaît ici dès qu’il dépose un justificatif, et de nouveau s’il change de nom, de titre ou de numéro d’ordre.",
+    signingFilter: "Signature à vérifier",
+    signingTitle: "Signatures et cachets à vérifier",
+    signingDescription:
+      "Radiologues qui ont déposé une nouvelle signature ou un nouveau cachet. L’image précédente reste imprimée jusqu’à votre décision : rien n’est bloqué.",
+    noSigning: "Aucune image à vérifier",
+    signingHint:
+      "Un radiologue apparaît ici dès qu’il trace ou importe une signature, ou importe un cachet.",
   },
 
   /**
@@ -506,6 +513,67 @@ export const admin = {
     done: (patient: string) =>
       `Compte-rendu de ${patient} annulé : l’examen est de nouveau dans la file.`,
     demoAction: "L’annulation d’un compte-rendu",
+  },
+
+  /** Signature, cachet et code personnel d'un radiologue. */
+  signing: {
+    trigger: "Signature",
+    due: "Signature à vérifier",
+    title: (name: string) => `Signature et cachet de ${name}`,
+    description:
+      "Comparez chaque image déposée au nom du radiologue et à son justificatif : un cachet doit porter le nom et le numéro d’ordre. Chaque ouverture de cette fenêtre est tracée au journal.",
+    loading: "Chargement des images…",
+    kinds: { signature: "Signature", stamp: "Cachet" },
+    current: {
+      signature: "Imprimée aujourd’hui",
+      stamp: "Imprimé aujourd’hui",
+    },
+    submitted: {
+      signature: (date: string) => `Déposée le ${date}, à vérifier`,
+      stamp: (date: string) => `Déposé le ${date}, à vérifier`,
+    },
+    noneCurrent: "Aucune",
+    nothingPending: "Rien à vérifier.",
+    accept: "Accepter",
+    reject: "Refuser",
+    reason: "Motif du refus",
+    reasonHint:
+      "Le radiologue le lit dans ses paramètres et dans le courriel qui le prévient.",
+    rejectSubmit: "Refuser l’image",
+    accepted: {
+      signature: "Signature acceptée : le radiologue est prévenu.",
+      stamp: "Cachet accepté : le radiologue est prévenu.",
+    },
+    rejected: "Image refusée : le radiologue est prévenu.",
+    reasonRequired: "Indiquez le motif du refus : le radiologue le lira.",
+    reasonTooLong: "Le motif dépasse 500 caractères.",
+    self: "Vous ne pouvez pas décider de vos propres images.",
+    imageAlt: {
+      current: {
+        signature: "Signature imprimée aujourd’hui",
+        stamp: "Cachet imprimé aujourd’hui",
+      },
+      pending: {
+        signature: "Signature déposée, à vérifier",
+        stamp: "Cachet déposé, à vérifier",
+      },
+    },
+    pin: {
+      title: "Code personnel",
+      set: "Défini",
+      notSet: "Pas encore créé",
+      locked: (time: string) => `Verrouillé jusqu’à ${time}`,
+      reset: "Effacer le code",
+      resetConfirm: (name: string) =>
+        `Effacer le code personnel de ${name} ? Il en créera un nouveau à sa prochaine signature, et en sera prévenu par courriel. Ne le faites qu’à sa demande, après avoir vérifié son identité par un autre canal.`,
+      resetSubmit: "Effacer le code",
+      resetDone: "Code effacé : le radiologue en créera un nouveau.",
+      self: "Vous ne pouvez pas effacer votre propre code.",
+    },
+    demoActions: {
+      review: "La vérification d’une signature",
+      reset: "L’effacement d’un code personnel",
+    },
   },
 
   credentials: {
@@ -821,6 +889,15 @@ export const admin = {
       "user.anonymized": "Compte anonymisé",
       "platform.settings_changed": "Réglages modifiés",
       "contact_request.tracked": "Demande reçue suivie",
+      "agreement.accepted": "Engagement accepté",
+      "signing.asset_changed": "Signature ou cachet déposé",
+      "signing.asset_reviewed": "Signature ou cachet vérifié",
+      "signing.asset_viewed": "Signature ou cachet consulté",
+      "signing.pin_set": "Code personnel défini",
+      "signing.pin_failed": "Code personnel erroné",
+      "signing.pin_locked": "Code personnel verrouillé",
+      "signing.pin_reset_requested": "Effacement d’un code personnel demandé",
+      "signing.pin_reset": "Code personnel effacé",
     },
   },
 
@@ -926,6 +1003,10 @@ export const admin = {
         count > 1
           ? `${count} radiologues attendent l’examen de leur justificatif`
           : `${count} radiologue attend l’examen de son justificatif`,
+      signingReviews: (count: number) =>
+        count > 1
+          ? `${count} images de signature ou de cachet attendent votre vérification`
+          : `${count} image de signature ou de cachet attend votre vérification`,
       newRequests: (count: number) =>
         `${count} demande${count > 1 ? "s reçues" : " reçue"} par le site ${count > 1 ? "attendent" : "attend"} une réponse`,
     },

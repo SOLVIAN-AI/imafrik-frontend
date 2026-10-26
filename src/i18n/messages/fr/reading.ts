@@ -373,6 +373,18 @@ export const reading = {
     confirmAnyway: "Signer quand même",
     confirm: "Signer et transmettre",
   },
+  /**
+   * Code personnel et images apposées, dans la fenêtre de signature d'un
+   * vrai compte-rendu (jamais dans celle d'un exercice).
+   */
+  signPin: {
+    applied: "Apposés sur le PDF",
+    appliedNone:
+      "Aucune signature ni aucun cachet accepté : le PDF portera votre nom et votre numéro d’ordre.",
+    signatureAlt: "Votre signature, apposée sur le PDF",
+    stampAlt: "Votre cachet, apposé sur le PDF",
+    settings: "Gérer dans les paramètres",
+  },
   /** Volet des images. */
   viewer: {
     frameTitle: (uid: string) => `Images de l’examen ${uid}`,
@@ -466,8 +478,9 @@ export const reading = {
     title: "Addenda",
     license: (number: string) => `Ordre n° ${number}`,
     none: "Aucune correction depuis la signature.",
-    confirm:
-      "Ajouter cet addendum ? Il sera signé à votre nom, visible de la clinique, et ne pourra plus être modifié.",
+    dialogTitle: "Signer l’addendum",
+    dialogDescription:
+      "Il sera signé à votre nom, visible de la clinique, et ne pourra plus être modifié.",
     added: "Addendum ajouté et transmis.",
     label: "Nouvel addendum",
     placeholder: "Correction ou complément au compte-rendu signé…",

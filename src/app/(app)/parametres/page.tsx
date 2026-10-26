@@ -9,9 +9,11 @@ import {
 } from "@/components/settings/settings-forms";
 import { CredentialFileCard } from "@/components/credentials/credential-file-card";
 import { MfaCard } from "@/components/settings/mfa-card";
+import { SigningCard } from "@/components/settings/signing-card";
 import { getMyCredentialDocuments } from "@/lib/data/credentials";
 import { getOrganization } from "@/lib/data/organization";
 import { getProfile } from "@/lib/data/profile";
+import { getMySigningPreviews, getSigningSetup } from "@/lib/data/signing";
 import { isDemoMode } from "@/lib/demo/mode";
 import { roleRequiresMfa } from "@/lib/session/mfa";
 import { requireSession } from "@/lib/session/server";
@@ -39,12 +41,14 @@ export default async function SettingsPage() {
   const { t } = await getMessages();
   const isClinic = session.active.role === "clinic_staff";
   const isRadiologist = session.active.role === "radiologist";
-  const [profile, organization, mfaEnrolled, documents] = await Promise.all([
-    getProfile(),
-    isClinic ? getOrganization() : Promise.resolve(null),
-    hasVerifiedFactor(session.active.role),
-    isRadiologist ? getMyCredentialDocuments() : Promise.resolve([]),
-  ]);
+  const [profile, organization, mfaEnrolled, documents, signing] =
+    await Promise.all([
+      getProfile(),
+      isClinic ? getOrganization() : Promise.resolve(null),
+      hasVerifiedFactor(session.active.role),
+      isRadiologist ? getMyCredentialDocuments() : Promise.resolve([]),
+      isRadiologist ? loadSigning() : Promise.resolve(null),
+    ]);
 
   return (
     <>
@@ -62,6 +66,9 @@ export default async function SettingsPage() {
           <div className="flex min-w-0 flex-col gap-4">
             {isRadiologist && (
               <CredentialFileCard profile={profile} documents={documents} />
+            )}
+            {signing && (
+              <SigningCard setup={signing.setup} previews={signing.previews} />
             )}
             <ProfileForm profile={profile} isRadiologist={isRadiologist} />
             {/* Le dossier d'un radiologue occupe déjà la colonne de gauche :
@@ -81,6 +88,12 @@ export default async function SettingsPage() {
       </div>
     </>
   );
+}
+
+/** Signature, cachet et code du radiologue, avec les aperçus de ses images. */
+async function loadSigning() {
+  const setup = await getSigningSetup();
+  return { setup, previews: await getMySigningPreviews(setup) };
 }
 
 /**

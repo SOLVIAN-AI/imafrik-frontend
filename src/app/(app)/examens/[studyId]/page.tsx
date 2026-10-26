@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import type * as React from "react";
 
 import { AddendaPanel } from "@/components/domain/addenda-panel";
+import { getSigningContext } from "@/lib/data/signing";
 import { ClinicalInfoForm } from "@/components/domain/clinical-info-form";
 import { DownloadPdfButton } from "@/components/domain/download-pdf-button";
 import { ReportDocument } from "@/components/editor/report-document";
@@ -63,6 +64,12 @@ export default async function StudySheetPage({
   if (!study) notFound();
 
   const isRadiologist = session.active.role === "radiologist";
+  // Un radiologue peut ajouter un addendum à un compte-rendu signé : son
+  // code personnel est demandé.
+  const signing =
+    isRadiologist && report?.status === "signed"
+      ? await getSigningContext()
+      : null;
   // La clinique signale l'urgence et complète le renseignement tant que
   // le compte-rendu n'est pas signé : le service applique la même règle.
   const canEditClinical =
@@ -152,6 +159,7 @@ export default async function StudySheetPage({
               reportId={signed.id}
               addenda={signed.addenda}
               canAdd={isRadiologist}
+              signing={signing}
             />
           )}
         </div>
