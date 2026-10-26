@@ -2,10 +2,17 @@ import { Terminal } from "lucide-react";
 import type { Metadata } from "next";
 
 import { ControlBody, Section } from "@/components/admin/control-ui";
+import { TailscalePanel } from "@/components/admin/gateways/tailscale-panel";
 import { SettingsForm } from "@/components/admin/settings-form";
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader } from "@/components/layout/app-shell";
+import { ApiError } from "@/lib/api/client";
 import { getPlatformSettings } from "@/lib/data/control";
+import {
+  type PolicyComparison,
+  getPolicyComparison,
+  getTailscaleConnection,
+} from "@/lib/data/gateways";
 import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
 
@@ -20,8 +27,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * vivent dans `admin.settings.operatorTasks`, sous la même clé.
  */
 const OPERATOR_ONLY = [
-  { key: "clinic", command: "make clinic" },
-  { key: "revoke", command: "tools/dicom_pki.py revoke" },
+  { key: "adopt", command: "make adopt-gateways" },
+  { key: "kit", command: "make kit-passerelle" },
   { key: "restore", command: "docs/exploitation.md" },
   { key: "deploy", command: "CI · deploy.yml" },
 ] as const;
@@ -30,14 +37,30 @@ const OPERATOR_ONLY = [
  * Réglages de la plateforme.
  *
  * Ce qui se règle d'ici s'applique immédiatement à tous : délais promis,
- * bandeau de maintenance. Chaque modification est tracée dans le journal
- * d'audit.
+ * bandeau de maintenance, connexion Tailscale (qui raccorde et retire les
+ * passerelles) et politique d'accès du réseau privé. Chaque modification
+ * est tracée dans le journal d'audit.
  */
 export default async function SettingsPage() {
   await requireSession(["platform_admin"]);
   const { t } = await getMessages();
   const text = t.admin.settings;
-  const settings = await getPlatformSettings();
+  const [settings, connection, policy] = await Promise.all([
+    getPlatformSettings(),
+    // Même règle pour la connexion : une lecture en échec se dit dans son
+    // panneau, sans emporter l'écran.
+    getTailscaleConnection().catch(() => null),
+    // La comparaison interroge Tailscale : son échec ne doit pas priver
+    // l'écran des autres réglages. Il s'affiche dans le panneau.
+    getPolicyComparison().catch((error: unknown): PolicyComparison => ({
+      repositoryAvailable: false,
+      tailnetAvailable: false,
+      inSync: null,
+      diff: "",
+      etag: null,
+      error: error instanceof ApiError ? error.message : null,
+    })),
+  ]);
 
   return (
     <>
@@ -90,6 +113,27 @@ export default async function SettingsPage() {
                 </li>
               ))}
             </ul>
+          </Section>
+        </div>
+
+        <div id="tailscale" className="scroll-mt-4">
+          <Section
+            title={t.gateways.tailscale.title}
+            description={t.gateways.tailscale.description}
+          >
+            {connection ? (
+              <TailscalePanel
+                connection={{
+                  ...connection,
+                  configuredAt: connection.configuredAt?.toISOString() ?? null,
+                }}
+                policy={policy}
+              />
+            ) : (
+              <p role="alert" className="text-sm text-urgent">
+                {text.unreadable}
+              </p>
+            )}
           </Section>
         </div>
       </ControlBody>

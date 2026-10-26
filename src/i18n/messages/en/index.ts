@@ -4,6 +4,7 @@ import { agreements } from "@/i18n/messages/en/agreements";
 import { clinic } from "@/i18n/messages/en/clinic";
 import { common } from "@/i18n/messages/en/common";
 import { credentials } from "@/i18n/messages/en/credentials";
+import { gateways } from "@/i18n/messages/en/gateways";
 import { nav } from "@/i18n/messages/en/nav";
 import { onboarding } from "@/i18n/messages/en/onboarding";
 import { reading } from "@/i18n/messages/en/reading";
@@ -31,7 +32,8 @@ import { worklist } from "@/i18n/messages/en/worklist";
  * - `settings` : paramètres ;
  * - `training` : espace de formation ;
  * - `tour` : visites guidées, la prise en main écran par écran ;
- * - `admin` : tour de contrôle.
+ * - `admin` : tour de contrôle ;
+ * - `gateways` : passerelles des cliniques, dans la tour de contrôle.
  */
 export const en: AppMessages = {
   common,
@@ -47,4 +49,5 @@ export const en: AppMessages = {
   training,
   tour,
   admin,
+  gateways,
 };

@@ -898,6 +898,23 @@ export const admin = {
       "signing.pin_locked": "Code personnel verrouillé",
       "signing.pin_reset_requested": "Effacement d’un code personnel demandé",
       "signing.pin_reset": "Code personnel effacé",
+      "organization.created": "Clinique créée",
+      "gateway.enrollment_created": "Code d’enrôlement émis",
+      "gateway.enrollment_cancelled": "Code d’enrôlement annulé",
+      "gateway.enrolled": "Passerelle enrôlée",
+      "gateway.approved": "Passerelle approuvée",
+      "gateway.rejected": "Passerelle rejetée",
+      "gateway.activated": "Passerelle activée",
+      "gateway.suspended": "Passerelle suspendue",
+      "gateway.resumed": "Passerelle reprise",
+      "gateway.revoked": "Passerelle révoquée",
+      "gateway.renewal_requested": "Renouvellement du certificat demandé",
+      "gateway.renewed": "Certificat de passerelle renouvelé",
+      "gateway.adopted": "Passerelle reprise en base",
+      "gateway.kit_downloaded": "Kit d’installation téléchargé",
+      "platform.tailscale_configured": "Connexion Tailscale enregistrée",
+      "platform.tailscale_removed": "Connexion Tailscale retirée",
+      "platform.tailscale_policy_pushed": "Politique d’accès Tailscale poussée",
     },
   },
 
@@ -912,13 +929,13 @@ export const admin = {
     operatorOnlyDescription: "Volontairement absents de cet écran",
     /** Gestes réservés au poste d'exploitation, par clé. */
     operatorTasks: {
-      clinic: {
-        task: "Raccorder une clinique",
-        why: "Génère le certificat DICOM TLS et la clé Tailscale à usage unique : des secrets qui ne transitent pas par le web.",
+      adopt: {
+        task: "Reprendre les passerelles raccordées avant l’enrôlement",
+        why: "Une fois, à la transition : lit les certificats du poste d’exploitation, qui ne sont pas sur le serveur.",
       },
-      revoke: {
-        task: "Révoquer une passerelle",
-        why: "Les certificats DICOM TLS sont auto-signés, sans autorité de certification : Orthanc accepte une liste de certificats précis, tenue sur le poste d’exploitation. Révoquer, c’est en retirer celui de la passerelle, envoyer la liste au serveur, qui relance Orthanc, et sortir la machine du réseau Tailscale.",
+      kit: {
+        task: "Produire et signer le kit d’installation",
+        why: "La signature exige le certificat de signature de code, gardé hors du serveur ; le kit se dépose ensuite avec tools/deploy.sh --push-kit.",
       },
       restore: {
         task: "Restaurer une sauvegarde",

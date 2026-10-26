@@ -67,6 +67,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Créer une clinique
+         * @description Crée une clinique, et la rattache au groupe qui lit pour le pool.
+         *
+         *     Aucun AE Title n'est attribué à la clinique : chaque passerelle reçoit
+         *     le sien à l'enrôlement, lié à sa seule adresse, et la tâche d'hôte le
+         *     déclare au PACS (voir ``docs/plan/enrolement-passerelle.md``).
+         *
+         *     Raises:
+         *         Conflict: Une clinique porte déjà ce nom.
+         *         Unprocessable: Pool demandé sans groupe de radiologie déterminé.
+         */
+        post: operations["create_clinic_admin_clinics_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/clinics/{clinic_id}": {
         parameters: {
             query?: never;
@@ -121,6 +149,58 @@ export interface paths {
          *         Unprocessable: Le nom saisi ne correspond pas à la clinique.
          */
         post: operations["end_contract_admin_clinics__clinic_id__end_contract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/gateway-enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Codes d'enrôlement en cours
+         * @description Les codes encore valables d'une clinique, sans leur valeur.
+         */
+        get: operations["list_enrollments_admin_clinics__clinic_id__gateway_enrollments_get"];
+        put?: never;
+        /**
+         * Émettre un code d'enrôlement
+         * @description Émet un code d'enrôlement de 15 minutes ; le précédent est annulé.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         *         Conflict: Clinique suspendue ou au contrat terminé.
+         *         ServiceUnavailable: Le serveur ne peut pas enrôler.
+         */
+        post: operations["create_enrollment_admin_clinics__clinic_id__gateway_enrollments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/gateways": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Passerelles d'une clinique
+         * @description Les passerelles d'une clinique, des plus récentes aux plus anciennes.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["clinic_gateways_admin_clinics__clinic_id__gateways_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -304,6 +384,239 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/gateway-enrollments/{code_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Annuler un code d'enrôlement
+         * @description Annule un code encore valable.
+         *
+         *     Raises:
+         *         NotFound: Code inconnu ou déjà clos.
+         */
+        post: operations["cancel_enrollment_admin_gateway_enrollments__code_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/gateway-kit/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Télécharger le kit d'installation
+         * @description Le kit d'installation des passerelles, générique et signé.
+         *
+         *     Raises:
+         *         NotFound: Aucun kit déposé sur le serveur.
+         */
+        get: operations["download_kit_admin_gateway_kit_download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/gateways": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vue d'ensemble des passerelles
+         * @description Toutes les passerelles, leurs alertes, la tâche d'hôte et le kit.
+         */
+        get: operations["overview_admin_gateways_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/gateways/{gateway_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Une passerelle
+         * @description Une passerelle, ses certificats et son historique.
+         *
+         *     Raises:
+         *         NotFound: Passerelle introuvable.
+         */
+        get: operations["gateway_detail_admin_gateways__gateway_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/gateways/{gateway_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approuver une passerelle
+         * @description Approuve une passerelle en attente : elle s'active dès son nœud trouvé.
+         *
+         *     Raises:
+         *         NotFound: Passerelle introuvable.
+         *         Conflict: Elle n'attend pas d'approbation.
+         */
+        post: operations["approve_gateway_admin_gateways__gateway_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/gateways/{gateway_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rejeter une passerelle
+         * @description Rejette une passerelle pas encore active, et supprime son nœud.
+         *
+         *     Raises:
+         *         NotFound: Passerelle introuvable.
+         *         Conflict: Passerelle déjà active, rejetée ou révoquée.
+         */
+        post: operations["reject_gateway_admin_gateways__gateway_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/gateways/{gateway_id}/renewal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Demander le renouvellement du certificat
+         * @description Demande au poste de renouveler son certificat à son prochain signe de vie.
+         *
+         *     Raises:
+         *         NotFound: Passerelle introuvable.
+         *         Conflict: Passerelle ni active ni suspendue.
+         */
+        post: operations["request_gateway_renewal_admin_gateways__gateway_id__renewal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/gateways/{gateway_id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reprendre une passerelle
+         * @description Reprend une passerelle suspendue.
+         *
+         *     Raises:
+         *         NotFound: Passerelle introuvable.
+         *         Conflict: Elle n'est pas suspendue.
+         */
+        post: operations["resume_gateway_admin_gateways__gateway_id__resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/gateways/{gateway_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Révoquer une passerelle
+         * @description Révoque une passerelle : définitif, motif obligatoire.
+         *
+         *     Raises:
+         *         NotFound: Passerelle introuvable.
+         *         Conflict: Déjà rejetée ou révoquée.
+         */
+        post: operations["revoke_gateway_admin_gateways__gateway_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/gateways/{gateway_id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suspendre une passerelle
+         * @description Suspend une passerelle active : refus temporaire, réversible.
+         *
+         *     Raises:
+         *         NotFound: Passerelle introuvable.
+         *         Conflict: Elle n'est pas active.
+         */
+        post: operations["suspend_gateway_admin_gateways__gateway_id__suspend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/organizations": {
         parameters: {
             query?: never;
@@ -474,6 +787,97 @@ export interface paths {
         get: operations["get_pipeline_admin_pipeline_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/platform/tailscale": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Connexion Tailscale
+         * @description La connexion en service, console d'abord, sans son secret.
+         */
+        get: operations["tailscale_connection_admin_platform_tailscale_get"];
+        /**
+         * Enregistrer la connexion Tailscale
+         * @description Éprouve puis enregistre, chiffré, un nouveau client OAuth.
+         *
+         *     Rien n'est enregistré si le test échoue ou si une portée
+         *     indispensable manque : une connexion enregistrée est une connexion qui
+         *     fonctionne.
+         *
+         *     Raises:
+         *         Forbidden: Second facteur pas assez récent.
+         *         ServiceUnavailable: Clé de chiffrement absente du serveur.
+         *         Unprocessable: Test en échec.
+         */
+        put: operations["save_tailscale_admin_platform_tailscale_put"];
+        post?: never;
+        /**
+         * Retirer la connexion Tailscale saisie en console
+         * @description Retire la connexion saisie en console ; l'environnement reprend la main.
+         *
+         *     Raises:
+         *         Forbidden: Second facteur pas assez récent.
+         *         NotFound: Aucune connexion saisie en console.
+         */
+        delete: operations["remove_tailscale_admin_platform_tailscale_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/platform/tailscale/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Comparer la politique d'accès
+         * @description Compare la politique versionnée à celle en vigueur sur le réseau.
+         */
+        get: operations["compare_policy_admin_platform_tailscale_policy_get"];
+        put?: never;
+        /**
+         * Pousser la politique d'accès versionnée
+         * @description Valide puis applique au réseau la politique versionnée, tests compris.
+         *
+         *     Raises:
+         *         Forbidden: Second facteur pas assez récent.
+         *         Unprocessable: Validation ou tests de la politique en échec.
+         *         Conflict: La politique du réseau a changé depuis la comparaison.
+         *         ServiceUnavailable: Politique versionnée, connexion ou API absentes.
+         */
+        post: operations["push_policy_admin_platform_tailscale_policy_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/platform/tailscale/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Éprouver la connexion Tailscale en service
+         * @description Éprouve la connexion en service, sans rien enregistrer.
+         */
+        post: operations["test_tailscale_admin_platform_tailscale_test_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1076,6 +1480,144 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/gateway/enroll": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enrôler une passerelle
+         * @description Enrôle un poste par son code, et lui remet de quoi rejoindre le réseau.
+         *
+         *     Args:
+         *         body: Demande du poste.
+         *         request: Requête, pour l'adresse de l'appelant.
+         *         response: Réponse, pour en interdire la mise en cache.
+         *         settings: Configuration.
+         *
+         *     Returns:
+         *         L'enrôlement : la passerelle attend désormais l'approbation de
+         *         l'équipe IMAFRIK.
+         */
+        post: operations["enroll_gateway_enroll_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gateway/enroll/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * État d'une passerelle
+         * @description État d'une passerelle, pour le poste qui détient son certificat.
+         *
+         *     Args:
+         *         body: Passerelle et empreinte.
+         *         request: Requête, pour l'adresse de l'appelant.
+         *
+         *     Returns:
+         *         L'état.
+         */
+        post: operations["enrollment_status_gateway_enroll_status_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gateway/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Signal de vie d'une passerelle
+         * @description Enregistre un signal de vie signé et ses métriques.
+         *
+         *     Args:
+         *         body: Signal signé.
+         *         request: Requête, pour l'adresse de l'appelant.
+         *
+         *     Returns:
+         *         Le statut, et la consigne de renouvellement.
+         */
+        post: operations["heartbeat_gateway_heartbeat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gateway/renew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Renouveler le certificat d'une passerelle
+         * @description Épingle le nouveau certificat, sur preuve de possession de l'actuel.
+         *
+         *     Args:
+         *         body: Demande signée.
+         *         request: Requête, pour l'adresse de l'appelant.
+         *
+         *     Returns:
+         *         Le renouvellement.
+         */
+        post: operations["renew_gateway_renew_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gateway/renew/challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Obtenir un défi de renouvellement
+         * @description Délivre un défi à usage unique, valable 5 minutes.
+         *
+         *     Args:
+         *         body: Passerelle et empreinte du certificat actuel.
+         *         request: Requête, pour l'adresse de l'appelant.
+         *
+         *     Returns:
+         *         Le défi.
+         */
+        post: operations["renewal_challenge_gateway_renew_challenge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1187,6 +1729,55 @@ export interface paths {
          *         aussi en anonyme, mais la redemande à chaque requête.
          */
         post: operations["profile_internal_orthanc_user_profile_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/internal/pki/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Compte rendu d'un cycle
+         * @description Enregistre le cycle, et active les passerelles qu'il a appliquées.
+         *
+         *     Args:
+         *         body: Compte rendu.
+         *
+         *     Returns:
+         *         Les passerelles activées.
+         */
+        post: operations["pki_report_internal_pki_report_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/internal/pki/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * État de confiance attendu au PACS
+         * @description État que la tâche d'hôte doit appliquer.
+         *
+         *     Returns:
+         *         Certificats, modalités, retraits et condensé.
+         */
+        get: operations["pki_state_internal_pki_state_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3059,8 +3650,10 @@ export interface components {
          *         city: Ville.
          *         is_active: Désactivée = plus aucun accès pour ses membres.
          *         open_to_pool: Clinique ouverte au pool.
-         *         has_dicom_aet: La clinique est raccordée au PACS. L'AE Title lui
-         *             même n'est jamais renvoyé : c'est un secret.
+         *         has_dicom_aet: La clinique est raccordée au PACS : une passerelle
+         *             active (enrôlée ou reprise), ou, avant l'enrôlement des
+         *             passerelles, un AE Title de clinique. Aucun AE Title n'est
+         *             jamais renvoyé : c'est un secret.
          *         study_count: Examens envoyés (clinique) — zéro pour un groupe.
          *         member_count: Membres.
          *         received_30d: Examens reçus sur trente jours.
@@ -3180,6 +3773,58 @@ export interface components {
             signing_review_due: number;
             /** Title */
             title: string | null;
+        };
+        /**
+         * AgentReportRequest
+         * @description Compte rendu d'un cycle de la tâche d'hôte.
+         *
+         *     Attributes:
+         *         outcome: Issue du cycle.
+         *         restarted: Orthanc a été redémarré.
+         *         digest: Condensé de l'état en vigueur.
+         *         applied_fingerprints: Certificats en vigueur au PACS.
+         *         added: Certificats ajoutés.
+         *         removed: Certificats retirés.
+         *         error: Motif d'un refus ou d'un échec, sans secret.
+         */
+        AgentReportRequest: {
+            /**
+             * Added
+             * @default 0
+             */
+            added: number;
+            /** Applied Fingerprints */
+            applied_fingerprints?: string[] | null;
+            /** Digest */
+            digest?: string | null;
+            /** Error */
+            error?: string | null;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "unchanged" | "applied" | "deferred" | "refused" | "failed";
+            /**
+             * Removed
+             * @default 0
+             */
+            removed: number;
+            /**
+             * Restarted
+             * @default false
+             */
+            restarted: boolean;
+        };
+        /**
+         * AgentReportResponse
+         * @description Accusé de réception.
+         *
+         *     Attributes:
+         *         activated: Passerelles activées par ce cycle.
+         */
+        AgentReportResponse: {
+            /** Activated */
+            activated: string[];
         };
         /**
          * AgreementAcceptance
@@ -3548,6 +4193,43 @@ export interface components {
             urgent: number;
         };
         /**
+         * CertificateProof
+         * @description Désignation d'une passerelle par un de ses certificats.
+         *
+         *     Attributes:
+         *         gateway_id: Identifiant reçu à l'enrôlement.
+         *         certificate_fingerprint: Empreinte de son certificat.
+         */
+        CertificateProof: {
+            /**
+             * Certificate Fingerprint
+             * @description SHA-256 du DER.
+             */
+            certificate_fingerprint: string;
+            /**
+             * Gateway Id
+             * Format: uuid
+             */
+            gateway_id: string;
+        };
+        /**
+         * ChallengeResponse
+         * @description Défi de renouvellement.
+         *
+         *     Attributes:
+         *         challenge: Valeur à signer, base64url sans remplissage.
+         *         expires_at: Échéance (5 minutes).
+         */
+        ChallengeResponse: {
+            /** Challenge */
+            challenge: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /**
          * ClinicActivity
          * @description Activité d'une clinique sur la période.
          */
@@ -3576,6 +4258,54 @@ export interface components {
             signed: number;
             /** Within Sla */
             within_sla: number | null;
+        };
+        /**
+         * ClinicCreate
+         * @description Nouvelle clinique.
+         *
+         *     Attributes:
+         *         name: Nom de l'établissement.
+         *         city: Ville.
+         *         report_language: Langue de ses comptes-rendus.
+         *         open_to_pool: Examens ouverts aux radiologues de la plateforme.
+         *         radiology_group_id: Groupe de radiologie qui lit pour le pool ;
+         *             facultatif s'il n'y en a qu'un actif.
+         */
+        ClinicCreate: {
+            /** City */
+            city?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Open To Pool
+             * @default true
+             */
+            open_to_pool: boolean;
+            /** Radiology Group Id */
+            radiology_group_id?: string | null;
+            /**
+             * Report Language
+             * @default fr
+             * @enum {string}
+             */
+            report_language: "fr" | "en";
+        };
+        /**
+         * ClinicCreated
+         * @description Clinique créée.
+         *
+         *     Attributes:
+         *         id: Identifiant.
+         *         slug: Identifiant lisible.
+         */
+        ClinicCreated: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
         };
         /**
          * ClinicDetail
@@ -4084,6 +4814,174 @@ export interface components {
             url: string;
         };
         /**
+         * EnrollmentCodeInfo
+         * @description Code d'enrôlement encore valable, sans le code.
+         *
+         *     Attributes:
+         *         id: Identifiant.
+         *         created_at: Émission.
+         *         expires_at: Échéance.
+         *         attempts: Présentations déjà faites, sur 5.
+         *         created_by_name: Auteur.
+         */
+        EnrollmentCodeInfo: {
+            /** Attempts */
+            attempts: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By Name */
+            created_by_name: string | null;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
+        /**
+         * EnrollmentCodeIssued
+         * @description Code d'enrôlement, montré une seule fois.
+         *
+         *     Attributes:
+         *         id: Identifiant du code.
+         *         code: Le code : jamais conservé, jamais réaffiché.
+         *         created_at: Émission.
+         *         expires_at: Échéance, 15 minutes plus tard.
+         */
+        EnrollmentCodeIssued: {
+            /** Code */
+            code: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
+        /**
+         * EnrollmentRequest
+         * @description Demande d'enrôlement d'un poste.
+         *
+         *     Attributes:
+         *         enrollment_code: Code remis par l'équipe IMAFRIK.
+         *         certificate_pem: Certificat auto-signé du poste (ECDSA P-256,
+         *             90 jours au plus, sans pouvoir d'autorité). Sa clé privée ne
+         *             quitte jamais le poste.
+         *         machine_guid: ``MachineGuid`` de Windows.
+         *         hostname: Nom du poste.
+         *         key_protection: ``tpm`` (clé dans la puce de sécurité) ou
+         *             ``software_non_exportable`` (magasin Windows, non exportable).
+         */
+        EnrollmentRequest: {
+            /** Certificate Pem */
+            certificate_pem: string;
+            /** Enrollment Code */
+            enrollment_code: string;
+            /** Hostname */
+            hostname: string;
+            /**
+             * Key Protection
+             * @enum {string}
+             */
+            key_protection: "tpm" | "software_non_exportable";
+            /**
+             * Machine Guid
+             * Format: uuid
+             */
+            machine_guid: string;
+        };
+        /**
+         * EnrollmentResponse
+         * @description Ce que le poste reçoit, une seule fois.
+         *
+         *     Attributes:
+         *         gateway_id: Identifiant de la passerelle.
+         *         status: ``awaiting_approval`` : l'équipe IMAFRIK doit approuver.
+         *         clinic_name: Nom de la clinique, à montrer à l'installateur.
+         *         local_aet: AE Title propre à cette passerelle (secret).
+         *         tailscale_hostname: Nom à donner au nœud Tailscale.
+         *         tailscale_auth_key: Clé d'adhésion : usage unique, préapprouvée,
+         *             étiquetée, valable 15 minutes.
+         *         pacs_host: Adresse du PACS sur le réseau privé.
+         *         pacs_port: Port DICOM TLS du PACS.
+         *         pacs_aet: AE Title du PACS.
+         *         pacs_certificate_pem: Certificat du PACS, à épingler.
+         *         status_url: Adresse du suivi d'état.
+         */
+        EnrollmentResponse: {
+            /** Clinic Name */
+            clinic_name: string;
+            /**
+             * Gateway Id
+             * Format: uuid
+             */
+            gateway_id: string;
+            /** Local Aet */
+            local_aet: string;
+            /** Pacs Aet */
+            pacs_aet: string;
+            /** Pacs Certificate Pem */
+            pacs_certificate_pem: string;
+            /** Pacs Host */
+            pacs_host: string;
+            /** Pacs Port */
+            pacs_port: number;
+            /**
+             * Status
+             * @default awaiting_approval
+             * @constant
+             */
+            status: "awaiting_approval";
+            /** Status Url */
+            status_url: string;
+            /** Tailscale Auth Key */
+            tailscale_auth_key: string;
+            /** Tailscale Hostname */
+            tailscale_hostname: string;
+        };
+        /**
+         * EnrollmentStatusResponse
+         * @description État d'une passerelle, vu de son poste.
+         *
+         *     Attributes:
+         *         status: ``awaiting_approval``, ``pending`` (approuvée, en cours
+         *             d'activation), ``active``, ``suspended``, ``rejected`` ou
+         *             ``revoked``. Le poste fait son C-ECHO une fois ``active``.
+         *         tailscale_ip: Adresse Tailscale du poste, lue par le serveur.
+         *         certificate_status: État du certificat désigné : ``pending``,
+         *             ``active`` (appliqué au PACS) ou ``retired``.
+         */
+        EnrollmentStatusResponse: {
+            /**
+             * Certificate Status
+             * @enum {string}
+             */
+            certificate_status: "pending" | "active" | "retired";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "awaiting_approval" | "pending" | "active" | "suspended" | "rejected" | "revoked";
+            /** Tailscale Ip */
+            tailscale_ip: string | null;
+        };
+        /**
          * FindingDecision
          * @description Ce que le radiologue a fait d'un signalement.
          */
@@ -4106,10 +5004,421 @@ export interface components {
          * @enum {string}
          */
         FindingKind: "contradiction" | "omission" | "laterality" | "context_mismatch" | "measurement" | "question_unanswered" | "critical_finding";
+        /**
+         * GatewayCertificateInfo
+         * @description Un certificat épinglé d'une passerelle.
+         *
+         *     Attributes:
+         *         fingerprint: Empreinte SHA-256.
+         *         origin: ``enrollment``, ``renewal`` ou ``adoption``.
+         *         not_before: Début de validité.
+         *         not_after: Échéance.
+         *         created_at: Épinglage.
+         *         applied_at: Mise en vigueur au PACS.
+         *         first_used_at: Premier signe de vie signé par sa clé.
+         *         retire_after: Fin du chevauchement, après un renouvellement.
+         *         retired_at: Retrait.
+         *         retire_reason: Motif du retrait.
+         *         removal_applied_at: Retrait effectif au PACS.
+         */
+        GatewayCertificateInfo: {
+            /** Applied At */
+            applied_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Fingerprint */
+            fingerprint: string;
+            /** First Used At */
+            first_used_at: string | null;
+            /**
+             * Not After
+             * Format: date-time
+             */
+            not_after: string;
+            /**
+             * Not Before
+             * Format: date-time
+             */
+            not_before: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "enrollment" | "renewal" | "adoption";
+            /** Removal Applied At */
+            removal_applied_at: string | null;
+            /** Retire After */
+            retire_after: string | null;
+            /** Retire Reason */
+            retire_reason: string | null;
+            /** Retired At */
+            retired_at: string | null;
+        };
+        /**
+         * GatewayDetail
+         * @description Une passerelle, avec ses certificats et son historique.
+         *
+         *     Attributes:
+         *         certificates: Certificats, du plus récent au plus ancien.
+         *         history: Journal d'audit, du plus récent au plus ancien.
+         */
+        GatewayDetail: {
+            /** Activated At */
+            activated_at: string | null;
+            /**
+             * Address Source
+             * @enum {string}
+             */
+            address_source: "tailscale" | "fixed";
+            /** Approved At */
+            approved_at: string | null;
+            /** Approved By Name */
+            approved_by_name: string | null;
+            /** Certificate Applied */
+            certificate_applied: boolean;
+            /** Certificate Fingerprint */
+            certificate_fingerprint: string | null;
+            /** Certificate Not After */
+            certificate_not_after: string | null;
+            /** Certificates */
+            certificates: components["schemas"]["GatewayCertificateInfo"][];
+            /** Clinic Name */
+            clinic_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Disk Free Bytes */
+            disk_free_bytes: number | null;
+            /** Enrolled From Ip */
+            enrolled_from_ip: string | null;
+            /** History */
+            history: components["schemas"]["GatewayEvent"][];
+            /** Hostname */
+            hostname: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Key Protection */
+            key_protection: ("tpm" | "software_non_exportable") | null;
+            /** Kit Version */
+            kit_version: string | null;
+            /** Last Heartbeat At */
+            last_heartbeat_at: string | null;
+            /** Machine Guid */
+            machine_guid: string | null;
+            /** Network Address */
+            network_address: string | null;
+            /** Oldest Pending Seconds */
+            oldest_pending_seconds: number | null;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "enrolled" | "adopted";
+            /** Orthanc Version */
+            orthanc_version: string | null;
+            /** Pending Series */
+            pending_series: number | null;
+            /** Rejected At */
+            rejected_at: string | null;
+            /** Rejection Reason */
+            rejection_reason: string | null;
+            /** Renewal Requested At */
+            renewal_requested_at: string | null;
+            /** Revocation Reason */
+            revocation_reason: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "awaiting_approval" | "pending" | "active" | "suspended" | "rejected" | "revoked";
+            /** Suspended At */
+            suspended_at: string | null;
+            /** Suspension Reason */
+            suspension_reason: string | null;
+            tailscale?: components["schemas"]["TailscaleNode"] | null;
+            /** Tailscale Hostname */
+            tailscale_hostname: string | null;
+        };
+        /**
+         * GatewayEvent
+         * @description Une entrée du journal d'audit d'une passerelle.
+         *
+         *     Attributes:
+         *         at: Instant.
+         *         action: Action.
+         *         actor_name: Auteur ; ``None`` pour le service lui-même.
+         *         metadata: Détails (motif, empreinte…).
+         */
+        GatewayEvent: {
+            /** Action */
+            action: string;
+            /** Actor Name */
+            actor_name: string | null;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * GatewayOverview
+         * @description Vue d'ensemble des passerelles.
+         *
+         *     Attributes:
+         *         gateways: Passerelles retenues par le filtre.
+         *         counts: Nombre de passerelles par statut (toutes).
+         *         alerts: Alertes des passerelles et de la tâche d'hôte.
+         *         readiness: Ce qui manque pour enrôler.
+         *         agent: Tâche d'hôte.
+         *         kit: Kit d'installation, s'il est déposé.
+         */
+        GatewayOverview: {
+            agent: components["schemas"]["PkiAgent"];
+            /** Alerts */
+            alerts: components["schemas"]["Alert"][];
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Gateways */
+            gateways: components["schemas"]["GatewaySummary"][];
+            kit: components["schemas"]["KitInfo"] | null;
+            readiness: components["schemas"]["Readiness"];
+        };
+        /**
+         * GatewayReason
+         * @description Motif d'un geste sur une passerelle, obligatoire.
+         *
+         *     Attributes:
+         *         reason: Motif, 3 à 500 caractères, conservé au journal.
+         */
+        GatewayReason: {
+            /** Reason */
+            reason: string;
+        };
+        /**
+         * GatewaySummary
+         * @description Une passerelle, vue de la tour de contrôle (jamais son AE Title).
+         *
+         *     Attributes:
+         *         id: Identifiant.
+         *         organization_id: Clinique.
+         *         clinic_name: Son nom.
+         *         origin: ``enrolled`` (par code) ou ``adopted`` (raccordée avant
+         *             l'enrôlement, reprise).
+         *         status: Statut.
+         *         hostname: Nom du poste.
+         *         machine_guid: ``MachineGuid`` du poste.
+         *         key_protection: Protection de la clé sur le poste.
+         *         enrolled_from_ip: Adresse publique vue à l'enrôlement.
+         *         tailscale_hostname: Nom du nœud Tailscale attendu.
+         *         network_address: Adresse d'où le PACS accepte son AE Title.
+         *         address_source: ``tailscale`` ou ``fixed``.
+         *         created_at: Enrôlement.
+         *         approved_at: Approbation.
+         *         approved_by_name: Approbateur.
+         *         activated_at: Activation.
+         *         rejected_at: Rejet.
+         *         rejection_reason: Motif du rejet.
+         *         suspended_at: Suspension.
+         *         suspension_reason: Motif.
+         *         revoked_at: Révocation.
+         *         revocation_reason: Motif.
+         *         renewal_requested_at: Renouvellement demandé, pas encore fait.
+         *         certificate_fingerprint: Empreinte du certificat le plus récent.
+         *         certificate_not_after: Son échéance.
+         *         certificate_applied: Il est en vigueur au PACS.
+         *         last_heartbeat_at: Dernier signe de vie.
+         *         pending_series: Séries en attente d'envoi.
+         *         oldest_pending_seconds: Âge de la plus ancienne.
+         *         disk_free_bytes: Espace disque libre.
+         *         kit_version: Version du kit.
+         *         orthanc_version: Version d'Orthanc.
+         *         tailscale: État du nœud ; ``None`` si inconnu.
+         */
+        GatewaySummary: {
+            /** Activated At */
+            activated_at: string | null;
+            /**
+             * Address Source
+             * @enum {string}
+             */
+            address_source: "tailscale" | "fixed";
+            /** Approved At */
+            approved_at: string | null;
+            /** Approved By Name */
+            approved_by_name: string | null;
+            /** Certificate Applied */
+            certificate_applied: boolean;
+            /** Certificate Fingerprint */
+            certificate_fingerprint: string | null;
+            /** Certificate Not After */
+            certificate_not_after: string | null;
+            /** Clinic Name */
+            clinic_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Disk Free Bytes */
+            disk_free_bytes: number | null;
+            /** Enrolled From Ip */
+            enrolled_from_ip: string | null;
+            /** Hostname */
+            hostname: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Key Protection */
+            key_protection: ("tpm" | "software_non_exportable") | null;
+            /** Kit Version */
+            kit_version: string | null;
+            /** Last Heartbeat At */
+            last_heartbeat_at: string | null;
+            /** Machine Guid */
+            machine_guid: string | null;
+            /** Network Address */
+            network_address: string | null;
+            /** Oldest Pending Seconds */
+            oldest_pending_seconds: number | null;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "enrolled" | "adopted";
+            /** Orthanc Version */
+            orthanc_version: string | null;
+            /** Pending Series */
+            pending_series: number | null;
+            /** Rejected At */
+            rejected_at: string | null;
+            /** Rejection Reason */
+            rejection_reason: string | null;
+            /** Renewal Requested At */
+            renewal_requested_at: string | null;
+            /** Revocation Reason */
+            revocation_reason: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "awaiting_approval" | "pending" | "active" | "suspended" | "rejected" | "revoked";
+            /** Suspended At */
+            suspended_at: string | null;
+            /** Suspension Reason */
+            suspension_reason: string | null;
+            tailscale?: components["schemas"]["TailscaleNode"] | null;
+            /** Tailscale Hostname */
+            tailscale_hostname: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * HeartbeatRequest
+         * @description Signal de vie, toutes les 5 minutes, signé par la clé du poste.
+         *
+         *     Aucune donnée patient : des compteurs et des versions.
+         *
+         *     Attributes:
+         *         gateway_id: Passerelle.
+         *         certificate_fingerprint: Certificat dont la clé signe.
+         *         sent_at: Horodatage UTC, ``AAAA-MM-JJTHH:MM:SSZ`` exactement.
+         *         key_protection: Protection de la clé.
+         *         pending_series: Séries en attente d'envoi vers IMAFRIK.
+         *         oldest_pending_seconds: Âge de la plus ancienne, 0 si aucune.
+         *         disk_free_bytes: Espace libre du disque de stockage d'Orthanc.
+         *         kit_version: Version du kit IMAFRIK.
+         *         orthanc_version: Version d'Orthanc.
+         *         signature: Signature du texte décrit au contrat 3.6.
+         */
+        HeartbeatRequest: {
+            /**
+             * Certificate Fingerprint
+             * @description SHA-256 du DER.
+             */
+            certificate_fingerprint: string;
+            /** Disk Free Bytes */
+            disk_free_bytes: number;
+            /**
+             * Gateway Id
+             * Format: uuid
+             */
+            gateway_id: string;
+            /**
+             * Key Protection
+             * @enum {string}
+             */
+            key_protection: "tpm" | "software_non_exportable";
+            /** Kit Version */
+            kit_version: string;
+            /** Oldest Pending Seconds */
+            oldest_pending_seconds: number;
+            /** Orthanc Version */
+            orthanc_version: string;
+            /** Pending Series */
+            pending_series: number;
+            /** Sent At */
+            sent_at: string;
+            /**
+             * Signature
+             * @description Base64 standard des 64 octets r‖s (IEEE P1363), ECDSA P-256 SHA-256.
+             */
+            signature: string;
+        };
+        /**
+         * HeartbeatResponse
+         * @description Réponse au signal de vie.
+         *
+         *     Attributes:
+         *         status: Statut de la passerelle.
+         *         renew_certificate: Renouveler le certificat maintenant.
+         *         server_time: Heure du serveur.
+         */
+        HeartbeatResponse: {
+            /** Renew Certificate */
+            renew_certificate: boolean;
+            /**
+             * Server Time
+             * Format: date-time
+             */
+            server_time: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "awaiting_approval" | "pending" | "active" | "suspended" | "rejected" | "revoked";
         };
         /**
          * Invitation
@@ -4169,6 +5478,50 @@ export interface components {
              * @enum {string}
              */
             role: "platform_admin" | "radiologist" | "clinic_staff";
+        };
+        /**
+         * KitInfo
+         * @description Kit d'installation présent sur le serveur.
+         *
+         *     Attributes:
+         *         file_name: Nom du fichier.
+         *         size_bytes: Taille.
+         *         sha256: Empreinte, calculée sur le fichier servi.
+         *         version: Version annoncée.
+         *         built_at: Production.
+         *         manifest_matches: L'empreinte annoncée par le manifeste
+         *             (``kit-passerelle.json``) est celle du fichier servi ; ``None``
+         *             sans manifeste.
+         *         signature_status: Signature Authenticode annoncée par le manifeste.
+         *         publisher: Sujet du certificat de signature de code.
+         *         signature_expires_at: Fin de validité de ce certificat.
+         *         timestamped: La signature est horodatée (elle survit alors à
+         *             l'échéance du certificat).
+         */
+        KitInfo: {
+            /**
+             * Built At
+             * Format: date-time
+             */
+            built_at: string;
+            /** File Name */
+            file_name: string;
+            /** Manifest Matches */
+            manifest_matches: boolean | null;
+            /** Publisher */
+            publisher: string | null;
+            /** Sha256 */
+            sha256: string;
+            /** Signature Expires At */
+            signature_expires_at: string | null;
+            /** Signature Status */
+            signature_status: ("signed" | "unsigned") | null;
+            /** Size Bytes */
+            size_bytes: number;
+            /** Timestamped */
+            timestamped: boolean | null;
+            /** Version */
+            version: string | null;
         };
         /**
          * LiveCounts
@@ -4323,6 +5676,23 @@ export interface components {
         MfaReset: {
             /** Removed Factors */
             removed_factors: number;
+        };
+        /**
+         * Modality
+         * @description Émetteur autorisé : un AE Title, une adresse.
+         *
+         *     Attributes:
+         *         name: Nom symbolique dans la configuration d'Orthanc.
+         *         aet: AE Title de la passerelle.
+         *         host: Adresse d'où il est accepté.
+         */
+        Modality: {
+            /** Aet */
+            aet: string;
+            /** Host */
+            host: string;
+            /** Name */
+            name: string;
         };
         /**
          * ModalityActivity
@@ -4486,6 +5856,32 @@ export interface components {
             url: string;
         };
         /**
+         * PendingChange
+         * @description Une passerelle dont l'état attendu au PACS n'est pas encore appliqué.
+         *
+         *     Attributes:
+         *         gateway_id: Passerelle.
+         *         clinic_name: Clinique.
+         *         hostname: Poste.
+         *         change: ``add`` (à accepter) ou ``remove`` (à retirer).
+         */
+        PendingChange: {
+            /**
+             * Change
+             * @enum {string}
+             */
+            change: "add" | "remove";
+            /** Clinic Name */
+            clinic_name: string;
+            /**
+             * Gateway Id
+             * Format: uuid
+             */
+            gateway_id: string;
+            /** Hostname */
+            hostname: string;
+        };
+        /**
          * PipelineStudy
          * @description Un examen dans le flux — sans donnée patient.
          */
@@ -4533,6 +5929,101 @@ export interface components {
             transfer_bytes: number | null;
         };
         /**
+         * PkiAgent
+         * @description État de la tâche d'hôte qui applique la confiance au PACS.
+         *
+         *     Attributes:
+         *         last_report_at: Dernier compte rendu.
+         *         last_outcome: Issue du dernier cycle.
+         *         last_error: Motif du dernier refus ou échec.
+         *         last_restart_at: Dernier redémarrage d'Orthanc.
+         *         applied_at: Dernier changement appliqué.
+         *         pending: Changements attendus, pas encore appliqués.
+         *         cycles: Derniers cycles marquants.
+         */
+        PkiAgent: {
+            /** Applied At */
+            applied_at: string | null;
+            /** Cycles */
+            cycles: components["schemas"]["PkiCycle"][];
+            /** Last Error */
+            last_error: string | null;
+            /** Last Outcome */
+            last_outcome: ("unchanged" | "applied" | "deferred" | "refused" | "failed") | null;
+            /** Last Report At */
+            last_report_at: string | null;
+            /** Last Restart At */
+            last_restart_at: string | null;
+            /** Pending */
+            pending: components["schemas"]["PendingChange"][];
+        };
+        /**
+         * PkiCycle
+         * @description Un cycle de la tâche d'hôte qui a changé quelque chose, ou échoué.
+         *
+         *     Attributes:
+         *         reported_at: Instant.
+         *         outcome: Issue.
+         *         restarted: Orthanc redémarré.
+         *         added: Certificats ajoutés.
+         *         removed: Certificats retirés.
+         *         error: Motif d'un refus ou d'un échec.
+         */
+        PkiCycle: {
+            /** Added */
+            added: number;
+            /** Error */
+            error: string | null;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "applied" | "deferred" | "refused" | "failed";
+            /** Removed */
+            removed: number;
+            /**
+             * Reported At
+             * Format: date-time
+             */
+            reported_at: string;
+            /** Restarted */
+            restarted: boolean;
+        };
+        /**
+         * PkiState
+         * @description État de confiance attendu au PACS.
+         *
+         *     Attributes:
+         *         environment: Environnement de l'API, que la tâche compare au sien.
+         *         generated_at: Instant de production.
+         *         pacs_certificate_fingerprint: Empreinte du certificat du PACS que
+         *             l'API remet aux passerelles : doit être celui du serveur.
+         *         trusted_certificates: Certificats à épingler.
+         *         modalities: Émetteurs autorisés.
+         *         removed_fingerprints: Certificats connus et retirés : seuls ceux-ci
+         *             peuvent disparaître de la liste du PACS.
+         *         digest: Condensé de l'état.
+         */
+        PkiState: {
+            /** Digest */
+            digest: string;
+            /** Environment */
+            environment: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Modalities */
+            modalities: components["schemas"]["Modality"][];
+            /** Pacs Certificate Fingerprint */
+            pacs_certificate_fingerprint: string;
+            /** Removed Fingerprints */
+            removed_fingerprints: string[];
+            /** Trusted Certificates */
+            trusted_certificates: components["schemas"]["TrustedCertificate"][];
+        };
+        /**
          * PlatformSettings
          * @description Réglages de la plateforme.
          */
@@ -4560,6 +6051,45 @@ export interface components {
             sla_routine_minutes?: number | null;
             /** Sla Urgent Minutes */
             sla_urgent_minutes?: number | null;
+        };
+        /**
+         * PolicyComparison
+         * @description Politique d'accès versionnée, comparée à celle du réseau.
+         *
+         *     Attributes:
+         *         repository_available: La politique versionnée est lisible.
+         *         tailnet_available: La politique du réseau est lisible (portée
+         *             ``policy_file``).
+         *         in_sync: Les deux sont identiques ; ``None`` si l'une manque.
+         *         diff: Écart, au format diff unifié (vide si identiques).
+         *         etag: Version de la politique du réseau, à présenter pour pousser.
+         *         error: Motif d'une lecture impossible.
+         */
+        PolicyComparison: {
+            /** Diff */
+            diff: string;
+            /** Error */
+            error?: string | null;
+            /** Etag */
+            etag: string | null;
+            /** In Sync */
+            in_sync: boolean | null;
+            /** Repository Available */
+            repository_available: boolean;
+            /** Tailnet Available */
+            tailnet_available: boolean;
+        };
+        /**
+         * PolicyPush
+         * @description Poussée de la politique versionnée.
+         *
+         *     Attributes:
+         *         etag: Version comparée : la poussée échoue si la politique du
+         *             réseau a changé depuis.
+         */
+        PolicyPush: {
+            /** Etag */
+            etag: string;
         };
         /**
          * PrioritySla
@@ -4692,6 +6222,79 @@ export interface components {
             signed: number;
             /** Title */
             title: string | null;
+        };
+        /**
+         * Readiness
+         * @description Ce qui manque au serveur pour enrôler.
+         *
+         *     Attributes:
+         *         ready: Tout est en place.
+         *         missing: ``tailscale_credentials``, ``pacs_host``, ``pacs_certificate``.
+         */
+        Readiness: {
+            /** Missing */
+            missing: ("tailscale_credentials" | "pacs_host" | "pacs_certificate")[];
+            /** Ready */
+            ready: boolean;
+        };
+        /**
+         * RenewalRequest
+         * @description Renouvellement du certificat d'une passerelle.
+         *
+         *     Attributes:
+         *         gateway_id: Passerelle.
+         *         certificate_fingerprint: Empreinte du certificat actuel.
+         *         challenge: Défi reçu.
+         *         new_certificate_pem: Nouveau certificat (nouvelle clé).
+         *         signature: Signature, par la clé actuelle, du texte
+         *             ``IMAFRIK-RENEW-V1\\n<gateway_id>\\n<empreinte actuelle>\\n<défi>\\n
+         *             <empreinte du nouveau certificat>``.
+         */
+        RenewalRequest: {
+            /**
+             * Certificate Fingerprint
+             * @description SHA-256 du DER.
+             */
+            certificate_fingerprint: string;
+            /** Challenge */
+            challenge: string;
+            /**
+             * Gateway Id
+             * Format: uuid
+             */
+            gateway_id: string;
+            /** New Certificate Pem */
+            new_certificate_pem: string;
+            /**
+             * Signature
+             * @description Base64 standard des 64 octets r‖s (IEEE P1363), ECDSA P-256 SHA-256.
+             */
+            signature: string;
+        };
+        /**
+         * RenewalResponse
+         * @description Résultat d'un renouvellement.
+         *
+         *     Attributes:
+         *         certificate_fingerprint: Empreinte du nouveau certificat.
+         *         not_after: Son échéance.
+         *         previous_certificate_valid_until: Fin du chevauchement : l'ancien
+         *             reste accepté jusque-là, ou jusqu'au premier signal de vie
+         *             signé par la nouvelle clé une fois celle-ci active au PACS.
+         */
+        RenewalResponse: {
+            /** Certificate Fingerprint */
+            certificate_fingerprint: string;
+            /**
+             * Not After
+             * Format: date-time
+             */
+            not_after: string;
+            /**
+             * Previous Certificate Valid Until
+             * Format: date-time
+             */
+            previous_certificate_valid_until: string;
         };
         /**
          * Report
@@ -5469,6 +7072,96 @@ export interface components {
             stored_studies: number | null;
         };
         /**
+         * TailscaleConnection
+         * @description Connexion Tailscale de la plateforme, sans son secret.
+         *
+         *     Attributes:
+         *         source: ``console``, ``environment``, ou ``None`` si aucune.
+         *         client_id: Identifiant du client OAuth.
+         *         secret_last4: Quatre derniers caractères du secret (console).
+         *         configured_at: Enregistrement en console.
+         *         configured_by_name: Auteur.
+         *         scopes: Portées constatées au dernier test enregistré.
+         *         required_scopes: Portées indispensables.
+         *         encryption_available: La clé de chiffrement des secrets est sur le
+         *             serveur : l'enregistrement en console est possible.
+         *         policy_file_available: La politique versionnée est lisible par l'API.
+         */
+        TailscaleConnection: {
+            /** Client Id */
+            client_id: string | null;
+            /** Configured At */
+            configured_at: string | null;
+            /** Configured By Name */
+            configured_by_name: string | null;
+            /** Encryption Available */
+            encryption_available: boolean;
+            /** Policy File Available */
+            policy_file_available: boolean;
+            /** Required Scopes */
+            required_scopes: string[];
+            /** Scopes */
+            scopes: string[];
+            /** Secret Last4 */
+            secret_last4: string | null;
+            /** Source */
+            source: ("console" | "environment") | null;
+        };
+        /**
+         * TailscaleConnectionUpdate
+         * @description Nouveau client OAuth Tailscale.
+         *
+         *     Attributes:
+         *         client_id: Identifiant.
+         *         client_secret: Secret : jamais réaffiché.
+         */
+        TailscaleConnectionUpdate: {
+            /** Client Id */
+            client_id: string;
+            /** Client Secret */
+            client_secret: string;
+        };
+        /**
+         * TailscaleNode
+         * @description État du nœud Tailscale d'une passerelle, lu dans l'API Tailscale.
+         *
+         *     Attributes:
+         *         online: Connecté au service de coordination.
+         *         last_seen: Dernier contact.
+         *         address: Adresse IPv4 du nœud.
+         */
+        TailscaleNode: {
+            /** Address */
+            address: string | null;
+            /** Last Seen */
+            last_seen: string | null;
+            /** Online */
+            online: boolean;
+        };
+        /**
+         * TailscaleTest
+         * @description Résultat d'un test de connexion.
+         *
+         *     Attributes:
+         *         ok: Jeton obtenu et portées indispensables présentes.
+         *         scopes: Portées accordées.
+         *         missing_scopes: Portées indispensables absentes.
+         *         policy_available: La portée ``policy_file`` est accordée.
+         *         error: Motif d'un échec, sans secret.
+         */
+        TailscaleTest: {
+            /** Error */
+            error?: string | null;
+            /** Missing Scopes */
+            missing_scopes: string[];
+            /** Ok */
+            ok: boolean;
+            /** Policy Available */
+            policy_available: boolean;
+            /** Scopes */
+            scopes: string[];
+        };
+        /**
          * TemplateCreate
          * @description Nouveau modèle, propre à l'organisation active.
          *
@@ -5716,6 +7409,26 @@ export interface components {
             url: string;
         };
         /**
+         * TrustedCertificate
+         * @description Certificat à épingler au PACS.
+         *
+         *     Attributes:
+         *         gateway_id: Passerelle.
+         *         fingerprint: Empreinte SHA-256 du DER.
+         *         certificate_pem: Certificat.
+         */
+        TrustedCertificate: {
+            /** Certificate Pem */
+            certificate_pem: string;
+            /** Fingerprint */
+            fingerprint: string;
+            /**
+             * Gateway Id
+             * Format: uuid
+             */
+            gateway_id: string;
+        };
+        /**
          * UploadResult
          * @description Issue du dépôt d'un fichier.
          *
@@ -5935,7 +7648,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.assigned" | "study.unassigned" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.assigned" | "study.unassigned" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -5989,6 +7702,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BillingLine"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_clinic_admin_clinics_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClinicCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicCreated"];
                 };
             };
             /** @description Validation Error */
@@ -6059,6 +7807,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ContractEndResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_enrollments_admin_clinics__clinic_id__gateway_enrollments_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentCodeInfo"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_enrollment_admin_clinics__clinic_id__gateway_enrollments_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentCodeIssued"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clinic_gateways_admin_clinics__clinic_id__gateways_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewaySummary"][];
                 };
             };
             /** @description Validation Error */
@@ -6348,6 +8195,350 @@ export interface operations {
             };
         };
     };
+    cancel_enrollment_admin_gateway_enrollments__code_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                code_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_kit_admin_gateway_kit_download_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Aucun kit déposé sur le serveur. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_admin_gateways_get: {
+        parameters: {
+            query?: {
+                /** @description Statut retenu. */
+                status?: ("awaiting_approval" | "pending" | "active" | "suspended" | "rejected" | "revoked") | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayOverview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gateway_detail_admin_gateways__gateway_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                gateway_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_gateway_admin_gateways__gateway_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                gateway_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_gateway_admin_gateways__gateway_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                gateway_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GatewayReason"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_gateway_renewal_admin_gateways__gateway_id__renewal_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                gateway_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_gateway_admin_gateways__gateway_id__resume_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                gateway_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_gateway_admin_gateways__gateway_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                gateway_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GatewayReason"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suspend_gateway_admin_gateways__gateway_id__suspend_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                gateway_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GatewayReason"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GatewayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_organizations_admin_organizations_get: {
         parameters: {
             query?: never;
@@ -6575,6 +8766,198 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PipelineStudy"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    tailscale_connection_admin_platform_tailscale_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailscaleConnection"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_tailscale_admin_platform_tailscale_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TailscaleConnectionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailscaleTest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_tailscale_admin_platform_tailscale_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_policy_admin_platform_tailscale_policy_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyComparison"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    push_policy_admin_platform_tailscale_policy_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PolicyPush"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyComparison"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_tailscale_admin_platform_tailscale_test_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailscaleTest"];
                 };
             };
             /** @description Validation Error */
@@ -7279,6 +9662,297 @@ export interface operations {
             };
         };
     };
+    enroll_gateway_enroll_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnrollmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentResponse"];
+                };
+            };
+            /** @description Certificat non conforme (motif précis). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Code inconnu, expiré ou déjà utilisé. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Certificat déjà enrôlé, ou poste déjà en service. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Trop d'essais depuis cette adresse. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Enrôlement indisponible, ou réseau privé injoignable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    enrollment_status_gateway_enroll_status_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CertificateProof"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentStatusResponse"];
+                };
+            };
+            /** @description Passerelle inconnue. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Trop d'appels. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    heartbeat_gateway_heartbeat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HeartbeatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeartbeatResponse"];
+                };
+            };
+            /** @description Signature, certificat ou horloge refusés. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Passerelle inconnue. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Signal déjà reçu (rejeu). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Trop d'appels. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    renew_gateway_renew_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenewalRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenewalResponse"];
+                };
+            };
+            /** @description Nouveau certificat non conforme. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Défi ou signature refusés. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Passerelle inconnue. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Certificat déjà enrôlé. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Trop d'appels. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    renewal_challenge_gateway_renew_challenge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CertificateProof"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeResponse"];
+                };
+            };
+            /** @description Passerelle inconnue. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Trop d'appels. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     health_health_get: {
         parameters: {
             query?: never;
@@ -7382,6 +10056,72 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    pki_report_internal_pki_report_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentReportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pki_state_internal_pki_state_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PkiState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

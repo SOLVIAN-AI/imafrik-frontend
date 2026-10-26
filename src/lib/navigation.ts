@@ -186,6 +186,7 @@ const ADMIN_NAV: NavGroup[] = [
         key: "organisations",
         icon: "organizations",
       },
+      { href: "/admin/passerelles", key: "gateways", icon: "gateways" },
       { href: "/admin/utilisateurs", key: "accounts", icon: "users" },
       { href: "/admin/examens", key: "studies", icon: "studies" },
       { href: "/admin/demandes", key: "requests", icon: "inbox" },

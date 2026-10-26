@@ -844,6 +844,23 @@ export const admin: AppMessages["admin"] = {
       "signing.pin_locked": "Personal code locked",
       "signing.pin_reset_requested": "Personal code erasure requested",
       "signing.pin_reset": "Personal code erased",
+      "organization.created": "Clinic created",
+      "gateway.enrollment_created": "Enrolment code issued",
+      "gateway.enrollment_cancelled": "Enrolment code cancelled",
+      "gateway.enrolled": "Gateway enrolled",
+      "gateway.approved": "Gateway approved",
+      "gateway.rejected": "Gateway rejected",
+      "gateway.activated": "Gateway activated",
+      "gateway.suspended": "Gateway suspended",
+      "gateway.resumed": "Gateway resumed",
+      "gateway.revoked": "Gateway revoked",
+      "gateway.renewal_requested": "Certificate renewal requested",
+      "gateway.renewed": "Gateway certificate renewed",
+      "gateway.adopted": "Gateway adopted into the database",
+      "gateway.kit_downloaded": "Installation kit downloaded",
+      "platform.tailscale_configured": "Tailscale connection saved",
+      "platform.tailscale_removed": "Tailscale connection removed",
+      "platform.tailscale_policy_pushed": "Tailscale access policy pushed",
     },
   },
 
@@ -857,13 +874,13 @@ export const admin: AppMessages["admin"] = {
     operatorOnly: "From the operations workstation",
     operatorOnlyDescription: "Deliberately left out of this screen",
     operatorTasks: {
-      clinic: {
-        task: "Connect a clinic",
-        why: "Generates the DICOM TLS certificate and the single-use Tailscale key: secrets that never travel over the web.",
+      adopt: {
+        task: "Adopt the gateways connected before enrolment",
+        why: "Once, during the transition: reads the certificates held on the operations workstation, which are not on the server.",
       },
-      revoke: {
-        task: "Revoke a gateway",
-        why: "DICOM TLS certificates are self-signed, with no certificate authority: Orthanc accepts a list of specific certificates, kept on the operations workstation. Revoking means removing the gateway’s certificate from it, pushing the list to the server, which restarts Orthanc, and taking the machine off the Tailscale network.",
+      kit: {
+        task: "Build and sign the installation kit",
+        why: "Signing requires the code-signing certificate, kept off the server; the kit is then uploaded with tools/deploy.sh --push-kit.",
       },
       restore: {
         task: "Restore a backup",

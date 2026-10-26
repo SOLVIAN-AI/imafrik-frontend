@@ -40,6 +40,9 @@ const EXCLUDED = [
   // Organisations, personnes et demandes de contact fictives de la tour de
   // contrôle : ses textes d’interface, eux, viennent des dictionnaires.
   /^lib\/demo\/control\.ts$/,
+  // Passerelles fictives de la tour de contrôle : noms de postes, motifs
+  // de suspension ou de révocation, écart de politique. Des données.
+  /^lib\/demo\/gateways\.ts$/,
   // Personnes et organisations de la session de démonstration.
   /^lib\/session\/demo\.ts$/,
   // Le manifeste d'application installable n'existe qu'en une langue : le
