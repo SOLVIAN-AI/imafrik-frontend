@@ -10,6 +10,9 @@ import { markServiceUnavailable } from "@/lib/service-unavailable";
 import { createClient } from "@/lib/supabase/server";
 
 import { API_URL } from "@/lib/api/config";
+import type { ApiErrorReason } from "@/lib/api/error-reason";
+
+export type { ApiErrorReason } from "@/lib/api/error-reason";
 
 export { isApiConfigured } from "@/lib/api/config";
 
@@ -35,6 +38,8 @@ export class ApiError extends Error {
   constructor(
     readonly status: number,
     message: string,
+    /** Précisions machine du refus, quand le service en donne (code personnel). */
+    readonly reason: ApiErrorReason = {},
   ) {
     super(message);
     this.name = "ApiError";
@@ -43,30 +48,41 @@ export class ApiError extends Error {
 }
 
 /**
- * Extrait le message d'une réponse d'erreur de l'API.
+ * Extrait le message d'une réponse d'erreur de l'API, et ses précisions.
  *
  * Le service répond `{"detail": "…"}` avec un texte écrit pour
  * l'utilisateur, sans donnée de santé. Une erreur de validation renvoie
  * une liste : on n'en garde alors qu'un résumé.
  */
-async function errorMessage(
+async function errorDetails(
   response: Response,
   locale: Locale,
-): Promise<string> {
+): Promise<{ message: string; reason: ApiErrorReason }> {
   const errors = messagesFor(locale).common.errors;
+  const fallback =
+    response.status >= 500 ? errors.serviceUnavailable : errors.requestFailed;
   try {
     const body: unknown = await response.json();
     if (body && typeof body === "object" && "detail" in body) {
-      const { detail } = body as { detail: unknown };
-      if (typeof detail === "string") return detail;
-      if (Array.isArray(detail)) return errors.invalidRequest;
+      const record = body as Record<string, unknown>;
+      const reason: ApiErrorReason = {};
+      if (typeof record.code === "string") reason.code = record.code;
+      if (typeof record.locked_until === "string") {
+        reason.lockedUntil = record.locked_until;
+      }
+      if (typeof record.attempts_left === "number") {
+        reason.attemptsLeft = record.attempts_left;
+      }
+      const { detail } = record;
+      if (typeof detail === "string") return { message: detail, reason };
+      if (Array.isArray(detail)) {
+        return { message: errors.invalidRequest, reason };
+      }
     }
   } catch {
     // Corps absent ou non JSON : on retombe sur le message générique.
   }
-  return response.status >= 500
-    ? errors.serviceUnavailable
-    : errors.requestFailed;
+  return { message: fallback, reason: {} };
 }
 
 /**
@@ -124,7 +140,8 @@ export async function apiFetch(
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status, await errorMessage(response, locale));
+    const { message, reason } = await errorDetails(response, locale);
+    throw new ApiError(response.status, message, reason);
   }
   return response;
 }
