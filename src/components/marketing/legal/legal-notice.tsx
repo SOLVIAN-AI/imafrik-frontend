@@ -51,8 +51,14 @@ function French() {
     <>
       <h2>Éditeur du service</h2>
       <p>
-        Le service IMAFRIK est édité par <strong>{PUBLISHER.name}</strong>
-        {PUBLISHER.legalForm && <>, {PUBLISHER.legalForm}</>}
+        Le service IMAFRIK est édité par{" "}
+        {PUBLISHER.companyName ? (
+          <>
+            <strong>{PUBLISHER.companyName}</strong>, {PUBLISHER.legalForm.fr}
+          </>
+        ) : (
+          <>une {PUBLISHER.legalForm.fr}</>
+        )}
         {PUBLISHER.registration && (
           <>, immatriculée sous le numéro {PUBLISHER.registration}</>
         )}
@@ -136,8 +142,14 @@ function English() {
     <>
       <h2>Publisher</h2>
       <p>
-        The IMAFRIK service is published by <strong>{PUBLISHER.name}</strong>
-        {PUBLISHER.legalForm && <>, {PUBLISHER.legalForm}</>}
+        The IMAFRIK service is published by{" "}
+        {PUBLISHER.companyName ? (
+          <>
+            <strong>{PUBLISHER.companyName}</strong>, a {PUBLISHER.legalForm.en}
+          </>
+        ) : (
+          <>a {PUBLISHER.legalForm.en}</>
+        )}
         {PUBLISHER.registration && (
           <>, registered under number {PUBLISHER.registration}</>
         )}

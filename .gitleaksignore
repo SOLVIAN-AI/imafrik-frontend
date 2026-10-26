@@ -1,0 +1,11 @@
+# Faux positifs de gitleaks, ignorés par empreinte (commit:fichier:règle:ligne).
+# Tous sont des valeurs fictives du mode démonstration ou des tests, jamais des
+# secrets : mots de passe de formulaire de test, jetons de vérification de
+# comptes rendus inventés. Un nouveau faux positif se marque plutôt sur sa
+# ligne (commentaire « gitleaks:allow ») ; cette liste ne couvre que
+# l'historique, qu'on ne réécrit pas.
+
+67ad0fc6e1e3a089183dc3ff07e1d45493222998:src/lib/actions/profile.test.ts:generic-api-key:12
+5bcfc03a1f9c1e2335773bd79f7b0df0d504e39c:e2e/invitation.spec.ts:generic-api-key:16
+a24193f55f78f9325f871f053ed8468345fb16ed:src/lib/demo/reports.ts:generic-api-key:32
+a24193f55f78f9325f871f053ed8468345fb16ed:src/lib/demo/reports.ts:generic-api-key:52

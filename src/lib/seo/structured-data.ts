@@ -47,7 +47,6 @@ export function homeStructuredData(locale: Locale, description: string) {
           width: 512,
           height: 512,
         },
-        parentOrganization: { "@type": "Organization", name: "SOLVIAN AI LLC" },
         contactPoint: {
           "@type": "ContactPoint",
           contactType: "customer support",

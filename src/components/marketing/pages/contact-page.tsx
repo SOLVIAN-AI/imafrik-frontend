@@ -165,9 +165,7 @@ export function ContactPage({ locale }: { locale: Locale }) {
               />
               {t.location}
             </dt>
-            <dd className="mt-0.5 pl-7 text-xs text-tertiary">
-              SOLVIAN AI LLC
-            </dd>
+            <dd className="mt-0.5 pl-7 text-xs text-tertiary">IMAFRIK</dd>
           </div>
         </dl>
 
