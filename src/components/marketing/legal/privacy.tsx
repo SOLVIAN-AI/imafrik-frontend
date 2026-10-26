@@ -86,8 +86,8 @@ function French() {
           Données d’usage : journal des connexions et des accès aux examens
         </li>
         <li>
-          Facteur de double authentification : obligatoire pour les radiologues
-          et l’équipe IMAFRIK, facultatif pour les établissements
+          Facteur de double authentification : obligatoire pour tous les
+          comptes, personnel des établissements compris
         </li>
       </ul>
       <h3>Finalités et base légale</h3>
@@ -251,8 +251,8 @@ function English() {
         <li>Account data: encrypted password, organisation, role</li>
         <li>Usage data: log of sign-ins and of access to examinations</li>
         <li>
-          Second authentication factor: mandatory for radiologists and the
-          IMAFRIK team, optional for facilities
+          Second authentication factor: mandatory for every account, facility
+          staff included
         </li>
       </ul>
       <h3>Purposes and legal basis</h3>

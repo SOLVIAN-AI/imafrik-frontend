@@ -424,8 +424,7 @@ export const admin: AppMessages["admin"] = {
   users: {
     accountCount: (count: number) =>
       `${count} account${count === 1 ? "" : "s"}`,
-    withoutMfa: (count: number) =>
-      `${count} with a sensitive role and no two-factor authentication`,
+    withoutMfa: (count: number) => `${count} without two-factor authentication`,
     pendingFilter: "Pending",
     searchLabel: "Search accounts",
     searchPlaceholder: "Name or email…",
@@ -445,7 +444,7 @@ export const admin: AppMessages["admin"] = {
     neverSignedIn: "Never signed in; account created on",
     mfaUnknown: "MFA unknown",
     mfaActive: "MFA enabled",
-    mfaRequired: "Required for radiologists and administrators",
+    mfaRequired: "Required for every role",
     mfaMissing: "MFA missing",
     mfaNone: "No MFA",
     unverifiedFilter: "To review",

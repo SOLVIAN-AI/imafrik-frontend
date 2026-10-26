@@ -969,6 +969,10 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       true,
       [group("platform_admin")],
     ),
+    // Le personnel des cliniques est tenu à la double authentification
+    // comme tout le monde (migration `20261010160000_mfa_for_everyone`) :
+    // qui travaille l'a activée. Seule la dernière invitée, qui ne s'est
+    // jamais connectée, ne l'a pas encore : la liste des comptes la signale.
     user(
       "demo-staff-stj",
       "Akossiwa Mensah",
@@ -976,7 +980,7 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       "accueil@stjoseph.example",
       410,
       1,
-      false,
+      true,
       [clinic(0)],
     ),
     user(
@@ -986,7 +990,7 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       "imagerie@kara.example",
       370,
       26,
-      false,
+      true,
       [clinic(1)],
     ),
     user(
@@ -996,7 +1000,7 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       "radio@lumiere.example",
       190,
       50,
-      false,
+      true,
       [clinic(2)],
     ),
     user(
@@ -1006,7 +1010,7 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       "contact@golfe.example",
       110,
       31,
-      false,
+      true,
       [clinic(3)],
     ),
     user(

@@ -72,10 +72,7 @@ export default async function SettingsPage() {
           <div className="flex min-w-0 flex-col gap-4">
             {isRadiologist && <LanguageForm />}
             <PasswordForm />
-            <MfaCard
-              enrolled={mfaEnrolled}
-              required={roleRequiresMfa(session.active.role)}
-            />
+            <MfaCard enrolled={mfaEnrolled} />
           </div>
         </div>
       </div>
