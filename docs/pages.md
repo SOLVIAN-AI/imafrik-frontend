@@ -434,7 +434,7 @@ répond « indisponible en démonstration ».
 | `/cliniques`, `/radiologues`, `/tarifs` | V2 | L'accueil couvre les deux publics ; ces pages n'ont d'intérêt qu'avec du contenu commercial propre. |
 | `/rejoindre` (candidature radiologue) | V2 | Dépend du parcours de validation côté back-office. |
 | `/patients` (clinique) | V3 | Confort ; la recherche par patient existe déjà dans les comptes-rendus. |
-| `/facturation`, `/honoraires` | V2 | Décision n° 3 non tranchée : la rémunération passe-t-elle par l'application ? |
+| `/facturation`, `/honoraires` | V2 | Décision n° 3 tranchée : abonnement et forfait technique facturés par IMAFRIK, honoraires versés au radiologue par un établissement de paiement agréé. Reste à construire. |
 | `/activite` (radiologue) | V3 | Analyse ; sans valeur avant plusieurs mois d'exploitation. |
 | `/admin/contrats` | V2 | Les contrats de service se créent en SQL ; tenable tant que le réseau compte quelques groupes. |
 
@@ -469,9 +469,17 @@ ici pour être tranchées explicitement.
    PACS capable d'envoyer vers l'extérieur, et certaines n'ont qu'un
    graveur de CD. Sans cet écran, une partie du marché visé ne peut pas
    utiliser le service.
-3. **La rémunération des radiologues passe-t-elle par l'application ?**
-   Si oui, `/honoraires` et `/admin/facturation` deviennent structurants
-   et il faut un modèle tarifaire par acte en base.
+3. ~~**La rémunération des radiologues passe-t-elle par l'application ?**~~
+   **Tranché (contrats 1.0, octobre 2026)** : oui, sans transiter par
+   IMAFRIK. L'honoraire revient en totalité au radiologue, versé par un
+   établissement de paiement agréé par la BCEAO sur le compte qu'il
+   désigne ; IMAFRIK ne l'encaisse jamais et n'y prélève aucune
+   commission. IMAFRIK ne facture aux établissements que l'abonnement
+   (Essentiel, Pro, Établissement) et le forfait technique par examen,
+   publiés sur la vitrine (`content/marketing/pricing.ts`) et repris de
+   l'annexe A de la convention établissement du dépôt backend.
+   `/honoraires` et `/facturation` deviennent structurants (voir la
+   spécification P0-4 du dépôt backend, comptes de versement).
 4. ~~**Second facteur d'authentification ?**~~ **Tranché (8 octobre
    2026)** : obligatoire pour les radiologues et l'administration, imposé
    à l'émission du jeton. **Étendu le 10 octobre 2026** au personnel des

@@ -101,7 +101,10 @@ function French() {
           Assurer la traçabilité des accès aux données de santé : obligation
           légale et intérêt légitime à la sécurité
         </li>
-        <li>Facturer et rémunérer les actes : exécution du contrat</li>
+        <li>
+          Facturer aux établissements l’abonnement et les forfaits techniques :
+          exécution du contrat
+        </li>
       </ul>
       <h3>Durée de conservation</h3>
       <ul>
@@ -269,8 +272,8 @@ function English() {
           and legitimate interest in security
         </li>
         <li>
-          Invoicing and paying for examinations read: performance of the
-          contract
+          Invoicing facilities for their subscription and technical fees:
+          performance of the contract
         </li>
       </ul>
       <h3>Retention period</h3>
