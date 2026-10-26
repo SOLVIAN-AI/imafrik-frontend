@@ -48,8 +48,9 @@ export default defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.spec.ts",
   // Parcours réels : ils exigent la pile complète, et ont leur propre
-  // configuration (`playwright.reel.config.ts`).
-  testIgnore: "reel/**",
+  // configuration (`playwright.reel.config.ts`). Vidéo de démonstration :
+  // un tournage, pas un test (`playwright.demo.config.ts`).
+  testIgnore: ["reel/**", "demo/**"],
   outputDir: "./test-results",
   // Les tests ne modifient pas l'état du serveur de démonstration : ils
   // peuvent tourner en parallèle, fichier par fichier comme test par test.

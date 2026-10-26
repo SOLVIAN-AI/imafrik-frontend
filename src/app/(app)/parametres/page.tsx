@@ -76,10 +76,7 @@ export default async function SettingsPage() {
           <div className="flex min-w-0 flex-col gap-4">
             {isRadiologist && <LanguageForm />}
             <PasswordForm />
-            <MfaCard
-              enrolled={mfaEnrolled}
-              required={roleRequiresMfa(session.active.role)}
-            />
+            <MfaCard enrolled={mfaEnrolled} />
             {/* Rien à montrer à qui n'est lié par aucun engagement
                 (l'équipe IMAFRIK, la démonstration). */}
             {agreements.length > 0 && <AgreementsCard statuses={agreements} />}

@@ -67,7 +67,7 @@ export const en: MarketingCopy = {
         ],
       },
     ],
-    publisher: "IMAFRIK is a service published by SOLVIAN AI LLC, Lomé, Togo.",
+    publisher: "IMAFRIK is a service published in Lomé, Togo.",
     hosting: "Images hosted in the European Union, encrypted at rest.",
   },
   appPreview: {
@@ -259,8 +259,34 @@ export const en: MarketingCopy = {
   },
   pricing: {
     eyebrow: "Pricing",
-    title: "Per examination, no subscription.",
-    lead: "You pay for the examinations we read. The unit price depends on the modality and the turnaround you choose; it is fixed in the contract and does not change during the year.",
+    title: "A subscription, and a fee per examination.",
+    lead: "IMAFRIK charges for two things only: a monthly subscription, and a technical fee for each examination, at the routine or urgent rate. Amounts in CFA francs, excluding tax.",
+    plansTitle: "Monthly subscription",
+    plans: {
+      essential: "Essential",
+      pro: "Pro",
+      facility: "Facility",
+    },
+    price: "{amount} FCFA",
+    priceFrom: "from {amount} FCFA",
+    priceUnit: "excl. tax, per month",
+    feesTitle: "Technical fee per examination",
+    feesLead:
+      "It covers the processing of the examination by the platform: receipt, storage, provision and delivery of the report.",
+    feesColumns: { exam: "Examination", normal: "Routine", urgent: "Urgent" },
+    exams: {
+      radiography: "Radiography",
+      complexRadiography: "Complex radiography",
+      hysterosalpingography: "Hysterosalpingography",
+      ct: "CT",
+      complexCt: "Complex CT",
+      mri: "MRI",
+    },
+    feesNote:
+      "Amounts in FCFA excluding tax, charged for each examination whose report has been delivered.",
+    radiologistFeeTitle: "Radiologists’ fees",
+    radiologistFeeText:
+      "The radiologist’s fee belongs to them in full. It is paid to them through a payment institution licensed by the BCEAO: IMAFRIK never collects it and takes no commission.",
     includedTitle: "Included in every contract",
     included: [
       "Gateway installation and monitoring",
@@ -270,9 +296,9 @@ export const en: MarketingCopy = {
       "Support with connecting your modalities",
     ],
     noCommitment: "No minimum volume is required from your facility.",
-    quoteTitle: "Get a price list",
+    quoteTitle: "Choose your plan",
     quoteText:
-      "Tell us your monthly volume and your modalities, and we will send you a written quote.",
+      "Tell us your monthly volume and your modalities, and we will suggest the right plan and send you a written quote. The Facility plan is priced on quotation.",
     quoteCta: "Request a quote",
   },
   faq: {

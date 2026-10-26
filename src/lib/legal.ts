@@ -23,7 +23,7 @@ import type { Locale } from "@/lib/i18n/locale";
 export type Localized = Record<Locale, string>;
 
 /** Date de la dernière mise à jour des pages légales (AAAA-MM-JJ). */
-export const LEGAL_UPDATED_ON = "2026-10-17";
+export const LEGAL_UPDATED_ON = "2026-10-26";
 
 /**
  * Date de dernière mise à jour, écrite dans une langue.
@@ -34,12 +34,25 @@ export function legalUpdatedAt(locale: Locale): string {
   return formatDate(new Date(`${LEGAL_UPDATED_ON}T00:00:00Z`), locale);
 }
 
-/** L'éditeur du service. */
+/**
+ * L'éditeur du service.
+ *
+ * Une société par actions simplifiée de droit togolais, en cours de
+ * création (décision du 24 octobre 2026). En attendant sa dénomination,
+ * les pages la désignent par le nom du service, comme les contrats
+ * (« ci-après IMAFRIK »).
+ */
 export const PUBLISHER = {
-  name: "SOLVIAN AI LLC",
-  /** Forme juridique et État d'immatriculation. */
-  legalForm: null as string | null,
-  /** Numéro d'immatriculation. */
+  /** Nom d'usage dans les pages : celui du service. */
+  name: "IMAFRIK",
+  /** Dénomination sociale, une fois la société immatriculée. */
+  companyName: null as string | null,
+  /** Forme juridique. */
+  legalForm: {
+    fr: "société par actions simplifiée (SAS) de droit togolais, en cours d’immatriculation",
+    en: "simplified joint-stock company (SAS) under Togolese law, currently being registered",
+  } as Localized,
+  /** Numéro au Registre du commerce et du crédit mobilier (RCCM). */
   registration: null as string | null,
   /** Adresse du siège. */
   address: null as string | null,
@@ -192,8 +205,8 @@ export function lowerFirst(text: string): string {
  */
 export function missingLegalFacts(): string[] {
   const labels: Record<string, string> = {
-    legalForm: "forme juridique et État d’immatriculation",
-    registration: "numéro d’immatriculation",
+    companyName: "dénomination sociale",
+    registration: "numéro d’immatriculation (RCCM)",
     address: "adresse du siège",
     representative: "représentant légal",
     publicationDirector: "directeur de la publication",

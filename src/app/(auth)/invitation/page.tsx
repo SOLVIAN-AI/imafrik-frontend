@@ -34,8 +34,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * **qui accueille, pour quel rôle, et qui a invité** : l'invité qui
  * attendait le lien se reconnaît, celui qui ne l'attendait pas sait qu'il
  * doit s'arrêter et à qui écrire. Vient ensuite le choix du mot de passe,
- * puis la double authentification quand le rôle l'exige (radiologue,
- * équipe IMAFRIK), et enfin la mise en service (`/bienvenue`).
+ * puis la double authentification, exigée pour tous les rôles
+ * (`MFA_ROLES`), et enfin la mise en service (`/bienvenue`).
  *
  * **Accessible avant la double authentification.** Le proxy laisse passer
  * cet écran pour une session `mfa_required` : le choix du mot de passe

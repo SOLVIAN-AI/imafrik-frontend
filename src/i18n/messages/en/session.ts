@@ -92,7 +92,7 @@ export const session: AppMessages["session"] = {
     },
     passwordTitle: "Choose your password",
     nextMfa:
-      "Next, you will set up two-factor authentication, which your role requires.",
+      "Next, you will set up two-factor authentication, which every account requires.",
     nextOnboarding: "Next, a few steps to get to know your workspace.",
     submit: "Save and continue",
   },

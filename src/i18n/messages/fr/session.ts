@@ -104,7 +104,7 @@ export const session = {
     },
     passwordTitle: "Choisissez votre mot de passe",
     nextMfa:
-      "Ensuite, vous configurerez la double authentification, exigée pour votre rôle.",
+      "Ensuite, vous configurerez la double authentification, exigée pour tous les comptes.",
     nextOnboarding:
       "Ensuite, quelques étapes pour prendre en main votre espace.",
     submit: "Enregistrer et continuer",
