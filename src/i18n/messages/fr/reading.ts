@@ -373,6 +373,18 @@ export const reading = {
     confirmAnyway: "Signer quand même",
     confirm: "Signer et transmettre",
   },
+  /**
+   * Code personnel et images apposées, dans la fenêtre de signature d'un
+   * vrai compte-rendu (jamais dans celle d'un exercice).
+   */
+  signPin: {
+    applied: "Apposés sur le PDF",
+    appliedNone:
+      "Aucune signature ni aucun cachet accepté : le PDF portera votre nom et votre numéro d’ordre.",
+    signatureAlt: "Votre signature, apposée sur le PDF",
+    stampAlt: "Votre cachet, apposé sur le PDF",
+    settings: "Gérer dans les paramètres",
+  },
   /** Volet des images. */
   viewer: {
     frameTitle: (uid: string) => `Images de l’examen ${uid}`,
@@ -394,7 +406,7 @@ export const reading = {
       " : les images ont quitté la plateforme. Le compte-rendu reste consultable, et les originaux sont conservés par la clinique.",
     unavailableTitle: "Images indisponibles",
     unavailableDetail:
-      "Le jeton de visualisation n’a pas pu être obtenu. Actualisez la page ; si le problème persiste, l’examen est peut-être encore en cours de transfert depuis la clinique.",
+      "Les images n’ont pas pu être chargées. Actualisez la page ; si le problème persiste, l’examen est peut-être encore en cours de transfert depuis la clinique.",
     /** Ce qui est indisponible en démonstration. */
     name: "Le viewer",
     reopened:
@@ -466,8 +478,9 @@ export const reading = {
     title: "Addenda",
     license: (number: string) => `Ordre n° ${number}`,
     none: "Aucune correction depuis la signature.",
-    confirm:
-      "Ajouter cet addendum ? Il sera signé à votre nom, visible de la clinique, et ne pourra plus être modifié.",
+    dialogTitle: "Signer l’addendum",
+    dialogDescription:
+      "Il sera signé à votre nom, visible de la clinique, et ne pourra plus être modifié.",
     added: "Addendum ajouté et transmis.",
     label: "Nouvel addendum",
     placeholder: "Correction ou complément au compte-rendu signé…",
@@ -475,7 +488,7 @@ export const reading = {
   },
   /** Messages des actions serveur du circuit de lecture. */
   actions: {
-    releaseDemoAction: "Rendre un examen",
+    releaseDemoAction: "Le retour d’un examen au pool",
     signDemoAction: "La signature",
     pdfDemoAction: "Le téléchargement du PDF",
     addendumDemoAction: "L’ajout d’un addendum",

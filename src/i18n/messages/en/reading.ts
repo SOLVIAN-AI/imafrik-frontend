@@ -83,7 +83,7 @@ export const reading: AppMessages["reading"] = {
     },
   },
   editor: {
-    requiredTitle: "Required section for signing",
+    requiredTitle: "Section required before signing",
     requiredLabel: "Required section, currently empty",
     offline: "Offline: copy kept on this device",
     conflict: "Changed elsewhere: text kept on this device",
@@ -345,6 +345,14 @@ export const reading: AppMessages["reading"] = {
     confirmAnyway: "Sign anyway",
     confirm: "Sign and send",
   },
+  signPin: {
+    applied: "Applied to the PDF",
+    appliedNone:
+      "No accepted signature or stamp: the PDF will carry your name and registration number.",
+    signatureAlt: "Your signature, applied to the PDF",
+    stampAlt: "Your stamp, applied to the PDF",
+    settings: "Manage in settings",
+  },
   viewer: {
     frameTitle: (uid: string) => `Images for examination ${uid}`,
     series: (count: number) => (count === 1 ? "1 series" : `${count} series`),
@@ -362,7 +370,7 @@ export const reading: AppMessages["reading"] = {
       ": the images have left the platform. The report can still be viewed, and the originals are kept by the clinic.",
     unavailableTitle: "Images unavailable",
     unavailableDetail:
-      "The viewing token could not be obtained. Reload the page; if the problem persists, the examination may still be transferring from the clinic.",
+      "The images could not be loaded. Reload the page; if the problem persists, the examination may still be transferring from the clinic.",
     /** What is unavailable in the demo. */
     name: "The viewer",
     reopened:
@@ -381,7 +389,7 @@ export const reading: AppMessages["reading"] = {
   },
   templates: {
     description:
-      "Apply them from the reading screen; create them from a report in progress.",
+      "Apply them from the reading screen; create them from a report in progress",
     emptyTitle: "No templates",
     emptyDetail:
       "On the reading screen, “Save as template” turns the current text into a template for the whole organisation.",
@@ -429,8 +437,9 @@ export const reading: AppMessages["reading"] = {
     title: "Addenda",
     license: (number: string) => `Reg. no. ${number}`,
     none: "No corrections since signing.",
-    confirm:
-      "Add this addendum? It will be signed in your name, visible to the clinic, and can no longer be changed.",
+    dialogTitle: "Sign the addendum",
+    dialogDescription:
+      "It will be signed in your name, visible to the clinic, and can no longer be changed.",
     added: "Addendum added and sent.",
     label: "New addendum",
     placeholder: "Correction or addition to the signed report…",

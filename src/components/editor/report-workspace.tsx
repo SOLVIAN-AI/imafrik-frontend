@@ -34,7 +34,9 @@ import {
   type SectionKey,
 } from "@/components/editor/report-editor";
 import {
+  SignFailure,
   SignReportDialog,
+  type SignPinOptions,
   type SignDialogLabels,
 } from "@/components/editor/sign-report-dialog";
 import { useAiReview } from "@/components/editor/use-ai-review";
@@ -80,6 +82,7 @@ import {
 import { formatDemographics, formatPatientName } from "@/lib/format";
 import type { Locale } from "@/lib/i18n/locale";
 import { homeFor } from "@/lib/navigation";
+import type { PinProof } from "@/lib/signing";
 import { useReturnPath } from "@/lib/return-path";
 import { cn } from "@/lib/utils";
 
@@ -444,6 +447,7 @@ function ReportWorkspace({
   nextStudyId = null,
   aiReview: aiReviewOffered = false,
   adapter,
+  signing,
   slots,
 }: {
   study: WorkspaceStudy;
@@ -457,6 +461,11 @@ function ReportWorkspace({
   aiReview?: boolean;
   /** Autre usage de l'écran : voir {@link WorkspaceAdapter}. */
   adapter?: WorkspaceAdapter;
+  /**
+   * Code personnel et images apposées, pour signer un vrai compte-rendu.
+   * Absent pour un exercice : il ne se signe pas avec le code.
+   */
+  signing?: SignPinOptions;
   /** Emplacements fournis par {@link ReadingWorkspace}, `null` avant leur montage. */
   slots: WorkspaceSlots;
 }) {
@@ -672,33 +681,39 @@ function ReportWorkspace({
     if (aiReview.status === "idle" || aiReview.stale) aiReview.run();
   }, [aiReview]);
 
-  const sign = React.useCallback(async () => {
-    if (!author) return;
-    if (!(await flush())) {
-      throw new Error(
-        state === "conflict"
-          ? labels.conflictBeforeSign
-          : labels.saveFailedBeforeSign,
-      );
-    }
-    // La version que l'écran montre, après l'enregistrement ci-dessus : un
-    // texte enregistré depuis un autre onglet fait refuser la signature.
-    const result = await (adapter?.sign ?? signReport)(
-      author.reportId,
-      version.current,
-    );
-    if (!result.ok) throw new Error(result.error);
-    setSigned(true);
-    toast.success(labels.signedToast, {
-      action: nextStudyId
-        ? {
-            label: labels.nextStudy,
-            onClick: () => router.push(`/lecture/${nextStudyId}`),
-          }
-        : undefined,
-    });
-    router.refresh();
-  }, [adapter, author, flush, labels, nextStudyId, router, state]);
+  const sign = React.useCallback(
+    async (proof?: PinProof) => {
+      if (!author) return;
+      if (!(await flush())) {
+        throw new Error(
+          state === "conflict"
+            ? labels.conflictBeforeSign
+            : labels.saveFailedBeforeSign,
+        );
+      }
+      // La version que l'écran montre, après l'enregistrement ci-dessus : un
+      // texte enregistré depuis un autre onglet fait refuser la signature.
+      const result = adapter
+        ? await adapter.sign(author.reportId, version.current)
+        : proof
+          ? await signReport(author.reportId, version.current, proof)
+          : null;
+      // Un vrai compte-rendu ne se signe jamais sans le code personnel.
+      if (!result) throw new Error(labels.saveFailedBeforeSign);
+      if (!result.ok) throw new SignFailure(result);
+      setSigned(true);
+      toast.success(labels.signedToast, {
+        action: nextStudyId
+          ? {
+              label: labels.nextStudy,
+              onClick: () => router.push(`/lecture/${nextStudyId}`),
+            }
+          : undefined,
+      });
+      router.refresh();
+    },
+    [adapter, author, flush, labels, nextStudyId, router, state],
+  );
 
   const claim = () =>
     startTransition(async () => {
@@ -872,6 +887,9 @@ function ReportWorkspace({
           onConfirm={sign}
           aiReview={aiReview}
           labels={adapter?.signLabels}
+          pin={
+            adapter ? undefined : (signing ?? { status: null, applied: null })
+          }
         />
       )}
     </>

@@ -191,7 +191,7 @@ son adresse dans sa langue :
 | `/nouveau-mot-de-passe` | Saisie du nouveau mot de passe, après le lien de réinitialisation. | V1 |
 | `/invitation` | **Accueil d'un invité** : établissement ou groupe, rôle en clair, qui a invité, ville ; puis le choix du mot de passe. Ouvert avant la double authentification. | V1, fait |
 | `/rejoindre` | **Candidature d'un radiologue.** Pas une inscription : un dossier, soumis à validation. Voir la décision n° 1. | V2 |
-| `/double-authentification` | **Second facteur** : enrôlement d'une application TOTP (QR code, clé de secours) ou saisie du code. Obligatoire pour radiologues et administration : imposé au jeton (voir AD-8 du dépôt backend). | V1, fait |
+| `/double-authentification` | **Second facteur** : enrôlement d'une application TOTP (QR code, clé de secours) ou saisie du code. Obligatoire pour tous les rôles, personnel des cliniques compris : imposé au jeton (voir AD-8 du dépôt backend). | V1, fait |
 
 | `/en-attente` | Compte valide rattaché à aucune organisation active : candidature en cours d'examen ou organisation suspendue. | V1 |
 
@@ -214,8 +214,8 @@ elle, à `suite=/nouveau-mot-de-passe`). Le parcours :
    répond dans ce même état ; le jeton n'ouvre toujours aucune donnée.
 2. **Mot de passe** : même formulaire et mêmes règles que
    `/nouveau-mot-de-passe`.
-3. **Double authentification** quand le rôle l'exige (radiologue, équipe
-   IMAFRIK) : `/double-authentification?suite=/bienvenue`.
+3. **Double authentification**, exigée pour tous les rôles :
+   `/double-authentification?suite=/bienvenue`.
 4. **Mise en service** : `/bienvenue`.
 
 Si l'invitation ne peut pas être lue (aucune appartenance, service
@@ -291,7 +291,7 @@ attend des comptes-rendus.
 | `/modeles` | Modèles de comptes-rendus, par modalité et par région. Table `report_templates` déjà en base. Gain de temps décisif sur les examens normaux. | V2 |
 | `/activite` | Volume lu, délais, répartition par modalité. | V3 |
 | `/honoraires` | Relevé de rémunération. Voir la décision n° 3. | V2 |
-| `/parametres` | Profil, signature, notifications, préférences de lecture. | V1 |
+| `/parametres` | Profil, justificatifs, **signature et cachet** (tracés ou importés, vérifiés par l'équipe IMAFRIK avant d'être imprimés) et **code personnel** à six chiffres, obligatoire pour signer et pour ajouter un addendum (créé ici, ou dans la fenêtre de la première signature). **Fait.** Notifications et préférences de lecture : à venir. | V1 |
 
 **9 écrans**, dont 2 déjà construits.
 
@@ -434,7 +434,7 @@ répond « indisponible en démonstration ».
 | `/cliniques`, `/radiologues`, `/tarifs` | V2 | L'accueil couvre les deux publics ; ces pages n'ont d'intérêt qu'avec du contenu commercial propre. |
 | `/rejoindre` (candidature radiologue) | V2 | Dépend du parcours de validation côté back-office. |
 | `/patients` (clinique) | V3 | Confort ; la recherche par patient existe déjà dans les comptes-rendus. |
-| `/facturation`, `/honoraires` | V2 | Décision n° 3 non tranchée : la rémunération passe-t-elle par l'application ? |
+| `/facturation`, `/honoraires` | V2 | Décision n° 3 tranchée : abonnement et forfait technique facturés par IMAFRIK, honoraires versés au radiologue par un établissement de paiement agréé. Reste à construire. |
 | `/activite` (radiologue) | V3 | Analyse ; sans valeur avant plusieurs mois d'exploitation. |
 | `/admin/contrats` | V2 | Les contrats de service se créent en SQL ; tenable tant que le réseau compte quelques groupes. |
 
@@ -469,13 +469,24 @@ ici pour être tranchées explicitement.
    PACS capable d'envoyer vers l'extérieur, et certaines n'ont qu'un
    graveur de CD. Sans cet écran, une partie du marché visé ne peut pas
    utiliser le service.
-3. **La rémunération des radiologues passe-t-elle par l'application ?**
-   Si oui, `/honoraires` et `/admin/facturation` deviennent structurants
-   et il faut un modèle tarifaire par acte en base.
+3. ~~**La rémunération des radiologues passe-t-elle par l'application ?**~~
+   **Tranché (contrats 1.0, octobre 2026)** : oui, sans transiter par
+   IMAFRIK. L'honoraire revient en totalité au radiologue, versé par un
+   établissement de paiement agréé par la BCEAO sur le compte qu'il
+   désigne ; IMAFRIK ne l'encaisse jamais et n'y prélève aucune
+   commission. IMAFRIK ne facture aux établissements que l'abonnement
+   (Essentiel, Pro, Établissement) et le forfait technique par examen,
+   publiés sur la vitrine (`content/marketing/pricing.ts`) et repris de
+   l'annexe A de la convention établissement du dépôt backend.
+   `/honoraires` et `/facturation` deviennent structurants (voir la
+   spécification P0-4 du dépôt backend, comptes de versement).
 4. ~~**Second facteur d'authentification ?**~~ **Tranché (8 octobre
    2026)** : obligatoire pour les radiologues et l'administration, imposé
-   à l'émission du jeton ; facultatif pour les établissements, et alors
-   exigé à chaque connexion. Voir AD-8 du dépôt backend.
+   à l'émission du jeton. **Étendu le 10 octobre 2026** au personnel des
+   établissements, qui ouvre tous les examens de sa clinique : un seul
+   mot de passe dérobé suffisait à exposer tous ses patients (migration
+   `20261010160000_mfa_for_everyone.sql` du dépôt backend). Voir AD-8 du
+   dépôt backend.
 
 ---
 

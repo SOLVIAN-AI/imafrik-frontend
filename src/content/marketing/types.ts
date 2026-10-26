@@ -7,6 +7,8 @@
  * référence ; les composants les traduisent (`localizePath`).
  */
 
+import type { ExamTypeId, PlanId } from "@/content/marketing/pricing";
+
 /** Un lien de navigation. */
 export interface LinkCopy {
   /** Adresse française de référence, ancre comprise. */
@@ -154,6 +156,22 @@ export interface MarketingCopy {
     eyebrow: string;
     title: string;
     lead: string;
+    plansTitle: string;
+    /** Nom de chaque formule ; les montants sont dans `pricing.ts`. */
+    plans: Record<PlanId, string>;
+    /** Prix fixe, `{amount}` déjà mis en forme. */
+    price: string;
+    /** Prix plancher d'une formule sur devis, `{amount}` déjà mis en forme. */
+    priceFrom: string;
+    priceUnit: string;
+    feesTitle: string;
+    feesLead: string;
+    feesColumns: { exam: string; normal: string; urgent: string };
+    /** Libellé de chaque type d'examen de la grille. */
+    exams: Record<ExamTypeId, string>;
+    feesNote: string;
+    radiologistFeeTitle: string;
+    radiologistFeeText: string;
     includedTitle: string;
     included: string[];
     noCommitment: string;

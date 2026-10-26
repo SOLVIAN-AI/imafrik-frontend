@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { fill, marketingCopy } from "@/content/marketing";
+import { SUBSCRIPTIONS, TECHNICAL_FEES } from "@/content/marketing/pricing";
 import { LOCALES } from "@/lib/i18n/locale";
 
 /** Toutes les chaînes d'un objet, avec leur chemin. */
@@ -62,4 +63,33 @@ describe("textes du site public", () => {
     expect(fill("{count} addenda", { count: 2 })).toBe("2 addenda");
     expect(fill("Code : {code}", {})).toBe("Code : {code}");
   });
+
+  it("publie la grille tarifaire arrêtée, en FCFA HT", () => {
+    // Décision figée : une modification passe aussi par l'annexe A de la
+    // convention établissement, côté backend.
+    expect(SUBSCRIPTIONS).toEqual({
+      essential: { monthly: 12_500, fromPrice: false },
+      pro: { monthly: 25_000, fromPrice: false },
+      facility: { monthly: 100_000, fromPrice: true },
+    });
+    expect(TECHNICAL_FEES).toEqual({
+      radiography: { normal: 300, urgent: 600 },
+      complexRadiography: { normal: 500, urgent: 700 },
+      hysterosalpingography: { normal: 1_000, urgent: 1_500 },
+      ct: { normal: 2_500, urgent: 3_000 },
+      complexCt: { normal: 3_500, urgent: 4_500 },
+      mri: { normal: 4_000, urgent: 5_000 },
+    });
+  });
+
+  it.each(LOCALES)(
+    "%s : la vitrine ne parle plus de facturation à l’acte sans abonnement",
+    (locale) => {
+      const pricing = strings(marketingCopy(locale).pricing)
+        .map(([, text]) => text)
+        .join("\n");
+      expect(pricing).not.toMatch(/sans abonnement|no subscription/i);
+      expect(pricing).toMatch(/BCEAO/);
+    },
+  );
 });

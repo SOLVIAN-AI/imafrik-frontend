@@ -111,7 +111,7 @@ export const admin = {
     period: "Période",
     day: "Jour",
     weekdays: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
-    hour: (hour: number) => `${hour}h`,
+    hour: (hour: number) => `${hour} h`,
     /** Graduation de l'axe des heures, dans une colonne étroite. */
     hourTick: (hour: number) => `${hour}h`,
     /** Infobulle d'une barre : période, série, valeur. */
@@ -167,7 +167,7 @@ export const admin = {
     inProgressHint: "pas encore signés",
     signedToday: "Signés aujourd’hui",
     signedTodayHint: (received: number, delivered: number) =>
-      `${received} reçus · ${delivered} remis`,
+      `${received} reçu${received > 1 ? "s" : ""} · ${delivered} remis`,
   },
 
   activity: {
@@ -280,7 +280,8 @@ export const admin = {
       state: "État",
       actions: "Actions",
     },
-    totalStudies: (count: number) => `${count} examens au total`,
+    totalStudies: (count: number) =>
+      `${count} examen${count > 1 ? "s" : ""} au total`,
     noPacs: "Pas de PACS",
     pacsConnected: "PACS raccordé",
     pacsNotConnected: "PACS non raccordé",
@@ -452,8 +453,7 @@ export const admin = {
 
   users: {
     accountCount: (count: number) => `${count} compte${count > 1 ? "s" : ""}`,
-    withoutMfa: (count: number) =>
-      `${count} sans double authentification parmi les rôles sensibles`,
+    withoutMfa: (count: number) => `${count} sans double authentification`,
     pendingFilter: "En attente",
     searchLabel: "Rechercher un compte",
     searchPlaceholder: "Nom ou adresse…",
@@ -474,7 +474,7 @@ export const admin = {
     neverSignedIn: "Jamais connecté, compte créé le",
     mfaUnknown: "MFA inconnue",
     mfaActive: "MFA active",
-    mfaRequired: "Exigée pour les radiologues et les administrateurs",
+    mfaRequired: "Exigée pour tous les rôles",
     mfaMissing: "MFA manquante",
     mfaNone: "Sans MFA",
     /** Filtre et section des radiologues dont le numéro d'ordre attend sa validation. */
@@ -485,6 +485,13 @@ export const admin = {
     noUnverified: "Aucun dossier à examiner",
     unverifiedHint:
       "Un radiologue apparaît ici dès qu’il dépose un justificatif, et de nouveau s’il change de nom, de titre ou de numéro d’ordre.",
+    signingFilter: "Signature à vérifier",
+    signingTitle: "Signatures et cachets à vérifier",
+    signingDescription:
+      "Radiologues qui ont déposé une nouvelle signature ou un nouveau cachet. L’image précédente reste imprimée jusqu’à votre décision : rien n’est bloqué.",
+    noSigning: "Aucune image à vérifier",
+    signingHint:
+      "Un radiologue apparaît ici dès qu’il trace ou importe une signature, ou importe un cachet.",
   },
 
   /**
@@ -506,6 +513,67 @@ export const admin = {
     done: (patient: string) =>
       `Compte-rendu de ${patient} annulé : l’examen est de nouveau dans la file.`,
     demoAction: "L’annulation d’un compte-rendu",
+  },
+
+  /** Signature, cachet et code personnel d'un radiologue. */
+  signing: {
+    trigger: "Signature",
+    due: "Signature à vérifier",
+    title: (name: string) => `Signature et cachet de ${name}`,
+    description:
+      "Comparez chaque image déposée au nom du radiologue et à son justificatif : un cachet doit porter le nom et le numéro d’ordre. Chaque ouverture de cette fenêtre est tracée au journal.",
+    loading: "Chargement des images…",
+    kinds: { signature: "Signature", stamp: "Cachet" },
+    current: {
+      signature: "Imprimée aujourd’hui",
+      stamp: "Imprimé aujourd’hui",
+    },
+    submitted: {
+      signature: (date: string) => `Déposée le ${date}, à vérifier`,
+      stamp: (date: string) => `Déposé le ${date}, à vérifier`,
+    },
+    noneCurrent: "Aucune",
+    nothingPending: "Rien à vérifier.",
+    accept: "Accepter",
+    reject: "Refuser",
+    reason: "Motif du refus",
+    reasonHint:
+      "Le radiologue le lit dans ses paramètres et dans le courriel qui le prévient.",
+    rejectSubmit: "Refuser l’image",
+    accepted: {
+      signature: "Signature acceptée : le radiologue est prévenu.",
+      stamp: "Cachet accepté : le radiologue est prévenu.",
+    },
+    rejected: "Image refusée : le radiologue est prévenu.",
+    reasonRequired: "Indiquez le motif du refus : le radiologue le lira.",
+    reasonTooLong: "Le motif dépasse 500 caractères.",
+    self: "Vous ne pouvez pas décider de vos propres images.",
+    imageAlt: {
+      current: {
+        signature: "Signature imprimée aujourd’hui",
+        stamp: "Cachet imprimé aujourd’hui",
+      },
+      pending: {
+        signature: "Signature déposée, à vérifier",
+        stamp: "Cachet déposé, à vérifier",
+      },
+    },
+    pin: {
+      title: "Code personnel",
+      set: "Défini",
+      notSet: "Pas encore créé",
+      locked: (time: string) => `Verrouillé jusqu’à ${time}`,
+      reset: "Effacer le code",
+      resetConfirm: (name: string) =>
+        `Effacer le code personnel de ${name} ? Il en créera un nouveau à sa prochaine signature, et en sera prévenu par courriel. Ne le faites qu’à sa demande, après avoir vérifié son identité par un autre canal.`,
+      resetSubmit: "Effacer le code",
+      resetDone: "Code effacé : le radiologue en créera un nouveau.",
+      self: "Vous ne pouvez pas effacer votre propre code.",
+    },
+    demoActions: {
+      review: "La vérification d’une signature",
+      reset: "L’effacement d’un code personnel",
+    },
   },
 
   credentials: {
@@ -546,7 +614,7 @@ export const admin = {
       validUntilShortConfirm: "J’ai vérifié cette date sur l’attestation",
       accept: "Accepter et habiliter",
       accepted: (name: string) =>
-        `${name} est habilité : son accès aux examens est ouvert.`,
+        `${name} est habilité(e) : son accès aux examens est ouvert.`,
       reject: "Refuser",
       reason: "Motif du refus",
       reasonHint:
@@ -653,7 +721,7 @@ export const admin = {
     confirm: (name: string) =>
       `Réinitialiser la double authentification de ${name} ?\n\n` +
       "Vérifiez d’abord son identité par un autre canal, par exemple en l’appelant à un numéro connu. " +
-      "À sa prochaine connexion, il ou elle enrôlera un nouveau téléphone.",
+      "À sa prochaine connexion, il ou elle configurera un nouveau téléphone.",
     done: (name: string) => `Double authentification de ${name} réinitialisée.`,
     title: "Téléphone perdu ou changé",
     button: "Réinitialiser",
@@ -822,6 +890,14 @@ export const admin = {
       "platform.settings_changed": "Réglages modifiés",
       "contact_request.tracked": "Demande reçue suivie",
       "agreement.accepted": "Engagement accepté",
+      "signing.asset_changed": "Signature ou cachet déposé",
+      "signing.asset_reviewed": "Signature ou cachet vérifié",
+      "signing.asset_viewed": "Signature ou cachet consulté",
+      "signing.pin_set": "Code personnel défini",
+      "signing.pin_failed": "Code personnel erroné",
+      "signing.pin_locked": "Code personnel verrouillé",
+      "signing.pin_reset_requested": "Effacement d’un code personnel demandé",
+      "signing.pin_reset": "Code personnel effacé",
     },
   },
 
@@ -842,7 +918,7 @@ export const admin = {
       },
       revoke: {
         task: "Révoquer une passerelle",
-        why: "La révocation touche l’autorité de certification, gardée hors ligne.",
+        why: "Les certificats DICOM TLS sont auto-signés, sans autorité de certification : Orthanc accepte une liste de certificats précis, tenue sur le poste d’exploitation. Révoquer, c’est en retirer celui de la passerelle, envoyer la liste au serveur, qui relance Orthanc, et sortir la machine du réseau Tailscale.",
       },
       restore: {
         task: "Restaurer une sauvegarde",
@@ -925,8 +1001,12 @@ export const admin = {
       hostWatchFailed: "Surveillance de l’hôte en échec : disque /var à 83 %",
       unverifiedRadiologists: (count: number) =>
         count > 1
-          ? `${count} radiologues attendent l’examen de leur justificatif`
-          : `${count} radiologue attend l’examen de son justificatif`,
+          ? `${count} radiologues attendent la vérification de leur justificatif`
+          : `${count} radiologue attend la vérification de son justificatif`,
+      signingReviews: (count: number) =>
+        count > 1
+          ? `${count} images de signature ou de cachet attendent votre vérification`
+          : `${count} image de signature ou de cachet attend votre vérification`,
       newRequests: (count: number) =>
         `${count} demande${count > 1 ? "s reçues" : " reçue"} par le site ${count > 1 ? "attendent" : "attend"} une réponse`,
     },

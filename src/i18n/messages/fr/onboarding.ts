@@ -9,6 +9,10 @@ export const onboarding = {
    */
   steps: {
     clinic: {
+      engagement: {
+        title: "Convention",
+        lead: "La convention de service qui lie votre établissement à IMAFRIK.",
+      },
       profil: {
         title: "Votre profil",
         lead: "Votre nom, tel qu’il figurera dans le journal d’accès.",
@@ -28,6 +32,10 @@ export const onboarding = {
       termine: { title: "Terminé", lead: "Votre service est ouvert." },
     },
     radiologist: {
+      engagement: {
+        title: "Votre contrat",
+        lead: "Le contrat d’exercice qui encadre votre lecture sur IMAFRIK.",
+      },
       exercice: {
         title: "Votre exercice",
         lead: "Il décide du justificatif que l’équipe IMAFRIK vous demandera.",
@@ -42,7 +50,7 @@ export const onboarding = {
       },
       termine: {
         title: "Validation",
-        lead: "Où en est l’examen de votre dossier.",
+        lead: "Où en est la vérification de votre dossier.",
       },
     },
     admin: {

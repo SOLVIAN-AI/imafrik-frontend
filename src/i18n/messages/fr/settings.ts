@@ -90,13 +90,128 @@ export const settings = {
       "Ce lien ne permet plus de choisir un mot de passe. Demandez-en un nouveau depuis « Mot de passe oublié ».",
   },
   profileDemoAction: "L’enregistrement du profil",
+  signing: {
+    title: "Signature et cachet",
+    description:
+      "Votre signature et votre cachet sont apposés sur chaque compte-rendu que vous signez, après la saisie de votre code personnel. Les comptes-rendus déjà signés gardent ceux de leur PDF.",
+    demoAction: "L’enregistrement d’une signature ou d’un cachet",
+    optional: "Facultatifs",
+    kinds: { signature: "Signature manuscrite", stamp: "Cachet" },
+    none: {
+      signature: "Aucune signature enregistrée.",
+      stamp: "Aucun cachet enregistré.",
+    },
+    noneDetail:
+      "Facultatif : sans image, le compte-rendu porte votre nom, votre numéro d’ordre et son code de vérification.",
+    inUse: {
+      signature: "Imprimée sur vos comptes-rendus",
+      stamp: "Imprimé sur vos comptes-rendus",
+    },
+    legacy: "Posée par l’équipe IMAFRIK",
+    pending: "En cours de vérification par l’équipe IMAFRIK",
+    pendingDetail: (hasAccepted: boolean): string =>
+      hasAccepted
+        ? "L’image actuelle reste utilisée jusqu’à son acceptation."
+        : "Elle s’imprimera dès son acceptation.",
+    rejected: "Refusée par l’équipe IMAFRIK",
+    rejectedReason: (reason: string) => `Motif : ${reason}`,
+    previewAlt: {
+      signature: "Votre signature",
+      stamp: "Votre cachet",
+    },
+    pendingAlt: {
+      signature: "Votre nouvelle signature, en cours de vérification",
+      stamp: "Votre nouveau cachet, en cours de vérification",
+    },
+    draw: "Tracer",
+    import: "Importer",
+    formats:
+      "PNG ou JPEG, 2 Mo au plus. Sur fond blanc : le blanc est rendu transparent.",
+    stampHint: "Le cachet doit porter votre nom et votre numéro d’ordre.",
+    errors: {
+      badType: "Déposez une image PNG ou JPEG.",
+      tooLarge: "Ce fichier dépasse 2 Mo.",
+      unreadable: "Ce fichier n’a pas pu être lu.",
+    },
+    sent: {
+      signature:
+        "Signature envoyée : l’équipe IMAFRIK la vérifie avant qu’elle ne s’imprime.",
+      stamp:
+        "Cachet envoyé : l’équipe IMAFRIK le vérifie avant qu’il ne s’imprime.",
+    },
+    submit: {
+      drawTitle: "Tracer votre signature",
+      importTitle: {
+        signature: "Importer votre signature",
+        stamp: "Importer votre cachet",
+      },
+      description:
+        "L’équipe IMAFRIK vérifie l’image avant qu’elle ne s’imprime. D’ici là, l’image actuelle reste utilisée.",
+      preview: "Image choisie",
+      send: "Envoyer à la vérification",
+    },
+    pad: {
+      label:
+        "Cadre de signature : signez avec la souris, un stylet ou le doigt",
+      hint: "Signez dans le cadre avec la souris, un stylet ou le doigt.",
+      clear: "Effacer",
+      undo: "Annuler le dernier trait",
+      problems: {
+        empty: "Tracez votre signature dans le cadre.",
+        tooShort:
+          "Ce tracé est trop rapide pour une signature : prenez le temps de signer.",
+        tooSmall: "Ce tracé est trop petit : signez en occupant le cadre.",
+      },
+      alternative:
+        "Vous ne pouvez pas tracer à l’écran ? Importez une photo ou un scan de votre signature.",
+    },
+    pin: {
+      title: "Code personnel",
+      set: "Défini",
+      notSet: "À créer",
+      setDetail: "Demandé à chaque signature et à chaque addendum.",
+      notSetDetail:
+        "Obligatoire pour signer. Créez-le ici, ou dans la fenêtre de votre prochaine signature.",
+      lockedDetail: (time: string) =>
+        `Verrouillé après cinq erreurs, jusqu’à ${time}.`,
+      define: "Créer le code",
+      change: "Changer le code",
+      forgotten:
+        "Code oublié : demandez à l’équipe IMAFRIK de l’effacer, puis créez-en un nouveau. Elle ne le choisit jamais à votre place.",
+      label: "Code personnel",
+      hint: "Six chiffres.",
+      newLabel: "Nouveau code",
+      confirmLabel: "Confirmation",
+      currentLabel: "Code actuel",
+      createTitle: "Créez votre code personnel",
+      createDetail:
+        "Six chiffres, demandés à chaque signature et à chaque addendum. Évitez les suites (123456) et les chiffres répétés.",
+      problems: {
+        format: "Le code compte six chiffres.",
+        trivial: "Ce code est trop simple à deviner : choisissez-en un autre.",
+        mismatch: "Les deux saisies du code ne concordent pas.",
+      },
+      locked: (time: string) =>
+        `Code verrouillé après cinq erreurs. Réessayez à ${time}.`,
+      dialog: {
+        createTitle: "Créer votre code personnel",
+        changeTitle: "Changer votre code personnel",
+        createDescription:
+          "Il vous sera demandé à chaque signature et à chaque addendum. Ne le communiquez à personne, pas même à l’équipe IMAFRIK.",
+        changeDescription:
+          "Saisissez votre code actuel, puis le nouveau, deux fois. Cinq erreurs sur le code actuel le verrouillent quinze minutes.",
+        created: "Code personnel créé.",
+        changed: "Code personnel changé.",
+      },
+      demoAction: "La définition du code personnel",
+    },
+  },
   mfa: {
     title: "Double authentification",
     description:
       "Un code à usage unique, en plus du mot de passe, à chaque connexion.",
     active: "Active",
-    required: "Exigée pour votre rôle",
-    recommended: "Recommandée, non activée",
+    required: "Non activée, exigée pour tous les comptes",
     activeDetail:
       "Téléphone perdu ou changé : contactez l’équipe IMAFRIK, qui réinitialise l’accès après vérification de votre identité.",
     inactiveDetail:

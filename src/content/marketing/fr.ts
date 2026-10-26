@@ -259,8 +259,34 @@ export const fr: MarketingCopy = {
   },
   pricing: {
     eyebrow: "Tarifs",
-    title: "À l’acte, sans abonnement.",
-    lead: "Vous payez les examens lus. Le tarif unitaire dépend de la modalité et du délai retenu ; il est fixé au contrat et n’évolue pas en cours d’année.",
+    title: "Un abonnement, un forfait par examen.",
+    lead: "IMAFRIK ne facture que deux postes : un abonnement mensuel, et un forfait technique pour chaque examen, en délai normal ou en urgence. Montants en francs CFA, hors taxes.",
+    plansTitle: "Abonnement mensuel",
+    plans: {
+      essential: "Essentiel",
+      pro: "Pro",
+      facility: "Établissement",
+    },
+    price: "{amount} FCFA",
+    priceFrom: "dès {amount} FCFA",
+    priceUnit: "HT par mois",
+    feesTitle: "Forfait technique par examen",
+    feesLead:
+      "Il couvre le traitement de l’examen par la plateforme : réception, stockage, mise à disposition et remise du compte-rendu.",
+    feesColumns: { exam: "Examen", normal: "Normal", urgent: "Urgent" },
+    exams: {
+      radiography: "Radiographie",
+      complexRadiography: "Radiographie complexe",
+      hysterosalpingography: "Hystérosalpingographie",
+      ct: "Scanner",
+      complexCt: "Scanner complexe",
+      mri: "IRM",
+    },
+    feesNote:
+      "Montants en FCFA HT, facturés pour chaque examen dont le compte-rendu a été remis.",
+    radiologistFeeTitle: "Honoraires du radiologue",
+    radiologistFeeText:
+      "L’honoraire du radiologue lui revient en totalité. Il lui est versé par un établissement de paiement agréé par la BCEAO : IMAFRIK ne l’encaisse jamais et ne prélève aucune commission.",
     includedTitle: "Compris dans chaque contrat",
     included: [
       "Installation et supervision de la passerelle",
@@ -270,9 +296,9 @@ export const fr: MarketingCopy = {
       "Assistance au raccordement des modalités",
     ],
     noCommitment: "Aucun engagement de volume n’est demandé à l’établissement.",
-    quoteTitle: "Obtenir une grille",
+    quoteTitle: "Choisir sa formule",
     quoteText:
-      "Dites-nous votre volume mensuel et vos modalités : nous vous adressons une proposition chiffrée.",
+      "Dites-nous votre volume mensuel et vos modalités : nous vous indiquons la formule adaptée et vous adressons une proposition chiffrée. La formule Établissement s’établit sur devis.",
     quoteCta: "Demander une proposition",
   },
   faq: {
