@@ -8,7 +8,8 @@ import {
   StatusScreen,
 } from "@/components/layout/status-screen";
 import { Button } from "@/components/ui/button";
-import { messagesFor } from "@/i18n";
+import { session as enSession } from "@/i18n/messages/en/session";
+import { session as frSession } from "@/i18n/messages/fr/session";
 import type { Locale } from "@/lib/i18n/locale";
 import { localeOfPath } from "@/lib/i18n/routes";
 import { reportScreenError } from "@/lib/monitoring/report-error";
@@ -79,11 +80,13 @@ export default function ErrorScreen({
   React.useEffect(() => {
     // Le `digest` est la seule information à communiquer au support :
     // il permet de retrouver la trace serveur sans exposer son contenu.
-    reportScreenError(error);
+    void reportScreenError(error);
   }, [error]);
 
   if (isServiceUnavailable(error)) {
-    const copy = messagesFor(locale).session.serviceUnavailable;
+    // Le seul espace de noms `session` : cet écran fait partie de chaque
+    // page, et les dictionnaires complets alourdiraient toutes les autres.
+    const copy = (locale === "en" ? enSession : frSession).serviceUnavailable;
     return (
       <StatusScreen
         code="503"

@@ -36,7 +36,7 @@ export default function AppError({
   const copy = unavailable ? t.session.serviceUnavailable : t.session.appError;
 
   React.useEffect(() => {
-    reportScreenError(error);
+    void reportScreenError(error);
   }, [error]);
 
   return (
