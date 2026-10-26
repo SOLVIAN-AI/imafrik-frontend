@@ -8,7 +8,9 @@ import {
   ProfileForm,
 } from "@/components/settings/settings-forms";
 import { CredentialFileCard } from "@/components/credentials/credential-file-card";
+import { AgreementsCard } from "@/components/settings/agreements-card";
 import { MfaCard } from "@/components/settings/mfa-card";
+import { getMyAgreements } from "@/lib/data/agreements";
 import { getMyCredentialDocuments } from "@/lib/data/credentials";
 import { getOrganization } from "@/lib/data/organization";
 import { getProfile } from "@/lib/data/profile";
@@ -39,12 +41,14 @@ export default async function SettingsPage() {
   const { t } = await getMessages();
   const isClinic = session.active.role === "clinic_staff";
   const isRadiologist = session.active.role === "radiologist";
-  const [profile, organization, mfaEnrolled, documents] = await Promise.all([
-    getProfile(),
-    isClinic ? getOrganization() : Promise.resolve(null),
-    hasVerifiedFactor(session.active.role),
-    isRadiologist ? getMyCredentialDocuments() : Promise.resolve([]),
-  ]);
+  const [profile, organization, mfaEnrolled, documents, agreements] =
+    await Promise.all([
+      getProfile(),
+      isClinic ? getOrganization() : Promise.resolve(null),
+      hasVerifiedFactor(session.active.role),
+      isRadiologist ? getMyCredentialDocuments() : Promise.resolve([]),
+      getMyAgreements(),
+    ]);
 
   return (
     <>
@@ -73,6 +77,9 @@ export default async function SettingsPage() {
             {isRadiologist && <LanguageForm />}
             <PasswordForm />
             <MfaCard enrolled={mfaEnrolled} />
+            {/* Rien à montrer à qui n'est lié par aucun engagement
+                (l'équipe IMAFRIK, la démonstration). */}
+            {agreements.length > 0 && <AgreementsCard statuses={agreements} />}
           </div>
         </div>
       </div>

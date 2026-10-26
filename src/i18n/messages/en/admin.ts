@@ -767,6 +767,7 @@ export const admin: AppMessages["admin"] = {
       "user.anonymized": "Account anonymised",
       "platform.settings_changed": "Settings changed",
       "contact_request.tracked": "Contact request followed up",
+      "agreement.accepted": "Agreement accepted",
     },
   },
 

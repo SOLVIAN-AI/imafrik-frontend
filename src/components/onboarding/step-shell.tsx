@@ -26,6 +26,8 @@ import type { OnboardingStep } from "@/lib/onboarding/steps";
  * @param submitLabel  Libellé du bouton d'avancement ; « Continuer » par
  *                     défaut, dans la langue de l'utilisateur.
  * @param onSubmit     Déclenché à la validation du formulaire.
+ * @param submitDisabled Bouton d'avancement désactivé : l'étape attend
+ *                     quelque chose qui ne dépend pas de l'utilisateur.
  * @param onSkip       Proposé pour une étape facultative.
  */
 export function StepShell({
@@ -33,6 +35,7 @@ export function StepShell({
   previousSlug,
   submitLabel,
   submitting = false,
+  submitDisabled = false,
   onSubmit,
   onSkip,
   children,
@@ -41,6 +44,7 @@ export function StepShell({
   previousSlug?: string;
   submitLabel?: string;
   submitting?: boolean;
+  submitDisabled?: boolean;
   onSubmit: (event: React.FormEvent) => void;
   onSkip?: () => void;
   children: React.ReactNode;
@@ -74,7 +78,13 @@ export function StepShell({
               {t.onboarding.skip}
             </Button>
           )}
-          <Button type="submit" size="lg" loading={submitting} className="h-10">
+          <Button
+            type="submit"
+            size="lg"
+            loading={submitting}
+            disabled={submitDisabled}
+            className="h-10"
+          >
             {submitLabel ?? t.onboarding.continue}
             <ArrowRight />
           </Button>

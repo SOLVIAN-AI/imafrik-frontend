@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 
+import {
+  AgreementFields,
+  useAcceptAgreement,
+} from "@/components/agreements/agreement-review";
 import { StudyUploader } from "@/components/domain/study-uploader";
 import { InviteMemberButton } from "@/components/domain/team-actions";
 import { StepShell } from "@/components/onboarding/step-shell";
@@ -27,6 +31,7 @@ import {
   credentialBlock,
   credentialNeedsAction,
 } from "@/lib/credentials";
+import type { AgreementView } from "@/lib/agreements";
 import type { CredentialDocument } from "@/lib/data/credentials";
 import type { Profile } from "@/lib/data/profile";
 import { homeFor } from "@/lib/navigation";
@@ -42,6 +47,12 @@ export interface StepProps {
   openToPool: boolean;
   /** Radiologue : ses justificatifs, du plus récent au plus ancien. */
   documents: CredentialDocument[];
+  /**
+   * Étape « engagement » : le contrat ou la convention dû, avec son
+   * texte ; `null` quand aucun n'est dû (démonstration, ou aucune version
+   * encore entrée en vigueur) : l'étape se franchit alors d'un clic.
+   */
+  agreement: AgreementView | null;
 }
 
 /** Va à l'étape suivante, ou à l'accueil du portail à la dernière. */
@@ -50,6 +61,62 @@ function useAdvance(nextSlug?: string) {
   const { active } = useSession();
   return () =>
     router.push(nextSlug ? `/bienvenue/${nextSlug}` : homeFor(active.role));
+}
+
+/**
+ * Étape « engagement » : le contrat d'exercice du radiologue, ou la
+ * convention de service de l'établissement.
+ *
+ * Elle ouvre les deux parcours : le service refuse les opérations du
+ * portail tant que l'engagement en vigueur n'est pas accepté. Déjà
+ * accepté (une clinique dont un responsable a signé, un radiologue qui
+ * reprend son parcours), elle affiche l'acceptation et laisse avancer.
+ *
+ * Un membre de clinique qui ne peut pas engager l'établissement voit le
+ * texte, sans pouvoir avancer : il n'y aurait rien à faire plus loin.
+ */
+export function AgreementStep({
+  step,
+  previousSlug,
+  nextSlug,
+  agreement,
+}: StepProps) {
+  const t = useMessages().agreements.review;
+  const advance = useAdvance(nextSlug);
+  const accept = useAcceptAgreement();
+  const [pending, startTransition] = React.useTransition();
+  const blocked =
+    agreement !== null &&
+    !agreement.status.acceptedAt &&
+    !agreement.status.canAccept;
+
+  return (
+    <StepShell
+      step={step}
+      previousSlug={previousSlug}
+      submitting={pending}
+      submitLabel={
+        agreement && !agreement.status.acceptedAt
+          ? t.submitAndContinue
+          : undefined
+      }
+      submitDisabled={blocked}
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!agreement) return advance();
+        const form = new FormData(event.currentTarget as HTMLFormElement);
+        startTransition(async () => {
+          if (await accept(agreement, form)) advance();
+        });
+      }}
+    >
+      {agreement ? (
+        <AgreementFields view={agreement} />
+      ) : (
+        <p className="text-sm text-secondary">{t.unavailable}</p>
+      )}
+    </StepShell>
+  );
 }
 
 /**
