@@ -11,6 +11,7 @@ import {
   demoUsers,
   credentialReviewDue,
 } from "@/lib/demo/control";
+import { DEMO_STUDIES } from "@/lib/demo/studies";
 
 /** Instant fixe : les tests ne dépendent pas de l'heure de leur exécution. */
 const NOW = Date.UTC(2026, 9, 7, 14, 30);
@@ -95,6 +96,27 @@ describe("réseau de démonstration", () => {
       expect(instants).toEqual([...instants].sort((a, b) => a - b));
       expect(Math.max(...instants)).toBeLessThanOrEqual(NOW);
     }
+  });
+
+  it("montre au cockpit la file que voient les radiologues", () => {
+    // Le jeu d'examens est daté depuis le chargement du module : l'instant
+    // présent est donc le vrai, pas l'instant fixe des autres tests.
+    const now = Date.now();
+    const { live } = demoOverview(now);
+    const open = DEMO_STUDIES.filter(
+      (s) => s.status === "received" || s.status === "in_progress",
+    );
+    const waiting = open.filter((s) => s.assignedTo === null);
+    expect(live.waiting).toBe(waiting.length);
+    expect(live.waiting).toBeGreaterThan(0);
+    expect(live.urgent_waiting).toBe(waiting.filter((s) => s.urgent).length);
+    expect(live.in_progress).toBe(open.length - waiting.length);
+    // La radiographie de Kara attend depuis plus de cinq heures : la file
+    // la montre en retard, le cockpit aussi.
+    expect(live.routine_overdue).toBe(
+      open.filter((s) => !s.urgent && s.dueAt.getTime() < now).length,
+    );
+    expect(live.routine_overdue).toBeGreaterThan(0);
   });
 
   it("facture le mois en cours jusqu'à maintenant, et pas au-delà", () => {
