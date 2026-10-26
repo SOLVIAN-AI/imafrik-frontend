@@ -25,6 +25,7 @@ export const PUBLIC_PAIRS: PublicPair[] = [
   { name: "conditions d'utilisation", fr: "/cgu", en: "/en/terms" },
   { name: "confidentialité", fr: "/confidentialite", en: "/en/privacy" },
   { name: "mentions légales", fr: "/mentions-legales", en: "/en/legal-notice" },
+  { name: "crédits des images", fr: "/credits", en: "/en/credits" },
 ];
 
 /**

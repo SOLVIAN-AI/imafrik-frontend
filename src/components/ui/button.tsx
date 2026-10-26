@@ -63,6 +63,9 @@ const buttonVariants = cva(
         sm: "h-7 px-2.5 text-xs [&_svg]:size-3.5",
         md: "h-8 px-3 text-sm [&_svg]:size-4",
         lg: "h-9 px-4 text-sm [&_svg]:size-4",
+        // Appels à l'action de la vitrine : une page qu'on parcourt au
+        // pouce et à distance de lecture, pas une worklist dense.
+        xl: "h-11 rounded-lg px-5 text-base [&_svg]:size-4",
         // Carré, pour une icône seule. Toujours accompagné d'un
         // `aria-label` : une icône n'est pas un nom accessible.
         icon: "size-8 [&_svg]:size-4",

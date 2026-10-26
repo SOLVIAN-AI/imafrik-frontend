@@ -157,7 +157,9 @@ export { expect };
  * - **Animations** : les apparitions (`rise-in`…) déplacent les éléments
  *   pendant quelques centaines de millisecondes. On attend la fin de
  *   chaque animation finie, plutôt qu'une durée arbitraire ; les
- *   animations sans fin (indicateur de chargement) sont ignorées.
+ *   animations sans fin (indicateur de chargement) sont ignorées, comme
+ *   celles que pilote le défilement (`animation-timeline`, vitrine) : elles
+ *   n'ont pas de fin dans le temps, seulement une position.
  * - **Forme définitive** : un écran dont la disposition dépend de la
  *   largeur (l'espace de lecture) rend une forme neutre jusqu'à
  *   l'hydratation, marquée `data-pending-layout`. Mesurer avant, c'est
@@ -174,6 +176,7 @@ export async function settle(page: Page): Promise<void> {
       .getAnimations()
       .filter(
         (animation) =>
+          animation.timeline instanceof DocumentTimeline &&
           animation.effect?.getComputedTiming().endTime !== Infinity,
       );
     await Promise.all(

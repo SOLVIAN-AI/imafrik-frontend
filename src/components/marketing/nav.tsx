@@ -7,7 +7,7 @@ import * as React from "react";
 import { Wordmark } from "@/components/brand/brand";
 import { LanguageSwitch } from "@/components/marketing/language-switch";
 import { Button } from "@/components/ui/button";
-import { marketingCopy } from "@/content/marketing";
+import type { MarketingCopy } from "@/content/marketing";
 import type { Locale } from "@/lib/i18n/locale";
 import { localizePath } from "@/lib/i18n/routes";
 import { cn } from "@/lib/utils";
@@ -25,11 +25,22 @@ import { cn } from "@/lib/utils";
  * de liens donne l'impression d'un site institutionnel ; ici chaque entrée
  * répond à une question qu'un directeur d'établissement se pose vraiment.
  *
+ * Composant client (le menu de téléphone s'ouvre et se ferme) : ses
+ * libellés lui sont passés par la disposition, rendue sur le serveur,
+ * plutôt que lus dans les textes du site, qui partiraient sinon en entier,
+ * dans les deux langues, dans le JavaScript de chaque page.
+ *
  * @param locale Langue de la page.
+ * @param t      Libellés de la navigation, dans cette langue.
  */
-export function MarketingNav({ locale }: { locale: Locale }) {
+export function MarketingNav({
+  locale,
+  t,
+}: {
+  locale: Locale;
+  t: MarketingCopy["nav"];
+}) {
   const [open, setOpen] = React.useState(false);
-  const t = marketingCopy(locale).nav;
   const links = t.links.map((link) => ({
     ...link,
     href: localizePath(link.href, locale),
@@ -37,7 +48,7 @@ export function MarketingNav({ locale }: { locale: Locale }) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border-subtle bg-surface-base/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:gap-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:gap-8 lg:px-8">
         <Link
           href={localizePath("/", locale)}
           aria-label={t.home}

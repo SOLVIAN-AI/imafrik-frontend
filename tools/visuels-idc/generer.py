@@ -20,11 +20,14 @@ DICOM publique (native, ou reformatée dans un volume 3D de 1 mm), puis :
 
 Sources, identifiants et attributions : ``public/visuels/idc/SOURCES.md``.
 
+Le ciné de l'accroche (7) suit sa propre chaîne, décrite plus bas : niveaux
+de gris, vidéo H.264.
+
 Usage, depuis la racine du frontend, dans un environnement Python à part
-(hors du dépôt) avec numpy, scipy, Pillow et pydicom :
+(hors du dépôt) avec numpy, scipy, Pillow, pydicom et imageio-ffmpeg :
 
     python3 -m venv /tmp/venv-visuels
-    /tmp/venv-visuels/bin/pip install numpy scipy pillow pydicom
+    /tmp/venv-visuels/bin/pip install numpy scipy pillow pydicom imageio-ffmpeg
     /tmp/venv-visuels/bin/python -I tools/visuels-idc/generer.py /tmp/coupes-idc public/visuels/idc
 
 Les séries sont téléchargées du seau public ``idc-open-data`` (sans
@@ -32,13 +35,16 @@ compte) dans le premier dossier, si elles n'y sont pas déjà.
 """
 
 import itertools
+import subprocess
 import sys
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
 from xml.etree import ElementTree
 
+import imageio_ffmpeg
 import numpy as np
 import pydicom
 from PIL import Image
@@ -269,3 +275,96 @@ render("idc-irm-rachis-sagittal", v[9], "mr", None, 0.75, sp[1:], box=(0.04, 0.9
 # 6. IRM lombaire (MSB-02628), T2 axiale.
 v, sp = load_series(fetch_series(CACHE, "79255152-3726-4101-96a6-a882a94c2bdd"))
 render("idc-irm-rachis-axial", v[15], "mr", None, 1.0, sp[1:], box=(0.22, 0.86, 0.18, 0.82), high=97.5)
+
+
+# ─── Ciné de l'accroche ──────────────────────────────────────────────────────
+#
+# Le visualiseur de l'accroche fait défiler de vraies coupes, comme la molette
+# d'un radiologue : 25 coupes sagittales de ReMIND-066, une tous les 2 mm, de la
+# ligne médiane (la coupe de ``idc-irm-cerveau-sagittal``) vers l'hémisphère
+# droit, où aucune lésion n'est documentée (le glioblastome est frontal gauche).
+#
+# En niveaux de gris, pas en duotone : c'est un visualiseur, et une image de
+# diagnostic ne se lit qu'en niveaux de gris sur fond noir (principe 3 du
+# système de design, `globals.css`). Fenêtre, cadrage et fondu sont fixés sur
+# la première coupe et appliqués à toutes : d'une image à l'autre, seule
+# l'anatomie change, jamais l'exposition ni le cadre.
+#
+# Sorties : une affiche (première coupe) en WebP et PNG, en 480 et 960, et une
+# vidéo H.264 en aller-retour (la boucle n'a pas de saut), en 480 et 720 : de
+# 220 à 360 ko, contre trois fois plus en 960 pour un gain invisible, l'IRM
+# native ne mesurant que 232 pixels. L'encodage x264
+# en un seul fil d'exécution est déterministe pour une version donnée de
+# ffmpeg (``imageio-ffmpeg``, à installer avec les autres dépendances).
+
+#: Coupes du ciné : colonnes du volume (1 mm), de la ligne médiane vers la droite du patient.
+CINE_COLUMNS = range(124, 173, 2)
+#: Cadence, en images par seconde : un défilement posé, celui d'une relecture.
+CINE_FPS = 8
+#: Largeurs de l'affiche, et de la vidéo.
+CINE_POSTER_WIDTHS = (480, 960)
+CINE_VIDEO_WIDTHS = (480, 720)
+
+
+def render_cine(name, frames, spacing, fade):
+    """Rend une suite de coupes en affiche et en vidéo, en niveaux de gris.
+
+    Args:
+        name: Nom des fichiers, sans la largeur.
+        frames: Coupes, en valeurs physiques ; la première fixe fenêtre et cadrage.
+        spacing: Espacement des lignes et des colonnes, en mm.
+        fade: Hauteur du fondu au bord inférieur du champ de vue, en fraction du cadre.
+    """
+    frames = [ndimage.zoom(a, (spacing[0] / spacing[1], 1.0), order=3) for a in frames]
+    masks = [body_mask(a, "mr") for a in frames]
+    reference = frames[0][masks[0]]
+    lo, hi = np.percentile(reference, 0.5), np.percentile(reference, 99.6)
+    # Cadre carré autour de l'union des masques (marge de 7 %) : la tête entière
+    # reste dans le champ d'un bout à l'autre du défilement.
+    ys, xs = np.nonzero(np.logical_or.reduce(masks))
+    y0, y1, x0, x1 = ys.min(), ys.max(), xs.min(), xs.max()
+    side = int(np.ceil(max(y1 - y0, x1 - x0) * 1.14))
+    sy = int(round((y0 + y1) / 2 - side / 2))
+    sx = int(round((x0 + x1) / 2 - side / 2))
+    bottom = (y1 - sy) / side
+    ramp = np.clip((np.arange(side) / side - (bottom - fade)) / fade, 0, 1)
+    images = []
+    for a, mask in zip(frames, masks):
+        t = tone(a, lo, hi) * ndimage.gaussian_filter(mask.astype(np.float32), 0.8)
+        canvas = np.zeros((side, side), np.float32)
+        ys0, xs0 = max(sy, 0), max(sx, 0)
+        ys1, xs1 = min(sy + side, t.shape[0]), min(sx + side, t.shape[1])
+        canvas[ys0 - sy : ys1 - sy, xs0 - sx : xs1 - sx] = t[ys0:ys1, xs0:xs1]
+        canvas = canvas * (1 - ramp[:, None] ** 1.2)
+        # Gris neutre, blanc plafonné à 94 % : le blanc pur éblouit sur fond noir.
+        images.append(Image.fromarray(np.clip(canvas * 0.94 * 255, 0, 255).astype(np.uint8)))
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    # Aller-retour : la dernière coupe et la première ne sont pas répétées.
+    sequence = images + images[-2:0:-1]
+    for width in CINE_POSTER_WIDTHS:
+        poster = images[0].resize((width, width), Image.LANCZOS)
+        poster.save(OUT / f"{name}-{width}.webp", "WEBP", quality=90, method=6)
+        poster.save(OUT / f"{name}-{width}.png", "PNG", optimize=True)
+    for width in CINE_VIDEO_WIDTHS:
+        stem = f"{name}-{width}"
+        with tempfile.TemporaryDirectory() as tmp:
+            for index, image in enumerate(sequence):
+                image.resize((width, width), Image.LANCZOS).save(Path(tmp) / f"{index:03d}.png")
+            subprocess.run(
+                [
+                    ffmpeg, "-y", "-loglevel", "error", "-framerate", str(CINE_FPS),
+                    "-i", str(Path(tmp) / "%03d.png"),
+                    "-vf", "format=yuv420p", "-c:v", "libx264", "-preset", "veryslow",
+                    "-crf", "28", "-threads", "1",
+                    "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
+                    "-movflags", "+faststart", "-map_metadata", "-1", "-fflags", "+bitexact",
+                    "-flags:v", "+bitexact", "-an", str(OUT / f"{stem}.mp4"),
+                ],
+                check=True,
+            )
+    print(f"{name} : {len(images)} coupes, {len(sequence)} images, {side} px natifs")
+
+
+# 7. Ciné : IRM cérébrale (ReMIND-066), T2 3D, sagittales de la ligne médiane vers la droite.
+v, sp = load_series(fetch_series(CACHE, "536667b6-e601-4b07-a755-7ed607fee378"))
+render_cine("idc-irm-cerveau-sagittal-cine", [v[:, :, x] for x in CINE_COLUMNS], (sp[0], sp[1]), 0.38)

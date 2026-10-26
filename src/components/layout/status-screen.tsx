@@ -2,9 +2,18 @@ import Link from "next/link";
 
 import { Wordmark } from "@/components/brand/brand";
 import { Button } from "@/components/ui/button";
-import { messagesFor } from "@/i18n";
+import { session as enSession } from "@/i18n/messages/en/session";
+import { session as frSession } from "@/i18n/messages/fr/session";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 import { cn } from "@/lib/utils";
+
+/**
+ * Textes des écrans d'état, dans chaque langue. Seul l'espace de noms
+ * `session` est importé : l'écran d'erreur racine fait partie de chaque
+ * page, et les dictionnaires complets de l'application partiraient sinon
+ * dans le JavaScript de toutes, vitrine comprise.
+ */
+const SESSION = { fr: frSession, en: enSession } as const;
 
 /**
  * Écran de situation : page inconnue, accès refusé, erreur.
@@ -72,7 +81,7 @@ export function StatusScreen({
             tone === "urgent" ? "text-urgent" : "text-accent",
           )}
         >
-          {eyebrow ?? messagesFor(locale).session.statusScreen.error(code)}
+          {eyebrow ?? SESSION[locale].statusScreen.error(code)}
         </p>
         <h1 className="mt-3 text-2xl font-semibold md:text-3xl">{title}</h1>
         <div className="mt-4 text-sm leading-relaxed text-secondary">
@@ -108,9 +117,7 @@ export function BackHomeButton({
 }) {
   return (
     <Button variant="secondary" size="lg" asChild>
-      <Link href={href}>
-        {label ?? messagesFor(locale).session.statusScreen.backHome}
-      </Link>
+      <Link href={href}>{label ?? SESSION[locale].statusScreen.backHome}</Link>
     </Button>
   );
 }

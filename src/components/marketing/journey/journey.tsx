@@ -53,7 +53,7 @@ export function Journey({ locale }: { locale: Locale }) {
       aria-labelledby="parcours-titre"
       className="relative"
     >
-      <div className="mx-auto max-w-6xl px-6 pt-16 md:pt-24">
+      <div className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 md:pt-24 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="label-eyebrow text-accent">{t.eyebrow}</p>
           <h2
@@ -211,7 +211,7 @@ function ScrollStory({
     // sans hâte, sans que la page paraisse interminable.
     <div ref={track} className="relative hidden h-[400vh] lg:motion-safe:block">
       <div className="sticky top-0 flex h-screen items-center">
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-center gap-12 px-6">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-center gap-12 px-6 lg:px-8">
           <ol className="flex flex-col gap-2">
             {t.steps.map((step, index) => {
               const active = index === act;

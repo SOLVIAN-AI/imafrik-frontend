@@ -8,16 +8,18 @@ import { reportScreenError } from "@/lib/monitoring/report-error";
 afterEach(() => vi.clearAllMocks());
 
 describe("reportScreenError", () => {
-  it("signale une erreur née dans le navigateur", () => {
+  it("signale une erreur née dans le navigateur", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const error = new Error("rendu impossible");
-    reportScreenError(error);
+    await reportScreenError(error);
     expect(captureException).toHaveBeenCalledWith(error);
   });
 
-  it("ne signale pas deux fois une erreur serveur, déjà rapportée avec son digest", () => {
+  it("ne signale pas deux fois une erreur serveur, déjà rapportée avec son digest", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
-    reportScreenError(Object.assign(new Error("…"), { digest: "2817409352" }));
+    await reportScreenError(
+      Object.assign(new Error("…"), { digest: "2817409352" }),
+    );
     expect(captureException).not.toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith("[imafrik]", "2817409352");
   });

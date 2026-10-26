@@ -1,3 +1,4 @@
+import { LANGUAGE_SWITCH_LABEL } from "@/content/marketing/language-switch";
 import type { MarketingCopy } from "@/content/marketing/types";
 
 /**
@@ -21,7 +22,7 @@ export const fr: MarketingCopy = {
     verifyDescription:
       "Vérifiez l’authenticité d’un compte-rendu IMAFRIK à partir du code figurant sur le document.",
   },
-  languageSwitch: { label: "Langue du site" },
+  languageSwitch: { label: LANGUAGE_SWITCH_LABEL.fr },
   nav: {
     links: [
       { href: "/#fonctionnement", label: "Fonctionnement" },
@@ -56,6 +57,7 @@ export const fr: MarketingCopy = {
           { href: "/confidentialite", label: "Données personnelles" },
           { href: "/cgu", label: "Conditions d’utilisation" },
           { href: "/mentions-legales", label: "Mentions légales" },
+          { href: "/credits", label: "Crédits des images" },
         ],
       },
       {
@@ -69,29 +71,6 @@ export const fr: MarketingCopy = {
     publisher: "IMAFRIK est un service édité à Lomé, Togo.",
     hosting: "Images hébergées dans l’Union européenne, chiffrées au repos.",
   },
-  appPreview: {
-    windowLabel: "file de lecture",
-    metrics: {
-      toRead: "À lire",
-      urgent: "Urgences",
-      turnaround: "Délai moyen",
-      turnaroundShort: "Délai",
-    },
-    turnaroundValue: "1 h 50",
-    states: {
-      toRead: "À lire",
-      inProgress: "En cours",
-      reported: "Rendu",
-      assigned: "Attribué",
-    },
-    exams: [
-      "CT · Thorax",
-      "MR · Crâne",
-      "CR · Thorax",
-      "CT · Abdomen",
-      "US · Pelvis",
-    ],
-  },
   hero: {
     badge: "Téléradiologie pour l’Afrique",
     title: {
@@ -99,7 +78,7 @@ export const fr: MarketingCopy = {
       highlight: "le jour même",
       after: ".",
     },
-    lead: "Nous installons une passerelle sur un poste de votre établissement. Vos manipulateurs y envoient les examens comme à n’importe quelle destination du réseau interne. Un radiologue les lit à distance et signe le compte-rendu.",
+    lead: "Une passerelle logicielle sur un poste de votre établissement : vos manipulateurs y envoient les examens comme vers n’importe quelle destination du réseau. Un radiologue habilité les lit à distance et signe le compte-rendu.",
     primaryCta: "Demander une démonstration",
     secondaryCta: "Voir les garanties de sécurité",
     commitmentsTitle: "Nos engagements de délai",
@@ -110,6 +89,75 @@ export const fr: MarketingCopy = {
     ],
     commitmentsNote:
       "Délais fixés au contrat, à compter de la réception de l’examen.",
+  },
+  heroViewer: {
+    label:
+      "Le visualiseur d’IMAFRIK fait défiler les coupes sagittales d’une véritable IRM cérébrale, de la ligne médiane vers l’hémisphère droit.",
+    toolbar: "Outils du visualiseur",
+    modality: "IRM · Encéphale",
+    sequence: "T2 3D",
+    plane: "Sagittale",
+    slice: "Im {current} / {total}",
+    thickness: "Ép. 1,0 mm",
+    realSlice: "Coupe réelle",
+    anterior: "A",
+    posterior: "P",
+    play: "Lire le défilement des coupes",
+    pause: "Mettre en pause le défilement des coupes",
+    worklist: {
+      title: "File de lecture",
+      rows: [
+        { exam: "IRM · Encéphale", deadline: "reste 22 min", urgent: true },
+        { exam: "Scanner · Thorax", deadline: "reste 1 h 40", urgent: false },
+      ],
+      urgent: "Urgent",
+    },
+    signed: {
+      title: "Compte-rendu signé",
+      detail: "Code personnel vérifié, document verrouillé",
+      verify: "Vérifiable en ligne",
+    },
+    credit:
+      "Coupes réelles : IRM de la collection ReMIND (Juvekar et al., 2023), The Cancer Imaging Archive, CC BY 4.0. Cadrage : IMAFRIK.",
+    creditLink: "Crédits des images",
+  },
+  proofs: {
+    label: "Garanties du service",
+    items: [
+      "DICOM TLS mutuel",
+      "Double authentification pour tous",
+      "Signature protégée par code personnel",
+      "Journal d’audit nominatif",
+      "Hébergement dans l’Union européenne",
+      "100 % de l’honoraire au radiologue",
+    ],
+  },
+  product: {
+    eyebrow: "Le produit",
+    title: "Une plateforme, deux portails",
+    lead: "Le radiologue lit et signe ; l’établissement suit ses examens et récupère ses comptes-rendus. Voici l’application telle qu’elle est.",
+    tabsLabel: "Écrans de l’application",
+    screens: [
+      {
+        tab: "File de lecture",
+        audience: "Radiologue",
+        text: "Les examens de tous les établissements du groupe, triés par échéance. Les urgences remontent en tête, et chaque délai se lit d’un coup d’œil.",
+        alt: "File de lecture du radiologue : examens à prendre en charge, urgences signalées, échéance de chaque examen.",
+      },
+      {
+        tab: "Compte-rendu signé",
+        audience: "Radiologue",
+        text: "Signé par un médecin nommé, avec son numéro d’ordre, et verrouillé dès la signature. Son code de vérification permet à chacun d’en contrôler l’authenticité.",
+        alt: "Compte-rendu signé : signataire, numéro d’ordre, date de signature, lien de vérification publique et sections du compte-rendu.",
+      },
+      {
+        tab: "Tableau de bord",
+        audience: "Établissement",
+        text: "Examens envoyés, lectures en cours, comptes-rendus prêts à télécharger : la réponse à la question du matin, sur un seul écran.",
+        alt: "Tableau de bord d’une clinique : examens envoyés, en cours de lecture, comptes-rendus prêts et derniers examens envoyés.",
+      },
+    ],
+    note: "Captures du mode démonstration : patients, médecins, établissements et chiffres fictifs.",
   },
   journey: {
     eyebrow: "Le parcours",
@@ -175,7 +223,7 @@ export const fr: MarketingCopy = {
   },
   howItWorks: {
     eyebrow: "Fonctionnement",
-    title: "Trois étapes, rien à installer sur vos postes",
+    title: "Trois étapes, rien à changer à vos habitudes",
     lead: "Entre l’acquisition et le compte-rendu signé, il n’y a que le temps de lecture du radiologue.",
     steps: [
       {
@@ -230,29 +278,39 @@ export const fr: MarketingCopy = {
     },
   },
   securityTeaser: {
-    eyebrow: "Confiance",
+    eyebrow: "Sécurité",
     title: "Des données de santé, traitées comme telles",
-    lead: "La sécurité n’est pas une option activable : elle est intégrée à l’architecture du service.",
+    lead: "Chacune de ces garanties est appliquée par l’architecture du service, pas promise par une case à cocher.",
     guarantees: [
       {
-        title: "Rien en clair sur Internet",
+        title: "Chiffré de bout en bout",
         detail:
-          "Les images voyagent chiffrées de la passerelle jusqu’à nos serveurs, dans un réseau privé, et le restent au stockage.",
+          "Entre la passerelle et nos serveurs, les examens passent par un réseau privé chiffré, en DICOM TLS mutuel : chaque établissement prouve son identité par son propre certificat, et le port d’images n’est pas joignable depuis Internet.",
       },
       {
-        title: "Cloisonnement par établissement",
+        title: "Double authentification pour tous",
         detail:
-          "L’isolation est appliquée par la base de données, pas seulement par l’interface : une erreur dans le code de l’application ne suffit pas à l’ouvrir.",
+          "Radiologues, personnel des établissements, équipe IMAFRIK : chaque compte confirme sa connexion par un code à usage unique. Un mot de passe dérobé ne suffit pas.",
       },
       {
-        title: "Journal d’accès complet",
+        title: "Signature par code personnel",
         detail:
-          "Chaque consultation d’examen est enregistrée, horodatée et attribuable à une personne nommée.",
+          "Chaque compte-rendu, chaque addendum est signé avec le code à six chiffres du radiologue. Une fois signé, le document est verrouillé.",
       },
       {
-        title: "Hébergement européen",
+        title: "Journal d’audit nominatif",
         detail:
-          "Stockage dans l’Union européenne. Durée de conservation fixée au contrat, export complet sur simple demande.",
+          "Ouverture des images, signature, téléchargement : chaque geste est horodaté et rattaché à une personne nommée, dans un journal que personne ne peut modifier depuis l’application.",
+      },
+      {
+        title: "Cloisonnement par la base",
+        detail:
+          "Chaque établissement ne voit que ses examens. L’isolation est appliquée par la base de données elle-même : une erreur dans le code de l’application ne suffit pas à l’ouvrir.",
+      },
+      {
+        title: "Hébergé dans l’Union européenne",
+        detail:
+          "Images, comptes-rendus et sauvegardes, chiffrés au repos. Durée de conservation fixée au contrat, export complet sur simple demande.",
       },
     ],
     more: "Le détail des garanties et de la conformité",
@@ -287,6 +345,8 @@ export const fr: MarketingCopy = {
     radiologistFeeTitle: "Honoraires du radiologue",
     radiologistFeeText:
       "L’honoraire du radiologue lui revient en totalité. Il lui est versé par un établissement de paiement agréé par la BCEAO : IMAFRIK ne l’encaisse jamais et ne prélève aucune commission.",
+    radiologistFeeFigure: "100 %",
+    radiologistFeeFigureLabel: "de l’honoraire au radiologue",
     includedTitle: "Compris dans chaque contrat",
     included: [
       "Installation et supervision de la passerelle",
@@ -304,6 +364,8 @@ export const fr: MarketingCopy = {
   faq: {
     eyebrow: "Questions",
     title: "Ce qu’on nous demande avant de signer",
+    lead: "Les questions d’un directeur d’établissement, d’un technicien ou d’un radiologue, avec des réponses directes, limites du service comprises.",
+    contact: "Une autre question ? Écrivez-nous",
     entries: [
       {
         question: "Faut-il changer notre installation ?",
@@ -513,6 +575,39 @@ export const fr: MarketingCopy = {
     mismatch:
       "Ce fichier diffère du document signé : il a été modifié, ou ce n’est pas le bon fichier.",
     expected: "Empreinte enregistrée : {hash}",
+  },
+  credits: {
+    metaTitle: "Crédits des images",
+    metaDescription:
+      "Sources et licences des images médicales du site IMAFRIK : de vraies coupes publiées sous licence libre, aucune image générée.",
+    eyebrow: "Crédits",
+    title: "Crédits des images",
+    lead: "Les images médicales de ce site sont de vraies coupes d’imagerie, publiées sous licence libre par les équipes qui les ont acquises. Aucune n’est générée par une intelligence artificielle, aucune n’est retouchée dans son anatomie.",
+    labels: {
+      images: "Sur ce site",
+      collection: "Source",
+      license: "Licence",
+      modifications: "Modifications",
+    },
+    uses: {
+      remind:
+        "Accueil : visualiseur de l’accroche (défilement de coupes sagittales), carte des radiologues de la section « Deux métiers », section « Sécurité » et appel final.",
+      eay131: "Accueil : carte des établissements, section « Deux métiers ».",
+      lidc: "Parcours animé d’un examen, en aperçu.",
+    },
+    modifications: {
+      duotone:
+        "Pixels rendus carrés, extérieur du patient ramené au fond ou cadrage à l’intérieur du champ de vue, fenêtrage, compression monotone de l’os et lissage léger (scanner seulement), table de couleurs dans la palette IMAFRIK, fondu au bord du champ de vue, vignettage, recadrage et agrandissement. Rien n’est ajouté ni retiré à l’intérieur du patient.",
+      cine: "Coupes reformatées dans le plan sagittal (volume de 1 mm), une tous les 2 mm de la ligne médiane vers l’hémisphère droit, fenêtrage commun, niveaux de gris, fondu au bord du champ de vue, recadrage, agrandissement et assemblage en vidéo.",
+      lidc: "Fenêtre pulmonaire, recadrage et réduction.",
+    },
+    idcTitle: "Diffusion",
+    idcText:
+      "Les coupes ReMIND et EAY131 sont diffusées par Imaging Data Commons, du National Cancer Institute (Fedorov et al., RadioGraphics, 2023). Les coupes choisies évitent les lésions documentées de chaque examen, et aucun visage n’est reconnaissable.",
+    productTitle: "Captures de l’application",
+    productText:
+      "Les écrans de l’application montrés sur l’accueil sont des captures du mode démonstration d’IMAFRIK : les patients, médecins, établissements et chiffres qu’ils affichent sont fictifs.",
+    noAi: "Aucune image de ce site n’est générée par une intelligence artificielle.",
   },
   legal: {
     translationNotice: "",

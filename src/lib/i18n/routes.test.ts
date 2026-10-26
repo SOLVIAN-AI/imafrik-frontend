@@ -40,6 +40,8 @@ describe("adresses du site public", () => {
     expect(translatePath("/en/verify/K7M2", "fr")).toBe("/verifier/K7M2");
     expect(translatePath("/en/terms", "en")).toBe("/en/terms");
     expect(translatePath("/en/inconnue", "fr")).toBe("/");
+    expect(translatePath("/credits", "en")).toBe("/en/credits");
+    expect(translatePath("/en/credits", "fr")).toBe("/credits");
   });
 
   it("fournit les alternatives hreflang", () => {

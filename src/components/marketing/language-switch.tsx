@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { marketingCopy } from "@/content/marketing";
+import { LANGUAGE_SWITCH_LABEL } from "@/content/marketing/language-switch";
 import { LOCALE_NAMES, LOCALES, type Locale } from "@/lib/i18n/locale";
 import {
   isBilingualScreen,
@@ -36,7 +36,6 @@ export function LanguageSwitch({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const t = marketingCopy(locale).languageSwitch;
 
   /**
    * Adresse de la même page dans une langue. Sur un écran partagé
@@ -52,7 +51,7 @@ export function LanguageSwitch({
 
   return (
     <nav
-      aria-label={t.label}
+      aria-label={LANGUAGE_SWITCH_LABEL[locale]}
       className={cn(
         "flex items-center rounded-full border border-border-subtle p-0.5 text-2xs font-medium",
         className,

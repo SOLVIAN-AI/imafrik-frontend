@@ -14,17 +14,27 @@ import "./globals.css";
 // L'italique est chargé explicitement : sans lui, l'emphase de l'éditeur
 // de comptes-rendus était un faux italique — le romain penché par le
 // navigateur, aux formes déformées.
+//
+// Aucune police n'est préchargée : le navigateur découvre chaque fonte dans
+// la feuille de style, au premier calcul de mise en page, et ne télécharge
+// que celles que la page emploie. Préchargées, les trois (romain, italique,
+// chasse fixe) partaient à chaque page avant l'image du premier écran,
+// italique compris, que la vitrine n'emploie nulle part. Le texte s'affiche
+// d'abord dans la police de secours, aux métriques ajustées sur Geist par
+// Next : la bascule ne décale pas la mise en page.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
   style: ["normal", "italic"],
   display: "swap",
+  preload: false,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
