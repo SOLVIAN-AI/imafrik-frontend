@@ -28,6 +28,7 @@ const PAGES: readonly { fr: string; en: string; prefix?: true }[] = [
   { fr: "/cgu", en: "/en/terms" },
   { fr: "/confidentialite", en: "/en/privacy" },
   { fr: "/mentions-legales", en: "/en/legal-notice" },
+  { fr: "/credits", en: "/en/credits" },
   { fr: "/verifier", en: "/en/verify", prefix: true },
   // Aperçu de la page d'accueil avec le parcours animé, à valider avant
   // sa mise en ligne. Jamais indexé, absent du plan du site.
@@ -133,6 +134,7 @@ export const INDEXABLE_PAGES: readonly { path: string; priority: number }[] = [
   { path: "/confidentialite", priority: 0.3 },
   { path: "/mentions-legales", priority: 0.2 },
   { path: "/cgu", priority: 0.2 },
+  { path: "/credits", priority: 0.2 },
 ];
 
 /**

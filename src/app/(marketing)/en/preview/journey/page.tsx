@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { Journey } from "@/components/marketing/journey/journey";
 import { HomePage } from "@/components/marketing/pages/home-page";
 import { marketingCopy } from "@/content/marketing";
 import { publicPageMetadata } from "@/lib/i18n/metadata";
@@ -21,5 +22,5 @@ export const metadata: Metadata = publicPageMetadata("en", "/apercu/parcours", {
 
 /** Aperçu, en anglais. */
 export default function EnglishJourneyPreview() {
-  return <HomePage locale="en" journey />;
+  return <HomePage locale="en" steps={<Journey locale="en" />} />;
 }

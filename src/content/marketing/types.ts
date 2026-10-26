@@ -8,6 +8,7 @@
  */
 
 import type { ExamTypeId, PlanId } from "@/content/marketing/pricing";
+import type { ImageSourceId } from "@/content/marketing/visuals";
 
 /** Un lien de navigation. */
 export interface LinkCopy {
@@ -59,26 +60,6 @@ export interface MarketingCopy {
     publisher: string;
     hosting: string;
   };
-  /** Illustration de l'application, sur l'accueil. */
-  appPreview: {
-    windowLabel: string;
-    metrics: {
-      toRead: string;
-      urgent: string;
-      turnaround: string;
-      turnaroundShort: string;
-    };
-    /** Valeur affichée du délai moyen. */
-    turnaroundValue: string;
-    states: {
-      toRead: string;
-      inProgress: string;
-      reported: string;
-      assigned: string;
-    };
-    /** Examen de chaque ligne, dans l'ordre des lignes (5). */
-    exams: string[];
-  };
   hero: {
     badge: string;
     title: HighlightedTitle;
@@ -88,6 +69,52 @@ export interface MarketingCopy {
     commitmentsTitle: string;
     commitments: { value: string; label: string }[];
     commitmentsNote: string;
+  };
+  /**
+   * Visualiseur de l'accroche : de vraies coupes d'IRM qui défilent. Les
+   * repères d'orientation et les mentions d'angle suivent la convention
+   * des visualiseurs DICOM.
+   */
+  heroViewer: {
+    /** Description de la figure pour les lecteurs d'écran. */
+    label: string;
+    toolbar: string;
+    modality: string;
+    sequence: string;
+    plane: string;
+    /** Rang de la coupe affichée ; `{current}` et `{total}` sont remplacés. */
+    slice: string;
+    thickness: string;
+    realSlice: string;
+    anterior: string;
+    posterior: string;
+    play: string;
+    pause: string;
+    worklist: {
+      title: string;
+      rows: { exam: string; deadline: string; urgent: boolean }[];
+      urgent: string;
+    };
+    signed: { title: string; detail: string; verify: string };
+    /** Mention de la source des coupes, exigée par la licence. */
+    credit: string;
+    creditLink: string;
+  };
+  /** Bandeau des garanties, sous l'accroche. */
+  proofs: {
+    label: string;
+    items: string[];
+  };
+  /** Le produit, en captures du mode démonstration. */
+  product: {
+    eyebrow: string;
+    title: string;
+    lead: string;
+    /** Nom accessible de la liste d'onglets. */
+    tabsLabel: string;
+    /** Dans l'ordre : file de lecture, compte-rendu signé, tableau de bord. */
+    screens: { tab: string; audience: string; text: string; alt: string }[];
+    note: string;
   };
   /** Le parcours d'un examen, animé (components/marketing/journey). */
   journey: {
@@ -172,6 +199,9 @@ export interface MarketingCopy {
     feesNote: string;
     radiologistFeeTitle: string;
     radiologistFeeText: string;
+    /** Part de l'honoraire qui revient au radiologue, mise en exergue. */
+    radiologistFeeFigure: string;
+    radiologistFeeFigureLabel: string;
     includedTitle: string;
     included: string[];
     noCommitment: string;
@@ -182,6 +212,8 @@ export interface MarketingCopy {
   faq: {
     eyebrow: string;
     title: string;
+    lead: string;
+    contact: string;
     entries: { question: string; answer: string }[];
   };
   finalCta: {
@@ -287,6 +319,30 @@ export interface MarketingCopy {
     match: string;
     mismatch: string;
     expected: string;
+  };
+  /** Page « Crédits des images ». */
+  credits: {
+    metaTitle: string;
+    metaDescription: string;
+    eyebrow: string;
+    title: string;
+    lead: string;
+    /** Intitulés des colonnes de chaque source. */
+    labels: {
+      images: string;
+      collection: string;
+      license: string;
+      modifications: string;
+    };
+    /** Usage de chaque source sur le site, par identifiant de source. */
+    uses: Record<ImageSourceId, string>;
+    /** Modifications apportées, par chaîne de traitement. */
+    modifications: { duotone: string; cine: string; lidc: string };
+    idcTitle: string;
+    idcText: string;
+    productTitle: string;
+    productText: string;
+    noAi: string;
   };
   legal: {
     /** Avertissement des traductions de documents juridiques ; vide en français. */

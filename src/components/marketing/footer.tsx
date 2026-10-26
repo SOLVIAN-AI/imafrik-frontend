@@ -20,7 +20,7 @@ export function MarketingFooter({ locale }: { locale: Locale }) {
   const t = marketingCopy(locale).footer;
   return (
     <footer className="border-t border-border-subtle bg-surface-sunken">
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-14 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr_1fr] lg:px-8">
         <div>
           <div className="flex items-center gap-2.5">
             <Wordmark className="h-5" />
@@ -54,7 +54,7 @@ export function MarketingFooter({ locale }: { locale: Locale }) {
       </div>
 
       <div className="border-t border-border-subtle">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-5 text-2xs text-tertiary sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-2xs text-tertiary sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p>{t.publisher}</p>
           <p>{t.hosting}</p>
         </div>

@@ -135,7 +135,7 @@ export function ContactPage({ locale }: { locale: Locale }) {
   };
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 md:py-24 lg:grid-cols-[1fr_1.2fr]">
+    <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[1fr_1.2fr] lg:px-8">
       <div>
         <p className="label-eyebrow text-accent">{t.eyebrow}</p>
         <h1 className="mt-3 text-3xl font-semibold md:text-4xl">{t.title}</h1>

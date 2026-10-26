@@ -1,3 +1,4 @@
+import { LANGUAGE_SWITCH_LABEL } from "@/content/marketing/language-switch";
 import type { MarketingCopy } from "@/content/marketing/types";
 
 /**
@@ -22,7 +23,7 @@ export const en: MarketingCopy = {
     verifyDescription:
       "Check the authenticity of an IMAFRIK report using the code printed on the document.",
   },
-  languageSwitch: { label: "Website language" },
+  languageSwitch: { label: LANGUAGE_SWITCH_LABEL.en },
   nav: {
     links: [
       { href: "/#fonctionnement", label: "How it works" },
@@ -57,6 +58,7 @@ export const en: MarketingCopy = {
           { href: "/confidentialite", label: "Privacy" },
           { href: "/cgu", label: "Terms of use" },
           { href: "/mentions-legales", label: "Legal notice" },
+          { href: "/credits", label: "Image credits" },
         ],
       },
       {
@@ -70,29 +72,6 @@ export const en: MarketingCopy = {
     publisher: "IMAFRIK is a service published in Lomé, Togo.",
     hosting: "Images hosted in the European Union, encrypted at rest.",
   },
-  appPreview: {
-    windowLabel: "reading worklist",
-    metrics: {
-      toRead: "To read",
-      urgent: "Emergencies",
-      turnaround: "Average turnaround",
-      turnaroundShort: "Turnaround",
-    },
-    turnaroundValue: "1 h 50",
-    states: {
-      toRead: "To read",
-      inProgress: "In progress",
-      reported: "Reported",
-      assigned: "Assigned",
-    },
-    exams: [
-      "CT · Chest",
-      "MR · Brain",
-      "CR · Chest",
-      "CT · Abdomen",
-      "US · Pelvis",
-    ],
-  },
   hero: {
     badge: "Teleradiology for Africa",
     title: {
@@ -100,7 +79,7 @@ export const en: MarketingCopy = {
       highlight: "the same day",
       after: ".",
     },
-    lead: "We install a gateway on a computer in your facility. Your radiographers send examinations to it just as they would to any other destination on your internal network. A radiologist reads them remotely and signs the report.",
+    lead: "A software gateway on a computer in your facility: your radiographers send examinations to it just as they would to any other destination on your network. A licensed radiologist reads them remotely and signs the report.",
     primaryCta: "Request a demo",
     secondaryCta: "See our security commitments",
     commitmentsTitle: "Our turnaround commitments",
@@ -111,6 +90,75 @@ export const en: MarketingCopy = {
     ],
     commitmentsNote:
       "Turnaround times are set in the contract and run from receipt of the examination.",
+  },
+  heroViewer: {
+    label:
+      "The IMAFRIK viewer scrolls through the sagittal slices of a real brain MRI, from the midline towards the right hemisphere.",
+    toolbar: "Viewer tools",
+    modality: "MRI · Brain",
+    sequence: "T2 3D",
+    plane: "Sagittal",
+    slice: "Im {current} / {total}",
+    thickness: "Th. 1.0 mm",
+    realSlice: "Real slice",
+    anterior: "A",
+    posterior: "P",
+    play: "Play the slice scroll",
+    pause: "Pause the slice scroll",
+    worklist: {
+      title: "Reading worklist",
+      rows: [
+        { exam: "MRI · Brain", deadline: "22 min left", urgent: true },
+        { exam: "CT · Chest", deadline: "1 h 40 left", urgent: false },
+      ],
+      urgent: "Urgent",
+    },
+    signed: {
+      title: "Report signed",
+      detail: "Personal code verified, document locked",
+      verify: "Verifiable online",
+    },
+    credit:
+      "Real slices: MRI from the ReMIND collection (Juvekar et al., 2023), The Cancer Imaging Archive, CC BY 4.0. Framing: IMAFRIK.",
+    creditLink: "Image credits",
+  },
+  proofs: {
+    label: "Service safeguards",
+    items: [
+      "Mutual DICOM TLS",
+      "Two-factor authentication for everyone",
+      "Signature protected by a personal code",
+      "Named audit trail",
+      "Hosted in the European Union",
+      "100% of the fee to the radiologist",
+    ],
+  },
+  product: {
+    eyebrow: "The product",
+    title: "One platform, two portals",
+    lead: "The radiologist reads and signs; the facility follows its examinations and collects its reports. Here is the application as it is.",
+    tabsLabel: "Application screens",
+    screens: [
+      {
+        tab: "Reading worklist",
+        audience: "Radiologist",
+        text: "Examinations from every facility in the group, sorted by deadline. Emergencies rise to the top, and every deadline can be read at a glance.",
+        alt: "The radiologist’s reading worklist: examinations to claim, flagged emergencies and the deadline of each examination.",
+      },
+      {
+        tab: "Signed report",
+        audience: "Radiologist",
+        text: "Signed by a named doctor, with their registration number, and locked as soon as it is signed. Its verification code lets anyone check that it is authentic.",
+        alt: "A signed report: signatory, registration number, signing date, public verification link and the sections of the report.",
+      },
+      {
+        tab: "Dashboard",
+        audience: "Facility",
+        text: "Examinations sent, readings in progress, reports ready to download: the answer to the morning’s question, on a single screen.",
+        alt: "A clinic’s dashboard: examinations sent, readings in progress, reports ready and the latest examinations sent.",
+      },
+    ],
+    note: "Screenshots of demo mode: patients, doctors, facilities and figures are fictitious.",
   },
   journey: {
     eyebrow: "The journey",
@@ -175,7 +223,7 @@ export const en: MarketingCopy = {
   },
   howItWorks: {
     eyebrow: "How it works",
-    title: "Three steps, nothing to install on your workstations",
+    title: "Three steps, no change to the way you work",
     lead: "Between acquisition and the signed report, the only wait is the radiologist’s reading time.",
     steps: [
       {
@@ -230,29 +278,39 @@ export const en: MarketingCopy = {
     },
   },
   securityTeaser: {
-    eyebrow: "Trust",
+    eyebrow: "Security",
     title: "Health data, treated as such",
-    lead: "Security is not an option you switch on: it is built into the architecture of the service.",
+    lead: "Each of these safeguards is enforced by the architecture of the service, not promised by a checkbox.",
     guarantees: [
       {
-        title: "Nothing in clear text on the Internet",
+        title: "Encrypted end to end",
         detail:
-          "Images travel encrypted from the gateway to our servers, over a private network, and stay encrypted in storage.",
+          "Between the gateway and our servers, examinations travel over an encrypted private network using mutual DICOM TLS: each facility proves its identity with its own certificate, and the imaging port cannot be reached from the Internet.",
       },
       {
-        title: "Isolation between facilities",
+        title: "Two-factor authentication for everyone",
         detail:
-          "Isolation is enforced by the database, not only by the interface: a bug in the application code is not enough to bypass it.",
+          "Radiologists, facility staff, the IMAFRIK team: every account confirms its sign-in with a one-time code. A stolen password is not enough.",
       },
       {
-        title: "Complete access log",
+        title: "Signed with a personal code",
         detail:
-          "Each time an examination is opened, the access is recorded, time-stamped and attributed to a named person.",
+          "Every report and every addendum is signed with the radiologist’s six-digit code. Once signed, the document is locked.",
       },
       {
-        title: "European hosting",
+        title: "Named audit trail",
         detail:
-          "Storage in the European Union. Retention period set in the contract, full export on request.",
+          "Opening the images, signing, downloading: every action is time-stamped and attributed to a named person, in a log that no one can alter from the application.",
+      },
+      {
+        title: "Isolation by the database",
+        detail:
+          "Each facility sees only its own examinations. Isolation is enforced by the database itself: a bug in the application code is not enough to bypass it.",
+      },
+      {
+        title: "Hosted in the European Union",
+        detail:
+          "Images, reports and backups, encrypted at rest. Retention period set in the contract, full export on request.",
       },
     ],
     more: "Full details of our security and compliance commitments",
@@ -287,6 +345,8 @@ export const en: MarketingCopy = {
     radiologistFeeTitle: "Radiologists’ fees",
     radiologistFeeText:
       "The radiologist’s fee belongs to them in full. It is paid to them through a payment institution licensed by the BCEAO: IMAFRIK never collects it and takes no commission.",
+    radiologistFeeFigure: "100%",
+    radiologistFeeFigureLabel: "of the fee goes to the radiologist",
     includedTitle: "Included in every contract",
     included: [
       "Gateway installation and monitoring",
@@ -304,6 +364,8 @@ export const en: MarketingCopy = {
   faq: {
     eyebrow: "Questions",
     title: "Questions we are asked before signing",
+    lead: "The questions of a facility director, a technician or a radiologist, with straight answers, including the limits of the service.",
+    contact: "Another question? Write to us",
     entries: [
       {
         question: "Do we need to change our set-up?",
@@ -512,6 +574,39 @@ export const en: MarketingCopy = {
     mismatch:
       "This file differs from the signed document: it has been modified, or it is not the right file.",
     expected: "Recorded fingerprint: {hash}",
+  },
+  credits: {
+    metaTitle: "Image credits",
+    metaDescription:
+      "Sources and licences of the medical images on the IMAFRIK website: real slices published under an open licence, no generated images.",
+    eyebrow: "Credits",
+    title: "Image credits",
+    lead: "The medical images on this website are real imaging slices, published under an open licence by the teams who acquired them. None is generated by artificial intelligence, and none has its anatomy retouched.",
+    labels: {
+      images: "On this website",
+      collection: "Source",
+      license: "Licence",
+      modifications: "Changes",
+    },
+    uses: {
+      remind:
+        "Home page: the viewer in the opening section (scrolling sagittal slices), the radiologists card in the “Two professions” section, the “Security” section and the closing call to action.",
+      eay131: "Home page: the facilities card, “Two professions” section.",
+      lidc: "Animated journey of an examination, in preview.",
+    },
+    modifications: {
+      duotone:
+        "Pixels made square, outside of the patient set to the background or framing within the field of view, windowing, monotonic compression of bone and light smoothing (CT only), colour map in the IMAFRIK palette, fade at the edge of the field of view, vignetting, cropping and enlargement. Nothing is added to or removed from inside the patient.",
+      cine: "Slices reformatted in the sagittal plane (1 mm volume), one every 2 mm from the midline towards the right hemisphere, common window, greyscale, fade at the edge of the field of view, cropping, enlargement and assembly into a video.",
+      lidc: "Lung window, cropping and reduction.",
+    },
+    idcTitle: "Distribution",
+    idcText:
+      "The ReMIND and EAY131 slices are distributed by Imaging Data Commons, of the National Cancer Institute (Fedorov et al., RadioGraphics, 2023). The slices chosen avoid the documented lesions of each examination, and no face is recognisable.",
+    productTitle: "Application screenshots",
+    productText:
+      "The application screens shown on the home page are screenshots of IMAFRIK’s demo mode: the patients, doctors, facilities and figures they display are fictitious.",
+    noAi: "No image on this website is generated by artificial intelligence.",
   },
   legal: {
     translationNotice:

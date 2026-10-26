@@ -93,7 +93,7 @@ manipule des données de santé.
 
 | Route | Écran | Phase |
 | --- | --- | --- |
-| `/` | Accueil : promesse, preuve, appel à l'action. | V1 |
+| `/` | Accueil : promesse, preuve, appel à l'action. Voir « L'accueil » ci-dessous. | V1 |
 | `/cliniques` | Ce que le service change pour un établissement : délai de compte-rendu, absence d'investissement matériel, continuité la nuit et le week-end. | V2 |
 | `/radiologues` | Ce que le service change pour un médecin : volume, souplesse, outil de lecture. Porte d'entrée du recrutement. | V2 |
 | `/tarifs` | Grille tarifaire. Un service de santé qui cache ses prix inquiète. | V2 |
@@ -103,9 +103,49 @@ manipule des données de santé.
 | `/mentions-legales` | Éditeur, hébergeur, directeur de publication. | V1 |
 | `/confidentialite` | Politique de confidentialité et traitement des données de santé. | V1 |
 | `/cgu` | Conditions d'utilisation et contrat de service. | V1 |
+| `/credits` | **Crédits des images** : source, licence et modifications de chaque coupe d'imagerie du site (CC BY 4.0, CC BY 3.0), et nature des captures de l'application. Liée depuis le pied de page. | V1 |
 | `/apercu/parcours` | **Aperçu** de l'accueil avec le parcours animé, à valider avant qu'il ne remplace la section « Fonctionnement ». Jamais indexé, absent du plan du site. Voir ci-dessous. | V1 |
 
-**10 écrans**, plus l'aperçu, chacun en français et en anglais pour ce qui est en ligne.
+**11 écrans**, plus l'aperçu, chacun en français et en anglais pour ce qui est en ligne.
+
+### L'accueil
+
+Neuf temps, dans l'ordre d'une conversation commerciale : l'accroche, les
+garanties, le fonctionnement, le produit, les deux métiers, la sécurité,
+les tarifs, les questions, puis l'appel final.
+
+- **Accroche.** Le titre promet un délai ; à côté, un visualiseur fait
+  défiler 25 vraies coupes sagittales d'une IRM cérébrale publique
+  (ReMIND, CC BY 4.0, en niveaux de gris comme en lecture), avec ses
+  repères de console (numéro d'image, orientation, épaisseur). Deux cartes
+  posées dessus racontent le parcours : l'examen urgent dans la file, le
+  compte-rendu signé. L'affiche (première coupe) est l'image prioritaire du
+  premier écran ; la vidéo (`idc-irm-cerveau-sagittal-cine-*.mp4`, 220 à
+  370 ko) n'est demandée qu'après le chargement, au premier moment libre,
+  et se met en pause d'un bouton, hors de l'écran ou avec « moins de
+  mouvement », où elle ne se télécharge même pas.
+- **Garanties.** Un bandeau de faits vérifiables (DICOM TLS mutuel, double
+  authentification, signature par code personnel, journal d'audit,
+  hébergement, honoraire) à la place des logos de clients qu'un service
+  qui démarre ne peut pas montrer sans les inventer.
+- **Produit.** De vraies captures de l'application en mode
+  démonstration, dans la langue de la page : file de lecture et
+  compte-rendu signé (sombre), tableau de bord d'une clinique (clair).
+  Elles se régénèrent par `tools/captures-produit/capturer.mjs`, contre une
+  compilation de démonstration, après tout changement visible de ces
+  écrans.
+- **Mouvement.** Apparition au défilement (`reveal.tsx`), profondeur des
+  cartes de l'accroche et tracé du parcours pilotés par le défilement, en
+  CSS. Rien n'est caché sans script, rien ne bouge avec « moins de
+  mouvement ».
+- **Images.** Toutes viennent de fichiers déjà réduits à plusieurs
+  largeurs (`content/marketing/visuals.ts`, `srcset`), sans l'optimiseur de
+  Next ; aucune n'est générée par une IA. Chacune est créditée sur
+  `/credits`.
+- **Tests.** `e2e/accueil.spec.ts` : ciné (affiche, lecture, pause, moins
+  de mouvement), onglets au clavier, audit d'accessibilité de la page
+  entièrement parcourue dans les deux langues et les deux thèmes, 320 et
+  2560 pixels, crédits.
 
 ### Le parcours animé
 
@@ -145,6 +185,7 @@ son adresse dans sa langue :
 | `/mentions-legales` | `/en/legal-notice` |
 | `/confidentialite` | `/en/privacy` |
 | `/cgu` | `/en/terms` |
+| `/credits` | `/en/credits` |
 | `/apercu/parcours` | `/en/preview/journey` |
 
 - **Les textes** vivent dans `src/content/marketing/fr.ts` et `en.ts`,

@@ -76,11 +76,11 @@
   --color-accent-200: oklch(0.94 0.042 174);
 
   /* ─── Bleu de marque ───────────────────────────────────────────────
-     Le second pôle de l'identité. Il n'apparaît **pas** dans le
-     châssis : uniquement dans les dégradés de la marque et des écrans
-     publics, où il donne au turquoise un point d'appui profond. Deux
-     accents concurrents dans une interface de travail ne feraient que
-     brouiller le signal de l'interactif. */
+     Ancien second pôle de l'identité, retiré des écrans publics le
+     26 octobre 2026 : la palette de la marque est le turquoise (sarcelle)
+     sur la marine et le fond nuit, sans bleu vif. Ces teintes ne sont plus
+     employées par aucun dégradé ; elles restent définies pour les écrans
+     qui les citeraient encore, le temps de les retirer. */
   --color-brand-600: oklch(0.519 0.245 264);
   --color-brand-700: oklch(0.463 0.219 262);
   --color-brand-900: oklch(0.264 0.117 261);
@@ -168,7 +168,11 @@
    ne fonctionnerait que dans un seul thème.
    ══════════════════════════════════════════════════════════════════════ */
 
-:root {
+/* `.theme-dark` impose le sombre à une partie de la page, quel que soit le
+   thème : une bande sombre dans la vitrine en thème clair (sécurité, appel
+   final), comme le volet d'images reste noir dans l'application. */
+:root,
+.theme-dark {
   /* Sombre : l'état par défaut, y compris avant hydratation. */
   --surface-sunken: var(--color-ink-980);
   --surface-base: var(--color-ink-950);
@@ -218,9 +222,20 @@
 
   /* Halo d'accent, très dilué. Posé derrière la marque et sous les
      en-têtes, il donne une source lumineuse implicite à l'interface
-     plutôt qu'un aplat uniforme. */
+     plutôt qu'un aplat uniforme. Le second halo est marine (#1a2d51) :
+     la profondeur du fond nuit, sans bleu vif. */
   --glow-accent: oklch(0.768 0.145 174 / 0.18);
-  --glow-brand: oklch(0.516 0.243 264 / 0.22);
+  --glow-brand: oklch(0.38 0.07 258 / 0.55);
+
+  /* Dégradé du mot mis en valeur : du turquoise clair à la sarcelle. En
+     clair, des teintes plus sombres, qui tiennent le contraste d'un grand
+     titre (3:1) sur le blanc. */
+  --signal-gradient: linear-gradient(
+    100deg,
+    var(--color-accent-300) 0%,
+    var(--color-accent-500) 45%,
+    oklch(0.7 0.13 186) 100%
+  );
 
   /* Coupe lue du logotype : le turquoise de la marque, plus soutenu en
      thème clair pour garder son contraste sur fond blanc. */
@@ -277,7 +292,13 @@
   --edge: 0 0 0 0 transparent;
 
   --glow-accent: oklch(0.655 0.128 175 / 0.1);
-  --glow-brand: oklch(0.516 0.243 264 / 0.12);
+  --glow-brand: oklch(0.45 0.06 250 / 0.1);
+  --signal-gradient: linear-gradient(
+    100deg,
+    oklch(0.52 0.1 172) 0%,
+    oklch(0.47 0.09 178) 55%,
+    oklch(0.42 0.075 190) 100%
+  );
 
   --brand-signal: #0fae96;
 
@@ -488,12 +509,7 @@
      l'authentification : dans l'application, un titre coloré entrerait
      en concurrence avec le signal de l'interactif. */
   .text-brand-gradient {
-    background: linear-gradient(
-      100deg,
-      var(--color-accent-400) 0%,
-      var(--color-accent-500) 40%,
-      var(--color-brand-600) 100%
-    );
+    background: var(--signal-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -510,7 +526,7 @@
     );
     background-size: 22px 22px;
   }
-  .light .dot-grid {
+  .light .dot-grid:not(.theme-dark .dot-grid, .theme-dark.dot-grid) {
     background-image: radial-gradient(
       circle,
       oklch(0.2 0.03 262 / 0.05) 1px,
@@ -575,4 +591,113 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Vitrine
+
+   Le mouvement y sert la lecture, jamais la démonstration : une section
+   qui monte de quelques pixels en apparaissant, un aperçu qui se décale
+   à peine au défilement. Tout s'arrête avec « moins de mouvement », et
+   tout reste lisible sans JavaScript.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Chiffres proportionnels dans le texte courant de la vitrine.
+
+   Le corps de l'application compose ses chiffres à chasse fixe, pour
+   aligner les colonnes d'une worklist. Dans Geist, ce réglage élargit
+   aussi le trait d'union : « compte-rendu » se lisait « compte - rendu »
+   dans les titres. La vitrine revient aux chiffres proportionnels ; les
+   montants et les délais demandent `tabular-nums` explicitement. */
+.marketing {
+  font-variant-numeric: normal;
+}
+
+/* Apparition au défilement (`components/marketing/reveal.tsx`).
+
+   Le masquage n'est posé qu'une fois le script prêt (`data-reveal-ready` sur
+   `<html>`), et jamais sur ce qui est déjà à l'écran : sans script, ou
+   avec « moins de mouvement », tout est visible d'emblée. */
+html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
+  opacity: 0;
+  translate: 0 1.25rem;
+}
+html[data-reveal-ready] [data-reveal] {
+  transition:
+    opacity 0.8s var(--ease-out-quart),
+    translate 0.8s var(--ease-out-quart);
+  transition-delay: calc(var(--reveal-order, 0) * 90ms);
+}
+
+/* Profondeur de l'accroche : les cartes posées sur le visualiseur se
+   décalent légèrement au défilement, à des vitesses différentes. Défilement
+   piloté par le navigateur (`animation-timeline`), sans script ; ignoré là
+   où il n'est pas pris en charge. */
+@keyframes parallax-near {
+  to {
+    translate: 0 -3.5rem;
+  }
+}
+@keyframes parallax-far {
+  to {
+    translate: 0 -1.5rem;
+  }
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .parallax-near,
+    .parallax-far {
+      animation: parallax-near linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 90vh;
+    }
+    .parallax-far {
+      animation-name: parallax-far;
+    }
+  }
+}
+
+/* Ligne du parcours en trois étapes : elle se trace au défilement. */
+@keyframes trace {
+  from {
+    scale: 0 1;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .trace-on-scroll {
+      transform-origin: left center;
+      animation: trace linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 45%;
+    }
+  }
+}
+
+/* Questions : la réponse se déplie au lieu d'apparaître d'un coup, là où
+   le navigateur sait animer la hauteur d'un `<details>`. */
+@supports (interpolate-size: allow-keywords) {
+  .faq-item {
+    interpolate-size: allow-keywords;
+  }
+  .faq-item::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 0.35s var(--ease-out-quart),
+      content-visibility 0.35s allow-discrete;
+  }
+  .faq-item[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/* Ciné du visualiseur : la vidéo prend le relais de l'affiche en fondu, une
+   fois qu'elle joue réellement ; jusque-là, l'affiche reste seule. */
+.cine-video {
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-out-quart);
+}
+.cine-video[data-playing] {
+  opacity: 1;
 }
