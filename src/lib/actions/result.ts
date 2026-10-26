@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { getMessages } from "@/i18n/server";
 import { ApiError } from "@/lib/api/client";
+import type { ApiErrorReason } from "@/lib/api/error-reason";
 
 /**
  * Résultat d'une action serveur.
@@ -18,7 +19,14 @@ import { ApiError } from "@/lib/api/client";
  * son geste, pas seulement son texte.
  */
 export type ActionResult<T = undefined> =
-  { ok: true; data: T } | { ok: false; error: string; status: number };
+  | { ok: true; data: T }
+  | {
+      ok: false;
+      error: string;
+      status: number;
+      /** Précisions machine du refus (code personnel), voir `ApiErrorReason`. */
+      reason?: ApiErrorReason;
+    };
 
 /**
  * Exécute une opération et traduit son échec en résultat.
@@ -37,7 +45,12 @@ export async function run<T>(
     return { ok: true, data: await operation() };
   } catch (error) {
     if (error instanceof ApiError) {
-      return { ok: false, error: error.message, status: error.status };
+      return {
+        ok: false,
+        error: error.message,
+        status: error.status,
+        ...(error.reason.code ? { reason: error.reason } : {}),
+      };
     }
     console.error("Action en échec", error);
     const { t } = await getMessages();

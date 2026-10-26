@@ -20,6 +20,7 @@ import {
   DEMO_STUDIES,
 } from "@/lib/demo/studies";
 import { messagesFor } from "@/i18n";
+import { DEMO_SIGNING_REVIEW_PROFILE } from "@/lib/demo/signing";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 
 /**
@@ -446,14 +447,18 @@ export function demoOverview(
   const text = messagesFor(locale).admin.demo.alerts;
   const today = epochDay(now) * DAY;
   const flows = demoFlows(today - 29 * DAY, now);
-  const open = flows.filter((flow) => flow.signedAt === null);
-  const waiting = open.filter((flow) => flow.claimedAt === null);
+  // L'instant présent est celui de la file que voient les radiologues
+  // (`DEMO_STUDIES`), pas celui du réseau simulé : sans quoi la tour de
+  // contrôle afficherait une file vide quand « À lire » montre cinq
+  // examens à prendre, dont un hors délai. Les volumes et les délais
+  // passés restent ceux du réseau simulé.
+  const open = DEMO_STUDIES.filter(
+    (study) => study.status !== "reported" && study.status !== "delivered",
+  );
+  const waiting = open.filter((study) => study.assignedTo === null);
   const overdue = (urgent: boolean) =>
     open.filter(
-      (flow) =>
-        flow.urgent === urgent &&
-        minutesBetween(flow.receivedAt, now) >
-          (urgent ? DEMO_SLA.urgent : DEMO_SLA.routine),
+      (study) => study.urgent === urgent && study.dueAt.getTime() < now,
     ).length;
 
   const received14 = Array.from({ length: 14 }, (_, index) => {
@@ -510,6 +515,14 @@ export function demoOverview(
       message: text.unverifiedRadiologists(unverified),
       href: "/admin/utilisateurs?validation=attente",
     });
+  const signingReviews = demoSigningReviewsDue(now);
+  if (signingReviews)
+    alerts.push({
+      code: "signing_reviews",
+      severity: "info",
+      message: text.signingReviews(signingReviews),
+      href: "/admin/utilisateurs?signature=attente",
+    });
   alerts.push({
     code: "new_requests",
     severity: "info",
@@ -521,14 +534,14 @@ export function demoOverview(
     generated_at: iso(now),
     live: {
       waiting: waiting.length,
-      urgent_waiting: waiting.filter((flow) => flow.urgent).length,
+      urgent_waiting: waiting.filter((study) => study.urgent).length,
       in_progress: open.length - waiting.length,
       urgent_overdue: urgentOverdue,
       routine_overdue: routineOverdue,
       oldest_waiting_minutes: waiting.length
         ? Math.round(
             minutesBetween(
-              Math.min(...waiting.map((flow) => flow.receivedAt)),
+              Math.min(...waiting.map((study) => study.receivedAt.getTime())),
               now,
             ),
           )
@@ -546,6 +559,7 @@ export function demoOverview(
       new_requests: DEMO_NEW_REQUESTS,
       unverified_radiologists:
         demoUsers(now).filter(credentialReviewDue).length,
+      signing_reviews_due: demoSigningReviewsDue(now),
     },
     received_14d: received14,
     sla_30d: sla(flows),
@@ -853,6 +867,15 @@ export function demoSettings(now = Date.now()): ApiPlatformSettings {
 }
 
 /** Comptes de la plateforme. */
+/**
+ * Images de signature ou de cachet à vérifier, dans la démonstration.
+ *
+ * @param now Instant de référence.
+ */
+export function demoSigningReviewsDue(now = Date.now()): number {
+  return demoUsers(now).reduce((sum, user) => sum + user.signing_review_due, 0);
+}
+
 export function demoUsers(now = Date.now()): ApiAdminUser[] {
   const ago = (hours: number | null) =>
     hours === null ? null : iso(now - hours * HOUR);
@@ -908,6 +931,9 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
     // date la base.
     inactive_since:
       memberships.length === 0 ? iso(now - createdDaysAgo * DAY) : null,
+    // Un radiologue de la démonstration a déposé un nouveau cachet, que
+    // l'équipe n'a pas encore vérifié (voir `lib/demo/signing.ts`).
+    signing_review_due: id === DEMO_SIGNING_REVIEW_PROFILE ? 1 : 0,
     memberships,
   });
   return [

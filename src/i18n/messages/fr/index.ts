@@ -1,7 +1,9 @@
 import { admin } from "@/i18n/messages/fr/admin";
+import { agreements } from "@/i18n/messages/fr/agreements";
 import { clinic } from "@/i18n/messages/fr/clinic";
 import { common } from "@/i18n/messages/fr/common";
 import { credentials } from "@/i18n/messages/fr/credentials";
+import { gateways } from "@/i18n/messages/fr/gateways";
 import { nav } from "@/i18n/messages/fr/nav";
 import { onboarding } from "@/i18n/messages/fr/onboarding";
 import { reading } from "@/i18n/messages/fr/reading";
@@ -24,10 +26,12 @@ import { worklist } from "@/i18n/messages/fr/worklist";
  * - `worklist`, `reading` : portail radiologue, file et écran de lecture ;
  * - `clinic`, `onboarding` : portail clinique, mise en service ;
  * - `credentials` : habilitation des radiologues, partout où elle se dit ;
+ * - `agreements` : contrat du radiologue, convention de l'établissement ;
  * - `settings` : paramètres ;
  * - `training` : espace de formation ;
  * - `tour` : visites guidées, la prise en main écran par écran ;
- * - `admin` : tour de contrôle.
+ * - `admin` : tour de contrôle ;
+ * - `gateways` : passerelles des cliniques, dans la tour de contrôle.
  */
 export const fr = {
   common,
@@ -38,10 +42,12 @@ export const fr = {
   clinic,
   onboarding,
   credentials,
+  agreements,
   settings,
   training,
   tour,
   admin,
+  gateways,
 };
 
 /** Forme des textes de l'application : celle du français. */

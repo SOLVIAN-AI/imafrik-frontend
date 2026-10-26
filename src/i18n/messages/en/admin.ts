@@ -454,6 +454,13 @@ export const admin: AppMessages["admin"] = {
     noUnverified: "No files to review",
     unverifiedHint:
       "A radiologist appears here as soon as they upload a supporting document, and again if they change their name, title or registration number.",
+    signingFilter: "Signature to review",
+    signingTitle: "Signatures and stamps to review",
+    signingDescription:
+      "Radiologists who have uploaded a new signature or stamp. The previous image stays printed until you decide: nothing is blocked.",
+    noSigning: "No image to review",
+    signingHint:
+      "A radiologist appears here as soon as they draw or upload a signature, or upload a stamp.",
   },
 
   voidReport: {
@@ -469,6 +476,67 @@ export const admin: AppMessages["admin"] = {
     done: (patient: string) =>
       `Report for ${patient} voided: the examination is back in the worklist.`,
     demoAction: "Voiding a report",
+  },
+
+  signing: {
+    trigger: "Signature",
+    due: "Signature to review",
+    title: (name: string) => `Signature and stamp of ${name}`,
+    description:
+      "Compare each uploaded image with the radiologist’s name and supporting document: a stamp must show the name and registration number. Each opening of this window is recorded in the log.",
+    loading: "Loading images…",
+    kinds: { signature: "Signature", stamp: "Stamp" },
+    current: {
+      signature: "Printed today",
+      stamp: "Printed today",
+    },
+    submitted: {
+      signature: (date: string) => `Uploaded on ${date}, to review`,
+      stamp: (date: string) => `Uploaded on ${date}, to review`,
+    },
+    noneCurrent: "None",
+    nothingPending: "Nothing to review.",
+    accept: "Accept",
+    reject: "Reject",
+    reason: "Reason for rejection",
+    reasonHint:
+      "The radiologist reads it in their settings and in the email that informs them.",
+    rejectSubmit: "Reject the image",
+    accepted: {
+      signature: "Signature accepted: the radiologist has been informed.",
+      stamp: "Stamp accepted: the radiologist has been informed.",
+    },
+    rejected: "Image rejected: the radiologist has been informed.",
+    reasonRequired:
+      "Give the reason for rejection: the radiologist will read it.",
+    reasonTooLong: "The reason exceeds 500 characters.",
+    self: "You cannot decide on your own images.",
+    imageAlt: {
+      current: {
+        signature: "Signature printed today",
+        stamp: "Stamp printed today",
+      },
+      pending: {
+        signature: "Signature uploaded, to review",
+        stamp: "Stamp uploaded, to review",
+      },
+    },
+    pin: {
+      title: "Personal code",
+      set: "Set",
+      notSet: "Not created yet",
+      locked: (time: string) => `Locked until ${time}`,
+      reset: "Erase the code",
+      resetConfirm: (name: string) =>
+        `Erase the personal code of ${name}? They will create a new one at their next signature, and will be informed by email. Only do this at their request, after checking their identity through another channel.`,
+      resetSubmit: "Erase the code",
+      resetDone: "Code erased: the radiologist will create a new one.",
+      self: "You cannot erase your own code.",
+    },
+    demoActions: {
+      review: "Reviewing a signature",
+      reset: "Erasing a personal code",
+    },
   },
 
   credentials: {
@@ -499,7 +567,7 @@ export const admin: AppMessages["admin"] = {
       viewFailed: "The document could not be opened. Try again.",
       self: "You cannot decide on your own accreditation: another member of the IMAFRIK team must review your file.",
       licenseHint:
-        "Check with the medical council that this number is registered to this person: it will be printed below their signature.",
+        "Check with the Medical Council that this number is registered to this person: it will be printed below their signature.",
       validUntil: "End date read on the certificate",
       validUntilHint:
         "Correct it if it differs from the one declared. Access closes the following day.",
@@ -544,7 +612,7 @@ export const admin: AppMessages["admin"] = {
     nobody: "Nobody: the examination is in the shared queue.",
     candidates: "Radiologists who would see this examination",
     noCandidates:
-      "No credentialed radiologist reads this clinic’s examinations: check the affiliations and the service contract.",
+      "No approved radiologist reads this clinic’s examinations: check the affiliations and the service contract.",
     pool: "Freelance",
     clinicRadiologist: "Clinic radiologist",
     load: (count: number) =>
@@ -767,6 +835,32 @@ export const admin: AppMessages["admin"] = {
       "user.anonymized": "Account anonymised",
       "platform.settings_changed": "Settings changed",
       "contact_request.tracked": "Contact request followed up",
+      "agreement.accepted": "Agreement accepted",
+      "signing.asset_changed": "Signature or stamp uploaded",
+      "signing.asset_reviewed": "Signature or stamp reviewed",
+      "signing.asset_viewed": "Signature or stamp viewed",
+      "signing.pin_set": "Personal code set",
+      "signing.pin_failed": "Wrong personal code",
+      "signing.pin_locked": "Personal code locked",
+      "signing.pin_reset_requested": "Personal code erasure requested",
+      "signing.pin_reset": "Personal code erased",
+      "organization.created": "Clinic created",
+      "gateway.enrollment_created": "Enrolment code issued",
+      "gateway.enrollment_cancelled": "Enrolment code cancelled",
+      "gateway.enrolled": "Gateway enrolled",
+      "gateway.approved": "Gateway approved",
+      "gateway.rejected": "Gateway rejected",
+      "gateway.activated": "Gateway activated",
+      "gateway.suspended": "Gateway suspended",
+      "gateway.resumed": "Gateway resumed",
+      "gateway.revoked": "Gateway revoked",
+      "gateway.renewal_requested": "Certificate renewal requested",
+      "gateway.renewed": "Gateway certificate renewed",
+      "gateway.adopted": "Gateway adopted into the database",
+      "gateway.kit_downloaded": "Installation kit downloaded",
+      "platform.tailscale_configured": "Tailscale connection saved",
+      "platform.tailscale_removed": "Tailscale connection removed",
+      "platform.tailscale_policy_pushed": "Tailscale access policy pushed",
     },
   },
 
@@ -780,13 +874,13 @@ export const admin: AppMessages["admin"] = {
     operatorOnly: "From the operations workstation",
     operatorOnlyDescription: "Deliberately left out of this screen",
     operatorTasks: {
-      clinic: {
-        task: "Connect a clinic",
-        why: "Generates the DICOM TLS certificate and the single-use Tailscale key: secrets that never travel over the web.",
+      adopt: {
+        task: "Adopt the gateways connected before enrolment",
+        why: "Once, during the transition: reads the certificates held on the operations workstation, which are not on the server.",
       },
-      revoke: {
-        task: "Revoke a gateway",
-        why: "DICOM TLS certificates are self-signed, with no certificate authority: Orthanc accepts a list of specific certificates, kept on the operations workstation. Revoking means removing the gateway’s certificate from it, pushing the list to the server, which restarts Orthanc, and taking the machine off the Tailscale network.",
+      kit: {
+        task: "Build and sign the installation kit",
+        why: "Signing requires the code-signing certificate, kept off the server; the kit is then uploaded with tools/deploy.sh --push-kit.",
       },
       restore: {
         task: "Restore a backup",
@@ -866,6 +960,10 @@ export const admin: AppMessages["admin"] = {
         count === 1
           ? "1 radiologist’s supporting document is awaiting review"
           : `${count} radiologists’ supporting documents are awaiting review`,
+      signingReviews: (count: number) =>
+        count === 1
+          ? "1 signature or stamp image awaits your review"
+          : `${count} signature or stamp images await your review`,
       newRequests: (count: number) =>
         `${count} contact request${count === 1 ? " is" : "s are"} awaiting a reply`,
     },

@@ -54,6 +54,7 @@ export const NAV_BY_MEMBERSHIP: Record<DemoMembership, string[]> = {
     "/admin/activite",
     "/admin/flux",
     "/admin/organisations",
+    "/admin/passerelles",
     "/admin/utilisateurs",
     "/admin/examens",
     "/admin/demandes",

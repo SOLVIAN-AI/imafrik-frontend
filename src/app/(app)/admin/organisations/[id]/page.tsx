@@ -7,6 +7,8 @@ import { ClinicLogoForm } from "@/components/admin/clinic-logo-form";
 import { ContractPanel } from "@/components/admin/contract-panel";
 import { ControlBody, Figure, Section } from "@/components/admin/control-ui";
 import { FlowList, SegmentLegend } from "@/components/admin/flow-list";
+import { EnrollmentPanel } from "@/components/admin/gateways/enrollment-panel";
+import { GatewayList } from "@/components/admin/gateways/gateway-list";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { ReportLanguageForm } from "@/components/admin/report-language-form";
 import { RetentionForm } from "@/components/admin/retention-form";
@@ -29,6 +31,7 @@ import {
   formatMinutes,
   formatRate,
 } from "@/lib/format";
+import { getClinicGateways, getEnrollmentCodes } from "@/lib/data/gateways";
 import { LOCALE_NAMES } from "@/lib/i18n/locale";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
@@ -46,6 +49,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * raccordée, équipe invitée, premier examen, premier compte-rendu, première
  * remise. Une clinique bloquée à « raccordée » depuis une semaine appelle
  * un coup de téléphone, pas une analyse.
+ *
+ * Viennent ensuite ses passerelles : le code qui en raccorde une, et la
+ * liste de celles qui existent, avec leurs gestes (approuver, suspendre,
+ * révoquer…).
  *
  * Suivent les deux réglages que le contrat fixe : la durée de
  * conservation des images et la langue des comptes-rendus. En bas de
@@ -68,10 +75,12 @@ export default async function ClinicPage({
   const clinic = await getClinic(id);
   if (!clinic) notFound();
 
-  const [analytics, recent, logo] = await Promise.all([
+  const [analytics, recent, logo, gateways, codes] = await Promise.all([
     getAnalytics(30, clinic.id),
     getPipeline(15, clinic.id),
     getClinicLogo(clinic.id),
+    getClinicGateways(clinic.id),
+    getEnrollmentCodes(clinic.id),
   ]);
   const activity = analytics.byClinic[0];
   const done = clinic.onboarding.filter((step) => step.done).length;
@@ -218,6 +227,48 @@ export default async function ClinicPage({
               </div>
             </Section>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <Section
+            title={t.gateways.code.title}
+            description={t.gateways.sectionDescription}
+          >
+            <EnrollmentPanel
+              clinicId={clinic.id}
+              codes={codes.map((code) => ({
+                id: code.id,
+                expiresAt: code.expiresAt.toISOString(),
+                attempts: code.attempts,
+                createdBy: code.createdBy,
+              }))}
+              blockedBy={
+                ended
+                  ? t.gateways.code.closedContract
+                  : clinic.active
+                    ? null
+                    : t.gateways.code.suspendedClinic
+              }
+            />
+          </Section>
+          <Section
+            title={t.gateways.section}
+            description={t.gateways.count(gateways.length)}
+            action={{
+              label: t.gateways.seeAll,
+              href: "/admin/passerelles",
+            }}
+            className="xl:col-span-2"
+            flush
+          >
+            {gateways.length === 0 ? (
+              <p className="px-4 py-8 text-center text-xs text-tertiary">
+                {t.gateways.emptyForClinic}
+              </p>
+            ) : (
+              <GatewayList gateways={gateways} t={t} showClinic={false} />
+            )}
+          </Section>
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

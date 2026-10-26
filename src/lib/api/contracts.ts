@@ -206,6 +206,7 @@ export const trainingCaseSchema = z.object({
   instance_count: z.number().int().nullable(),
   title: z.string(),
   indication: z.string(),
+  instructions: z.string().nullable(),
   source: trainingSourceSchema,
   state: trainingStateSchema,
   attempt_id: uuid.nullable(),
@@ -230,6 +231,8 @@ const _trainingAddendum: Matches<
 
 export const trainingReferenceSchema = z.object({
   sections: z.record(z.string(), z.string()),
+  points: z.array(z.string()),
+  basis: z.string(),
   author: z.string(),
   validated_at: isoDate,
 });
@@ -369,6 +372,65 @@ const _documentView: Matches<
   z.input<typeof documentViewSchema>,
   Schemas["DocumentView"]
 > = true;
+
+/** Nature d'un engagement contractuel (voir `lib/agreements.ts`). */
+export const agreementKindSchema = z.enum([
+  "radiologist_agreement",
+  "clinic_agreement",
+]);
+
+// Empreinte et version : un format strict, pour qu'un texte altéré en
+// transit ne puisse pas se présenter comme la version en vigueur.
+const sha256 = z.string().regex(/^[0-9a-f]{64}$/);
+const agreementVersion = z.string().regex(/^\d{1,3}\.\d{1,3}$/);
+
+/** Un engagement dû par le compte connecté, et son acceptation. */
+export const agreementStatusSchema = z.object({
+  kind: agreementKindSchema,
+  version: agreementVersion,
+  title: z.string(),
+  effective_date: isoDate,
+  sha256,
+  accepted_at: isoDate.nullable().optional(),
+  accepted_by: z.string().nullable().optional(),
+  can_accept: z.boolean(),
+});
+const _agreementStatus: Matches<
+  z.input<typeof agreementStatusSchema>,
+  Schemas["AgreementStatus"]
+> = true;
+
+/** Texte d'une version d'engagement, dans une langue. */
+export const agreementDocumentSchema = z.object({
+  kind: agreementKindSchema,
+  version: agreementVersion,
+  title: z.string(),
+  effective_date: isoDate,
+  sha256,
+  locale: z.enum(["fr", "en"]),
+  authoritative: z.boolean(),
+  body_markdown: z.string(),
+});
+const _agreementDocument: Matches<
+  z.input<typeof agreementDocumentSchema>,
+  Schemas["AgreementDocument"]
+> = true;
+
+/** Acceptation enregistrée. */
+export const agreementAcceptanceSchema = z.object({
+  id: uuid,
+  kind: agreementKindSchema,
+  version: agreementVersion,
+  sha256,
+  accepted_at: isoDate,
+});
+const _agreementAcceptance: Matches<
+  z.input<typeof agreementAcceptanceSchema>,
+  Schemas["AgreementAcceptance"]
+> = true;
+
+/** Corps de `POST /me/agreements`, tel que le contrat le décrit. */
+export type AgreementAcceptanceBody = Schemas["AgreementAcceptanceCreate"];
 
 export const profileSchema = z.object({
   id: uuid,
@@ -611,6 +673,8 @@ export const controlOverviewSchema = z.object({
     new_requests: count,
     // Radiologues dont le numéro d’ordre attend la validation d’IMAFRIK.
     unverified_radiologists: count,
+    // Images de signature ou de cachet déposées, à vérifier par l’équipe.
+    signing_reviews_due: count,
   }),
   received_14d: z.array(
     z.object({ day: z.string(), urgent: count, routine: count }),
@@ -811,6 +875,8 @@ export const adminUserSchema = z.object({
   // Fin de la relation : plus aucune appartenance à une organisation
   // active depuis cette date ; nulle tant qu'il en reste une.
   inactive_since: isoDate.nullable().optional(),
+  // Images de signature ou de cachet en attente de l’équipe IMAFRIK.
+  signing_review_due: count,
   memberships: z.array(userMembershipSchema),
 });
 const _adminUser: Matches<
@@ -865,6 +931,64 @@ const _clinicLogo: Matches<
   z.input<typeof clinicLogoSchema>,
   Schemas["ClinicLogo"]
 > = true;
+
+/** Image de signature ou de cachet d'un radiologue, sans son contenu. */
+export const signingAssetSchema = z.object({
+  id: uuid,
+  kind: z.enum(["signature", "stamp"]),
+  source: z.enum(["drawn", "uploaded", "legacy"]),
+  version: z.number().int().positive(),
+  // Nulles pour l'image historique reprise telle quelle.
+  width: z.number().int().positive().nullable(),
+  height: z.number().int().positive().nullable(),
+  review_state: z.enum(["pending_review", "accepted", "rejected"]),
+  rejection_reason: z.string().nullable().optional(),
+  created_at: isoDate,
+  reviewed_at: isoDate.nullable().optional(),
+});
+const _signingAsset: Matches<
+  z.input<typeof signingAssetSchema>,
+  Schemas["SigningAsset"]
+> = true;
+
+/** Où en est le radiologue : images acceptées, en attente, refusées ; code. */
+export const signingSetupSchema = z.object({
+  signature: signingAssetSchema.nullable().optional(),
+  signature_pending: signingAssetSchema.nullable().optional(),
+  signature_rejected: signingAssetSchema.nullable().optional(),
+  stamp: signingAssetSchema.nullable().optional(),
+  stamp_pending: signingAssetSchema.nullable().optional(),
+  stamp_rejected: signingAssetSchema.nullable().optional(),
+  pin_set: z.boolean(),
+  pin_locked_until: isoDate.nullable().optional(),
+});
+const _signingSetup: Matches<
+  z.input<typeof signingSetupSchema>,
+  Schemas["SigningSetup"]
+> = true;
+
+/** Contenu d'une image, pour l'aperçu de son titulaire ou de l'équipe. */
+export const signingAssetImageSchema = z.object({
+  image_base64: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/),
+  media_type: z.enum(["image/png", "image/jpeg", "image/webp"]),
+  width: z.number().int().positive().nullable(),
+  height: z.number().int().positive().nullable(),
+});
+const _signingAssetImage: Matches<
+  z.input<typeof signingAssetImageSchema>,
+  Schemas["SigningAssetImage"]
+> = true;
+
+/** Corps de `POST /reports/{id}/sign`, tel que le contrat le décrit. */
+export type ApiSignRequest = Schemas["SignRequest"];
+/** Corps de `POST /reports/{id}/addenda`, tel que le contrat le décrit. */
+export type ApiAddendumCreate = Schemas["AddendumCreate"];
+/** Corps de `PUT /me/signing/{kind}`. */
+export type ApiSigningAssetUpload = Schemas["SigningAssetUpload"];
+/** Corps de `PUT /me/signing/pin`. */
+export type ApiSigningPinSet = Schemas["SigningPinSet"];
+/** Corps de `POST /admin/users/{id}/signing/assets/{asset_id}/review`. */
+export type ApiSigningAssetReview = Schemas["SigningAssetReview"];
 
 /**
  * Effet de la fin de contrat d'une clinique : date, examens abandonnés,
@@ -946,16 +1070,313 @@ const _credentialsState: Matches<
   Schemas["CredentialsState"]
 > = true;
 
+// ─── Passerelles des cliniques ──────────────────────────────────────
+//
+// Enrôlement par code, approbation, révocation, confiance du PACS : voir
+// la décision du service, `docs/plan/enrolement-passerelle.md`. Aucune
+// de ces réponses ne porte d'AE Title ni de clé : le service ne les rend
+// qu'au poste qui s'enrôle.
+
+// Empreinte SHA-256 d'un certificat, ou d'un fichier : `sha256`, le même
+// format strict que celui des engagements, plus haut.
+
+export const gatewayStatusSchema = z.enum([
+  "awaiting_approval",
+  "pending",
+  "active",
+  "suspended",
+  "rejected",
+  "revoked",
+]);
+
+/** Une clinique créée depuis la console. */
+export const clinicCreatedSchema = z.object({ id: uuid, slug: z.string() });
+const _clinicCreated: Matches<
+  z.input<typeof clinicCreatedSchema>,
+  Schemas["ClinicCreated"]
+> = true;
+
+/** Code d'enrôlement, montré une seule fois. */
+export const enrollmentCodeIssuedSchema = z.object({
+  id: uuid,
+  code: z.string().regex(/^IMF(-[A-Z2-9]{4}){4}$/),
+  created_at: isoDate,
+  expires_at: isoDate,
+});
+const _enrollmentCodeIssued: Matches<
+  z.input<typeof enrollmentCodeIssuedSchema>,
+  Schemas["EnrollmentCodeIssued"]
+> = true;
+
+/** Code d'enrôlement en cours, sans sa valeur. */
+export const enrollmentCodeInfoSchema = z.object({
+  id: uuid,
+  created_at: isoDate,
+  expires_at: isoDate,
+  attempts: count,
+  created_by_name: z.string().nullable(),
+});
+const _enrollmentCodeInfo: Matches<
+  z.input<typeof enrollmentCodeInfoSchema>,
+  Schemas["EnrollmentCodeInfo"]
+> = true;
+
+const tailscaleNodeSchema = z.object({
+  online: z.boolean(),
+  last_seen: isoDate.nullable(),
+  address: z.string().nullable(),
+});
+const _tailscaleNode: Matches<
+  z.input<typeof tailscaleNodeSchema>,
+  Schemas["TailscaleNode"]
+> = true;
+
+/** Une passerelle, vue de la tour de contrôle. */
+export const gatewaySummarySchema = z.object({
+  id: uuid,
+  organization_id: uuid,
+  clinic_name: z.string(),
+  origin: z.enum(["enrolled", "adopted"]),
+  status: gatewayStatusSchema,
+  hostname: z.string(),
+  machine_guid: uuid.nullable(),
+  key_protection: z.enum(["tpm", "software_non_exportable"]).nullable(),
+  enrolled_from_ip: z.string().nullable(),
+  tailscale_hostname: z.string().nullable(),
+  network_address: z.string().nullable(),
+  address_source: z.enum(["tailscale", "fixed"]),
+  created_at: isoDate,
+  approved_at: isoDate.nullable(),
+  approved_by_name: z.string().nullable(),
+  activated_at: isoDate.nullable(),
+  rejected_at: isoDate.nullable(),
+  rejection_reason: z.string().nullable(),
+  suspended_at: isoDate.nullable(),
+  suspension_reason: z.string().nullable(),
+  revoked_at: isoDate.nullable(),
+  revocation_reason: z.string().nullable(),
+  renewal_requested_at: isoDate.nullable(),
+  certificate_fingerprint: sha256.nullable(),
+  certificate_not_after: isoDate.nullable(),
+  certificate_applied: z.boolean(),
+  last_heartbeat_at: isoDate.nullable(),
+  pending_series: count.nullable(),
+  oldest_pending_seconds: count.nullable(),
+  disk_free_bytes: z.number().nullable(),
+  kit_version: z.string().nullable(),
+  orthanc_version: z.string().nullable(),
+  tailscale: tailscaleNodeSchema.nullable().optional(),
+});
+const _gatewaySummary: Matches<
+  z.input<typeof gatewaySummarySchema>,
+  Schemas["GatewaySummary"]
+> = true;
+
+const gatewayCertificateSchema = z.object({
+  fingerprint: sha256,
+  origin: z.enum(["enrollment", "renewal", "adoption"]),
+  not_before: isoDate,
+  not_after: isoDate,
+  created_at: isoDate,
+  applied_at: isoDate.nullable(),
+  first_used_at: isoDate.nullable(),
+  retire_after: isoDate.nullable(),
+  retired_at: isoDate.nullable(),
+  retire_reason: z.string().nullable(),
+  removal_applied_at: isoDate.nullable(),
+});
+const _gatewayCertificate: Matches<
+  z.input<typeof gatewayCertificateSchema>,
+  Schemas["GatewayCertificateInfo"]
+> = true;
+
+const gatewayEventSchema = z.object({
+  at: isoDate,
+  action: z.string(),
+  actor_name: z.string().nullable(),
+  metadata: z.record(z.string(), z.unknown()).nullable(),
+});
+const _gatewayEvent: Matches<
+  z.input<typeof gatewayEventSchema>,
+  Schemas["GatewayEvent"]
+> = true;
+
+/** Une passerelle, ses certificats et son historique. */
+export const gatewayDetailSchema = gatewaySummarySchema.extend({
+  certificates: z.array(gatewayCertificateSchema),
+  history: z.array(gatewayEventSchema),
+});
+const _gatewayDetail: Matches<
+  z.input<typeof gatewayDetailSchema>,
+  Schemas["GatewayDetail"]
+> = true;
+
+const pkiCycleSchema = z.object({
+  reported_at: isoDate,
+  outcome: z.enum(["applied", "deferred", "refused", "failed"]),
+  restarted: z.boolean(),
+  added: count,
+  removed: count,
+  error: z.string().nullable(),
+});
+const _pkiCycle: Matches<
+  z.input<typeof pkiCycleSchema>,
+  Schemas["PkiCycle"]
+> = true;
+
+const pendingChangeSchema = z.object({
+  gateway_id: uuid,
+  clinic_name: z.string(),
+  hostname: z.string(),
+  change: z.enum(["add", "remove"]),
+});
+const _pendingChange: Matches<
+  z.input<typeof pendingChangeSchema>,
+  Schemas["PendingChange"]
+> = true;
+
+const pkiAgentSchema = z.object({
+  last_report_at: isoDate.nullable(),
+  last_outcome: z
+    .enum(["unchanged", "applied", "deferred", "refused", "failed"])
+    .nullable(),
+  last_error: z.string().nullable(),
+  last_restart_at: isoDate.nullable(),
+  applied_at: isoDate.nullable(),
+  pending: z.array(pendingChangeSchema),
+  cycles: z.array(pkiCycleSchema),
+});
+const _pkiAgent: Matches<
+  z.input<typeof pkiAgentSchema>,
+  Schemas["PkiAgent"]
+> = true;
+
+const kitInfoSchema = z.object({
+  file_name: z.string(),
+  size_bytes: count,
+  sha256,
+  version: z.string().nullable(),
+  built_at: isoDate,
+  manifest_matches: z.boolean().nullable(),
+  signature_status: z.enum(["signed", "unsigned"]).nullable(),
+  publisher: z.string().nullable(),
+  signature_expires_at: isoDate.nullable(),
+  timestamped: z.boolean().nullable(),
+});
+const _kitInfo: Matches<
+  z.input<typeof kitInfoSchema>,
+  Schemas["KitInfo"]
+> = true;
+
+const readinessSchema = z.object({
+  ready: z.boolean(),
+  missing: z.array(
+    z.enum(["tailscale_credentials", "pacs_host", "pacs_certificate"]),
+  ),
+});
+const _readiness: Matches<
+  z.input<typeof readinessSchema>,
+  Schemas["Readiness"]
+> = true;
+
+/** Vue d'ensemble des passerelles. */
+export const gatewayOverviewSchema = z.object({
+  gateways: z.array(gatewaySummarySchema),
+  counts: z.record(z.string(), count),
+  alerts: z.array(alertSchema),
+  readiness: readinessSchema,
+  agent: pkiAgentSchema,
+  kit: kitInfoSchema.nullable(),
+});
+const _gatewayOverview: Matches<
+  z.input<typeof gatewayOverviewSchema>,
+  Schemas["GatewayOverview"]
+> = true;
+
+/** Connexion Tailscale de la plateforme, sans son secret. */
+export const tailscaleConnectionSchema = z.object({
+  source: z.enum(["console", "environment"]).nullable(),
+  client_id: z.string().nullable(),
+  secret_last4: z.string().nullable(),
+  configured_at: isoDate.nullable(),
+  configured_by_name: z.string().nullable(),
+  scopes: z.array(z.string()),
+  required_scopes: z.array(z.string()),
+  encryption_available: z.boolean(),
+  policy_file_available: z.boolean(),
+});
+const _tailscaleConnection: Matches<
+  z.input<typeof tailscaleConnectionSchema>,
+  Schemas["TailscaleConnection"]
+> = true;
+
+/** Résultat d'un test de la connexion Tailscale. */
+export const tailscaleTestSchema = z.object({
+  ok: z.boolean(),
+  scopes: z.array(z.string()),
+  missing_scopes: z.array(z.string()),
+  policy_available: z.boolean(),
+  error: z.string().nullable().optional(),
+});
+const _tailscaleTest: Matches<
+  z.input<typeof tailscaleTestSchema>,
+  Schemas["TailscaleTest"]
+> = true;
+
+/** Politique d'accès versionnée, comparée à celle du réseau. */
+export const policyComparisonSchema = z.object({
+  repository_available: z.boolean(),
+  tailnet_available: z.boolean(),
+  in_sync: z.boolean().nullable(),
+  diff: z.string(),
+  etag: z.string().nullable(),
+  error: z.string().nullable().optional(),
+});
+const _policyComparison: Matches<
+  z.input<typeof policyComparisonSchema>,
+  Schemas["PolicyComparison"]
+> = true;
+
+/** Corps de `POST /admin/clinics`, tel que le contrat le décrit. */
+export type ApiClinicCreate = Schemas["ClinicCreate"];
+export type ApiGatewaySummary = z.output<typeof gatewaySummarySchema>;
+export type ApiGatewayDetail = z.output<typeof gatewayDetailSchema>;
+export type ApiGatewayOverview = z.output<typeof gatewayOverviewSchema>;
+export type ApiEnrollmentCodeInfo = z.output<typeof enrollmentCodeInfoSchema>;
+export type ApiTailscaleConnection = z.output<typeof tailscaleConnectionSchema>;
+export type ApiTailscaleTest = z.output<typeof tailscaleTestSchema>;
+export type ApiPolicyComparison = z.output<typeof policyComparisonSchema>;
+
 /**
  * Les vérifications de type ci-dessus n'ont aucun effet à l'exécution ;
  * cette référence évite seulement qu'un outil les signale comme mortes.
  */
 export const CONTRACT_CHECKS = [
+  _clinicCreated,
+  _enrollmentCodeIssued,
+  _enrollmentCodeInfo,
+  _tailscaleNode,
+  _gatewaySummary,
+  _gatewayCertificate,
+  _gatewayEvent,
+  _gatewayDetail,
+  _pkiCycle,
+  _pendingChange,
+  _pkiAgent,
+  _kitInfo,
+  _readiness,
+  _gatewayOverview,
+  _tailscaleConnection,
+  _tailscaleTest,
+  _policyComparison,
   _uploadToken,
   _reportVoidResult,
   _credentialDocument,
   _documentToken,
   _documentView,
+  _agreementStatus,
+  _agreementDocument,
+  _agreementAcceptance,
   _uploadResult,
   _addendum,
   _profile,
@@ -999,6 +1420,9 @@ export const CONTRACT_CHECKS = [
   _adminUser,
   _clinicDetail,
   _clinicLogo,
+  _signingAsset,
+  _signingSetup,
+  _signingAssetImage,
   _contractEndResult,
   _invitationWelcome,
   _contactTracking,
@@ -1026,6 +1450,9 @@ export type ApiSystemStatus = z.output<typeof systemStatusSchema>;
 export type ApiPlatformSettings = z.output<typeof platformSettingsSchema>;
 export type ApiAuditEntry = z.output<typeof auditEntrySchema>;
 export type ApiAdminUser = z.output<typeof adminUserSchema>;
+export type ApiSigningAsset = z.output<typeof signingAssetSchema>;
+export type ApiSigningSetup = z.output<typeof signingSetupSchema>;
+export type ApiSigningAssetImage = z.output<typeof signingAssetImageSchema>;
 export type ApiCredentialDocument = z.output<typeof credentialDocumentSchema>;
 export type ApiClinicDetail = z.output<typeof clinicDetailSchema>;
 export type ApiContractEndResult = z.output<typeof contractEndResultSchema>;

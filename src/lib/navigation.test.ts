@@ -84,13 +84,17 @@ describe("isRouteAllowed", () => {
     }
   });
 
-  it("partage la mise en service, l'accueil et le mot de passe entre les rôles", () => {
+  it("partage la mise en service, les engagements, l'accueil et le mot de passe entre les rôles", () => {
     for (const role of [
       "radiologist",
       "clinic_staff",
       "platform_admin",
     ] as const) {
       expect(isRouteAllowed(role, "/bienvenue/profil")).toBe(true);
+      expect(isRouteAllowed(role, "/engagements")).toBe(true);
+      expect(isRouteAllowed(role, "/engagements/contrat-radiologue/pdf")).toBe(
+        true,
+      );
       expect(isRouteAllowed(role, "/nouveau-mot-de-passe")).toBe(true);
       expect(isRouteAllowed(role, "/invitation")).toBe(true);
       expect(isRouteAllowed(role, homeFor(role))).toBe(true);

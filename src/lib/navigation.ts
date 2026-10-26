@@ -186,6 +186,7 @@ const ADMIN_NAV: NavGroup[] = [
         key: "organisations",
         icon: "organizations",
       },
+      { href: "/admin/passerelles", key: "gateways", icon: "gateways" },
       { href: "/admin/utilisateurs", key: "accounts", icon: "users" },
       { href: "/admin/examens", key: "studies", icon: "studies" },
       { href: "/admin/demandes", key: "requests", icon: "inbox" },
@@ -300,10 +301,16 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
 
 /**
  * Racines accessibles à tout utilisateur rattaché à une organisation,
- * quel que soit son rôle : la mise en service, l'accueil d'une personne
- * invitée et le choix d'un nouveau mot de passe.
+ * quel que soit son rôle : la mise en service, les engagements à
+ * accepter, l'accueil d'une personne invitée et le choix d'un nouveau
+ * mot de passe.
  */
-const SHARED_ROUTES = ["/bienvenue", "/invitation", "/nouveau-mot-de-passe"];
+const SHARED_ROUTES = [
+  "/bienvenue",
+  "/engagements",
+  "/invitation",
+  "/nouveau-mot-de-passe",
+];
 
 /**
  * Adresses accessibles sans session, en plus des pages du site public.

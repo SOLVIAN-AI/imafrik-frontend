@@ -4,6 +4,10 @@ import type { AppMessages } from "@/i18n/messages/fr";
 export const onboarding: AppMessages["onboarding"] = {
   steps: {
     clinic: {
+      engagement: {
+        title: "Agreement",
+        lead: "The service agreement between your facility and IMAFRIK.",
+      },
       profil: {
         title: "Your profile",
         lead: "Your name, as it will appear in the access log.",
@@ -23,6 +27,10 @@ export const onboarding: AppMessages["onboarding"] = {
       termine: { title: "Done", lead: "Your service is up and running." },
     },
     radiologist: {
+      engagement: {
+        title: "Your agreement",
+        lead: "The practice agreement that governs your reading on IMAFRIK.",
+      },
       exercice: {
         title: "Your practice",
         lead: "It determines the supporting document the IMAFRIK team will ask for.",
@@ -60,7 +68,7 @@ export const onboarding: AppMessages["onboarding"] = {
     titleHintStaff: "Your position in the facility.",
     license: "Registration number",
     licenseHint:
-      "Printed below your signature. The IMAFRIK team checks it with the medical council before giving access to examinations.",
+      "Printed below your signature. The IMAFRIK team checks it with the Medical Council before giving access to examinations.",
   },
   reading: {
     legend: "Who reads your examinations",

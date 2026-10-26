@@ -17,6 +17,7 @@ export const nav: AppMessages["nav"] = {
     analytics: "Activity",
     flow: "Image flow",
     organisations: "Organisations",
+    gateways: "Gateways",
     accounts: "Accounts",
     requests: "Incoming requests",
     billing: "Billing",

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   errorTrackingOptions,
+  maskText,
   sanitizeUrl,
   scrubEvent,
   sentryDsn,
@@ -127,6 +128,17 @@ describe("sanitizeUrl", () => {
   it("garde les identifiants opaques, utiles au diagnostic", () => {
     const path = "/lecture/3a226030-543c-488d-8853-7e585466dc0b";
     expect(sanitizeUrl(path)).toBe(path);
+  });
+});
+
+describe("maskText", () => {
+  it("ne laisse partir ni le code personnel ni l’image d’une signature", () => {
+    const masked = maskText(
+      'Corps refusé : {"pin": "482913", "pin_confirmation":"482913", "image_base64": "iVBORw0KGgo"} et currentPin=739104',
+    );
+    expect(masked).not.toMatch(/482913|739104|iVBORw0KGgo/);
+    expect(masked).toContain('"pin": […]');
+    expect(masked).toContain("currentPin=[…]");
   });
 });
 

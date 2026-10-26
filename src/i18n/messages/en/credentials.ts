@@ -5,7 +5,7 @@ import type { AppMessages } from "@/i18n/messages/fr";
  * team's decision. In English. Same shape as the French.
  */
 export const credentials: AppMessages["credentials"] = {
-  demoAction: "uploading a supporting document",
+  demoAction: "Uploading a supporting document",
 
   states: {
     undeclared: {
@@ -80,7 +80,7 @@ export const credentials: AppMessages["credentials"] = {
     formats: "PDF, JPEG or PNG, 10 MB maximum.",
     privacy:
       "Only the IMAFRIK team views this document, and every viewing is logged.",
-    missingFile: "Choose the file of your supporting document.",
+    missingFile: "Choose the file for your supporting document.",
     choose: "Choose a file",
     replace: "Replace the file",
     send: "Send",

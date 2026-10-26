@@ -30,10 +30,16 @@ type StepDefinition = Omit<OnboardingStep, "title" | "lead">;
  * rien ne rassure autant qu'une première image arrivée, et inviter des
  * collègues avant reviendrait à leur montrer un écran vide.
  *
+ * Tout commence par la **convention de service** : rien n'est enregistré
+ * pour le compte d'un établissement qui ne s'est pas engagé, et le
+ * service refuse les opérations du portail tant qu'elle n'est pas
+ * acceptée (`lib/agreements.ts`).
+ *
  * Le raccordement de la passerelle n'est pas une étape : il se fait avec
  * le paquet d'installation remis par IMAFRIK, sur le poste de la clinique.
  */
 const CLINIC_STEPS: StepDefinition[] = [
+  { slug: "engagement" },
   { slug: "profil" },
   { slug: "lecture" },
   { slug: "premier-envoi" },
@@ -45,14 +51,17 @@ const CLINIC_STEPS: StepDefinition[] = [
  * Parcours d'un radiologue.
  *
  * Un radiologue arrive ici invité par IMAFRIK ou par la clinique qui
- * l'emploie. Il dit d'abord **qui il est** (inscrit à l'Ordre, ou en
- * cours de spécialisation), car c'est ce qui décide du justificatif
+ * l'emploie. Il accepte d'abord son **contrat d'exercice**, qui fixe
+ * l'indépendance de sa lecture et ses obligations. Il dit ensuite
+ * **qui il est** (inscrit à l'Ordre, ou en cours de spécialisation),
+ * car c'est ce qui décide du justificatif
  * demandé ; puis il le dépose ; puis il complète ce qui sera imprimé sous
  * sa signature (numéro d'ordre compris, pour un inscrit). La dernière
  * étape dit où en est la vérification de l'équipe IMAFRIK, qui seule
  * ouvre l'accès aux examens.
  */
 const RADIOLOGIST_STEPS: StepDefinition[] = [
+  { slug: "engagement" },
   { slug: "exercice" },
   { slug: "justificatifs" },
   { slug: "profil" },

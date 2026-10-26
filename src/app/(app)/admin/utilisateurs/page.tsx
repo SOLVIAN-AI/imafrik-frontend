@@ -8,6 +8,7 @@ import {
   RevokeCredentials,
 } from "@/components/admin/credentials-actions";
 import { GrantDialog } from "@/components/admin/grant-dialog";
+import { SigningReviewDialog } from "@/components/admin/signing-review-dialog";
 import { MfaResetButton } from "@/components/admin/mfa-reset-button";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { SearchBox } from "@/components/admin/search-box";
@@ -44,7 +45,9 @@ export async function generateMetadata(): Promise<Metadata> {
  * l'équipe IMAFRIK n'a pas examiné son justificatif (diplôme et numéro
  * d'ordre, ou attestation d'inscription) ; le filtre « À valider »
  * (`?validation=attente`, l'adresse de l'alerte du cockpit) les isole, et
- * l'examen se fait depuis la ligne.
+ * l'examen se fait depuis la ligne. De même pour une nouvelle signature
+ * ou un nouveau cachet (`?signature=attente`) : l'image précédente reste
+ * imprimée jusqu'à la décision.
  * **Vérifier** : qui a accès à quoi, qui n'a pas activé la double
  * authentification, qui ne s'est pas connecté depuis des mois.
  * **Effacer** : une personne qui exerce son droit à l'effacement est
@@ -64,6 +67,7 @@ export default async function UsersPage({
     users,
     pendingCount,
     unverifiedCount,
+    signingCount,
     organizations,
     trainingProgress,
     trainingTotal,
@@ -72,9 +76,11 @@ export default async function UsersPage({
       query,
       pending: filter === "pending",
       unverified: filter === "unverified",
+      signing: filter === "signing",
     }),
     listUsers({ pending: true }).then((rows) => rows.length),
     listUsers({ unverified: true }).then((rows) => rows.length),
+    listUsers({ signing: true }).then((rows) => rows.length),
     listOrganizations(),
     // L'avancement en formation est un repère pour accompagner un nouveau
     // venu : son absence ne prive pas la page des comptes.
@@ -111,6 +117,12 @@ export default async function UsersPage({
       empty: text.noUnverified,
       hint: text.unverifiedHint,
     },
+    signing: {
+      title: text.signingTitle,
+      description: text.signingDescription,
+      empty: text.noSigning,
+      hint: text.signingHint,
+    },
   }[filter];
 
   return (
@@ -137,6 +149,11 @@ export default async function UsersPage({
                   label: counted(text.unverifiedFilter, unverifiedCount),
                   href: userListHref("unverified", query),
                   active: filter === "unverified",
+                },
+                {
+                  label: counted(text.signingFilter, signingCount),
+                  href: userListHref("signing", query),
+                  active: filter === "signing",
                 },
                 {
                   label: counted(text.pendingFilter, pendingCount),
@@ -390,6 +407,14 @@ function CredentialRow({
               isSelf={isSelf}
             />
           )}
+        {/* Signature, cachet et code personnel : à vérifier ou à
+            effacer, depuis la même ligne que l'habilitation. */}
+        <SigningReviewDialog
+          profileId={user.id}
+          fullName={name}
+          due={user.signingReviewDue}
+          isSelf={isSelf}
+        />
         {user.credentialsVerifiedAt && (
           <RevokeCredentials profileId={user.id} fullName={name} />
         )}

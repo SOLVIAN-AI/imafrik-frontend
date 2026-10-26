@@ -8,6 +8,8 @@ import { apiGet, apiSend } from "@/lib/api/client";
 import {
   addendumSchema,
   aiReviewSchema,
+  type ApiAddendumCreate,
+  type ApiSignRequest,
   pdfLinkSchema,
   reportSchema,
   studySchema,
@@ -21,6 +23,7 @@ import {
 import type { AiReviewResult } from "@/components/editor/ai-review";
 import { isDemoMode } from "@/lib/demo/mode";
 import { ADDENDUM_MAX_LENGTH, isSectionsPayload } from "@/lib/editor/payload";
+import { parsePinProof, pinBody, type PinProof } from "@/lib/signing";
 
 /**
  * Le circuit de lecture : prise en charge, rédaction, signature.
@@ -182,28 +185,47 @@ export async function readDraftVersion(
  * enregistré entre-temps, le service refuse (409) plutôt que de figer un
  * texte que le signataire n'a pas relu.
  *
+ * Le code personnel du signataire accompagne la demande : il est
+ * obligatoire, vérifié par le service **avant** la production du PDF. Un
+ * radiologue qui n'en a pas encore le crée dans la fenêtre de signature :
+ * la preuve porte alors `definePin` et la seconde saisie.
+ *
  * @param reportId        Compte-rendu à signer.
  * @param expectedVersion Version relue à l'écran.
+ * @param proof           Code personnel, saisi ou créé à l'instant.
  */
 export async function signReport(
   reportId: string,
   expectedVersion: number,
+  proof: PinProof,
 ): Promise<ActionResult> {
+  const { t } = await getMessages();
+  const pin = parsePinProof(proof);
+  if (!pin) {
+    return {
+      ok: false,
+      error: t.settings.signing.pin.problems.format,
+      status: 422,
+      reason: { code: "pin_format" },
+    };
+  }
   if (isDemoMode()) {
-    const { t } = await getMessages();
     return await demoUnavailable(t.reading.actions.signDemoAction);
   }
   const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
   if (!Number.isInteger(expectedVersion) || expectedVersion < 1) {
-    const { t } = await getMessages();
     return { ok: false, error: t.reading.actions.invalidDraft, status: 422 };
   }
+  const body: ApiSignRequest = {
+    expected_version: expectedVersion,
+    ...pinBody(pin),
+  };
   const result = await run(async () => {
     await apiSend(
       `/reports/${encodeURIComponent(reportId)}/sign`,
       "POST",
-      { expected_version: expectedVersion },
+      body,
       reportSchema,
     );
     return undefined;
@@ -250,12 +272,17 @@ export async function getReportPdfLink(
  * **Irréversible**, comme la signature : un addendum se corrige par un
  * autre addendum.
  *
+ * Comme la signature, il exige le code personnel de son auteur, ou sa
+ * création dans le même geste.
+ *
  * @param reportId Compte-rendu signé.
  * @param body     Texte de la correction.
+ * @param proof    Code personnel, saisi ou créé à l'instant.
  */
 export async function addAddendum(
   reportId: string,
   body: string,
+  proof: PinProof,
 ): Promise<ActionResult> {
   const { t } = await getMessages();
   const text = typeof body === "string" ? body.trim() : "";
@@ -269,6 +296,15 @@ export async function addAddendum(
       status: 422,
     };
   }
+  const pin = parsePinProof(proof);
+  if (!pin) {
+    return {
+      ok: false,
+      error: t.settings.signing.pin.problems.format,
+      status: 422,
+      reason: { code: "pin_format" },
+    };
+  }
   if (isDemoMode()) {
     return await demoUnavailable(t.reading.actions.addendumDemoAction);
   }
@@ -279,7 +315,7 @@ export async function addAddendum(
     await apiSend(
       `/reports/${encodeURIComponent(reportId)}/addenda`,
       "POST",
-      { body: text },
+      { body: text, ...pinBody(pin) } satisfies ApiAddendumCreate,
       addendumSchema,
     );
     return undefined;

@@ -58,6 +58,14 @@ describe("filtre de la liste des comptes", () => {
     expect(parseUserFilter({})).toBe("all");
   });
 
+  it("lit l’adresse ouverte par l’information des signatures à vérifier", () => {
+    expect(parseUserFilter({ signature: "attente" })).toBe("signing");
+    expect(parseUserFilter({ signature: "autre" })).toBe("all");
+    expect(userListHref("signing", "agbeko")).toBe(
+      "/admin/utilisateurs?q=agbeko&signature=attente",
+    );
+  });
+
   it("garde la recherche d’un filtre à l’autre", () => {
     expect(userListHref("unverified")).toBe(
       "/admin/utilisateurs?validation=attente",
@@ -67,7 +75,7 @@ describe("filtre de la liste des comptes", () => {
     );
     expect(userListHref("all")).toBe("/admin/utilisateurs");
     // Aller-retour : l'adresse produite se relit en le même filtre.
-    for (const filter of ["all", "pending", "unverified"] as const) {
+    for (const filter of ["all", "pending", "unverified", "signing"] as const) {
       const params = Object.fromEntries(
         new URL(userListHref(filter), "https://imafrik.test").searchParams,
       );
