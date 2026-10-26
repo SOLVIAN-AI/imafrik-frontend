@@ -499,7 +499,7 @@ export const admin: AppMessages["admin"] = {
       viewFailed: "The document could not be opened. Try again.",
       self: "You cannot decide on your own accreditation: another member of the IMAFRIK team must review your file.",
       licenseHint:
-        "Check with the medical council that this number is registered to this person: it will be printed below their signature.",
+        "Check with the Medical Council that this number is registered to this person: it will be printed below their signature.",
       validUntil: "End date read on the certificate",
       validUntilHint:
         "Correct it if it differs from the one declared. Access closes the following day.",
@@ -544,7 +544,7 @@ export const admin: AppMessages["admin"] = {
     nobody: "Nobody: the examination is in the shared queue.",
     candidates: "Radiologists who would see this examination",
     noCandidates:
-      "No credentialed radiologist reads this clinic’s examinations: check the affiliations and the service contract.",
+      "No approved radiologist reads this clinic’s examinations: check the affiliations and the service contract.",
     pool: "Freelance",
     clinicRadiologist: "Clinic radiologist",
     load: (count: number) =>

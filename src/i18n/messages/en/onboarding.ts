@@ -68,7 +68,7 @@ export const onboarding: AppMessages["onboarding"] = {
     titleHintStaff: "Your position in the facility.",
     license: "Registration number",
     licenseHint:
-      "Printed below your signature. The IMAFRIK team checks it with the medical council before giving access to examinations.",
+      "Printed below your signature. The IMAFRIK team checks it with the Medical Council before giving access to examinations.",
   },
   reading: {
     legend: "Who reads your examinations",

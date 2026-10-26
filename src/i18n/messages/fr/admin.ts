@@ -111,7 +111,7 @@ export const admin = {
     period: "Période",
     day: "Jour",
     weekdays: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
-    hour: (hour: number) => `${hour}h`,
+    hour: (hour: number) => `${hour} h`,
     /** Graduation de l'axe des heures, dans une colonne étroite. */
     hourTick: (hour: number) => `${hour}h`,
     /** Infobulle d'une barre : période, série, valeur. */
@@ -167,7 +167,7 @@ export const admin = {
     inProgressHint: "pas encore signés",
     signedToday: "Signés aujourd’hui",
     signedTodayHint: (received: number, delivered: number) =>
-      `${received} reçus · ${delivered} remis`,
+      `${received} reçu${received > 1 ? "s" : ""} · ${delivered} remis`,
   },
 
   activity: {
@@ -280,7 +280,8 @@ export const admin = {
       state: "État",
       actions: "Actions",
     },
-    totalStudies: (count: number) => `${count} examens au total`,
+    totalStudies: (count: number) =>
+      `${count} examen${count > 1 ? "s" : ""} au total`,
     noPacs: "Pas de PACS",
     pacsConnected: "PACS raccordé",
     pacsNotConnected: "PACS non raccordé",
@@ -545,7 +546,7 @@ export const admin = {
       validUntilShortConfirm: "J’ai vérifié cette date sur l’attestation",
       accept: "Accepter et habiliter",
       accepted: (name: string) =>
-        `${name} est habilité : son accès aux examens est ouvert.`,
+        `${name} est habilité(e) : son accès aux examens est ouvert.`,
       reject: "Refuser",
       reason: "Motif du refus",
       reasonHint:
@@ -652,7 +653,7 @@ export const admin = {
     confirm: (name: string) =>
       `Réinitialiser la double authentification de ${name} ?\n\n` +
       "Vérifiez d’abord son identité par un autre canal, par exemple en l’appelant à un numéro connu. " +
-      "À sa prochaine connexion, il ou elle enrôlera un nouveau téléphone.",
+      "À sa prochaine connexion, il ou elle configurera un nouveau téléphone.",
     done: (name: string) => `Double authentification de ${name} réinitialisée.`,
     title: "Téléphone perdu ou changé",
     button: "Réinitialiser",
@@ -924,8 +925,8 @@ export const admin = {
       hostWatchFailed: "Surveillance de l’hôte en échec : disque /var à 83 %",
       unverifiedRadiologists: (count: number) =>
         count > 1
-          ? `${count} radiologues attendent l’examen de leur justificatif`
-          : `${count} radiologue attend l’examen de son justificatif`,
+          ? `${count} radiologues attendent la vérification de leur justificatif`
+          : `${count} radiologue attend la vérification de son justificatif`,
       newRequests: (count: number) =>
         `${count} demande${count > 1 ? "s reçues" : " reçue"} par le site ${count > 1 ? "attendent" : "attend"} une réponse`,
     },

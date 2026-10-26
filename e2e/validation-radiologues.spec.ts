@@ -27,7 +27,7 @@ test.describe("tour de contrôle", () => {
   }) => {
     await page.goto("/admin");
     const alerte = page.getByRole("link", {
-      name: /3 radiologues attendent l’examen de leur justificatif/,
+      name: /3 radiologues attendent la vérification de leur justificatif/,
     });
     await alerte.click();
     await expect(page).toHaveURL("/admin/utilisateurs?validation=attente");
