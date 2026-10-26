@@ -9,25 +9,19 @@ import { cn } from "@/lib/utils";
 /**
  * Double authentification, dans les paramètres.
  *
- * Trois situations :
+ * Elle est exigée pour tous les rôles, personnel de clinique compris
+ * (`MFA_ROLES`, imposée à l'émission du jeton). Deux situations :
  * - **active** — rien à faire ; changer de téléphone passe par l'équipe,
  *   qui vérifie l'identité par un autre canal (un voleur de mot de passe
  *   ne doit pas pouvoir remplacer le téléphone de sa victime) ;
- * - **facultative et inactive** — personnel de clinique : on la propose,
- *   on explique pourquoi ;
- * - **exigée et inactive** — n'arrive pas ici : la session aurait été
- *   arrêtée à l'écran de double authentification.
+ * - **inactive** — ne devrait pas arriver ici : la session aurait été
+ *   arrêtée à l'écran de double authentification. Si la liste des
+ *   facteurs le laisse croire malgré tout, la carte le dit et mène à
+ *   l'enrôlement.
  *
  * @param enrolled Un facteur vérifié existe.
- * @param required Le rôle actif l'exige.
  */
-export async function MfaCard({
-  enrolled,
-  required,
-}: {
-  enrolled: boolean;
-  required: boolean;
-}) {
+export async function MfaCard({ enrolled }: { enrolled: boolean }) {
   const t = (await getMessages()).t.settings.mfa;
   const Icon = enrolled ? ShieldCheck : ShieldAlert;
   return (
@@ -48,9 +42,7 @@ export async function MfaCard({
           <Icon className="size-4" aria-hidden />
         </span>
         <div className="min-w-0 flex-[1_1_14rem] text-sm">
-          <p className="font-medium">
-            {enrolled ? t.active : required ? t.required : t.recommended}
-          </p>
+          <p className="font-medium">{enrolled ? t.active : t.required}</p>
           <p className="mt-0.5 text-xs text-tertiary">
             {enrolled ? t.activeDetail : t.inactiveDetail}
           </p>

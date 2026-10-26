@@ -88,21 +88,26 @@ export function parseCursor(value: Param): number | undefined {
  * - `pending` — rattachés à aucune organisation (`?attente=1`) ;
  * - `unverified` — radiologues dont le numéro d'ordre attend la
  *   validation de l'équipe IMAFRIK (`?validation=attente`, l'adresse que
- *   l'alerte du cockpit ouvre).
+ *   l'alerte du cockpit ouvre) ;
+ * - `signing` — radiologues dont une nouvelle signature ou un nouveau
+ *   cachet attend la vérification de l'équipe (`?signature=attente`,
+ *   l'adresse de l'information du cockpit).
  */
-export type UserListFilter = "all" | "pending" | "unverified";
+export type UserListFilter = "all" | "pending" | "unverified" | "signing";
 
 /**
  * Filtre de la liste des comptes, lu dans l'adresse.
  *
- * @param params Paramètres `attente` et `validation`.
- * @returns Le filtre ; la validation l'emporte si les deux sont posés.
+ * @param params Paramètres `attente`, `validation` et `signature`.
+ * @returns Le filtre ; la validation l'emporte, puis la signature.
  */
 export function parseUserFilter(params: {
   attente?: Param;
   validation?: Param;
+  signature?: Param;
 }): UserListFilter {
   if (first(params.validation) === "attente") return "unverified";
+  if (first(params.signature) === "attente") return "signing";
   if (first(params.attente) === "1") return "pending";
   return "all";
 }
@@ -118,6 +123,7 @@ export function userListHref(filter: UserListFilter, query?: string): string {
   if (query) next.set("q", query);
   if (filter === "pending") next.set("attente", "1");
   if (filter === "unverified") next.set("validation", "attente");
+  if (filter === "signing") next.set("signature", "attente");
   const search = next.toString();
   return search ? `/admin/utilisateurs?${search}` : "/admin/utilisateurs";
 }

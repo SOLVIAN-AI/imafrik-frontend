@@ -206,6 +206,7 @@ export const trainingCaseSchema = z.object({
   instance_count: z.number().int().nullable(),
   title: z.string(),
   indication: z.string(),
+  instructions: z.string().nullable(),
   source: trainingSourceSchema,
   state: trainingStateSchema,
   attempt_id: uuid.nullable(),
@@ -230,6 +231,8 @@ const _trainingAddendum: Matches<
 
 export const trainingReferenceSchema = z.object({
   sections: z.record(z.string(), z.string()),
+  points: z.array(z.string()),
+  basis: z.string(),
   author: z.string(),
   validated_at: isoDate,
 });
@@ -369,6 +372,65 @@ const _documentView: Matches<
   z.input<typeof documentViewSchema>,
   Schemas["DocumentView"]
 > = true;
+
+/** Nature d'un engagement contractuel (voir `lib/agreements.ts`). */
+export const agreementKindSchema = z.enum([
+  "radiologist_agreement",
+  "clinic_agreement",
+]);
+
+// Empreinte et version : un format strict, pour qu'un texte altéré en
+// transit ne puisse pas se présenter comme la version en vigueur.
+const sha256 = z.string().regex(/^[0-9a-f]{64}$/);
+const agreementVersion = z.string().regex(/^\d{1,3}\.\d{1,3}$/);
+
+/** Un engagement dû par le compte connecté, et son acceptation. */
+export const agreementStatusSchema = z.object({
+  kind: agreementKindSchema,
+  version: agreementVersion,
+  title: z.string(),
+  effective_date: isoDate,
+  sha256,
+  accepted_at: isoDate.nullable().optional(),
+  accepted_by: z.string().nullable().optional(),
+  can_accept: z.boolean(),
+});
+const _agreementStatus: Matches<
+  z.input<typeof agreementStatusSchema>,
+  Schemas["AgreementStatus"]
+> = true;
+
+/** Texte d'une version d'engagement, dans une langue. */
+export const agreementDocumentSchema = z.object({
+  kind: agreementKindSchema,
+  version: agreementVersion,
+  title: z.string(),
+  effective_date: isoDate,
+  sha256,
+  locale: z.enum(["fr", "en"]),
+  authoritative: z.boolean(),
+  body_markdown: z.string(),
+});
+const _agreementDocument: Matches<
+  z.input<typeof agreementDocumentSchema>,
+  Schemas["AgreementDocument"]
+> = true;
+
+/** Acceptation enregistrée. */
+export const agreementAcceptanceSchema = z.object({
+  id: uuid,
+  kind: agreementKindSchema,
+  version: agreementVersion,
+  sha256,
+  accepted_at: isoDate,
+});
+const _agreementAcceptance: Matches<
+  z.input<typeof agreementAcceptanceSchema>,
+  Schemas["AgreementAcceptance"]
+> = true;
+
+/** Corps de `POST /me/agreements`, tel que le contrat le décrit. */
+export type AgreementAcceptanceBody = Schemas["AgreementAcceptanceCreate"];
 
 export const profileSchema = z.object({
   id: uuid,
@@ -611,6 +673,8 @@ export const controlOverviewSchema = z.object({
     new_requests: count,
     // Radiologues dont le numéro d’ordre attend la validation d’IMAFRIK.
     unverified_radiologists: count,
+    // Images de signature ou de cachet déposées, à vérifier par l’équipe.
+    signing_reviews_due: count,
   }),
   received_14d: z.array(
     z.object({ day: z.string(), urgent: count, routine: count }),
@@ -811,6 +875,8 @@ export const adminUserSchema = z.object({
   // Fin de la relation : plus aucune appartenance à une organisation
   // active depuis cette date ; nulle tant qu'il en reste une.
   inactive_since: isoDate.nullable().optional(),
+  // Images de signature ou de cachet en attente de l’équipe IMAFRIK.
+  signing_review_due: count,
   memberships: z.array(userMembershipSchema),
 });
 const _adminUser: Matches<
@@ -865,6 +931,64 @@ const _clinicLogo: Matches<
   z.input<typeof clinicLogoSchema>,
   Schemas["ClinicLogo"]
 > = true;
+
+/** Image de signature ou de cachet d'un radiologue, sans son contenu. */
+export const signingAssetSchema = z.object({
+  id: uuid,
+  kind: z.enum(["signature", "stamp"]),
+  source: z.enum(["drawn", "uploaded", "legacy"]),
+  version: z.number().int().positive(),
+  // Nulles pour l'image historique reprise telle quelle.
+  width: z.number().int().positive().nullable(),
+  height: z.number().int().positive().nullable(),
+  review_state: z.enum(["pending_review", "accepted", "rejected"]),
+  rejection_reason: z.string().nullable().optional(),
+  created_at: isoDate,
+  reviewed_at: isoDate.nullable().optional(),
+});
+const _signingAsset: Matches<
+  z.input<typeof signingAssetSchema>,
+  Schemas["SigningAsset"]
+> = true;
+
+/** Où en est le radiologue : images acceptées, en attente, refusées ; code. */
+export const signingSetupSchema = z.object({
+  signature: signingAssetSchema.nullable().optional(),
+  signature_pending: signingAssetSchema.nullable().optional(),
+  signature_rejected: signingAssetSchema.nullable().optional(),
+  stamp: signingAssetSchema.nullable().optional(),
+  stamp_pending: signingAssetSchema.nullable().optional(),
+  stamp_rejected: signingAssetSchema.nullable().optional(),
+  pin_set: z.boolean(),
+  pin_locked_until: isoDate.nullable().optional(),
+});
+const _signingSetup: Matches<
+  z.input<typeof signingSetupSchema>,
+  Schemas["SigningSetup"]
+> = true;
+
+/** Contenu d'une image, pour l'aperçu de son titulaire ou de l'équipe. */
+export const signingAssetImageSchema = z.object({
+  image_base64: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/),
+  media_type: z.enum(["image/png", "image/jpeg", "image/webp"]),
+  width: z.number().int().positive().nullable(),
+  height: z.number().int().positive().nullable(),
+});
+const _signingAssetImage: Matches<
+  z.input<typeof signingAssetImageSchema>,
+  Schemas["SigningAssetImage"]
+> = true;
+
+/** Corps de `POST /reports/{id}/sign`, tel que le contrat le décrit. */
+export type ApiSignRequest = Schemas["SignRequest"];
+/** Corps de `POST /reports/{id}/addenda`, tel que le contrat le décrit. */
+export type ApiAddendumCreate = Schemas["AddendumCreate"];
+/** Corps de `PUT /me/signing/{kind}`. */
+export type ApiSigningAssetUpload = Schemas["SigningAssetUpload"];
+/** Corps de `PUT /me/signing/pin`. */
+export type ApiSigningPinSet = Schemas["SigningPinSet"];
+/** Corps de `POST /admin/users/{id}/signing/assets/{asset_id}/review`. */
+export type ApiSigningAssetReview = Schemas["SigningAssetReview"];
 
 /**
  * Effet de la fin de contrat d'une clinique : date, examens abandonnés,
@@ -1250,6 +1374,9 @@ export const CONTRACT_CHECKS = [
   _credentialDocument,
   _documentToken,
   _documentView,
+  _agreementStatus,
+  _agreementDocument,
+  _agreementAcceptance,
   _uploadResult,
   _addendum,
   _profile,
@@ -1293,6 +1420,9 @@ export const CONTRACT_CHECKS = [
   _adminUser,
   _clinicDetail,
   _clinicLogo,
+  _signingAsset,
+  _signingSetup,
+  _signingAssetImage,
   _contractEndResult,
   _invitationWelcome,
   _contactTracking,
@@ -1320,6 +1450,9 @@ export type ApiSystemStatus = z.output<typeof systemStatusSchema>;
 export type ApiPlatformSettings = z.output<typeof platformSettingsSchema>;
 export type ApiAuditEntry = z.output<typeof auditEntrySchema>;
 export type ApiAdminUser = z.output<typeof adminUserSchema>;
+export type ApiSigningAsset = z.output<typeof signingAssetSchema>;
+export type ApiSigningSetup = z.output<typeof signingSetupSchema>;
+export type ApiSigningAssetImage = z.output<typeof signingAssetImageSchema>;
 export type ApiCredentialDocument = z.output<typeof credentialDocumentSchema>;
 export type ApiClinicDetail = z.output<typeof clinicDetailSchema>;
 export type ApiContractEndResult = z.output<typeof contractEndResultSchema>;

@@ -8,7 +8,7 @@
  */
 export const credentials = {
   /** Geste refusé en démonstration. */
-  demoAction: "le dépôt d’un justificatif",
+  demoAction: "Le dépôt d’un justificatif",
 
   /**
    * Ce que chaque état empêche, et ce qu'il reste à faire. Lu par le
@@ -118,7 +118,7 @@ export const credentials = {
     uploadedOn: (date: string) => `Déposé le ${date}`,
     validUntilOn: (date: string) => `Valable jusqu’au ${date}`,
     status: {
-      pending: "En cours d’examen",
+      pending: "En cours de vérification",
       accepted: "Accepté",
       rejected: "Refusé",
     },

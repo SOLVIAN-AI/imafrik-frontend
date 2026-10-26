@@ -96,3 +96,26 @@ test.describe("adresse inexistante", () => {
     });
   }
 });
+
+// Séparateur des milliers de chaque langue : espace insécable en
+// français, virgule en anglais.
+for (const [path, langue, ancre, essentiel, irm, mille] of [
+  ["/", "fr", "tarifs", "Essentiel", "IRM", "\\s"],
+  ["/en", "en", "pricing", "Essential", "MRI", ","],
+] as const) {
+  test(`${path} (${langue}) : la grille tarifaire publie abonnements et forfaits techniques`, async ({
+    page,
+  }) => {
+    await page.goto(path);
+    const tarifs = page.locator(`section#${ancre}`);
+    const formule = tarifs.getByRole("listitem").filter({ hasText: essentiel });
+    await expect(formule).toContainText(new RegExp(`12${mille}500 FCFA`));
+    // Forfait technique de l'IRM : normal, puis urgent.
+    const ligne = tarifs.getByRole("row", { name: new RegExp(`^${irm}`) });
+    await expect(ligne.getByRole("cell")).toHaveText([
+      new RegExp(`^4${mille}000$`),
+      new RegExp(`^5${mille}000$`),
+    ]);
+    await expect(tarifs).toContainText("BCEAO");
+  });
+}

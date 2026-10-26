@@ -17,7 +17,7 @@ export const training = {
     ],
     emptyTitle: "Les exercices arrivent",
     emptyDetail:
-      "Les trois examens de formation sont en préparation. Ils apparaîtront ici dès qu’un radiologue aura relu leur contexte clinique.",
+      "Les examens de formation sont en préparation. Ils apparaîtront ici dès qu’un radiologue aura relu leur contexte clinique et leur consigne.",
   },
   states: {
     todo: "À faire",
@@ -45,6 +45,7 @@ export const training = {
   workspace: {
     notice:
       "Exercice de formation : rien de ce que vous faites ici n’atteint un patient ni une clinique.",
+    instructions: "Consigne",
     previewNotice:
       "Prévisualisation : ce cas est en relecture. L’exercice s’ouvrira une fois le cas publié.",
     claim: "Commencer l’exercice",
@@ -91,6 +92,8 @@ export const training = {
     pdfDemo: "Le PDF spécimen n’est pas produit en démonstration.",
     reference: "Corrigé",
     referenceBy: (name: string) => `Rédigé ou validé par ${name}.`,
+    points: "Points attendus",
+    basis: "Ce que documente le jeu de données",
     noReference:
       "Pas encore de corrigé pour ce cas : il n’en aura qu’une fois validé par un radiologue.",
     addenda: "Addenda de l’exercice",
@@ -116,7 +119,7 @@ export const training = {
     none: "Pas encore d’exercice",
   },
   onboarding: {
-    link: "S’exercer sur trois examens d’exemple",
-    hint: "Scanner, IRM et radiographie, dans le vrai écran de lecture, sans patient.",
+    link: "S’exercer sur des examens d’exemple",
+    hint: "Radiographies, scanners et IRM, dans le vrai écran de lecture, sans patient.",
   },
 };

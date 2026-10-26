@@ -8,14 +8,14 @@ export const training: AppMessages["training"] = {
       "Real, anonymised examinations to learn the tool with no patient or clinic involved.",
     stepsTitle: "The workflow, as on a real examination",
     steps: [
-      "Take the exercise.",
+      "Claim the exercise.",
       "Read the images and write, with your templates.",
       "Sign the exercise, then download its specimen PDF.",
       "Compare with the model answer when there is one, and start again whenever you like.",
     ],
     emptyTitle: "Exercises are on their way",
     emptyDetail:
-      "The three training examinations are being prepared. They will appear here as soon as a radiologist has reviewed their clinical context.",
+      "The training examinations are being prepared. They will appear here as soon as a radiologist has reviewed their clinical context and task.",
   },
   states: {
     todo: "To do",
@@ -42,10 +42,12 @@ export const training: AppMessages["training"] = {
   workspace: {
     notice:
       "Training exercise: nothing you do here reaches a patient or a clinic.",
+    instructions: "Task",
     previewNotice:
       "Preview: this case is under review. The exercise will open once the case is published.",
     claim: "Start the exercise",
-    claimBanner: "Take the exercise to write, as on a real examination.",
+    claimBanner:
+      "Claim the exercise to start writing, as on a real examination.",
     sign: "Sign the exercise",
     signedToast: "Exercise signed. Its specimen PDF is ready.",
     signedBanner:
@@ -71,7 +73,7 @@ export const training: AppMessages["training"] = {
       count === 1
         ? "Review: one point to check"
         : `Review: ${count} points to check`,
-    signAnyway: "If this is intended, you can sign as it is.",
+    signAnyway: "If this is intended, you can sign as it stands.",
     stillDraft: "The exercise is still in progress.",
     failed:
       "Signing did not go through. The exercise is still in progress; your changes are kept.",
@@ -87,6 +89,8 @@ export const training: AppMessages["training"] = {
     pdfDemo: "The specimen PDF is not produced in demo mode.",
     reference: "Model answer",
     referenceBy: (name: string) => `Written or approved by ${name}.`,
+    points: "Expected points",
+    basis: "What the dataset documents",
     noReference:
       "No model answer for this case yet: it will only have one once approved by a radiologist.",
     addenda: "Exercise addenda",
@@ -111,7 +115,7 @@ export const training: AppMessages["training"] = {
     none: "No exercise yet",
   },
   onboarding: {
-    link: "Practise on three sample examinations",
-    hint: "CT, MRI and radiograph, in the real reading screen, with no patient.",
+    link: "Practise on sample examinations",
+    hint: "Radiographs, CT and MRI, in the real reading screen, with no patient.",
   },
 };

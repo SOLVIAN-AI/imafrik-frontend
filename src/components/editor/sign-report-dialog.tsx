@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, ClipboardCheck, PenTool } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 
 import { reviewReport } from "@/components/editor/review";
@@ -14,6 +15,12 @@ import {
   missingRequiredSections,
   type ReportSections,
 } from "@/components/editor/sections";
+import {
+  type GestureFailure,
+  PinEntry,
+  type PinStatus,
+  usePinGesture,
+} from "@/components/signing/pin-entry";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,7 +35,28 @@ import { messagesFor } from "@/i18n";
 import { useMessages } from "@/i18n/client";
 import type { AppMessages } from "@/i18n";
 import type { Locale } from "@/lib/i18n/locale";
+import type { PinProof } from "@/lib/signing";
 import { cn } from "@/lib/utils";
+
+/**
+ * Échec d'une signature rendu par le service, avec ses précisions : la
+ * fenêtre en tire le geste suivant (ressaisir le code, le créer, attendre
+ * la fin du verrou) sans lire le message.
+ */
+export class SignFailure extends Error {
+  constructor(readonly failure: GestureFailure) {
+    super(failure.error);
+    this.name = "SignFailure";
+  }
+}
+
+/** Code personnel et images apposées, pour un vrai compte-rendu. */
+export interface SignPinOptions {
+  /** État du code à l'ouverture de l'écran ; `null` s'il n'a pu être lu. */
+  status: PinStatus | null;
+  /** Images acceptées qui s'imprimeront, en URI `data:`. */
+  applied: { signature?: string; stamp?: string } | null;
+}
 
 /**
  * Confirmation de signature d'un compte-rendu.
@@ -54,7 +82,11 @@ import { cn } from "@/lib/utils";
  * @param signerName   Nom sous lequel la signature sera enregistrée.
  * @param language     Langue du compte-rendu : les sections y sont
  *                     nommées comme dans l'éditeur.
- * @param onConfirm    Déclenche la signature. Doit rejeter en cas d'échec.
+ * @param onConfirm    Déclenche la signature, avec le code personnel s'il
+ *                     est demandé. Doit rejeter en cas d'échec, par une
+ *                     {@link SignFailure} quand le service a répondu.
+ * @param pin          Code personnel et images apposées : présent pour un
+ *                     vrai compte-rendu, absent pour un exercice.
  */
 /** Textes de la fenêtre de signature. */
 export type SignDialogLabels = AppMessages["reading"]["sign"];
@@ -69,6 +101,7 @@ export function SignReportDialog({
   onConfirm,
   aiReview = NO_AI_REVIEW,
   labels: overrides,
+  pin,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -76,7 +109,7 @@ export function SignReportDialog({
   patientLabel: string;
   signerName: string;
   language: Locale;
-  onConfirm: () => Promise<void>;
+  onConfirm: (proof?: PinProof) => Promise<void>;
   /** Relecture par IA, lancée à l'ouverture ; elle ne bloque jamais. */
   aiReview?: AiReviewController;
   /**
@@ -84,22 +117,43 @@ export function SignReportDialog({
    * compte-rendu : un exercice de formation n'est transmis à personne.
    */
   labels?: SignDialogLabels;
+  pin?: SignPinOptions;
 }) {
   const t = useMessages();
   const labels = overrides ?? t.reading.sign;
+  const gesture = usePinGesture(pin?.status ?? null);
   const sectionTitles = messagesFor(language).reading.sections.titles;
   const [signing, setSigning] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const missing = missingRequiredSections(sections);
   const findings = React.useMemo(() => reviewReport(sections), [sections]);
 
+  const changeOpen = (next: boolean) => {
+    // Le code ne survit pas à la fenêtre.
+    if (!next) {
+      gesture.clear();
+      setError(null);
+    }
+    onOpenChange(next);
+  };
+
   const confirm = async () => {
     setSigning(true);
     setError(null);
     try {
-      await onConfirm();
-      onOpenChange(false);
+      await onConfirm(pin ? gesture.proof() : undefined);
+      gesture.succeed();
+      changeOpen(false);
     } catch (failure) {
+      // Refus portant sur le code : la fenêtre reste ouverte, le champ dit
+      // quoi faire (ressaisir, créer, attendre).
+      if (
+        pin &&
+        failure instanceof SignFailure &&
+        (await gesture.fail(failure.failure))
+      ) {
+        return;
+      }
       // Le message vient du service ou de l'écran de lecture, écrit pour
       // l'utilisateur : il dit *pourquoi* — texte modifié ailleurs,
       // connexion coupée, examen repris — et donc quoi faire.
@@ -114,7 +168,7 @@ export function SignReportDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={changeOpen}>
       <DialogContent aria-describedby="sign-consequences">
         <DialogHeader>
           <DialogTitle>{labels.title}</DialogTitle>
@@ -158,6 +212,13 @@ export function SignReportDialog({
           />
         )}
 
+        {pin && missing.length === 0 && (
+          <div className="mx-5 mb-4 flex flex-col gap-3">
+            <AppliedAssets applied={pin.applied} />
+            <PinEntry gesture={gesture} idPrefix="sign" autoFocus />
+          </div>
+        )}
+
         {error && (
           <Notice icon={AlertTriangle}>
             <p>{error}</p>
@@ -173,7 +234,9 @@ export function SignReportDialog({
           <Button
             size="sm"
             loading={signing}
-            disabled={missing.length > 0}
+            disabled={
+              missing.length > 0 || (pin !== undefined && !gesture.ready)
+            }
             onClick={confirm}
           >
             <PenTool />
@@ -185,6 +248,48 @@ export function SignReportDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * Signature et cachet qui s'imprimeront : le radiologue voit ce qu'il
+ * appose avant de saisir son code. Sans image acceptée, la fenêtre le dit
+ * et mène aux paramètres.
+ */
+function AppliedAssets({ applied }: { applied: SignPinOptions["applied"] }) {
+  const text = useMessages().reading.signPin;
+  if (applied === null) return null;
+  const images = [
+    applied.signature && { src: applied.signature, alt: text.signatureAlt },
+    applied.stamp && { src: applied.stamp, alt: text.stampAlt },
+  ].filter((image): image is { src: string; alt: string } => !!image);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-2xs font-medium text-secondary">{text.applied}</p>
+      {images.length > 0 ? (
+        <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border-subtle bg-white px-3 py-2">
+          {images.map((image) => (
+            // eslint-disable-next-line @next/next/no-img-element -- donnée embarquée, sans optimisation possible
+            <img
+              key={image.alt}
+              src={image.src}
+              alt={image.alt}
+              className="h-12 w-auto max-w-40 object-contain"
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-2xs leading-relaxed text-tertiary">
+          {text.appliedNone}{" "}
+          <Link
+            href="/parametres#signature"
+            className="text-accent hover:underline"
+          >
+            {text.settings}
+          </Link>
+        </p>
+      )}
+    </div>
   );
 }
 

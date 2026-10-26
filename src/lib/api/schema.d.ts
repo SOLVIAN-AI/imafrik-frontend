@@ -1061,6 +1061,9 @@ export interface paths {
          *             Même règle que l'alerte du cockpit et que la pastille « À
          *             valider » des lignes : un compte qui n'a rien déposé n'a rien à
          *             faire valider.
+         *         signing: Seulement les comptes dont une image de signature ou de
+         *             cachet attend la décision de l'équipe IMAFRIK (pastille
+         *             « Signature à vérifier »).
          */
         get: operations["list_users_admin_users_get"];
         put?: never;
@@ -1258,6 +1261,116 @@ export interface paths {
          *             suppression d'une partie des facteurs.
          */
         post: operations["reset_user_mfa_admin_users__profile_id__mfa_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{profile_id}/signing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Signature et cachet d'un compte
+         * @description Images et état du code d'un compte, sans aucune image.
+         *
+         *     Raises:
+         *         NotFound: Compte introuvable.
+         */
+        get: operations["get_user_signing_admin_users__profile_id__signing_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{profile_id}/signing/assets/{asset_id}/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Voir une image de signature ou de cachet
+         * @description Contenu d'une image d'un compte, pour la vérifier. Chaque consultation est tracée.
+         *
+         *     Raises:
+         *         NotFound: Image absente, ou appartenant à un autre compte.
+         */
+        get: operations["view_user_asset_image_admin_users__profile_id__signing_assets__asset_id__image_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{profile_id}/signing/assets/{asset_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accepter ou refuser une image de signature ou de cachet
+         * @description Accepte ou refuse une image déposée par un radiologue.
+         *
+         *     L'équipe la compare au nom du radiologue et à son justificatif (un
+         *     cachet doit porter le nom et le numéro d'ordre). Acceptée, elle
+         *     remplace l'image acceptée précédente pour les comptes-rendus suivants ;
+         *     les comptes-rendus déjà signés gardent celle de leur PDF. Refusée, son
+         *     motif est rendu au radiologue, et l'image précédente reste en service.
+         *
+         *     Raises:
+         *         Forbidden: Décision sur ses propres images.
+         *         Unprocessable: Refus sans motif.
+         *         NotFound: Image absente, ou appartenant à un autre compte.
+         *         Conflict: Image déjà examinée, ou remplacée depuis l'affichage.
+         */
+        post: operations["review_user_asset_admin_users__profile_id__signing_assets__asset_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{profile_id}/signing/pin-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Réinitialiser le code personnel d'un compte
+         * @description Efface le code personnel d'un radiologue qui l'a oublié ou bloqué.
+         *
+         *     Le radiologue en définit un nouveau lui-même, depuis ses paramètres ou
+         *     dans la fenêtre de signature, qui le lui propose : l'équipe ne choisit
+         *     jamais le code de quelqu'un. Il est prévenu par courriel.
+         *
+         *     La trace est écrite en deux temps, comme pour la double
+         *     authentification : la demande (``signing.pin_reset_requested``), puis
+         *     l'effacement (``signing.pin_reset``), dans la transaction qui le fait.
+         *
+         *     Raises:
+         *         Forbidden: Réinitialisation de son propre code.
+         *         NotFound: Compte introuvable, ou sans code personnel.
+         */
+        post: operations["reset_user_pin_admin_users__profile_id__signing_pin_reset_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2054,6 +2167,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/signing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ma signature, mon cachet et mon code personnel
+         * @description Où en est le radiologue : images acceptées, en attente ou refusées, code.
+         *
+         *     Args:
+         *         principal: Radiologue, rôle vérifié en base.
+         *
+         *     Returns:
+         *         L'état de ses éléments de signature, sans aucune image.
+         */
+        get: operations["get_my_signing_me_signing_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/signing/assets/{asset_id}/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Voir une de mes images
+         * @description Contenu d'une image du radiologue, pour son aperçu.
+         *
+         *     Args:
+         *         asset_id: Image demandée.
+         *         principal: Radiologue.
+         *         response: Réponse, marquée « à ne pas garder en cache ».
+         *
+         *     Returns:
+         *         L'image enregistrée, encodée en base64.
+         *
+         *     Raises:
+         *         NotFound: Image absente ou appartenant à un autre radiologue.
+         */
+        get: operations["get_my_asset_image_me_signing_assets__asset_id__image_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/signing/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Définir ou changer mon code
+         * @description Définit le code personnel, ou le change en présentant l'actuel.
+         *
+         *     Six chiffres, ni identiques ni en suite (``123456``), saisis deux fois.
+         *     Le code n'est jamais gardé en clair : seule son empreinte argon2id,
+         *     sous le poivre du serveur, est enregistrée. Un changement exige le
+         *     code actuel, compté comme tout essai : cinq erreurs verrouillent le
+         *     code quinze minutes.
+         *
+         *     Args:
+         *         body: Nouveau code, sa seconde saisie et, pour un changement, l'actuel.
+         *         principal: Radiologue.
+         *
+         *     Raises:
+         *         Unprocessable: Code mal formé, trop simple, saisies différentes, ou
+         *             changement sans le code actuel.
+         *         PinRefused: Code actuel faux (403), avec les essais restants.
+         *         PinLocked: Code verrouillé (423).
+         *         Conflict: Code défini entre-temps par une autre session.
+         */
+        put: operations["set_my_pin_me_signing_pin_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/signing/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Déposer ma signature ou mon cachet
+         * @description Dépose une nouvelle version de la signature ou du cachet.
+         *
+         *     L'image est relue et normalisée (:func:`app.services.signing.normalize`),
+         *     puis enregistrée « à vérifier » : l'équipe IMAFRIK la compare au nom et
+         *     au justificatif avant qu'elle ne s'imprime. D'ici là, l'image acceptée
+         *     précédente reste celle qui s'imprime, et l'accès aux examens n'est pas
+         *     touché. Une image encore en attente est remplacée par la nouvelle.
+         *
+         *     Le code personnel, s'il est défini, est exigé : sans lui, une session
+         *     laissée ouverte suffirait à remplacer la signature avant de signer.
+         *
+         *     Args:
+         *         kind: Signature ou cachet.
+         *         body: Image, origine et code personnel.
+         *         principal: Radiologue.
+         *
+         *     Returns:
+         *         L'image enregistrée, en attente de vérification.
+         *
+         *     Raises:
+         *         Unprocessable: Fichier illisible, trop lourd, d'un format refusé, ou
+         *             image vide ; code défini mais absent, ou mal formé.
+         *         PinRefused: Code faux (403).
+         *         PinLocked: Code verrouillé (423).
+         */
+        put: operations["upload_my_asset_me_signing__kind__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/metrics/summary": {
         parameters: {
             query?: never;
@@ -2333,7 +2583,12 @@ export interface paths {
          *         NotFound: Compte-rendu inaccessible.
          *         Conflict: Compte-rendu encore en brouillon — il se corrige
          *             directement.
-         *         Unprocessable: Texte vide une fois les espaces retirés.
+         *         Unprocessable: Texte vide une fois les espaces retirés ; code
+         *             absent, mal formé, trop simple, ou saisies différentes.
+         *         PreconditionRequired: Aucun code personnel défini, et aucun à
+         *             créer (428).
+         *         PinRefused: Code faux (403), avec les essais restants.
+         *         PinLocked: Code verrouillé après cinq erreurs (423).
          */
         post: operations["add_addendum_reports__report_id__addenda_post"];
         delete?: never;
@@ -2439,12 +2694,18 @@ export interface paths {
          *        synchrone, et ce processus sert aussi le chemin d'autorisation du
          *        viewer — puis déposé sur R2 sous une clé qui contient le jeton de
          *        vérification, donc **jamais réutilisée** : deux signatures
-         *        concurrentes n'écrasent pas le PDF l'une de l'autre.
+         *        concurrentes n'écrasent pas le PDF l'une de l'autre. Le code
+         *        personnel, obligatoire, est vérifié (ou créé, pour qui n'en a pas
+         *        encore) **avant** le rendu : un code faux ne produit aucun PDF.
+         *        Le document porte la signature et le cachet acceptés à cet instant
+         *        (:func:`app.services.signing.accepted_assets`).
          *     3. La bascule en ``signed`` n'a lieu que si le brouillon est toujours
          *        à la version lue, toujours assigné au signataire, et toujours un
-         *        brouillon. Un auto-save arrivé pendant le rendu, ou une seconde
-         *        signature, se voient refuser : le PDF déposé correspondrait à un
-         *        texte qui n'est plus celui de la base.
+         *        brouillon, et si ni l'identité ni les images acceptées n'ont changé
+         *        pendant le rendu. Un auto-save arrivé pendant le rendu, ou une
+         *        seconde signature, se voient refuser : le PDF déposé correspondrait
+         *        à un texte qui n'est plus celui de la base. Les versions et les
+         *        empreintes des images apposées sont figées sur le compte-rendu.
          *
          *     Si la bascule échoue, il reste un objet R2 orphelin, inaccessible
          *     (aucune ligne ne le référence) et sans donnée de plus que le document
@@ -2453,7 +2714,7 @@ export interface paths {
          *
          *     Args:
          *         report_id: Compte-rendu à signer.
-         *         body: Version relue par le signataire.
+         *         body: Version relue par le signataire, et son code personnel.
          *         principal: Radiologue authentifié.
          *
          *     Returns:
@@ -2465,7 +2726,12 @@ export interface paths {
          *             signature, ou examen plus assigné au signataire.
          *         Forbidden: L'appelant n'est pas l'auteur du brouillon, ou n'a plus
          *             l'examen en charge.
-         *         Unprocessable: Une section obligatoire est vide.
+         *         Unprocessable: Une section obligatoire est vide ; code absent, mal
+         *             formé, trop simple, ou saisies différentes.
+         *         PreconditionRequired: Aucun code personnel défini, et aucun à
+         *             créer (428).
+         *         PinRefused: Code faux (403), avec les essais restants.
+         *         PinLocked: Code verrouillé après cinq erreurs (423).
          */
         post: operations["sign_reports__report_id__sign_post"];
         delete?: never;
@@ -3356,6 +3622,22 @@ export interface components {
         AddendumCreate: {
             /** Body */
             body: string;
+            /**
+             * Define Pin
+             * @description Vrai si pin est un code à créer : le radiologue n'en a pas encore, il le définit et poursuit son geste dans le même appel.
+             * @default false
+             */
+            define_pin: boolean;
+            /**
+             * Pin
+             * @description Code personnel, six chiffres : exigé pour signer et pour un addendum.
+             */
+            pin?: string | null;
+            /**
+             * Pin Confirmation
+             * @description Seconde saisie du code à créer (avec define_pin).
+             */
+            pin_confirmation?: string | null;
         };
         /**
          * AdminOrganization
@@ -3483,6 +3765,12 @@ export interface components {
              * @description Exercice déclaré : registered (inscrit à l'Ordre) ou resident.
              */
             practice_status?: ("registered" | "resident") | null;
+            /**
+             * Signing Review Due
+             * @description Images de signature ou de cachet déposées par le compte, en attente de l'équipe IMAFRIK.
+             * @default 0
+             */
+            signing_review_due: number;
             /** Title */
             title: string | null;
         };
@@ -5432,6 +5720,12 @@ export interface components {
             /** Radiologists Active */
             radiologists_active: number;
             /**
+             * Signing Reviews Due
+             * @description Images de signature ou de cachet en attente de l'équipe IMAFRIK.
+             * @default 0
+             */
+            signing_reviews_due: number;
+            /**
              * Unverified Radiologists
              * @description Radiologues dont le justificatif attend la décision d'IMAFRIK.
              * @default 0
@@ -6277,8 +6571,180 @@ export interface components {
          *             fige jamais un texte que le signataire n'a pas vu.
          */
         SignRequest: {
+            /**
+             * Define Pin
+             * @description Vrai si pin est un code à créer : le radiologue n'en a pas encore, il le définit et poursuit son geste dans le même appel.
+             * @default false
+             */
+            define_pin: boolean;
             /** Expected Version */
             expected_version: number;
+            /**
+             * Pin
+             * @description Code personnel, six chiffres : exigé pour signer et pour un addendum.
+             */
+            pin?: string | null;
+            /**
+             * Pin Confirmation
+             * @description Seconde saisie du code à créer (avec define_pin).
+             */
+            pin_confirmation?: string | null;
+        };
+        /**
+         * SigningAsset
+         * @description Image de signature ou de cachet d'un radiologue, sans son contenu.
+         */
+        SigningAsset: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Height
+             * @description Hauteur en pixels ; None pour une reprise.
+             */
+            height: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "signature" | "stamp";
+            /**
+             * Rejection Reason
+             * @description Motif du refus, adressé au radiologue.
+             */
+            rejection_reason?: string | null;
+            /**
+             * Review State
+             * @enum {string}
+             */
+            review_state: "pending_review" | "accepted" | "rejected";
+            /** Reviewed At */
+            reviewed_at?: string | null;
+            /**
+             * Source
+             * @description drawn : tracée à l'écran ; uploaded : importée ; legacy : reprise de l'image posée par l'équipe IMAFRIK avant le dépôt par le radiologue.
+             * @enum {string}
+             */
+            source: "drawn" | "uploaded" | "legacy";
+            /** Version */
+            version: number;
+            /**
+             * Width
+             * @description Largeur en pixels ; None pour une reprise.
+             */
+            width: number | null;
+        };
+        /**
+         * SigningAssetImage
+         * @description Image enregistrée, pour l'aperçu de son titulaire ou de l'équipe IMAFRIK.
+         */
+        SigningAssetImage: {
+            /** Height */
+            height: number | null;
+            /** Image Base64 */
+            image_base64: string;
+            /**
+             * Media Type
+             * @enum {string}
+             */
+            media_type: "image/png" | "image/jpeg" | "image/webp";
+            /** Width */
+            width: number | null;
+        };
+        /**
+         * SigningAssetReview
+         * @description Décision de l'équipe IMAFRIK sur une image déposée.
+         */
+        SigningAssetReview: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accept" | "reject";
+            /**
+             * Reason
+             * @description Motif du refus, adressé au radiologue. Obligatoire pour reject.
+             */
+            reason?: string | null;
+        };
+        /**
+         * SigningAssetUpload
+         * @description Image tracée ou importée, avant sa normalisation par le service.
+         */
+        SigningAssetUpload: {
+            /**
+             * Image Base64
+             * @description Fichier PNG ou JPEG, encodé en base64 (2 Mo au plus).
+             */
+            image_base64: string;
+            /**
+             * Pin
+             * @description Code personnel, exigé dès qu'il est défini.
+             */
+            pin?: string | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "drawn" | "uploaded";
+        };
+        /**
+         * SigningPinSet
+         * @description Définition ou changement du code personnel.
+         */
+        SigningPinSet: {
+            /**
+             * Current Pin
+             * @description Code actuel, exigé pour un changement.
+             */
+            current_pin?: string | null;
+            /**
+             * Pin
+             * Format: password
+             * @description Nouveau code : six chiffres.
+             */
+            pin: string;
+            /**
+             * Pin Confirmation
+             * Format: password
+             * @description Seconde saisie du nouveau code, qui doit être identique.
+             */
+            pin_confirmation: string;
+        };
+        /**
+         * SigningSetup
+         * @description Où en est le radiologue : images, code personnel.
+         */
+        SigningSetup: {
+            /**
+             * Pin Locked Until
+             * @description Fin du verrou posé après cinq erreurs ; None sinon.
+             */
+            pin_locked_until?: string | null;
+            /**
+             * Pin Set
+             * @description Code personnel défini. Il est obligatoire pour signer : sans lui, la fenêtre de signature propose de le créer.
+             */
+            pin_set: boolean;
+            /** @description Signature acceptée : celle qui s'imprime. */
+            signature?: components["schemas"]["SigningAsset"] | null;
+            /** @description Signature déposée, en attente de l'équipe IMAFRIK. */
+            signature_pending?: components["schemas"]["SigningAsset"] | null;
+            /** @description Dernière signature déposée, refusée par l'équipe IMAFRIK (motif). */
+            signature_rejected?: components["schemas"]["SigningAsset"] | null;
+            /** @description Cachet accepté : celui qui s'imprime. */
+            stamp?: components["schemas"]["SigningAsset"] | null;
+            /** @description Cachet déposé, en attente de l'équipe IMAFRIK. */
+            stamp_pending?: components["schemas"]["SigningAsset"] | null;
+            /** @description Dernier cachet déposé, refusé par l'équipe IMAFRIK. */
+            stamp_rejected?: components["schemas"]["SigningAsset"] | null;
         };
         /**
          * Sla
@@ -6826,6 +7292,9 @@ export interface components {
          *         instance_count: Images de l'étude, une fois déposée.
          *         title: Titre, dans la langue de l'appelant.
          *         indication: Contexte clinique, dans la langue de l'appelant.
+         *         instructions: Consigne de l'exercice, dans la langue de l'appelant :
+         *             ce qui est attendu, sans la réponse. ``None`` pour un cas
+         *             enregistré avant que le catalogue ne porte de consigne.
          *         source: Origine des images.
          *         state: Exercice à faire, en cours ou signé.
          *         attempt_id: Tentative de l'appelant, s'il en a une.
@@ -6851,6 +7320,8 @@ export interface components {
             indication: string;
             /** Instance Count */
             instance_count: number | null;
+            /** Instructions */
+            instructions: string | null;
             /** Modality */
             modality: string;
             /** Position */
@@ -6892,13 +7363,21 @@ export interface components {
          * @description Corrigé d'un cas, montré après la signature de l'exercice.
          *
          *     Attributes:
-         *         sections: Compte-rendu de référence, aux clés des sections.
+         *         sections: Compte-rendu de référence, aux clés des sections, dans la
+         *             langue de l'appelant.
+         *         points: Points attendus, dans l'ordre de lecture.
+         *         basis: Ce que le jeu de données documente, et sa source : ce qui est
+         *             établi, distinct de ce qui est interprété.
          *         author: Radiologue qui l'a écrit ou validé.
          *         validated_at: Date de sa validation.
          */
         TrainingReference: {
             /** Author */
             author: string;
+            /** Basis */
+            basis: string;
+            /** Points */
+            points: string[];
             /** Sections */
             sections: {
                 [key: string]: string;
@@ -7169,7 +7648,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.assigned" | "study.unassigned" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.assigned" | "study.unassigned" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -8737,6 +9216,7 @@ export interface operations {
                 q?: string | null;
                 pending?: boolean;
                 unverified?: boolean;
+                signing?: boolean;
             };
             header?: {
                 authorization?: string | null;
@@ -8931,6 +9411,142 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["MfaReset"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_user_signing_admin_users__profile_id__signing_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SigningSetup"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    view_user_asset_image_admin_users__profile_id__signing_assets__asset_id__image_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                profile_id: string;
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SigningAssetImage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_user_asset_admin_users__profile_id__signing_assets__asset_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                profile_id: string;
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SigningAssetReview"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SigningAsset"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_user_pin_admin_users__profile_id__signing_pin_reset_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                profile_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -9936,6 +10552,166 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrganizationMembership"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_signing_me_signing_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SigningSetup"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_asset_image_me_signing_assets__asset_id__image_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SigningAssetImage"];
+                };
+            };
+            /** @description Image introuvable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_my_pin_me_signing_pin_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SigningPinSet"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Code actuel faux, avec les essais restants */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Code défini entre-temps depuis un autre onglet */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Code mal formé, trop simple, ou saisies différentes */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Code verrouillé après cinq erreurs */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    upload_my_asset_me_signing__kind__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kind: "signature" | "stamp";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SigningAssetUpload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SigningAsset"];
                 };
             };
             /** @description Validation Error */

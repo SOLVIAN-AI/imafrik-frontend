@@ -4,10 +4,11 @@ import type { UserRole } from "@/lib/session/types";
  * Double authentification : qui y est tenu, et quand la demander.
  *
  * **La protection n'est pas ici.** Elle est posée à l'émission du jeton
- * (hook Supabase, migration `20261008120000_mfa_enforcement.sql`) : sans
- * second facteur, le jeton d'un rôle sensible n'ouvre aucune donnée,
- * quel que soit l'écran. Ce module ne fait qu'aiguiller vers l'écran qui
- * permet de le satisfaire, avec la même règle.
+ * (hook Supabase, migrations `20261008120000_mfa_enforcement.sql` et
+ * `20261010160000_mfa_for_everyone.sql`) : sans second facteur, le jeton
+ * d'aucun rôle n'ouvre de donnée, quel que soit l'écran. Ce module ne
+ * fait qu'aiguiller vers l'écran qui permet de le satisfaire, avec la
+ * même règle.
  */
 
 /** Rôles soumis à la double authentification : tous, même liste qu’en base (`role_requires_mfa`). */
@@ -59,9 +60,9 @@ export function assuranceFromVerified(
 /**
  * Indique si la session doit encore vérifier un second facteur.
  *
- * Même règle que le hook : rôle sensible, **ou** facteur déjà activé
- * — quelqu'un qui a activé la double authentification y est tenu, quel
- * que soit son rôle.
+ * Même règle que le hook : rôle soumis (`MFA_ROLES`, aujourd'hui tous),
+ * **ou** facteur déjà activé : quelqu'un qui a activé la double
+ * authentification y est tenu, quel que soit son rôle.
  *
  * @param role  Rôle de l'appartenance active.
  * @param level Niveaux d'assurance de la session.
