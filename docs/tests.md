@@ -7,6 +7,7 @@ Deux niveaux, qui ne vérifient pas la même chose.
 | Unitaire | Vitest | `src/**/*.test.ts` | La logique pure : redirections, accès par rôle, CSP, contrat d'API, textes. |
 | Bout en bout | Playwright | `e2e/*.spec.ts` | L'application compilée, dans un vrai navigateur, en mode démonstration. |
 | Parcours réels | Playwright | `e2e/reel/*.spec.ts` | L'application compilée contre le vrai Supabase et la vraie API (voir « Parcours réels »). |
+| Vidéo de démonstration | Playwright | `e2e/demo/*.spec.ts` | Rien : c'est un tournage, écarté de la suite (voir [`video-demo.md`](video-demo.md)). |
 
 Vitest ne lit que `src/**/*.test.ts` : les parcours Playwright, en
 `.spec.ts` sous `e2e/`, ne sont jamais pris pour des tests unitaires.

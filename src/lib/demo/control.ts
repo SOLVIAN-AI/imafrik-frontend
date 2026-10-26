@@ -446,14 +446,18 @@ export function demoOverview(
   const text = messagesFor(locale).admin.demo.alerts;
   const today = epochDay(now) * DAY;
   const flows = demoFlows(today - 29 * DAY, now);
-  const open = flows.filter((flow) => flow.signedAt === null);
-  const waiting = open.filter((flow) => flow.claimedAt === null);
+  // L'instant présent est celui de la file que voient les radiologues
+  // (`DEMO_STUDIES`), pas celui du réseau simulé : sans quoi la tour de
+  // contrôle afficherait une file vide quand « À lire » montre cinq
+  // examens à prendre, dont un hors délai. Les volumes et les délais
+  // passés restent ceux du réseau simulé.
+  const open = DEMO_STUDIES.filter(
+    (study) => study.status !== "reported" && study.status !== "delivered",
+  );
+  const waiting = open.filter((study) => study.assignedTo === null);
   const overdue = (urgent: boolean) =>
     open.filter(
-      (flow) =>
-        flow.urgent === urgent &&
-        minutesBetween(flow.receivedAt, now) >
-          (urgent ? DEMO_SLA.urgent : DEMO_SLA.routine),
+      (study) => study.urgent === urgent && study.dueAt.getTime() < now,
     ).length;
 
   const received14 = Array.from({ length: 14 }, (_, index) => {
@@ -521,14 +525,14 @@ export function demoOverview(
     generated_at: iso(now),
     live: {
       waiting: waiting.length,
-      urgent_waiting: waiting.filter((flow) => flow.urgent).length,
+      urgent_waiting: waiting.filter((study) => study.urgent).length,
       in_progress: open.length - waiting.length,
       urgent_overdue: urgentOverdue,
       routine_overdue: routineOverdue,
       oldest_waiting_minutes: waiting.length
         ? Math.round(
             minutesBetween(
-              Math.min(...waiting.map((flow) => flow.receivedAt)),
+              Math.min(...waiting.map((study) => study.receivedAt.getTime())),
               now,
             ),
           )
