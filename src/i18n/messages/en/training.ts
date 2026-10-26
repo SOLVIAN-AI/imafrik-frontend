@@ -15,7 +15,7 @@ export const training: AppMessages["training"] = {
     ],
     emptyTitle: "Exercises are on their way",
     emptyDetail:
-      "The three training examinations are being prepared. They will appear here as soon as a radiologist has reviewed their clinical context.",
+      "The training examinations are being prepared. They will appear here as soon as a radiologist has reviewed their clinical context and task.",
   },
   states: {
     todo: "To do",
@@ -42,6 +42,7 @@ export const training: AppMessages["training"] = {
   workspace: {
     notice:
       "Training exercise: nothing you do here reaches a patient or a clinic.",
+    instructions: "Task",
     previewNotice:
       "Preview: this case is under review. The exercise will open once the case is published.",
     claim: "Start the exercise",
@@ -87,6 +88,8 @@ export const training: AppMessages["training"] = {
     pdfDemo: "The specimen PDF is not produced in demo mode.",
     reference: "Model answer",
     referenceBy: (name: string) => `Written or approved by ${name}.`,
+    points: "Expected points",
+    basis: "What the dataset documents",
     noReference:
       "No model answer for this case yet: it will only have one once approved by a radiologist.",
     addenda: "Exercise addenda",
@@ -111,7 +114,7 @@ export const training: AppMessages["training"] = {
     none: "No exercise yet",
   },
   onboarding: {
-    link: "Practise on three sample examinations",
-    hint: "CT, MRI and radiograph, in the real reading screen, with no patient.",
+    link: "Practise on sample examinations",
+    hint: "Radiographs, CT and MRI, in the real reading screen, with no patient.",
   },
 };

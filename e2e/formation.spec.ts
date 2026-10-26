@@ -3,9 +3,10 @@ import { expect, settle, test } from "./support/fixtures";
 /**
  * Espace de formation : s'exercer sur de vrais examens, sans patient.
  *
- * En démonstration, les trois cas sont à trois étapes différentes : la
- * radiographie signée (corrigé, addendum, PDF), le scanner en cours de
- * rédaction, l'IRM à faire. Les images sont simulées ; ce qui est vérifié,
+ * En démonstration, les sept cas du catalogue sont listés ; les trois
+ * premiers sont à trois étapes différentes : la radiographie signée
+ * (corrigé, addendum, PDF), le scanner en cours de rédaction, l'IRM du
+ * foie à faire. Les images sont simulées ; ce qui est vérifié,
  * c'est que l'écran de lecture réel sert l'exercice, qu'il le dit partout,
  * et qu'il ne mène jamais à un vrai examen.
  */
@@ -28,6 +29,10 @@ test("la liste dit le parcours, chaque cas, son état et sa source", async ({
     ["Radiographie du thorax", "Signé", "Revoir"],
     ["Scanner thoracique", "En cours", "Reprendre"],
     ["IRM du foie", "À faire", "Commencer"],
+    ["Scanner cérébral", "À faire", "Commencer"],
+    ["IRM cérébrale", "À faire", "Commencer"],
+    ["IRM du rachis lombaire", "À faire", "Commencer"],
+    ["Radiographie du bassin", "À faire", "Commencer"],
   ]) {
     const carte = page.locator("li", {
       has: page.getByRole("heading", { level: 2, name: titre }),
@@ -44,7 +49,12 @@ test("un cas à faire s'ouvre dans l'écran de lecture, annoncé comme exercice"
   page,
 }) => {
   await page.goto("/formation");
-  await page.getByRole("link", { name: "Commencer" }).click();
+  await page
+    .locator("li", {
+      has: page.getByRole("heading", { level: 2, name: "IRM du foie" }),
+    })
+    .getByRole("link", { name: "Commencer" })
+    .click();
   await expect(page).toHaveURL("/formation/irm-foie");
   await settle(page);
 
@@ -60,6 +70,11 @@ test("un cas à faire s'ouvre dans l'écran de lecture, annoncé comme exercice"
     page.getByText(
       "IRM hépatique sans puis avec injection, dans le bilan d’une lésion du foie.",
     ),
+  ).toBeVisible();
+  // La consigne dit ce qui est attendu, sans la réponse.
+  await expect(page.getByText("Consigne", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(/Parcourez les neuf séries, avant puis après injection/),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Commencer l’exercice" }),
@@ -107,6 +122,14 @@ test("un exercice signé montre le corrigé, les addenda et le PDF spécimen", a
   await expect(
     apres.getByText("Rédigé ou validé par Dr Afi Lawson."),
   ).toBeVisible();
+  // Le corrigé dit ce qui était attendu, et sur quoi il s'appuie.
+  await expect(apres.getByText("Points attendus")).toBeVisible();
+  await expect(
+    apres.getByText("Proposer un scanner thoracique pour la caractériser."),
+  ).toBeVisible();
+  await expect(
+    apres.getByText("Ce que documente le jeu de données"),
+  ).toBeVisible();
   await expect(
     apres.getByText(
       "Comparaison souhaitée avec un cliché antérieur, s’il existe.",
@@ -138,6 +161,7 @@ test.describe("en anglais", () => {
     await expect(
       page.getByText(/Training exercise: nothing you do here/),
     ).toBeVisible();
+    await expect(page.getByText("Task", { exact: true })).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Sign the exercise" }),
     ).toBeVisible();

@@ -860,6 +860,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/agreements/{kind}/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Texte en vigueur d'un engagement
+         * @description Texte en vigueur d'un engagement dû, dans la langue demandée.
+         *
+         *     Args:
+         *         kind: Engagement.
+         *         principal: Appelant, appartenance vérifiée en base.
+         *         locale: Langue d'affichage ; par défaut celle de la requête. Sans
+         *             traduction, le français.
+         *
+         *     Returns:
+         *         Le texte, avec l'empreinte du français.
+         *
+         *     Raises:
+         *         NotFound: Engagement non dû, ou aucune version en vigueur.
+         */
+        get: operations["current_document_agreements__kind__current_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/assist/runs/{run_id}/feedback": {
         parameters: {
             query?: never;
@@ -1164,6 +1196,89 @@ export interface paths {
          *         Forbidden: L'appelant n'est pas membre de l'organisation visée.
          */
         post: operations["switch_organization_me_active_organization_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/agreements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Engagements dus et leur acceptation
+         * @description Engagements dus par l'appartenance active, et leur acceptation.
+         *
+         *     Args:
+         *         principal: Appelant, appartenance vérifiée en base.
+         *
+         *     Returns:
+         *         Zéro ou un engagement, selon le rôle ; vide pour l'équipe IMAFRIK.
+         */
+        get: operations["list_my_agreements_me_agreements_get"];
+        put?: never;
+        /**
+         * Accepter un engagement
+         * @description Enregistre l'acceptation de la version affichée.
+         *
+         *     **Idempotente** : une version déjà acceptée (par l'appelant, ou, pour
+         *     une convention, par un autre membre de l'établissement) renvoie
+         *     l'acceptation existante, en 200, sans nouvelle ligne ni nouvel audit.
+         *
+         *     Args:
+         *         body: Version et empreinte affichées ; qualité et déclaration de
+         *             pouvoir pour une convention.
+         *         principal: Appelant, appartenance vérifiée en base.
+         *         response: Réponse, pour le code 200 d'une acceptation existante.
+         *
+         *     Returns:
+         *         L'acceptation.
+         *
+         *     Raises:
+         *         NotFound: Engagement non dû, ou aucune version en vigueur.
+         *         Conflict: La version ou l'empreinte ne sont plus celles en vigueur.
+         *         Unprocessable: Convention sans qualité ou sans déclaration de
+         *             pouvoir.
+         */
+        post: operations["accept_agreement_me_agreements_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/agreements/{kind}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Télécharger le PDF d'un engagement
+         * @description PDF d'un engagement : exemplaire accepté avec son certificat, ou texte.
+         *
+         *     Le PDF reproduit toujours le texte français, qui fait foi. Rendu à la
+         *     demande, conservé nulle part.
+         *
+         *     Args:
+         *         kind: Engagement.
+         *         principal: Appelant, appartenance vérifiée en base.
+         *
+         *     Returns:
+         *         Le PDF.
+         *
+         *     Raises:
+         *         NotFound: Engagement non dû, ou aucune version en vigueur.
+         *         TooManyRequests: Un rendu est déjà en cours pour cet utilisateur.
+         */
+        get: operations["download_pdf_me_agreements__kind__pdf_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2777,6 +2892,122 @@ export interface components {
             practice_status?: ("registered" | "resident") | null;
             /** Title */
             title: string | null;
+        };
+        /**
+         * AgreementAcceptance
+         * @description Acceptation enregistrée d'un engagement.
+         */
+        AgreementAcceptance: {
+            /**
+             * Accepted At
+             * Format: date-time
+             */
+            accepted_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "radiologist_agreement" | "clinic_agreement";
+            /** Sha256 */
+            sha256: string;
+            /** Version */
+            version: string;
+        };
+        /**
+         * AgreementAcceptanceCreate
+         * @description Acceptation d'un engagement, telle que l'écran l'envoie.
+         */
+        AgreementAcceptanceCreate: {
+            /**
+             * Declares Authority
+             * @description Convention : le signataire déclare être habilité à engager l'établissement.
+             * @default false
+             */
+            declares_authority: boolean;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "radiologist_agreement" | "clinic_agreement";
+            /**
+             * Sha256
+             * @description Empreinte du texte français lu, telle qu'affichée.
+             */
+            sha256: string;
+            /**
+             * Signatory Capacity
+             * @description Convention : qualité du signataire.
+             */
+            signatory_capacity?: string | null;
+            /**
+             * Version
+             * @description Version lue, telle qu'affichée.
+             */
+            version: string;
+        };
+        /**
+         * AgreementDocument
+         * @description Texte d'une version d'un engagement, dans une langue.
+         */
+        AgreementDocument: {
+            /** Authoritative */
+            authoritative: boolean;
+            /** Body Markdown */
+            body_markdown: string;
+            /**
+             * Effective Date
+             * Format: date
+             */
+            effective_date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "radiologist_agreement" | "clinic_agreement";
+            /**
+             * Locale
+             * @enum {string}
+             */
+            locale: "fr" | "en";
+            /** Sha256 */
+            sha256: string;
+            /** Title */
+            title: string;
+            /** Version */
+            version: string;
+        };
+        /**
+         * AgreementStatus
+         * @description Où un engagement dû en est pour le compte connecté.
+         */
+        AgreementStatus: {
+            /** Accepted At */
+            accepted_at?: string | null;
+            /** Accepted By */
+            accepted_by?: string | null;
+            /** Can Accept */
+            can_accept: boolean;
+            /**
+             * Effective Date
+             * Format: date
+             */
+            effective_date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "radiologist_agreement" | "clinic_agreement";
+            /** Sha256 */
+            sha256: string;
+            /** Title */
+            title: string;
+            /** Version */
+            version: string;
         };
         /**
          * AiFeatures
@@ -4902,6 +5133,9 @@ export interface components {
          *         instance_count: Images de l'étude, une fois déposée.
          *         title: Titre, dans la langue de l'appelant.
          *         indication: Contexte clinique, dans la langue de l'appelant.
+         *         instructions: Consigne de l'exercice, dans la langue de l'appelant :
+         *             ce qui est attendu, sans la réponse. ``None`` pour un cas
+         *             enregistré avant que le catalogue ne porte de consigne.
          *         source: Origine des images.
          *         state: Exercice à faire, en cours ou signé.
          *         attempt_id: Tentative de l'appelant, s'il en a une.
@@ -4927,6 +5161,8 @@ export interface components {
             indication: string;
             /** Instance Count */
             instance_count: number | null;
+            /** Instructions */
+            instructions: string | null;
             /** Modality */
             modality: string;
             /** Position */
@@ -4968,13 +5204,21 @@ export interface components {
          * @description Corrigé d'un cas, montré après la signature de l'exercice.
          *
          *     Attributes:
-         *         sections: Compte-rendu de référence, aux clés des sections.
+         *         sections: Compte-rendu de référence, aux clés des sections, dans la
+         *             langue de l'appelant.
+         *         points: Points attendus, dans l'ordre de lecture.
+         *         basis: Ce que le jeu de données documente, et sa source : ce qui est
+         *             établi, distinct de ce qui est interprété.
          *         author: Radiologue qui l'a écrit ou validé.
          *         validated_at: Date de sa validation.
          */
         TrainingReference: {
             /** Author */
             author: string;
+            /** Basis */
+            basis: string;
+            /** Points */
+            points: string[];
             /** Sections */
             sections: {
                 [key: string]: string;
@@ -5225,7 +5469,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.assigned" | "study.unassigned" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.assigned" | "study.unassigned" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -6329,6 +6573,41 @@ export interface operations {
             };
         };
     };
+    current_document_agreements__kind__current_get: {
+        parameters: {
+            query?: {
+                locale?: ("fr" | "en") | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kind: "radiologist_agreement" | "clinic_agreement";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgreementDocument"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     give_feedback_assist_runs__run_id__feedback_post: {
         parameters: {
             query?: never;
@@ -6626,6 +6905,114 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SwitchOrganizationResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_agreements_me_agreements_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgreementStatus"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_agreement_me_agreements_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgreementAcceptanceCreate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgreementAcceptance"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgreementAcceptance"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_pdf_me_agreements__kind__pdf_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                kind: "radiologist_agreement" | "clinic_agreement";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
                 };
             };
             /** @description Validation Error */

@@ -267,6 +267,8 @@ export interface WorkspaceAdapter {
   title: string;
   /** Bandeau permanent, au-dessus du texte. */
   notice: string;
+  /** Sous le contexte clinique : ce que l'exercice demande. */
+  brief?: React.ReactNode;
   labels: AdaptableLabels;
   signLabels: SignDialogLabels;
   /** Actions de la barre une fois le texte signé. */
@@ -825,6 +827,7 @@ function ReportWorkspace({
             : undefined
         }
       />
+      {adapter?.brief}
       {mode.kind === "readonly" && mode.awaitingReport && !signed ? (
         <AwaitingReport />
       ) : (

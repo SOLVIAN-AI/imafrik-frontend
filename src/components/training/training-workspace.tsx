@@ -1,6 +1,12 @@
 "use client";
 
-import { FileDown, FilePlus2, RotateCcw } from "lucide-react";
+import {
+  FileDown,
+  FilePlus2,
+  ListChecks,
+  RotateCcw,
+  Target,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
@@ -37,6 +43,8 @@ type TrainingWorkspaceProps = Omit<
   slug: string;
   /** Titre du cas, à la place du nom d'un patient. */
   title: string;
+  /** Consigne de l'exercice, sous le contexte clinique. */
+  instructions: string | null;
   /** Cas en relecture, ouvert par l'équipe IMAFRIK : pas d'exercice. */
   preview: boolean;
   /** Exercice de l'utilisateur, s'il l'a pris en charge. */
@@ -56,6 +64,7 @@ type TrainingWorkspaceProps = Omit<
 export function TrainingWorkspace({
   slug,
   title,
+  instructions,
   preview,
   attempt,
   ...reading
@@ -74,6 +83,7 @@ export function TrainingWorkspace({
       homeHref: "/formation",
       title,
       notice: preview ? t.workspace.previewNotice : t.workspace.notice,
+      brief: instructions ? <TrainingBrief text={instructions} /> : null,
       labels: t.workspace,
       signLabels: t.sign,
       signedActions: attempt ? (
@@ -95,10 +105,29 @@ export function TrainingWorkspace({
         reopen: () => reopenViewer({ kind: "training", slug }),
       },
     }),
-    [attempt, preview, router, signed, slug, t, title],
+    [attempt, instructions, preview, router, signed, slug, t, title],
   );
 
   return <ReadingWorkspace {...reading} adapter={adapter} />;
+}
+
+/**
+ * Consigne de l'exercice : ce qui est attendu, sans la réponse.
+ *
+ * Sous le contexte clinique, dans la même facture : on la lit au moment
+ * où l'on ouvre les images, et elle reste là pendant la rédaction.
+ */
+function TrainingBrief({ text }: { text: string }) {
+  const t = useMessages().training.workspace;
+  return (
+    <div className="flex shrink-0 items-start gap-3 border-b border-border-subtle bg-accent-muted/40 px-4 py-2.5">
+      <Target className="mt-0.5 size-3.5 shrink-0 text-accent" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <p className="label-eyebrow">{t.instructions}</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-secondary">{text}</p>
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -189,6 +218,19 @@ function TrainingAfterword({
         <>
           <p className="mt-1 text-2xs text-tertiary">
             {t.referenceBy(attempt.reference.author)}
+          </p>
+          <h3 className="mt-4 flex items-center gap-1.5 text-xs font-semibold">
+            <ListChecks className="size-3.5 text-accent" aria-hidden />
+            {t.points}
+          </h3>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-relaxed text-secondary marker:text-tertiary">
+            {attempt.reference.points.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ol>
+          <h3 className="mt-4 text-xs font-semibold">{t.basis}</h3>
+          <p className="mt-1 text-xs leading-relaxed text-secondary">
+            {attempt.reference.basis}
           </p>
           <ReportDocument
             sections={attempt.reference.sections}

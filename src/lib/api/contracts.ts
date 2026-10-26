@@ -206,6 +206,7 @@ export const trainingCaseSchema = z.object({
   instance_count: z.number().int().nullable(),
   title: z.string(),
   indication: z.string(),
+  instructions: z.string().nullable(),
   source: trainingSourceSchema,
   state: trainingStateSchema,
   attempt_id: uuid.nullable(),
@@ -230,6 +231,8 @@ const _trainingAddendum: Matches<
 
 export const trainingReferenceSchema = z.object({
   sections: z.record(z.string(), z.string()),
+  points: z.array(z.string()),
+  basis: z.string(),
   author: z.string(),
   validated_at: isoDate,
 });
