@@ -86,8 +86,8 @@ function French() {
           Données d’usage : journal des connexions et des accès aux examens
         </li>
         <li>
-          Facteur de double authentification : obligatoire pour les radiologues
-          et l’équipe IMAFRIK, facultatif pour les établissements
+          Facteur de double authentification : obligatoire pour tous les
+          comptes, personnel des établissements compris
         </li>
       </ul>
       <h3>Finalités et base légale</h3>
@@ -101,7 +101,10 @@ function French() {
           Assurer la traçabilité des accès aux données de santé : obligation
           légale et intérêt légitime à la sécurité
         </li>
-        <li>Facturer et rémunérer les actes : exécution du contrat</li>
+        <li>
+          Facturer aux établissements l’abonnement et les forfaits techniques :
+          exécution du contrat
+        </li>
       </ul>
       <h3>Durée de conservation</h3>
       <ul>
@@ -251,8 +254,8 @@ function English() {
         <li>Account data: encrypted password, organisation, role</li>
         <li>Usage data: log of sign-ins and of access to examinations</li>
         <li>
-          Second authentication factor: mandatory for radiologists and the
-          IMAFRIK team, optional for facilities
+          Second authentication factor: mandatory for every account, facility
+          staff included
         </li>
       </ul>
       <h3>Purposes and legal basis</h3>
@@ -269,8 +272,8 @@ function English() {
           and legitimate interest in security
         </li>
         <li>
-          Invoicing and paying for examinations read: performance of the
-          contract
+          Invoicing facilities for their subscription and technical fees:
+          performance of the contract
         </li>
       </ul>
       <h3>Retention period</h3>

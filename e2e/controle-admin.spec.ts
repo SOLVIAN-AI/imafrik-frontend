@@ -75,3 +75,21 @@ test("l'adresse d'un examen côté clinique mène à l'écran de l'équipe", asy
   await page.goto("/examens");
   await expect(page).toHaveURL("/admin/examens");
 });
+
+test("la liste des comptes signale tout compte sans double authentification, personnel de clinique compris", async ({
+  page,
+}) => {
+  await page.goto("/admin/utilisateurs");
+  // Un radiologue et une invitée de clinique, jamais connectée ; les
+  // candidats sans appartenance n'ouvrent aucune donnée et ne sont pas
+  // comptés.
+  await expect(page.getByText(/2 sans double authentification/)).toBeVisible();
+  const compte = (adresse: string) =>
+    page.getByRole("listitem").filter({ hasText: adresse });
+  const invitee = compte("cabinet@esperance.example");
+  await expect(invitee.getByText("MFA manquante")).toBeVisible();
+  await expect(invitee.getByTitle("Exigée pour tous les rôles")).toBeVisible();
+  await expect(
+    compte("accueil@stjoseph.example").getByText("MFA active"),
+  ).toBeVisible();
+});
