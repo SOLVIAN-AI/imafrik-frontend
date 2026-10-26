@@ -5599,6 +5599,9 @@ export interface components {
          *         instance_count: Images de l'étude, une fois déposée.
          *         title: Titre, dans la langue de l'appelant.
          *         indication: Contexte clinique, dans la langue de l'appelant.
+         *         instructions: Consigne de l'exercice, dans la langue de l'appelant :
+         *             ce qui est attendu, sans la réponse. ``None`` pour un cas
+         *             enregistré avant que le catalogue ne porte de consigne.
          *         source: Origine des images.
          *         state: Exercice à faire, en cours ou signé.
          *         attempt_id: Tentative de l'appelant, s'il en a une.
@@ -5624,6 +5627,8 @@ export interface components {
             indication: string;
             /** Instance Count */
             instance_count: number | null;
+            /** Instructions */
+            instructions: string | null;
             /** Modality */
             modality: string;
             /** Position */
@@ -5665,13 +5670,21 @@ export interface components {
          * @description Corrigé d'un cas, montré après la signature de l'exercice.
          *
          *     Attributes:
-         *         sections: Compte-rendu de référence, aux clés des sections.
+         *         sections: Compte-rendu de référence, aux clés des sections, dans la
+         *             langue de l'appelant.
+         *         points: Points attendus, dans l'ordre de lecture.
+         *         basis: Ce que le jeu de données documente, et sa source : ce qui est
+         *             établi, distinct de ce qui est interprété.
          *         author: Radiologue qui l'a écrit ou validé.
          *         validated_at: Date de sa validation.
          */
         TrainingReference: {
             /** Author */
             author: string;
+            /** Basis */
+            basis: string;
+            /** Points */
+            points: string[];
             /** Sections */
             sections: {
                 [key: string]: string;

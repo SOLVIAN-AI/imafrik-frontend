@@ -49,6 +49,8 @@ export interface TrainingCase {
   instanceCount: number;
   title: string;
   indication: string;
+  /** Consigne : ce que l'exercice demande, sans la réponse. */
+  instructions: string | null;
   source: { name: string; license: string; url: string; doi: string | null };
   state: TrainingState;
   attemptId: string | null;
@@ -75,11 +77,24 @@ export interface TrainingAttempt {
   submittedAt: Date | null;
   addenda: TrainingAddendum[];
   /** Corrigé, montré une fois l'exercice signé, s'il existe. */
-  reference: {
-    sections: ReportSections;
-    author: string;
-    validatedAt: Date;
-  } | null;
+  reference: TrainingReference | null;
+}
+
+/**
+ * Corrigé d'un cas, validé par un radiologue nommé.
+ *
+ * Le fondement dit ce que le jeu de données documente vraiment
+ * (histologie, annotation d'un essai) : il sépare ce qui est établi de ce
+ * qui est interprété dans le compte-rendu de référence.
+ */
+export interface TrainingReference {
+  sections: ReportSections;
+  /** Points attendus, dans l'ordre de lecture. */
+  points: string[];
+  /** Ce que le jeu documente, et sa source. */
+  basis: string;
+  author: string;
+  validatedAt: Date;
 }
 
 /** Avancement d'un utilisateur, pour l'équipe IMAFRIK. */
@@ -100,6 +115,7 @@ export function toTrainingCase(row: ApiTrainingCase): TrainingCase {
     instanceCount: row.instance_count ?? 0,
     title: row.title,
     indication: row.indication,
+    instructions: row.instructions,
     source: row.source,
     state: row.state,
     attemptId: row.attempt_id,
@@ -128,6 +144,8 @@ export function toTrainingAttempt(row: ApiTrainingAttempt): TrainingAttempt {
             ...EMPTY_REPORT_SECTIONS,
             ...pickSections(row.reference.sections),
           },
+          points: row.reference.points,
+          basis: row.reference.basis,
           author: row.reference.author,
           validatedAt: new Date(row.reference.validated_at),
         }

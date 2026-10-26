@@ -86,6 +86,7 @@ export default async function TrainingCasePage({
     <TrainingWorkspace
       slug={trainingCase.slug}
       title={trainingCase.title}
+      instructions={trainingCase.instructions}
       preview={!trainingCase.published}
       attempt={attempt}
       draftKey={`${attempt?.id ?? "none"}:${attempt?.submittedAt ? "signed" : "draft"}`}
