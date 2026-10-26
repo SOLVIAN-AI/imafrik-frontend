@@ -452,8 +452,7 @@ export const admin = {
 
   users: {
     accountCount: (count: number) => `${count} compte${count > 1 ? "s" : ""}`,
-    withoutMfa: (count: number) =>
-      `${count} sans double authentification parmi les rôles sensibles`,
+    withoutMfa: (count: number) => `${count} sans double authentification`,
     pendingFilter: "En attente",
     searchLabel: "Rechercher un compte",
     searchPlaceholder: "Nom ou adresse…",
@@ -474,7 +473,7 @@ export const admin = {
     neverSignedIn: "Jamais connecté, compte créé le",
     mfaUnknown: "MFA inconnue",
     mfaActive: "MFA active",
-    mfaRequired: "Exigée pour les radiologues et les administrateurs",
+    mfaRequired: "Exigée pour tous les rôles",
     mfaMissing: "MFA manquante",
     mfaNone: "Sans MFA",
     /** Filtre et section des radiologues dont le numéro d'ordre attend sa validation. */
@@ -841,7 +840,7 @@ export const admin = {
       },
       revoke: {
         task: "Révoquer une passerelle",
-        why: "La révocation touche l’autorité de certification, gardée hors ligne.",
+        why: "Les certificats DICOM TLS sont auto-signés, sans autorité de certification : Orthanc accepte une liste de certificats précis, tenue sur le poste d’exploitation. Révoquer, c’est en retirer celui de la passerelle, envoyer la liste au serveur, qui relance Orthanc, et sortir la machine du réseau Tailscale.",
       },
       restore: {
         task: "Restaurer une sauvegarde",
