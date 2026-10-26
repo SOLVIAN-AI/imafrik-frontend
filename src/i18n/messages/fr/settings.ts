@@ -211,8 +211,7 @@ export const settings = {
     description:
       "Un code à usage unique, en plus du mot de passe, à chaque connexion.",
     active: "Active",
-    required: "Exigée pour votre rôle",
-    recommended: "Recommandée, non activée",
+    required: "Non activée, exigée pour tous les comptes",
     activeDetail:
       "Téléphone perdu ou changé : contactez l’équipe IMAFRIK, qui réinitialise l’accès après vérification de votre identité.",
     inactiveDetail:

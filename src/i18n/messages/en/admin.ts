@@ -424,8 +424,7 @@ export const admin: AppMessages["admin"] = {
   users: {
     accountCount: (count: number) =>
       `${count} account${count === 1 ? "" : "s"}`,
-    withoutMfa: (count: number) =>
-      `${count} with a sensitive role and no two-factor authentication`,
+    withoutMfa: (count: number) => `${count} without two-factor authentication`,
     pendingFilter: "Pending",
     searchLabel: "Search accounts",
     searchPlaceholder: "Name or email…",
@@ -445,7 +444,7 @@ export const admin: AppMessages["admin"] = {
     neverSignedIn: "Never signed in; account created on",
     mfaUnknown: "MFA unknown",
     mfaActive: "MFA enabled",
-    mfaRequired: "Required for radiologists and administrators",
+    mfaRequired: "Required for every role",
     mfaMissing: "MFA missing",
     mfaNone: "No MFA",
     unverifiedFilter: "To review",
@@ -568,7 +567,7 @@ export const admin: AppMessages["admin"] = {
       viewFailed: "The document could not be opened. Try again.",
       self: "You cannot decide on your own accreditation: another member of the IMAFRIK team must review your file.",
       licenseHint:
-        "Check with the medical council that this number is registered to this person: it will be printed below their signature.",
+        "Check with the Medical Council that this number is registered to this person: it will be printed below their signature.",
       validUntil: "End date read on the certificate",
       validUntilHint:
         "Correct it if it differs from the one declared. Access closes the following day.",
@@ -613,7 +612,7 @@ export const admin: AppMessages["admin"] = {
     nobody: "Nobody: the examination is in the shared queue.",
     candidates: "Radiologists who would see this examination",
     noCandidates:
-      "No credentialed radiologist reads this clinic’s examinations: check the affiliations and the service contract.",
+      "No approved radiologist reads this clinic’s examinations: check the affiliations and the service contract.",
     pool: "Freelance",
     clinicRadiologist: "Clinic radiologist",
     load: (count: number) =>
@@ -864,7 +863,7 @@ export const admin: AppMessages["admin"] = {
       },
       revoke: {
         task: "Revoke a gateway",
-        why: "Revocation involves the certificate authority, which is kept offline.",
+        why: "DICOM TLS certificates are self-signed, with no certificate authority: Orthanc accepts a list of specific certificates, kept on the operations workstation. Revoking means removing the gateway’s certificate from it, pushing the list to the server, which restarts Orthanc, and taking the machine off the Tailscale network.",
       },
       restore: {
         task: "Restore a backup",

@@ -26,6 +26,7 @@ import {
   type TraineeProgress,
 } from "@/lib/data/training";
 import { formatPersonName } from "@/lib/format";
+import { roleRequiresMfa } from "@/lib/session/mfa";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
 import { getMessages } from "@/i18n/server";
@@ -204,14 +205,14 @@ export default async function UsersPage({
 }
 
 /**
- * Rôles pour lesquels la double authentification est exigée : ceux qui
- * lisent des examens de plusieurs établissements ou administrent la
- * plateforme.
+ * Un compte tenu à la double authentification : il a au moins une
+ * appartenance, et tous les rôles l'exigent (`MFA_ROLES`, miroir de
+ * `role_requires_mfa` en base). Un compte sans appartenance n'ouvre
+ * aucune donnée : son absence de second facteur n'est pas une alerte.
  */
 function needsMfa(user: AdminUser): boolean {
-  return user.memberships.some(
-    (membership) =>
-      membership.role === "radiologist" || membership.role === "platform_admin",
+  return user.memberships.some((membership) =>
+    roleRequiresMfa(membership.role),
   );
 }
 

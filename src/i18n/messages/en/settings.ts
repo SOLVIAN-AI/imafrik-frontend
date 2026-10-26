@@ -208,8 +208,7 @@ export const settings: AppMessages["settings"] = {
     description:
       "A one-time code, in addition to your password, every time you sign in.",
     active: "Enabled",
-    required: "Required for your role",
-    recommended: "Recommended, not enabled",
+    required: "Not enabled, required for every account",
     activeDetail:
       "Lost or changed your phone? Contact the IMAFRIK team, who will reset your access after verifying your identity.",
     inactiveDetail:

@@ -406,7 +406,7 @@ export const reading = {
       " : les images ont quitté la plateforme. Le compte-rendu reste consultable, et les originaux sont conservés par la clinique.",
     unavailableTitle: "Images indisponibles",
     unavailableDetail:
-      "Le jeton de visualisation n’a pas pu être obtenu. Actualisez la page ; si le problème persiste, l’examen est peut-être encore en cours de transfert depuis la clinique.",
+      "Les images n’ont pas pu être chargées. Actualisez la page ; si le problème persiste, l’examen est peut-être encore en cours de transfert depuis la clinique.",
     /** Ce qui est indisponible en démonstration. */
     name: "Le viewer",
     reopened:
@@ -488,7 +488,7 @@ export const reading = {
   },
   /** Messages des actions serveur du circuit de lecture. */
   actions: {
-    releaseDemoAction: "Rendre un examen",
+    releaseDemoAction: "Le retour d’un examen au pool",
     signDemoAction: "La signature",
     pdfDemoAction: "Le téléchargement du PDF",
     addendumDemoAction: "L’ajout d’un addendum",

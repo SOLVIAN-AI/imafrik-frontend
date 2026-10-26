@@ -370,6 +370,65 @@ const _documentView: Matches<
   Schemas["DocumentView"]
 > = true;
 
+/** Nature d'un engagement contractuel (voir `lib/agreements.ts`). */
+export const agreementKindSchema = z.enum([
+  "radiologist_agreement",
+  "clinic_agreement",
+]);
+
+// Empreinte et version : un format strict, pour qu'un texte altéré en
+// transit ne puisse pas se présenter comme la version en vigueur.
+const sha256 = z.string().regex(/^[0-9a-f]{64}$/);
+const agreementVersion = z.string().regex(/^\d{1,3}\.\d{1,3}$/);
+
+/** Un engagement dû par le compte connecté, et son acceptation. */
+export const agreementStatusSchema = z.object({
+  kind: agreementKindSchema,
+  version: agreementVersion,
+  title: z.string(),
+  effective_date: isoDate,
+  sha256,
+  accepted_at: isoDate.nullable().optional(),
+  accepted_by: z.string().nullable().optional(),
+  can_accept: z.boolean(),
+});
+const _agreementStatus: Matches<
+  z.input<typeof agreementStatusSchema>,
+  Schemas["AgreementStatus"]
+> = true;
+
+/** Texte d'une version d'engagement, dans une langue. */
+export const agreementDocumentSchema = z.object({
+  kind: agreementKindSchema,
+  version: agreementVersion,
+  title: z.string(),
+  effective_date: isoDate,
+  sha256,
+  locale: z.enum(["fr", "en"]),
+  authoritative: z.boolean(),
+  body_markdown: z.string(),
+});
+const _agreementDocument: Matches<
+  z.input<typeof agreementDocumentSchema>,
+  Schemas["AgreementDocument"]
+> = true;
+
+/** Acceptation enregistrée. */
+export const agreementAcceptanceSchema = z.object({
+  id: uuid,
+  kind: agreementKindSchema,
+  version: agreementVersion,
+  sha256,
+  accepted_at: isoDate,
+});
+const _agreementAcceptance: Matches<
+  z.input<typeof agreementAcceptanceSchema>,
+  Schemas["AgreementAcceptance"]
+> = true;
+
+/** Corps de `POST /me/agreements`, tel que le contrat le décrit. */
+export type AgreementAcceptanceBody = Schemas["AgreementAcceptanceCreate"];
+
 export const profileSchema = z.object({
   id: uuid,
   full_name: z.string(),
@@ -1018,6 +1077,9 @@ export const CONTRACT_CHECKS = [
   _credentialDocument,
   _documentToken,
   _documentView,
+  _agreementStatus,
+  _agreementDocument,
+  _agreementAcceptance,
   _uploadResult,
   _addendum,
   _profile,

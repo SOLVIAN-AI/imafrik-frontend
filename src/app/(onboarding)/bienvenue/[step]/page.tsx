@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type * as React from "react";
 
 import {
+  AgreementStep,
   DocumentsStep,
   DoneStep,
   FirstStudyStep,
@@ -11,6 +12,8 @@ import {
   TeamStep,
   type StepProps,
 } from "@/components/onboarding/onboarding-steps";
+import { agreementKindFor } from "@/lib/agreements";
+import { getAgreementView } from "@/lib/data/agreements";
 import { getMyCredentialDocuments } from "@/lib/data/credentials";
 import { getOrganization } from "@/lib/data/organization";
 import { getProfile } from "@/lib/data/profile";
@@ -25,6 +28,7 @@ import { requireSession } from "@/lib/session/server";
  * qui est atteignable : un segment hors du parcours du rôle renvoie 404.
  */
 const STEP_COMPONENTS: Record<string, React.ComponentType<StepProps>> = {
+  engagement: AgreementStep,
   exercice: PracticeStep,
   justificatifs: DocumentsStep,
   profil: ProfileStep,
@@ -48,18 +52,22 @@ export default async function OnboardingStepPage({
   const session = await requireSession();
   const { step: slug } = await params;
 
-  const { t } = await getMessages();
+  const { t, locale } = await getMessages();
   const steps = stepsFor(session.active.role, t.onboarding);
   const index = steps.findIndex((candidate) => candidate.slug === slug);
   const Component = STEP_COMPONENTS[slug];
   if (index === -1 || !Component) notFound();
 
-  const [profile, organization, documents] = await Promise.all([
+  const agreementKind = agreementKindFor(session.active.role);
+  const [profile, organization, documents, agreement] = await Promise.all([
     getProfile(),
     session.active.role === "clinic_staff"
       ? getOrganization()
       : Promise.resolve(null),
     slug === "justificatifs" ? getMyCredentialDocuments() : Promise.resolve([]),
+    slug === "engagement" && agreementKind
+      ? getAgreementView(agreementKind, locale)
+      : Promise.resolve(null),
   ]);
 
   return (
@@ -70,6 +78,7 @@ export default async function OnboardingStepPage({
       profile={profile}
       openToPool={organization?.openToPool ?? true}
       documents={documents}
+      agreement={agreement}
     />
   );
 }

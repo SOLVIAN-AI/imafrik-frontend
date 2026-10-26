@@ -73,8 +73,8 @@ export const clinic: AppMessages["clinic"] = {
       urgentDetail:
         "Read first, within the turnaround promised for urgent cases. Keep it for situations that cannot wait.",
       urgentUnsaved:
-        "Not sent yet: save to flag the emergency to the radiologist.",
-      urgentRemovalUnsaved: "Not sent yet: save to remove the emergency flag.",
+        "Not sent yet: save to flag the examination as urgent to the radiologist.",
+      urgentRemovalUnsaved: "Not sent yet: save to remove the urgent flag.",
       infoLabel: "Clinical information",
       infoHint:
         "Context and the question for the radiologist, who sees it on the reading screen and can carry it into the indication.",
@@ -182,7 +182,7 @@ export const clinic: AppMessages["clinic"] = {
     descriptionRadiologist: "The reports you have signed",
     /** IMAFRIK team: every report on the platform. */
     descriptionAdmin: (count: number) =>
-      `${count} report${count > 1 ? "s" : ""} across all clinics, drafts in progress included`,
+      `${count} report${count === 1 ? "" : "s"} across all clinics, drafts in progress included`,
     filter: "Report status",
     filters: {
       all: "All",

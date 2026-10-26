@@ -38,9 +38,9 @@ export const session = {
       serviceDown: "Le service d’authentification ne répond pas. Réessayez.",
       alreadyEnrolled:
         "Une application est déjà associée à ce compte. Pour changer de téléphone, contactez l’équipe IMAFRIK.",
-      enrollFailed: "L’enrôlement n’a pas pu démarrer. Réessayez.",
+      enrollFailed: "La configuration n’a pas pu démarrer. Réessayez.",
       codeFormat: "Le code compte six chiffres.",
-      unknownFactor: "Facteur inconnu.",
+      unknownFactor: "Facteur d’authentification inconnu.",
       locked: (minutes: number) =>
         `Trop d’essais de code. Par sécurité, la vérification est suspendue : réessayez dans ${minutes} minute${minutes > 1 ? "s" : ""}.`,
       tooManyAttempts:
@@ -104,7 +104,7 @@ export const session = {
     },
     passwordTitle: "Choisissez votre mot de passe",
     nextMfa:
-      "Ensuite, vous configurerez la double authentification, exigée pour votre rôle.",
+      "Ensuite, vous configurerez la double authentification, exigée pour tous les comptes.",
     nextOnboarding:
       "Ensuite, quelques étapes pour prendre en main votre espace.",
     submit: "Enregistrer et continuer",
@@ -123,7 +123,7 @@ export const session = {
   },
   membership: {
     unknown: "Appartenance inconnue.",
-    switchRefused: "La bascule d’organisation a été refusée.",
+    switchRefused: "Le changement d’organisation a été refusé.",
   },
   pending: {
     metaTitle: "Compte en attente",
