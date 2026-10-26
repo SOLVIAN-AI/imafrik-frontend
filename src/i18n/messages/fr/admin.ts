@@ -840,7 +840,7 @@ export const admin = {
       },
       revoke: {
         task: "Révoquer une passerelle",
-        why: "La révocation touche l’autorité de certification, gardée hors ligne.",
+        why: "Les certificats DICOM TLS sont auto-signés, sans autorité de certification : Orthanc accepte une liste de certificats précis, tenue sur le poste d’exploitation. Révoquer, c’est en retirer celui de la passerelle, envoyer la liste au serveur, qui relance Orthanc, et sortir la machine du réseau Tailscale.",
       },
       restore: {
         task: "Restaurer une sauvegarde",

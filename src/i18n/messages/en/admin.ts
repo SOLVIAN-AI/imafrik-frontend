@@ -786,7 +786,7 @@ export const admin: AppMessages["admin"] = {
       },
       revoke: {
         task: "Revoke a gateway",
-        why: "Revocation involves the certificate authority, which is kept offline.",
+        why: "DICOM TLS certificates are self-signed, with no certificate authority: Orthanc accepts a list of specific certificates, kept on the operations workstation. Revoking means removing the gateway’s certificate from it, pushing the list to the server, which restarts Orthanc, and taking the machine off the Tailscale network.",
       },
       restore: {
         task: "Restore a backup",
