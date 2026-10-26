@@ -6,6 +6,7 @@ import {
   certificateState,
   demoEnrollmentCode,
   formatCountdown,
+  groupCycles,
   groupFingerprint,
   heartbeatFreshness,
   isGatewayStatus,
@@ -136,5 +137,61 @@ describe("code de démonstration", () => {
         /^IMF(-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}){4}$/,
       );
     }
+  });
+});
+
+describe("cycles marquants de la tâche d’hôte", () => {
+  const refus = (minute: number) => ({
+    reportedAt: new Date(
+      `2026-10-26T23:${String(minute).padStart(2, "0")}:00Z`,
+    ),
+    outcome: "refused" as const,
+    restarted: false,
+    added: 0,
+    removed: 0,
+    error:
+      "1 certificat(s) accepté(s) aujourd'hui par le PACS sont inconnus de la base",
+  });
+
+  it("réunit un refus qui dure en une ligne, avec sa première date", () => {
+    const groups = groupCycles([refus(39), refus(38), refus(37), refus(34)]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].count).toBe(4);
+    expect(groups[0].reportedAt).toEqual(refus(39).reportedAt);
+    expect(groups[0].firstAt).toEqual(refus(34).reportedAt);
+  });
+
+  it("sépare des refus dont l’erreur diffère", () => {
+    const autre = {
+      ...refus(38),
+      error: "trusted-clients.pem actuel illisible",
+    };
+    expect(
+      groupCycles([refus(39), autre, refus(37)]).map((g) => g.count),
+    ).toEqual([1, 1, 1]);
+  });
+
+  it("laisse chaque cycle appliqué seul : chacun a changé la confiance", () => {
+    const applique = (minute: number) => ({
+      ...refus(minute),
+      outcome: "applied" as const,
+      added: 1,
+      error: null,
+    });
+    const groups = groupCycles([
+      applique(40),
+      applique(39),
+      refus(38),
+      refus(37),
+    ]);
+    expect(groups.map((g) => [g.outcome, g.count])).toEqual([
+      ["applied", 1],
+      ["applied", 1],
+      ["refused", 2],
+    ]);
+  });
+
+  it("rend une liste vide pour aucun cycle", () => {
+    expect(groupCycles([])).toEqual([]);
   });
 });

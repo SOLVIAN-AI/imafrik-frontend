@@ -280,6 +280,7 @@ export const gateways: AppMessages["gateways"] = {
     cycleSummary: (added: number, removed: number) =>
       `${added} added, ${removed} removed`,
     restarted: "Orthanc reloaded",
+    repeatedSince: (count: number) => `${count} times in a row since`,
   },
 
   kit: {

@@ -204,6 +204,55 @@ export function certificateState(certificate: {
   return certificate.appliedAt ? "inForce" : "waiting";
 }
 
+/** Ce qui distingue un cycle de la tâche d'hôte d'un autre, hors sa date. */
+interface AgentCycle {
+  reportedAt: Date;
+  outcome: "applied" | "deferred" | "refused" | "failed";
+  restarted: boolean;
+  added: number;
+  removed: number;
+  error: string | null;
+}
+
+/**
+ * Réunit en une ligne les cycles consécutifs identiques de la tâche d'hôte.
+ *
+ * Elle repasse toutes les 15 secondes : un refus qui dure remplissait la
+ * liste de la même ligne, et repoussait hors de vue les cycles qui
+ * comptent. Seuls se réunissent les cycles qui n'ont rien appliqué (refus,
+ * échec, report) et en tout point semblables ; un cycle appliqué reste
+ * seul, puisque chacun a changé la confiance du PACS.
+ *
+ * @param cycles Cycles du plus récent au plus ancien, tels que le service
+ *               les donne.
+ * @returns Les séries dans le même ordre ; chacune porte la date de son
+ *          cycle le plus récent (`reportedAt`), celle du plus ancien
+ *          (`firstAt`) et leur nombre.
+ */
+export function groupCycles<C extends AgentCycle>(
+  cycles: readonly C[],
+): (C & { count: number; firstAt: Date })[] {
+  const groups: (C & { count: number; firstAt: Date })[] = [];
+  for (const cycle of cycles) {
+    const last = groups.at(-1);
+    if (
+      last &&
+      cycle.outcome !== "applied" &&
+      last.outcome === cycle.outcome &&
+      last.restarted === cycle.restarted &&
+      last.added === cycle.added &&
+      last.removed === cycle.removed &&
+      last.error === cycle.error
+    ) {
+      last.count += 1;
+      last.firstAt = cycle.reportedAt;
+    } else {
+      groups.push({ ...cycle, count: 1, firstAt: cycle.reportedAt });
+    }
+  }
+  return groups;
+}
+
 /**
  * Code de démonstration, au format exact d'un vrai code.
  *
