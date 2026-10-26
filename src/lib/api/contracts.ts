@@ -1077,8 +1077,8 @@ const _credentialsState: Matches<
 // de ces réponses ne porte d'AE Title ni de clé : le service ne les rend
 // qu'au poste qui s'enrôle.
 
-/** Empreinte SHA-256 d'un certificat, ou d'un fichier : 64 signes hexadécimaux. */
-const sha256 = z.string().regex(/^[0-9a-f]{64}$/);
+// Empreinte SHA-256 d'un certificat, ou d'un fichier : `sha256`, le même
+// format strict que celui des engagements, plus haut.
 
 export const gatewayStatusSchema = z.enum([
   "awaiting_approval",
