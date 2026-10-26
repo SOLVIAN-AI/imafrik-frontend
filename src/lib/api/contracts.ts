@@ -946,11 +946,305 @@ const _credentialsState: Matches<
   Schemas["CredentialsState"]
 > = true;
 
+// ─── Passerelles des cliniques ──────────────────────────────────────
+//
+// Enrôlement par code, approbation, révocation, confiance du PACS : voir
+// la décision du service, `docs/plan/enrolement-passerelle.md`. Aucune
+// de ces réponses ne porte d'AE Title ni de clé : le service ne les rend
+// qu'au poste qui s'enrôle.
+
+/** Empreinte SHA-256 d'un certificat, ou d'un fichier : 64 signes hexadécimaux. */
+const sha256 = z.string().regex(/^[0-9a-f]{64}$/);
+
+export const gatewayStatusSchema = z.enum([
+  "awaiting_approval",
+  "pending",
+  "active",
+  "suspended",
+  "rejected",
+  "revoked",
+]);
+
+/** Une clinique créée depuis la console. */
+export const clinicCreatedSchema = z.object({ id: uuid, slug: z.string() });
+const _clinicCreated: Matches<
+  z.input<typeof clinicCreatedSchema>,
+  Schemas["ClinicCreated"]
+> = true;
+
+/** Code d'enrôlement, montré une seule fois. */
+export const enrollmentCodeIssuedSchema = z.object({
+  id: uuid,
+  code: z.string().regex(/^IMF(-[A-Z2-9]{4}){4}$/),
+  created_at: isoDate,
+  expires_at: isoDate,
+});
+const _enrollmentCodeIssued: Matches<
+  z.input<typeof enrollmentCodeIssuedSchema>,
+  Schemas["EnrollmentCodeIssued"]
+> = true;
+
+/** Code d'enrôlement en cours, sans sa valeur. */
+export const enrollmentCodeInfoSchema = z.object({
+  id: uuid,
+  created_at: isoDate,
+  expires_at: isoDate,
+  attempts: count,
+  created_by_name: z.string().nullable(),
+});
+const _enrollmentCodeInfo: Matches<
+  z.input<typeof enrollmentCodeInfoSchema>,
+  Schemas["EnrollmentCodeInfo"]
+> = true;
+
+const tailscaleNodeSchema = z.object({
+  online: z.boolean(),
+  last_seen: isoDate.nullable(),
+  address: z.string().nullable(),
+});
+const _tailscaleNode: Matches<
+  z.input<typeof tailscaleNodeSchema>,
+  Schemas["TailscaleNode"]
+> = true;
+
+/** Une passerelle, vue de la tour de contrôle. */
+export const gatewaySummarySchema = z.object({
+  id: uuid,
+  organization_id: uuid,
+  clinic_name: z.string(),
+  origin: z.enum(["enrolled", "adopted"]),
+  status: gatewayStatusSchema,
+  hostname: z.string(),
+  machine_guid: uuid.nullable(),
+  key_protection: z.enum(["tpm", "software_non_exportable"]).nullable(),
+  enrolled_from_ip: z.string().nullable(),
+  tailscale_hostname: z.string().nullable(),
+  network_address: z.string().nullable(),
+  address_source: z.enum(["tailscale", "fixed"]),
+  created_at: isoDate,
+  approved_at: isoDate.nullable(),
+  approved_by_name: z.string().nullable(),
+  activated_at: isoDate.nullable(),
+  rejected_at: isoDate.nullable(),
+  rejection_reason: z.string().nullable(),
+  suspended_at: isoDate.nullable(),
+  suspension_reason: z.string().nullable(),
+  revoked_at: isoDate.nullable(),
+  revocation_reason: z.string().nullable(),
+  renewal_requested_at: isoDate.nullable(),
+  certificate_fingerprint: sha256.nullable(),
+  certificate_not_after: isoDate.nullable(),
+  certificate_applied: z.boolean(),
+  last_heartbeat_at: isoDate.nullable(),
+  pending_series: count.nullable(),
+  oldest_pending_seconds: count.nullable(),
+  disk_free_bytes: z.number().nullable(),
+  kit_version: z.string().nullable(),
+  orthanc_version: z.string().nullable(),
+  tailscale: tailscaleNodeSchema.nullable().optional(),
+});
+const _gatewaySummary: Matches<
+  z.input<typeof gatewaySummarySchema>,
+  Schemas["GatewaySummary"]
+> = true;
+
+const gatewayCertificateSchema = z.object({
+  fingerprint: sha256,
+  origin: z.enum(["enrollment", "renewal", "adoption"]),
+  not_before: isoDate,
+  not_after: isoDate,
+  created_at: isoDate,
+  applied_at: isoDate.nullable(),
+  first_used_at: isoDate.nullable(),
+  retire_after: isoDate.nullable(),
+  retired_at: isoDate.nullable(),
+  retire_reason: z.string().nullable(),
+  removal_applied_at: isoDate.nullable(),
+});
+const _gatewayCertificate: Matches<
+  z.input<typeof gatewayCertificateSchema>,
+  Schemas["GatewayCertificateInfo"]
+> = true;
+
+const gatewayEventSchema = z.object({
+  at: isoDate,
+  action: z.string(),
+  actor_name: z.string().nullable(),
+  metadata: z.record(z.string(), z.unknown()).nullable(),
+});
+const _gatewayEvent: Matches<
+  z.input<typeof gatewayEventSchema>,
+  Schemas["GatewayEvent"]
+> = true;
+
+/** Une passerelle, ses certificats et son historique. */
+export const gatewayDetailSchema = gatewaySummarySchema.extend({
+  certificates: z.array(gatewayCertificateSchema),
+  history: z.array(gatewayEventSchema),
+});
+const _gatewayDetail: Matches<
+  z.input<typeof gatewayDetailSchema>,
+  Schemas["GatewayDetail"]
+> = true;
+
+const pkiCycleSchema = z.object({
+  reported_at: isoDate,
+  outcome: z.enum(["applied", "deferred", "refused", "failed"]),
+  restarted: z.boolean(),
+  added: count,
+  removed: count,
+  error: z.string().nullable(),
+});
+const _pkiCycle: Matches<
+  z.input<typeof pkiCycleSchema>,
+  Schemas["PkiCycle"]
+> = true;
+
+const pendingChangeSchema = z.object({
+  gateway_id: uuid,
+  clinic_name: z.string(),
+  hostname: z.string(),
+  change: z.enum(["add", "remove"]),
+});
+const _pendingChange: Matches<
+  z.input<typeof pendingChangeSchema>,
+  Schemas["PendingChange"]
+> = true;
+
+const pkiAgentSchema = z.object({
+  last_report_at: isoDate.nullable(),
+  last_outcome: z
+    .enum(["unchanged", "applied", "deferred", "refused", "failed"])
+    .nullable(),
+  last_error: z.string().nullable(),
+  last_restart_at: isoDate.nullable(),
+  applied_at: isoDate.nullable(),
+  pending: z.array(pendingChangeSchema),
+  cycles: z.array(pkiCycleSchema),
+});
+const _pkiAgent: Matches<
+  z.input<typeof pkiAgentSchema>,
+  Schemas["PkiAgent"]
+> = true;
+
+const kitInfoSchema = z.object({
+  file_name: z.string(),
+  size_bytes: count,
+  sha256,
+  version: z.string().nullable(),
+  built_at: isoDate,
+  manifest_matches: z.boolean().nullable(),
+  signature_status: z.enum(["signed", "unsigned"]).nullable(),
+  publisher: z.string().nullable(),
+  signature_expires_at: isoDate.nullable(),
+  timestamped: z.boolean().nullable(),
+});
+const _kitInfo: Matches<
+  z.input<typeof kitInfoSchema>,
+  Schemas["KitInfo"]
+> = true;
+
+const readinessSchema = z.object({
+  ready: z.boolean(),
+  missing: z.array(
+    z.enum(["tailscale_credentials", "pacs_host", "pacs_certificate"]),
+  ),
+});
+const _readiness: Matches<
+  z.input<typeof readinessSchema>,
+  Schemas["Readiness"]
+> = true;
+
+/** Vue d'ensemble des passerelles. */
+export const gatewayOverviewSchema = z.object({
+  gateways: z.array(gatewaySummarySchema),
+  counts: z.record(z.string(), count),
+  alerts: z.array(alertSchema),
+  readiness: readinessSchema,
+  agent: pkiAgentSchema,
+  kit: kitInfoSchema.nullable(),
+});
+const _gatewayOverview: Matches<
+  z.input<typeof gatewayOverviewSchema>,
+  Schemas["GatewayOverview"]
+> = true;
+
+/** Connexion Tailscale de la plateforme, sans son secret. */
+export const tailscaleConnectionSchema = z.object({
+  source: z.enum(["console", "environment"]).nullable(),
+  client_id: z.string().nullable(),
+  secret_last4: z.string().nullable(),
+  configured_at: isoDate.nullable(),
+  configured_by_name: z.string().nullable(),
+  scopes: z.array(z.string()),
+  required_scopes: z.array(z.string()),
+  encryption_available: z.boolean(),
+  policy_file_available: z.boolean(),
+});
+const _tailscaleConnection: Matches<
+  z.input<typeof tailscaleConnectionSchema>,
+  Schemas["TailscaleConnection"]
+> = true;
+
+/** Résultat d'un test de la connexion Tailscale. */
+export const tailscaleTestSchema = z.object({
+  ok: z.boolean(),
+  scopes: z.array(z.string()),
+  missing_scopes: z.array(z.string()),
+  policy_available: z.boolean(),
+  error: z.string().nullable().optional(),
+});
+const _tailscaleTest: Matches<
+  z.input<typeof tailscaleTestSchema>,
+  Schemas["TailscaleTest"]
+> = true;
+
+/** Politique d'accès versionnée, comparée à celle du réseau. */
+export const policyComparisonSchema = z.object({
+  repository_available: z.boolean(),
+  tailnet_available: z.boolean(),
+  in_sync: z.boolean().nullable(),
+  diff: z.string(),
+  etag: z.string().nullable(),
+  error: z.string().nullable().optional(),
+});
+const _policyComparison: Matches<
+  z.input<typeof policyComparisonSchema>,
+  Schemas["PolicyComparison"]
+> = true;
+
+/** Corps de `POST /admin/clinics`, tel que le contrat le décrit. */
+export type ApiClinicCreate = Schemas["ClinicCreate"];
+export type ApiGatewaySummary = z.output<typeof gatewaySummarySchema>;
+export type ApiGatewayDetail = z.output<typeof gatewayDetailSchema>;
+export type ApiGatewayOverview = z.output<typeof gatewayOverviewSchema>;
+export type ApiEnrollmentCodeInfo = z.output<typeof enrollmentCodeInfoSchema>;
+export type ApiTailscaleConnection = z.output<typeof tailscaleConnectionSchema>;
+export type ApiTailscaleTest = z.output<typeof tailscaleTestSchema>;
+export type ApiPolicyComparison = z.output<typeof policyComparisonSchema>;
+
 /**
  * Les vérifications de type ci-dessus n'ont aucun effet à l'exécution ;
  * cette référence évite seulement qu'un outil les signale comme mortes.
  */
 export const CONTRACT_CHECKS = [
+  _clinicCreated,
+  _enrollmentCodeIssued,
+  _enrollmentCodeInfo,
+  _tailscaleNode,
+  _gatewaySummary,
+  _gatewayCertificate,
+  _gatewayEvent,
+  _gatewayDetail,
+  _pkiCycle,
+  _pendingChange,
+  _pkiAgent,
+  _kitInfo,
+  _readiness,
+  _gatewayOverview,
+  _tailscaleConnection,
+  _tailscaleTest,
+  _policyComparison,
   _uploadToken,
   _reportVoidResult,
   _credentialDocument,
