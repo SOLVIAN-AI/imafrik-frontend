@@ -45,6 +45,9 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       "/admin/demandes?etat=all",
       // Fiche d'une clinique, zone de danger de la fin de contrat comprise.
       "/admin/organisations/org-stj",
+      // Passerelles : vue d'ensemble et fiche, gestes compris.
+      "/admin/passerelles",
+      "/admin/passerelles/gw-pka-radio",
     ],
   },
 ];
