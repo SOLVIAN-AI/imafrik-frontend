@@ -1,4 +1,5 @@
 import { glossary } from "@/i18n/messages/en/help-glossary";
+import { guides } from "@/i18n/messages/en/help-guides";
 import { pages } from "@/i18n/messages/en/help-pages";
 import type { AppMessages } from "@/i18n/messages/fr";
 
@@ -17,6 +18,8 @@ export const help: AppMessages["help"] = {
     glossary: "Glossary",
     openGlossary: "Open the full glossary",
     back: "Back to this screen’s help",
+    guides: "Guides",
+    guideLink: (title: string) => `Guide: ${title}`,
     resultsPages: "Screens",
     resultsTerms: "Terms",
     noResult: "No results. Try another word, or open the glossary.",
@@ -35,5 +38,6 @@ export const help: AppMessages["help"] = {
     escapeKey: "Esc",
   },
   glossary,
+  guides,
   pages,
 };

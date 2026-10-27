@@ -296,6 +296,7 @@ export const pages: typeof fr = {
         "On a row, use the icons to invite someone or set the AI features, or click “Suspend” to cut off access for its members.",
       ],
       terms: ["organisation", "groupe", "pool", "contratService", "pacs"],
+      guides: ["onboardClinic"],
     },
     organisation: {
       title: "Clinic page",
@@ -315,6 +316,7 @@ export const pages: typeof fr = {
         "contratService",
         "compteRendu",
       ],
+      guides: ["onboardClinic"],
     },
     gateways: {
       title: "Gateways",
@@ -325,15 +327,16 @@ export const pages: typeof fr = {
         "Filter by status, for example “Awaiting approval”, to see the workstations waiting for a decision.",
         "Click “Approve” or “Reject” on the row, or the workstation name to open its page.",
         "In “Applying trust to the PACS”, check that the last cycle is “Up to date” or “Applied” and that nothing is waiting.",
-        "Click “Download the kit” and share its SHA-256 fingerprint, to be compared before opening the archive.",
+        "Click “Download the kit”, then “Copy the fingerprint”. On the workstation, `certutil -hashfile kit-passerelle.zip SHA256` must give the same one, or do not install it.",
       ],
       terms: [
         "passerelle",
         "tacheHote",
         "confiancePacs",
         "certificat",
-        "codeEnrolement",
+        "empreinte",
       ],
+      guides: ["onboardClinic"],
     },
     gateway: {
       title: "Gateway page",

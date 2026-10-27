@@ -6,6 +6,7 @@ import {
   BookOpen,
   ChevronRight,
   GraduationCap,
+  ListChecks,
   Mail,
   Route,
   Search,
@@ -18,7 +19,9 @@ import * as React from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { useTour } from "@/components/tour/tour-provider";
 import {
+  type HelpGuide,
   type HelpPage,
+  guidesOf,
   type HelpScreen,
   helpRoleOf,
   helpScreenFor,
@@ -32,22 +35,40 @@ import { cn } from "@/lib/utils";
 import { useMessages } from "@/i18n/client";
 
 /**
- * Attache à leur mot les guillemets et le deux-points : sans cela, un
- * « ou un deux-points peut se retrouver seul en début ou en fin de ligne
- * dans une colonne étroite. Les textes gardent l'espace simple de la
- * maison ; seul l'affichage la rend insécable.
+ * Prépare un texte d'aide à l'affichage.
+ *
+ * - Attache à leur mot les guillemets et le deux-points : sans cela, un
+ *   « ou un deux-points peut se retrouver seul en début ou en fin de
+ *   ligne dans une colonne étroite. Les textes gardent l'espace simple de
+ *   la maison ; seul l'affichage la rend insécable.
+ * - Affiche en code, sur une seule ligne, ce qui est entre accents graves
+ *   (une commande à taper) : coupée à un tiret, elle ne se recopie plus.
  */
-function tidy(text: string): string {
-  return text
+function tidy(text: string): React.ReactNode {
+  const typeset = text
     .replaceAll("« ", "«\u00a0")
     .replaceAll(" »", "\u00a0»")
     .replaceAll(" :", "\u00a0:");
+  const parts = typeset.split(/`([^`]+)`/);
+  if (parts.length === 1) return typeset;
+  return parts.map((part, index) =>
+    index % 2 === 1 ? (
+      <code
+        key={index}
+        className="rounded bg-surface-raised px-1 py-0.5 font-mono text-2xs whitespace-nowrap text-primary"
+      >
+        {part}
+      </code>
+    ) : (
+      part
+    ),
+  );
 }
 
 /** Adresse de l'espace de formation. */
 const TRAINING_HREF = "/formation";
 
-type View = "page" | "glossary";
+type View = "page" | "glossary" | "guide";
 
 interface HelpState {
   open: boolean;
@@ -120,6 +141,7 @@ function HelpPanel({
   const [query, setQuery] = React.useState("");
   const [view, setView] = React.useState<View>("page");
   const [focusTerm, setFocusTerm] = React.useState<string | null>(null);
+  const [guideKey, setGuideKey] = React.useState<string | null>(null);
 
   const screen = helpScreenFor(active.role, pathname);
   const rolePages = t.help.pages[helpRoleOf(active.role)] as Record<
@@ -131,10 +153,15 @@ function HelpPanel({
     string,
     { term: string; definition: string }
   >;
-  const results = React.useMemo(
-    () => searchHelp(query, rolePages, glossary),
-    [query, rolePages, glossary],
+  const roleGuides = React.useMemo(
+    () => guidesOf(rolePages, t.help.guides as Record<string, HelpGuide>),
+    [rolePages, t.help.guides],
   );
+  const results = React.useMemo(
+    () => searchHelp(query, rolePages, glossary, roleGuides),
+    [query, rolePages, glossary, roleGuides],
+  );
+  const guide = guideKey ? roleGuides[guideKey] : undefined;
 
   // Un terme choisi dans la recherche s'ouvre dans le glossaire, à sa place.
   React.useEffect(() => {
@@ -149,6 +176,11 @@ function HelpPanel({
     setQuery("");
     setFocusTerm(term);
     setView("glossary");
+  };
+  const openGuide = (key: string) => {
+    setQuery("");
+    setGuideKey(key);
+    setView("guide");
   };
   const goTo = (key: string) => {
     const href = hrefOf(active.role, key);
@@ -218,7 +250,10 @@ function HelpPanel({
                 results={results}
                 onPage={goTo}
                 onTerm={(key) => openGlossary(key)}
+                onGuide={openGuide}
               />
+            ) : view === "guide" && guide ? (
+              <GuideView guide={guide} onBack={() => setView("page")} />
             ) : view === "glossary" ? (
               <GlossaryView
                 glossary={glossary}
@@ -232,6 +267,16 @@ function HelpPanel({
                 glossary={glossary}
                 more={
                   <ul className="flex flex-col gap-1">
+                    {(page?.guides ?? []).map((key) =>
+                      roleGuides[key] ? (
+                        <MoreItem
+                          key={key}
+                          icon={ListChecks}
+                          label={text.guideLink(roleGuides[key].title)}
+                          onSelect={() => openGuide(key)}
+                        />
+                      ) : null,
+                    )}
                     {screenTour ? (
                       <MoreItem
                         icon={Route}
@@ -447,10 +492,12 @@ function Shortcuts({ table }: { table: boolean }) {
 function SearchResults({
   results,
   onPage,
+  onGuide,
   onTerm,
 }: {
   results: ReturnType<typeof searchHelp>;
   onPage: (key: string) => void;
+  onGuide: (key: string) => void;
   onTerm: (key: string) => void;
 }) {
   const t = useMessages();
@@ -460,6 +507,7 @@ function SearchResults({
   }
   const pages = results.filter((result) => result.kind === "page");
   const terms = results.filter((result) => result.kind === "term");
+  const guides = results.filter((result) => result.kind === "guide");
   const group = (
     label: string,
     items: typeof results,
@@ -496,8 +544,67 @@ function SearchResults({
     );
   return (
     <div className="flex flex-col gap-4">
+      {group(text.guides, guides, onGuide)}
       {group(text.resultsPages, pages, onPage)}
       {group(text.resultsTerms, terms, onTerm)}
+    </div>
+  );
+}
+
+/**
+ * Un guide pas à pas : ses étapes numérotées d'un bout à l'autre, groupées
+ * par lieu (tour de contrôle, poste de la clinique…).
+ */
+function GuideView({
+  guide,
+  onBack,
+}: {
+  guide: HelpGuide;
+  onBack: () => void;
+}) {
+  const t = useMessages();
+  const text = t.help.panel;
+  // Numéro de la première étape de chaque section : la numérotation court
+  // d'un bout à l'autre du guide.
+  const starts = guide.sections.map((_, index) =>
+    guide.sections
+      .slice(0, index)
+      .reduce((sum, section) => sum + section.steps.length, 1),
+  );
+  return (
+    <div className="flex flex-col gap-4">
+      <button
+        type="button"
+        onClick={onBack}
+        className="flex items-center gap-1.5 self-start text-xs text-secondary transition-colors hover:text-primary"
+      >
+        <ArrowLeft className="size-3.5" aria-hidden />
+        {text.back}
+      </button>
+      <div>
+        <h3 className="text-base font-semibold text-primary">{guide.title}</h3>
+        <p className="mt-1 leading-relaxed text-secondary">
+          {tidy(guide.intro)}
+        </p>
+      </div>
+      {guide.sections.map((section, sectionIndex) => (
+        <section key={section.title}>
+          <Heading>{section.title}</Heading>
+          <ol className="flex flex-col gap-1.5">
+            {section.steps.map((step, stepIndex) => (
+              <li
+                key={step}
+                className="flex gap-2 leading-relaxed text-secondary"
+              >
+                <span className="mt-px flex size-5 shrink-0 items-center justify-center rounded-full bg-accent-muted text-2xs font-semibold text-accent tabular-nums">
+                  {starts[sectionIndex] + stepIndex}
+                </span>
+                <span>{tidy(step)}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
     </div>
   );
 }

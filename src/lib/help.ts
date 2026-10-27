@@ -28,6 +28,18 @@ export interface HelpPage {
   purpose: string;
   steps: readonly string[];
   terms: readonly string[];
+  /** Guides pas à pas proposés depuis cet écran (`help.guides`). */
+  guides?: readonly string[];
+}
+
+/**
+ * Un guide pas à pas : une procédure qui dépasse un écran (raccorder une
+ * clinique, par exemple), découpée en étapes regroupées par lieu.
+ */
+export interface HelpGuide {
+  title: string;
+  intro: string;
+  sections: readonly { title: string; steps: readonly string[] }[];
 }
 
 /** Raccourcis propres à un écran, en plus des raccourcis communs. */
@@ -171,9 +183,28 @@ export function normalize(text: string): string {
 }
 
 /** Un résultat de recherche : un écran ou un terme. */
-export type HelpResult =
-  | { kind: "page"; key: string; title: string; excerpt: string }
-  | { kind: "term"; key: string; title: string; excerpt: string };
+export type HelpResult = {
+  kind: "page" | "term" | "guide";
+  key: string;
+  title: string;
+  excerpt: string;
+};
+
+/**
+ * Les guides proposés par les écrans d'un rôle : un guide n'apparaît
+ * qu'à qui a un écran qui y mène.
+ */
+export function guidesOf(
+  pages: Record<string, HelpPage>,
+  guides: Record<string, HelpGuide>,
+): Record<string, HelpGuide> {
+  const keys = new Set(
+    Object.values(pages).flatMap((page) => page.guides ?? []),
+  );
+  return Object.fromEntries(
+    Object.entries(guides).filter(([key]) => keys.has(key)),
+  );
+}
 
 /**
  * Cherche dans l'aide des écrans d'un rôle et dans le glossaire.
@@ -184,12 +215,14 @@ export type HelpResult =
  * @param query    Saisie de l'utilisateur.
  * @param pages    Pages d'aide du rôle.
  * @param glossary Glossaire.
+ * @param guides   Guides du rôle (`guidesOf`).
  * @param limit    Nombre maximal de résultats.
  */
 export function searchHelp(
   query: string,
   pages: Record<string, HelpPage>,
   glossary: Record<string, { term: string; definition: string }>,
+  guides: Record<string, HelpGuide> = {},
   limit = 12,
 ): HelpResult[] {
   const words = normalize(query)
@@ -204,13 +237,23 @@ export function searchHelp(
     const inTitle = words.filter((word) => title.includes(word)).length;
     scored.push({
       result,
-      score: inTitle * 10 + (result.kind === "term" ? 1 : 0),
+      score:
+        inTitle * 10 +
+        (result.kind === "guide" ? 2 : result.kind === "term" ? 1 : 0),
     });
   };
   for (const [key, page] of Object.entries(pages)) {
     consider(
       { kind: "page", key, title: page.title, excerpt: page.purpose },
       `${page.purpose} ${page.steps.join(" ")}`,
+    );
+  }
+  for (const [key, guide] of Object.entries(guides)) {
+    consider(
+      { kind: "guide", key, title: guide.title, excerpt: guide.intro },
+      `${guide.intro} ${guide.sections
+        .map((section) => `${section.title} ${section.steps.join(" ")}`)
+        .join(" ")}`,
     );
   }
   for (const [key, entry] of Object.entries(glossary)) {

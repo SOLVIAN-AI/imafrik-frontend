@@ -301,6 +301,7 @@ export const pages = {
         "Sur une ligne, invitez une personne ou réglez les fonctions d’IA par les icônes, ou cliquez sur « Suspendre » pour couper l’accès de ses membres.",
       ],
       terms: ["organisation", "groupe", "pool", "contratService", "pacs"],
+      guides: ["onboardClinic"],
     },
     organisation: {
       title: "Fiche de la clinique",
@@ -320,6 +321,7 @@ export const pages = {
         "contratService",
         "compteRendu",
       ],
+      guides: ["onboardClinic"],
     },
     gateways: {
       title: "Passerelles",
@@ -330,15 +332,16 @@ export const pages = {
         "Filtrez par statut, par exemple « En attente d’approbation », pour voir les postes qui attendent une décision.",
         "Cliquez sur « Approuver » ou « Rejeter » sur la ligne, ou sur le nom du poste pour ouvrir sa fiche.",
         "Dans « Application de la confiance au PACS », vérifiez que le dernier cycle est « À jour » ou « Appliqué » et que rien n’attend.",
-        "Cliquez sur « Télécharger le kit » et communiquez son empreinte SHA-256, à comparer avant d’ouvrir l’archive.",
+        "Cliquez sur « Télécharger le kit », puis « Copier l’empreinte ». Sur le poste, `certutil -hashfile kit-passerelle.zip SHA256` doit donner la même, sinon ne l’installez pas.",
       ],
       terms: [
         "passerelle",
         "tacheHote",
         "confiancePacs",
         "certificat",
-        "codeEnrolement",
+        "empreinte",
       ],
+      guides: ["onboardClinic"],
     },
     gateway: {
       title: "Fiche de la passerelle",

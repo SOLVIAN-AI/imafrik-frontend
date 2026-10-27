@@ -1,0 +1,47 @@
+import type { guides as fr } from "@/i18n/messages/fr/help-guides";
+
+/** Step-by-step help guides, in English. */
+export const guides: typeof fr = {
+  onboardClinic: {
+    title: "Connect a new clinic",
+    intro:
+      "From creating the clinic to its first examination received, in about twenty minutes on the phone with it. No key file travels: the key is created on the clinic’s workstation, and a single-use code is enough to connect it.",
+    sections: [
+      {
+        title: "Create the clinic, in the control tower",
+        steps: [
+          "Organisations, “New clinic”: enter the facility name, the city and the report language, then click “Create the clinic”. Its page opens.",
+          "Decide who will read its examinations: attach its own radiologists from “Accounts”, or open it to the pool with a service contract with a radiology group.",
+          "Invite its staff with the invitation icon on the clinic’s row in “Organisations”: each person receives a link by email and chooses their password.",
+        ],
+      },
+      {
+        title: "Prepare the workstation, before the appointment",
+        steps: [
+          "Have the clinic prepare a Windows 10 (version 1809 or later) or 11 computer, 64-bit, always on, on the devices’ network, with 100 GB free and a fixed IP address.",
+          "Have Orthanc installed on it (orthanc-server.com, “Windows installer”, default options) and check that the firewall lets HTTPS out, port 443.",
+          "Gateways, “Download the kit”, then “Copy the fingerprint”: keep this fingerprint. Pass the kit on to the clinic, by download or on a USB stick.",
+        ],
+      },
+      {
+        title: "Install the gateway, on the phone with the clinic",
+        steps: [
+          "On the workstation, check the kit: `certutil -hashfile kit-passerelle.zip SHA256` must show the fingerprint you copied. If it differs, do not install it and download it again.",
+          "Have the file unblocked (right-click, “Properties”, “Unblock”), the kit extracted, then “INSTALLER.bat” run, accepting Windows’ permission request.",
+          "If Windows reports an unknown publisher, as long as the kit is unsigned: “More info”, then “Run anyway”.",
+          "Clinic page, “Connect a gateway”, “Issue a code”: read it out to the installer, who enters it. It is valid for 15 minutes and works only once.",
+          "Under “Gateways”, the workstation shows “Awaiting approval”: check its name with the clinic, then click “Approve”.",
+          "The installer activates the gateway and runs a real DICOM test. Have the local interface password written down: it is shown only once.",
+        ],
+      },
+      {
+        title: "Put into service",
+        steps: [
+          "On the imaging console, declare the destination given on the “IMAFRIK - gateway help” sheet on the Desktop: the workstation’s IP address, port 4242, AE Title IMAFRIK.",
+          "Have an old examination sent, then check that it arrives in “Image flow” or on the clinic page. Each series leaves one minute after its last image.",
+          "Check “Onboarding” on the clinic page: all its steps must be completed.",
+        ],
+      },
+    ],
+  },
+};

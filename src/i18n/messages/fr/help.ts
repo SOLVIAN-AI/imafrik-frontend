@@ -1,4 +1,5 @@
 import { glossary } from "@/i18n/messages/fr/help-glossary";
+import { guides } from "@/i18n/messages/fr/help-guides";
 import { pages } from "@/i18n/messages/fr/help-pages";
 
 /**
@@ -25,6 +26,8 @@ export const help = {
     glossary: "Glossaire",
     openGlossary: "Ouvrir le glossaire complet",
     back: "Revenir à l’aide de cet écran",
+    guides: "Guides",
+    guideLink: (title: string) => `Guide : ${title}`,
     resultsPages: "Écrans",
     resultsTerms: "Termes",
     noResult: "Aucun résultat. Essayez un autre mot, ou ouvrez le glossaire.",
@@ -43,5 +46,6 @@ export const help = {
     escapeKey: "Échap",
   },
   glossary,
+  guides,
   pages,
 };

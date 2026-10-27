@@ -117,6 +117,11 @@ export const glossary = {
     definition:
       "Second contrôle à la connexion : un code à six chiffres affiché par une application d’authentification sur votre téléphone. Obligatoire pour tous les comptes.",
   },
+  empreinte: {
+    term: "Empreinte",
+    definition:
+      "Suite de 64 caractères calculée à partir d’un fichier (SHA-256) : un seul octet modifié la change entièrement. Comparer l’empreinte du kit sur le poste à celle de la tour de contrôle prouve qu’il est intact.",
+  },
   engagement: {
     term: "Engagements",
     definition:
