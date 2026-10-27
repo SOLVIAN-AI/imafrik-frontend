@@ -152,13 +152,17 @@ test.describe("radiologue", () => {
       .click();
     await expect(bubble(page)).toHaveCount(0);
 
+    // L'aide de l'écran : la visite, la formation et l'équipe sont sous
+    // « Pour aller plus loin ».
     await page.getByRole("button", { name: "Aide" }).click();
+    const aide = page.getByRole("dialog", { name: "Aide" });
     await expect(
-      page.getByRole("menuitem", { name: "Écrire à l’équipe IMAFRIK" }),
+      aide.getByRole("link", { name: "Écrire à l’équipe IMAFRIK" }),
     ).toHaveAttribute("href", "mailto:contact@imafrik.tech");
-    await page
-      .getByRole("menuitem", { name: "Revoir la visite de cet écran" })
+    await aide
+      .getByRole("button", { name: "Revoir la visite de cet écran" })
       .click();
+    await expect(aide).toBeHidden();
     await expect(
       page.getByRole("dialog", { name: "Bienvenue sur IMAFRIK" }),
     ).toBeVisible();
@@ -169,7 +173,8 @@ test.describe("radiologue", () => {
 
     await page.getByRole("button", { name: "Aide" }).click();
     await page
-      .getByRole("menuitem", { name: "S’exercer dans la formation" })
+      .getByRole("dialog", { name: "Aide" })
+      .getByRole("link", { name: "S’exercer dans la formation" })
       .click();
     await expect(page).toHaveURL("/formation");
   });
@@ -181,7 +186,8 @@ test.describe("radiologue", () => {
     await expect(bubble(page)).toHaveCount(0);
     await page.getByRole("button", { name: "Aide" }).click();
     await page
-      .getByRole("menuitem", { name: "Visite guidée de l’accueil" })
+      .getByRole("dialog", { name: "Aide" })
+      .getByRole("button", { name: "Visite guidée de l’accueil" })
       .click();
     await expect(page).toHaveURL("/worklist");
     await expect(
@@ -261,11 +267,12 @@ test.describe("équipe IMAFRIK", () => {
 
     // L'équipe IMAFRIK n'a pas d'équipe à qui écrire.
     await page.getByRole("button", { name: "Aide" }).click();
+    const aide = page.getByRole("dialog", { name: "Aide" });
     await expect(
-      page.getByRole("menuitem", { name: "Revoir la visite de cet écran" }),
+      aide.getByRole("button", { name: "Revoir la visite de cet écran" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("menuitem", { name: "Écrire à l’équipe IMAFRIK" }),
+      aide.getByRole("link", { name: "Écrire à l’équipe IMAFRIK" }),
     ).toHaveCount(0);
   });
 });
