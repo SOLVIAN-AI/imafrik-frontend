@@ -65,13 +65,57 @@ export function isActive(item: NavItem, pathname: string): boolean {
  * administrer — donne des repères stables : on sait dans quel tiers
  * chercher avant même de lire.
  *
- * Le premier groupe n'a pas d'intitulé : ce qu'on utilise vingt fois par
- * jour n'a pas besoin d'être annoncé.
+ * Le premier groupe se passe en général d'intitulé : ce qu'on utilise
+ * vingt fois par jour n'a pas besoin d'être annoncé.
  */
 export interface NavGroup {
   /** Clé du titre de groupe (`nav.groups`) ; sans titre, le premier groupe. */
   key?: NavGroupKey;
   items: NavItem[];
+  /**
+   * Suite du groupe précédent : même bloc, séparé par un simple filet, sans
+   * titre ni grand espace. Pour garder ensemble ce qui relève d'un même
+   * rôle tout en le découpant en paquets lisibles d'un coup d'œil.
+   */
+  continues?: boolean;
+  /**
+   * Replié par défaut, derrière son titre : pour ce qu'on n'ouvre que de
+   * temps en temps. Il s'ouvre de lui-même sur une de ses pages.
+   */
+  collapsible?: boolean;
+}
+
+/**
+ * Un bloc de la barre latérale : un groupe et ses suites.
+ */
+export interface NavBlock {
+  key?: NavGroupKey;
+  collapsible: boolean;
+  /** Paquets d'entrées, séparés par un filet. */
+  sections: NavItem[][];
+}
+
+/**
+ * Réunit chaque groupe et ses suites (`continues`) en un bloc.
+ *
+ * @param groups Groupes dans l'ordre d'affichage.
+ * @returns Les blocs, dans le même ordre.
+ */
+export function navigationBlocks(groups: readonly NavGroup[]): NavBlock[] {
+  const blocks: NavBlock[] = [];
+  for (const group of groups) {
+    const last = blocks.at(-1);
+    if (group.continues && last) {
+      last.sections.push(group.items);
+    } else {
+      blocks.push({
+        key: group.key,
+        collapsible: group.collapsible ?? false,
+        sections: [group.items],
+      });
+    }
+  }
+  return blocks;
 }
 
 /**
@@ -159,19 +203,23 @@ const CLINIC_NAV: NavGroup[] = [
 /**
  * Navigation de l'équipe IMAFRIK : la tour de contrôle.
  *
- * Trois questions, trois groupes. **Pilotage** : la plateforme tient-elle
- * ses promesses, en ce moment et dans la durée ? **Réseau** : qui est
- * raccordé, qui attend, qui a écrit ? **Plateforme** : ce qui se facture,
- * ce qui tourne, ce qui s'est passé, ce qui se règle.
+ * **Administration**, un seul bloc pour tout ce qui est à l'équipe, en
+ * trois paquets séparés d'un filet, qui répondent à trois questions :
+ * la plateforme tient-elle ses promesses, en ce moment et dans la durée ?
+ * qui est raccordé, qui attend, qui a écrit ? ce qui se facture, ce qui
+ * tourne, ce qui s'est passé, ce qui se règle. Ces outils se suivent :
+ * rien d'autre ne vient s'intercaler entre eux.
  *
- * Un quatrième, **Portails**, ouvre en consultation les écrans des
- * radiologues sur toute la plateforme : la file à lire, les
- * comptes-rendus, les modèles. IMAFRIK supervise son service comme ses
- * utilisateurs le vivent ; les gestes médicaux (prise en charge,
- * rédaction, signature) restent aux radiologues.
+ * Puis la **vue des radiologues**, repliée : elle ouvre en consultation
+ * leurs écrans sur toute la plateforme (la file à lire, les
+ * comptes-rendus, les modèles, la formation). IMAFRIK supervise son
+ * service comme ses utilisateurs le vivent, de temps en temps ; les
+ * gestes médicaux (prise en charge, rédaction, signature) restent aux
+ * radiologues.
  */
 const ADMIN_NAV: NavGroup[] = [
   {
+    key: "administration",
     items: [
       { href: "/admin", key: "cockpit", icon: "cockpit", exact: true },
       { href: "/admin/activite", key: "analytics", icon: "analytics" },
@@ -179,7 +227,7 @@ const ADMIN_NAV: NavGroup[] = [
     ],
   },
   {
-    key: "network",
+    continues: true,
     items: [
       {
         href: "/admin/organisations",
@@ -193,7 +241,17 @@ const ADMIN_NAV: NavGroup[] = [
     ],
   },
   {
-    key: "portals",
+    continues: true,
+    items: [
+      { href: "/admin/facturation", key: "billing", icon: "billing" },
+      { href: "/admin/systeme", key: "system", icon: "system" },
+      { href: "/admin/audit", key: "audit", icon: "audit" },
+      { href: "/admin/reglages", key: "controls", icon: "controls" },
+    ],
+  },
+  {
+    key: "radiologistView",
+    collapsible: true,
     items: [
       { href: "/worklist", key: "worklist", icon: "worklist" },
       { href: "/comptes-rendus", key: "reports", icon: "reports" },
@@ -201,15 +259,6 @@ const ADMIN_NAV: NavGroup[] = [
       // L'équipe prévisualise aussi les cas en relecture, pour les faire
       // relire avant publication.
       { href: "/formation", key: "training", icon: "training" },
-    ],
-  },
-  {
-    key: "platform",
-    items: [
-      { href: "/admin/facturation", key: "billing", icon: "billing" },
-      { href: "/admin/systeme", key: "system", icon: "system" },
-      { href: "/admin/audit", key: "audit", icon: "audit" },
-      { href: "/admin/reglages", key: "controls", icon: "controls" },
     ],
   },
   {
