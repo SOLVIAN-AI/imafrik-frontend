@@ -295,6 +295,7 @@ export const gateways = {
     cycleSummary: (added: number, removed: number) =>
       `${added} ajouté${added > 1 ? "s" : ""}, ${removed} retiré${removed > 1 ? "s" : ""}`,
     restarted: "Orthanc rechargé",
+    repeatedSince: (count: number) => `${count} fois de suite depuis le`,
   },
 
   /** Kit d'installation des passerelles. */

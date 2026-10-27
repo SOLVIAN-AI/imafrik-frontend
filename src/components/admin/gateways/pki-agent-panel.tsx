@@ -3,6 +3,7 @@ import Link from "next/link";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { DateTime } from "@/components/domain/date-time";
 import type { PkiAgent } from "@/lib/data/gateways";
+import { groupCycles } from "@/lib/gateways";
 import { cn } from "@/lib/utils";
 import type { AppMessages } from "@/i18n";
 
@@ -118,7 +119,7 @@ export function PkiAgentPanel({
           <p className="mt-1 text-tertiary">{text.noCycles}</p>
         ) : (
           <ol className="mt-1.5 flex flex-col gap-1.5">
-            {agent.cycles.map((cycle) => (
+            {groupCycles(agent.cycles).map((cycle) => (
               <li
                 key={cycle.reportedAt.toISOString()}
                 className="flex flex-wrap items-baseline gap-x-2"
@@ -145,6 +146,12 @@ export function PkiAgentPanel({
                 {cycle.restarted && (
                   <span className="text-2xs text-tertiary">
                     {text.restarted}
+                  </span>
+                )}
+                {cycle.count > 1 && (
+                  <span className="text-2xs text-tertiary">
+                    {text.repeatedSince(cycle.count)}{" "}
+                    <DateTime date={cycle.firstAt} className="tabular-nums" />
                   </span>
                 )}
                 {cycle.error && (

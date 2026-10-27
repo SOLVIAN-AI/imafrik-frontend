@@ -120,12 +120,17 @@ export default async function GatewaysPage({
         </Section>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <Section
-            title={text.agent.title}
-            description={text.agent.description}
-          >
-            <PkiAgentPanel agent={overview.agent} t={t} />
-          </Section>
+          {/* Ancre des alertes de la tâche d'hôte (muette ou en échec) :
+              leur lien mène au détail, pas seulement en haut de la page. */}
+          <div id="confiance-pacs" className="scroll-mt-4">
+            <Section
+              title={text.agent.title}
+              description={text.agent.description}
+              className="h-full"
+            >
+              <PkiAgentPanel agent={overview.agent} t={t} />
+            </Section>
+          </div>
           <Section title={text.kit.title} description={text.kit.description}>
             <KitPanel
               demo={isDemoMode()}
