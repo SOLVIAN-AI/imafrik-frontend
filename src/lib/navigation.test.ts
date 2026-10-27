@@ -6,6 +6,7 @@ import {
   isActive,
   isPublicRoute,
   isRouteAllowed,
+  navigationBlocks,
   navigationFor,
 } from "@/lib/navigation";
 
@@ -145,5 +146,72 @@ describe("tour de contrôle", () => {
       );
       expect(active.map((entry) => entry.href)).toEqual([item.href]);
     }
+  });
+});
+
+describe("blocs de la barre latérale", () => {
+  it("garde tous les outils de l’équipe dans un seul bloc, sans rien entre eux", () => {
+    const blocks = navigationBlocks(navigationFor("platform_admin"));
+    expect(blocks.map((block) => block.key)).toEqual([
+      "administration",
+      "radiologistView",
+      "account",
+    ]);
+    const administration = blocks[0].sections.flat().map((item) => item.href);
+    expect(administration.every((href) => href.startsWith("/admin"))).toBe(
+      true,
+    );
+    const ailleurs = blocks
+      .slice(1)
+      .flatMap((block) => block.sections.flat())
+      .map((item) => item.href);
+    expect(ailleurs.some((href) => href.startsWith("/admin"))).toBe(false);
+  });
+
+  it("découpe l’administration en trois paquets : pilotage, réseau, plateforme", () => {
+    const [administration] = navigationBlocks(navigationFor("platform_admin"));
+    expect(administration.collapsible).toBe(false);
+    expect(administration.sections.map((items) => items[0].href)).toEqual([
+      "/admin",
+      "/admin/organisations",
+      "/admin/facturation",
+    ]);
+  });
+
+  it("replie la vue des radiologues, en consultation", () => {
+    const vue = navigationBlocks(navigationFor("platform_admin")).find(
+      (block) => block.key === "radiologistView",
+    );
+    expect(vue?.collapsible).toBe(true);
+    expect(vue?.sections.flat().map((item) => item.href)).toEqual([
+      "/worklist",
+      "/comptes-rendus",
+      "/modeles",
+      "/formation",
+    ]);
+  });
+
+  it("ne change rien aux portails sans suite ni repli", () => {
+    for (const role of ["radiologist", "clinic_staff"] as const) {
+      const groups = navigationFor(role);
+      const blocks = navigationBlocks(groups);
+      expect(blocks).toHaveLength(groups.length);
+      expect(blocks.every((block) => !block.collapsible)).toBe(true);
+      expect(blocks.every((block) => block.sections.length === 1)).toBe(true);
+    }
+  });
+
+  it("rattache une suite au bloc précédent, et ouvre un bloc sinon", () => {
+    const item = (href: string) =>
+      ({ href, key: "cockpit", icon: "cockpit" }) as const;
+    expect(
+      navigationBlocks([
+        { items: [item("/a")] },
+        { continues: true, items: [item("/b")] },
+        { key: "account", items: [item("/c")] },
+      ]).map((block) =>
+        block.sections.map((items) => items.map((i) => i.href)),
+      ),
+    ).toEqual([[["/a"], ["/b"]], [["/c"]]]);
   });
 });

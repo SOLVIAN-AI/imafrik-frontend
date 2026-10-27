@@ -15,7 +15,12 @@ test.use({ membership: "m-admin" });
 test("la navigation ouvre les portails en consultation", async ({ page }) => {
   await page.goto("/admin");
   const nav = page.getByRole("navigation", { name: "Navigation principale" });
-  await expect(nav.getByText("Portails", { exact: true })).toBeVisible();
+  // La vue des radiologues est repliée : elle s'ouvre d'un clic sur son titre.
+  const vue = nav.getByRole("button", { name: "Vue des radiologues" });
+  await expect(vue).toHaveAttribute("aria-expanded", "false");
+  await expect(nav.getByRole("link", { name: /À lire/ })).toBeHidden();
+  await vue.click();
+  await expect(vue).toHaveAttribute("aria-expanded", "true");
 
   await nav.getByRole("link", { name: /À lire/ }).click();
   await expect(page).toHaveURL(/\/worklist/);

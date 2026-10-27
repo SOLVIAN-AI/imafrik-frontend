@@ -5,6 +5,7 @@ import {
   BarChart3,
   Building2,
   Check,
+  ChevronDown,
   ChevronsUpDown,
   FileStack,
   FileText,
@@ -48,7 +49,9 @@ import { formatPersonName } from "@/lib/format";
 import { clearLocalData } from "@/lib/local-data";
 import {
   isActive,
+  navigationBlocks,
   navigationFor,
+  type NavBlock,
   type NavCounts,
   type NavItem,
 } from "@/lib/navigation";
@@ -373,6 +376,124 @@ function NavLink({
   );
 }
 
+/** Préfixe des préférences d'ouverture des blocs repliables, suivi du bloc. */
+const FOLD_PREFIX = "imafrik-navigation:";
+
+/** Aucun abonnement : un choix fait dans cet onglet passe par l'état du bloc. */
+const noSubscribe = () => () => {};
+
+/**
+ * Le dernier choix d'ouverture d'un bloc sur cet appareil. Le stockage peut
+ * être refusé (navigation privée, données du site bloquées) : le bloc reste
+ * alors replié par défaut.
+ */
+function readFold(key: string): boolean {
+  try {
+    return window.localStorage.getItem(FOLD_PREFIX + key) === "open";
+  } catch {
+    return false;
+  }
+}
+
+function writeFold(key: string, open: boolean): void {
+  try {
+    window.localStorage.setItem(FOLD_PREFIX + key, open ? "open" : "closed");
+  } catch {
+    // Stockage refusé : le choix vaut pour la page en cours.
+  }
+}
+
+/**
+ * Un bloc de la navigation : son titre, puis ses paquets d'entrées séparés
+ * d'un filet.
+ *
+ * Un bloc repliable s'ouvre de lui-même sur l'une de ses pages, pour qu'on
+ * voie toujours où l'on est ; ailleurs, il suit le dernier choix fait sur
+ * cet appareil. Un clic sur son titre l'emporte, le temps de la page.
+ */
+function NavBlockView({
+  block,
+  counts,
+  pathname,
+}: {
+  block: NavBlock;
+  counts: NavCounts | null;
+  pathname: string;
+}) {
+  const t = useMessages();
+  const listId = React.useId();
+  const remembered = React.useSyncExternalStore(
+    noSubscribe,
+    () => (block.key ? readFold(block.key) : false),
+    () => false,
+  );
+  const [choice, setChoice] = React.useState<{
+    open: boolean;
+    path: string;
+  } | null>(null);
+  const containsActive = block.sections.some((items) =>
+    items.some((item) => isActive(item, pathname)),
+  );
+  const open =
+    !block.collapsible ||
+    (choice?.path === pathname ? choice.open : containsActive || remembered);
+  const title = block.key ? t.nav.groups[block.key] : null;
+
+  const toggle = () => {
+    setChoice({ open: !open, path: pathname });
+    if (block.key) writeFold(block.key, !open);
+  };
+
+  return (
+    <div>
+      {title &&
+        (block.collapsible ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={listId}
+            onClick={toggle}
+            className="label-eyebrow mb-1 flex w-full items-center justify-between rounded-md px-2.5 py-0.5 text-left transition-colors hover:text-secondary"
+          >
+            {title}
+            <ChevronDown
+              className={cn(
+                "size-3 shrink-0 transition-transform duration-150",
+                open && "rotate-180",
+              )}
+              aria-hidden
+            />
+          </button>
+        ) : (
+          <p className="label-eyebrow mb-1 px-2.5">{title}</p>
+        ))}
+      <div id={listId} hidden={!open}>
+        {block.sections.map((items, index) => (
+          <React.Fragment key={items[0]?.href ?? index}>
+            {index > 0 && (
+              <div
+                className="mx-2.5 my-1.5 border-t border-border-subtle"
+                aria-hidden
+              />
+            )}
+            <ul className="flex flex-col gap-0.5">
+              {items.map((item) => (
+                <li key={item.href}>
+                  <NavLink
+                    item={item}
+                    counts={counts}
+                    active={isActive(item, pathname)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /**
  * Navigation latérale.
  *
@@ -419,25 +540,13 @@ export function Sidebar({
       <OrganisationSwitcher />
 
       <div className="mt-4 flex flex-1 flex-col gap-5 overflow-y-auto px-2">
-        {groups.map((group, index) => (
-          <div key={group.key ?? index}>
-            {group.key && (
-              <p className="label-eyebrow mb-1 px-2.5">
-                {t.nav.groups[group.key]}
-              </p>
-            )}
-            <ul className="flex flex-col gap-0.5">
-              {group.items.map((item) => (
-                <li key={item.href}>
-                  <NavLink
-                    item={item}
-                    counts={counts}
-                    active={isActive(item, pathname)}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
+        {navigationBlocks(groups).map((block, index) => (
+          <NavBlockView
+            key={block.key ?? index}
+            block={block}
+            counts={counts}
+            pathname={pathname}
+          />
         ))}
       </div>
 
