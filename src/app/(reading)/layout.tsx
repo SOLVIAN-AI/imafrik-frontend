@@ -1,6 +1,7 @@
 import { HtmlLang } from "@/components/i18n/html-lang";
 import { MaintenanceBanner } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { HelpProvider } from "@/components/help/help-panel";
 import { TourProvider } from "@/components/tour/tour-provider";
 import { InactivityLock } from "@/components/session/inactivity-lock";
 import { getPlatformSettings } from "@/lib/data/control";
@@ -40,20 +41,22 @@ export default async function ReadingLayout({
     <SessionProvider session={session}>
       <HtmlLang lang={session.locale} />
       <TourProvider>
-        {/* `relative` : le cadre rogne aussi les éléments positionnés qu'il
+        <HelpProvider>
+          {/* `relative` : le cadre rogne aussi les éléments positionnés qu'il
           contient, qui sinon agrandiraient le document (voir AppShell). */}
-        <div className="relative flex h-dvh flex-col overflow-hidden bg-surface-base">
-          {/* Écran de lecture compris : c'est là qu'on laisse un examen
+          <div className="relative flex h-dvh flex-col overflow-hidden bg-surface-base">
+            {/* Écran de lecture compris : c'est là qu'on laisse un examen
             ouvert en partant. */}
-          {!session.isDemo && <InactivityLock />}
-          {settings?.maintenanceMessage && (
-            <MaintenanceBanner message={settings.maintenanceMessage} />
-          )}
-          {/* Repère principal de l'écran : la barre du patient et les deux
+            {!session.isDemo && <InactivityLock />}
+            {settings?.maintenanceMessage && (
+              <MaintenanceBanner message={settings.maintenanceMessage} />
+            )}
+            {/* Repère principal de l'écran : la barre du patient et les deux
             volets. Ni navigation ni en-tête à contourner, donc pas de lien
             d'évitement. */}
-          <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-        </div>
+            <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+          </div>
+        </HelpProvider>
       </TourProvider>
     </SessionProvider>
   );

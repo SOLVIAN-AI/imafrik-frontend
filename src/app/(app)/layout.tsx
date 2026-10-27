@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { HtmlLang } from "@/components/i18n/html-lang";
 import { AppShell } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { HelpProvider } from "@/components/help/help-panel";
 import { TourProvider } from "@/components/tour/tour-provider";
 import { getPendingAgreements } from "@/lib/data/agreements";
 import { getPlatformSettings } from "@/lib/data/control";
@@ -75,9 +76,15 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       {/* Visites guidées : la prise en main de chaque écran, à la
           première ouverture. */}
       <TourProvider>
-        <AppShell counts={counts} banner={settings?.maintenanceMessage ?? null}>
-          {children}
-        </AppShell>
+        {/* Aide de l'écran : bouton « ? » ou touche `?`. */}
+        <HelpProvider>
+          <AppShell
+            counts={counts}
+            banner={settings?.maintenanceMessage ?? null}
+          >
+            {children}
+          </AppShell>
+        </HelpProvider>
       </TourProvider>
     </SessionProvider>
   );

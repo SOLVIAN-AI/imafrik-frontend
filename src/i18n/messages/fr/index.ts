@@ -4,6 +4,7 @@ import { clinic } from "@/i18n/messages/fr/clinic";
 import { common } from "@/i18n/messages/fr/common";
 import { credentials } from "@/i18n/messages/fr/credentials";
 import { gateways } from "@/i18n/messages/fr/gateways";
+import { help } from "@/i18n/messages/fr/help";
 import { nav } from "@/i18n/messages/fr/nav";
 import { onboarding } from "@/i18n/messages/fr/onboarding";
 import { reading } from "@/i18n/messages/fr/reading";
@@ -32,6 +33,7 @@ import { worklist } from "@/i18n/messages/fr/worklist";
  * - `tour` : visites guidées, la prise en main écran par écran ;
  * - `admin` : tour de contrôle ;
  * - `gateways` : passerelles des cliniques, dans la tour de contrôle.
+ * - `help` : aide contextuelle de chaque écran et glossaire.
  */
 export const fr = {
   common,
@@ -48,6 +50,7 @@ export const fr = {
   tour,
   admin,
   gateways,
+  help,
 };
 
 /** Forme des textes de l'application : celle du français. */

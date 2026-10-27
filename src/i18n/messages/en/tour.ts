@@ -52,7 +52,7 @@ export const tour: AppMessages["tour"] = {
       },
       help: {
         title: "Need help?",
-        body: "This button replays this tour, opens the training area, or puts you in touch with the IMAFRIK team.",
+        body: "This button, or the “?” key, opens this screen’s help: what it is for, its key steps, its terms, and ways to replay this tour, practise or write to the IMAFRIK team.",
       },
     },
     lecture: {
@@ -112,7 +112,7 @@ export const tour: AppMessages["tour"] = {
       },
       help: {
         title: "Need help?",
-        body: "This button replays this tour, or puts you in touch with the IMAFRIK team.",
+        body: "This button, or the “?” key, opens this screen’s help: what it is for, its key steps, its terms, and ways to replay this tour or write to the IMAFRIK team.",
       },
     },
     "equipe-cockpit": {
@@ -138,7 +138,7 @@ export const tour: AppMessages["tour"] = {
       },
       help: {
         title: "Need help?",
-        body: "This button replays this tour at any time, and opens the training area.",
+        body: "This button, or the “?” key, opens this screen’s help: what it is for, its key steps, its terms, and ways to replay this tour or open the training area.",
       },
     },
   },

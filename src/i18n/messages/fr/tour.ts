@@ -53,7 +53,7 @@ export const tour = {
       },
       help: {
         title: "Besoin d’aide ?",
-        body: "Ce bouton relance cette visite, ouvre la formation, ou vous met en contact avec l’équipe IMAFRIK.",
+        body: "Ce bouton, ou la touche « ? », ouvre l’aide de l’écran : à quoi il sert, ses gestes clés, ses termes, et de quoi revoir cette visite, vous exercer ou écrire à l’équipe IMAFRIK.",
       },
     },
     lecture: {
@@ -113,7 +113,7 @@ export const tour = {
       },
       help: {
         title: "Besoin d’aide ?",
-        body: "Ce bouton relance cette visite, ou vous met en contact avec l’équipe IMAFRIK.",
+        body: "Ce bouton, ou la touche « ? », ouvre l’aide de l’écran : à quoi il sert, ses gestes clés, ses termes, et de quoi revoir cette visite ou écrire à l’équipe IMAFRIK.",
       },
     },
     "equipe-cockpit": {
@@ -139,7 +139,7 @@ export const tour = {
       },
       help: {
         title: "Besoin d’aide ?",
-        body: "Ce bouton relance cette visite à tout moment, et ouvre la formation.",
+        body: "Ce bouton, ou la touche « ? », ouvre l’aide de l’écran : à quoi il sert, ses gestes clés, ses termes, et de quoi revoir cette visite ou ouvrir la formation.",
       },
     },
   },
