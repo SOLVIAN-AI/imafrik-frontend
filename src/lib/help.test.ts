@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import { en } from "@/i18n/messages/en";
 import { fr } from "@/i18n/messages/fr";
 import {
+  type HelpGuide,
   type HelpPage,
+  guidesOf,
   helpRoleOf,
   helpScreenFor,
   helpScreensOf,
@@ -173,5 +175,66 @@ describe("recherche dans l’aide", () => {
 
   it("ne cherche rien en dessous de deux lettres", () => {
     expect(searchHelp("a", pages, glossary)).toEqual([]);
+  });
+});
+
+describe("guides pas à pas", () => {
+  const guidesFr = fr.help.guides as Record<string, HelpGuide>;
+  const guidesEn = en.help.guides as Record<string, HelpGuide>;
+
+  it("existe pour chaque guide cité par un écran, dans les deux langues", () => {
+    for (const role of ROLES) {
+      for (const page of Object.values(pagesOf(fr, role))) {
+        for (const key of page.guides ?? []) {
+          expect(guidesFr, key).toHaveProperty(key);
+          expect(guidesEn, key).toHaveProperty(key);
+        }
+      }
+    }
+  });
+
+  it("a les mêmes sections et le même nombre d’étapes en fr et en en", () => {
+    for (const [key, guide] of Object.entries(guidesFr)) {
+      expect(
+        guidesEn[key].sections.map((section) => section.steps.length),
+        key,
+      ).toEqual(guide.sections.map((section) => section.steps.length));
+    }
+  });
+
+  it("garde des étapes courtes, en sections de huit au plus", () => {
+    for (const guides of [guidesFr, guidesEn]) {
+      for (const guide of Object.values(guides)) {
+        expect(guide.intro.length).toBeLessThanOrEqual(320);
+        for (const section of guide.sections) {
+          expect(section.steps.length).toBeGreaterThanOrEqual(1);
+          expect(section.steps.length).toBeLessThanOrEqual(8);
+          for (const step of section.steps)
+            expect(step.length).toBeLessThanOrEqual(230);
+        }
+      }
+    }
+  });
+
+  it("n’apparaît qu’aux rôles qui ont un écran qui y mène", () => {
+    expect(
+      Object.keys(guidesOf(pagesOf(fr, "platform_admin"), guidesFr)),
+    ).toContain("onboardClinic");
+    expect(
+      Object.keys(guidesOf(pagesOf(fr, "clinic_staff"), guidesFr)),
+    ).toEqual([]);
+  });
+
+  it("se trouve par la recherche", () => {
+    const admin = pagesOf(fr, "platform_admin");
+    const results = searchHelp(
+      "certutil",
+      admin,
+      fr.help.glossary,
+      guidesOf(admin, guidesFr),
+    );
+    expect(results.map((result) => `${result.kind}:${result.key}`)).toContain(
+      "guide:onboardClinic",
+    );
   });
 });

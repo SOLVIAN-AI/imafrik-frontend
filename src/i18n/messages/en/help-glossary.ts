@@ -112,6 +112,11 @@ export const glossary: typeof fr = {
     definition:
       "A second check at sign-in: a six-digit code shown by an authenticator app on your phone. Required for every account.",
   },
+  empreinte: {
+    term: "Fingerprint",
+    definition:
+      "A 64-character string calculated from a file (SHA-256): changing a single byte changes it entirely. Comparing the kit’s fingerprint on the workstation with the one in the control tower proves it is intact.",
+  },
   engagement: {
     term: "Agreements",
     definition:

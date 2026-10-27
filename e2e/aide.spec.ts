@@ -89,3 +89,31 @@ test.describe("équipe IMAFRIK, en anglais", () => {
     await expect(aide.getByText("Key steps")).toBeVisible();
   });
 });
+
+test.describe("équipe IMAFRIK, guide de raccordement", () => {
+  test.use({ membership: "m-admin", langue: "fr" });
+
+  test("le guide se lit depuis l’aide des passerelles, étape par étape", async ({
+    page,
+  }) => {
+    await page.goto("/admin/passerelles");
+    await page.keyboard.press("?");
+    const aide = page.getByRole("dialog", { name: "Aide" });
+    // L'écran Passerelles dit comment vérifier le kit.
+    await expect(aide.getByText(/certutil -hashfile/)).toBeVisible();
+    await aide
+      .getByRole("button", { name: "Guide : Raccorder une nouvelle clinique" })
+      .click();
+    await expect(
+      aide.getByRole("heading", { name: "Raccorder une nouvelle clinique" }),
+    ).toBeVisible();
+    await expect(
+      aide.getByText("Installer la passerelle, en ligne avec la clinique"),
+    ).toBeVisible();
+    await expect(aide.getByText(/Émettre un code/).first()).toBeVisible();
+    await aide
+      .getByRole("button", { name: "Revenir à l’aide de cet écran" })
+      .click();
+    await expect(aide.getByText("Gestes clés")).toBeVisible();
+  });
+});
