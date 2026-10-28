@@ -17,10 +17,11 @@ import { ouvrirSession } from "./support/session";
  * base, attribution par l'API, réservation lue par le radiologue.
  *
  * 1. L'équipe ouvre la fenêtre d'attribution depuis la liste des examens,
- *    et y trouve le libéral parmi les radiologues qui verraient l'examen.
+ *    et y trouve le libéral parmi les radiologues qui peuvent le recevoir.
  * 2. L'attribution réserve l'examen : statut, titulaire, auteur et instant
  *    en base, trace au journal.
- * 3. Le libéral le trouve dans « Mes examens » et le prend en charge.
+ * 3. Le libéral le trouve dans « Attribués à vous », l'ouvre et le prend
+ *    en charge.
  */
 
 test.use({ langue: "fr" });
@@ -48,10 +49,10 @@ test("un examen attribué par l’équipe est réservé au libéral, qui le pren
     const dialogue = page.getByRole("dialog", { name: "Attribuer l’examen" });
     await expect(dialogue).toBeVisible();
     await expect(
-      dialogue.getByText("Personne : l’examen est dans la file commune."),
+      dialogue.getByText("Personne : l’examen attend une attribution."),
     ).toBeVisible();
     const choix = dialogue.getByRole("radio", {
-      name: /Dr Kossi Agbeko.*Libéral · IMAFRIK Radiologie/,
+      name: /Dr Kossi Agbeko.*Réseau IMAFRIK · IMAFRIK Radiologie/,
     });
     await choix.check();
     await dialogue
@@ -82,13 +83,16 @@ test("un examen attribué par l’équipe est réservé au libéral, qui le pren
     ),
   ).toBe("1");
 
-  await test.step("le libéral le trouve dans « Mes examens » et le prend en charge", async () => {
+  await test.step("le libéral le trouve dans « Attribués à vous » et le prend en charge", async () => {
     const contexte = await browser.newContext({
       baseURL: testInfo.project.use.baseURL,
     });
     const lecteur = await contexte.newPage();
     await ouvrirSession(lecteur, liberal);
-    await lecteur.goto("/mes-examens");
+    await lecteur.goto("/worklist");
+    await expect(
+      lecteur.getByRole("table").getByText("Attribués à vous", { exact: true }),
+    ).toBeVisible();
     const ligne = lecteur
       .locator("table a[data-row-link]")
       .filter({ hasText: examen.displayName });

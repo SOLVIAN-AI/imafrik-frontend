@@ -17,12 +17,14 @@ import { ouvrirSession } from "./support/session";
  *
  * 1. L'examen arrive par le webhook d'ingestion de l'API, avec le secret
  *    partagé, comme l'enverrait le script Lua d'Orthanc.
- * 2. Le radiologue (second facteur réel) le trouve dans sa file, le prend
+ * 2. Le responsable de la clinique l'attribue à son radiologue, depuis
+ *    la vue « À attribuer » : avant, aucun radiologue ne le voit.
+ * 3. Le radiologue (second facteur réel) le trouve dans sa file, le prend
  *    en charge, rédige et signe : l'API rend le PDF avec WeasyPrint (Pango
  *    et Cairo de l'image de production) et le dépose sur le stockage
  *    compatible S3 de la pile, qui tient lieu de R2.
- * 3. La clinique télécharge le PDF signé.
- * 4. La page publique de vérification reconnaît le code du QR code, et
+ * 4. La clinique télécharge le PDF signé.
+ * 5. La page publique de vérification reconnaît le code du QR code, et
  *    l'empreinte du fichier téléchargé.
  */
 
@@ -35,8 +37,9 @@ test("un examen ingéré est lu, signé, téléchargé par la clinique et vérif
   page,
   browser,
 }, testInfo) => {
+  // Le radiologue de la clinique : c'est elle qui lui attribue l'examen.
   const radiologue = await creerCompte("lecteur", "Komla Adjovi");
-  rattacher(radiologue, ORGANISATIONS.groupe, "radiologist");
+  rattacher(radiologue, ORGANISATIONS.clinique, "radiologist");
   const licence = habiliterRadiologue(radiologue);
   const clinicien = await creerCompte("clinicien", "Mawuli Dossou");
   rattacher(clinicien, ORGANISATIONS.clinique, "clinic_staff");
@@ -44,9 +47,45 @@ test("un examen ingéré est lu, signé, téléchargé par la clinique et vérif
   const examen = await test.step("ingestion par le webhook", () =>
     ingererExamen(ORGANISATIONS.clinique));
 
+  await test.step("la clinique attribue l’examen à son radiologue", async () => {
+    const contexte = await browser.newContext({
+      baseURL: testInfo.project.use.baseURL,
+    });
+    const clinique = await contexte.newPage();
+    await ouvrirSession(clinique, clinicien);
+    await clinique.goto("/examens?vue=a-attribuer");
+    await clinique
+      .getByRole("button", {
+        name: `Attribuer l’examen de ${examen.displayName}`,
+      })
+      .first()
+      .click();
+    const dialogue = clinique.getByRole("dialog", {
+      name: "Attribuer l’examen",
+    });
+    await expect(
+      dialogue.getByText("Personne : l’examen attend une attribution."),
+    ).toBeVisible();
+    await dialogue
+      .getByRole("radio", {
+        name: /Dr Komla Adjovi.*Radiologue de la clinique/,
+      })
+      .check();
+    await dialogue
+      .getByRole("button", { name: "Attribuer", exact: true })
+      .click();
+    await expect(
+      clinique.getByText(/^Examen attribué à Dr Komla Adjovi\./),
+    ).toBeVisible();
+    await contexte.close();
+  });
+
   await test.step("le radiologue trouve l’examen dans sa file", async () => {
     await ouvrirSession(page, radiologue);
     await expect(page).toHaveURL("/worklist");
+    await expect(
+      page.getByRole("table").getByText("Attribués à vous", { exact: true }),
+    ).toBeVisible();
     const ligne = page
       .locator("table a[data-row-link]")
       .filter({ hasText: examen.displayName });

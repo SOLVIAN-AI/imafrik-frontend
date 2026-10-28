@@ -44,6 +44,7 @@ import {
   SaveAsTemplate,
   TemplatePicker,
 } from "@/components/editor/template-tools";
+import { PriorsPanel } from "@/components/editor/priors-panel";
 import { ViewerPane } from "@/components/editor/viewer-pane";
 import { VoidReportButton } from "@/components/admin/void-report-button";
 import {
@@ -154,7 +155,7 @@ function usePersistedLayout() {
  * charge — le service le revérifie de toute façon à chaque écriture.
  *
  * - `author` — le radiologue a pris l'examen en charge : il rédige,
- *   signe, ou rend l'examen au pool. `backupKey` chiffre la copie de
+ *   signe, ou rend l'examen. `backupKey` chiffre la copie de
  *   secours locale de son brouillon (`lib/editor/backup-key.ts`) ;
  *   `null`, aucune copie n'est écrite.
  * - `claimable` — un radiologue voit un examen libre : un bouton le prend
@@ -196,7 +197,11 @@ export type WorkspaceMode =
       version: number;
       backupKey: string | null;
     }
-  | { kind: "claimable" }
+  | {
+      kind: "claimable";
+      /** Urgence de la liste d'urgence, sans attribution : la première prise l'obtient. */
+      urgent?: boolean;
+    }
   | {
       kind: "readonly";
       notice?: string;
@@ -445,6 +450,7 @@ function ReportWorkspace({
   signerName,
   templates = [],
   nextStudyId = null,
+  priors = [],
   aiReview: aiReviewOffered = false,
   adapter,
   signing,
@@ -457,6 +463,8 @@ function ReportWorkspace({
   signerName: string;
   templates?: ReportTemplate[];
   nextStudyId?: string | null;
+  /** Antériorités partagées avec le radiologue pour cet examen. */
+  priors?: readonly Study[];
   /** La relecture par IA est offerte à cet utilisateur (décidé par le service). */
   aiReview?: boolean;
   /** Autre usage de l'écran : voir {@link WorkspaceAdapter}. */
@@ -822,7 +830,9 @@ function ReportWorkspace({
       )}
       {mode.kind === "readonly" && mode.live && <LiveRefresh />}
       {!signed && mode.kind === "claimable" && (
-        <Banner tone="neutral">{labels.claimBanner}</Banner>
+        <Banner tone="neutral">
+          {mode.urgent ? labels.urgentClaimBanner : labels.claimBanner}
+        </Banner>
       )}
       {!signed && author && state === "conflict" && (
         <ConflictBanner
@@ -842,6 +852,7 @@ function ReportWorkspace({
             : undefined
         }
       />
+      <PriorsPanel priors={priors} />
       {adapter?.brief}
       {mode.kind === "readonly" && mode.awaitingReport && !signed ? (
         <AwaitingReport />

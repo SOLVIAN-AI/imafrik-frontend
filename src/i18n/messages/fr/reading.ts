@@ -16,6 +16,12 @@ export const reading = {
     loading: "Ouverture de l’examen",
     claimedBy: (name: string) => `Examen pris en charge par ${name}.`,
     claimedByOther: "Examen pris en charge par un autre radiologue.",
+    /** Radiologue : antériorité partagée avec lui, ou examen qu'il a rendu. */
+    priorReadonly:
+      "Antériorité partagée avec vous : en lecture seule, images et compte-rendu signé.",
+    /** Radiologue : compte-rendu signé dont il n'est pas l'auteur. */
+    notAuthor:
+      "Compte-rendu signé par un confrère : seul son auteur peut y ajouter un addendum.",
     /** Équipe IMAFRIK : le brouillon en cours, en consultation. */
     adminDraft: (author: string, savedAt: string) =>
       `Brouillon non signé de ${author}, enregistré le ${savedAt}. La clinique ne le voit pas encore ; cet écran suit la rédaction.`,
@@ -60,15 +66,26 @@ export const reading = {
     signedToast: "Compte-rendu signé et transmis à la clinique.",
     nextStudy: "Examen suivant",
     releaseConfirm:
-      "Rendre cet examen au pool ? Le brouillon commencé sera effacé.",
-    release: "Rendre au pool",
+      "Rendre cet examen ? Il redeviendra « à attribuer », le brouillon commencé sera effacé et la clinique prévenue.",
+    release: "Rendre l’examen",
     sign: "Signer",
     claim: "Prendre en charge",
     signedBanner:
       "Compte-rendu signé et transmis : il n’est plus modifiable. Une correction se fait par un addendum, daté et signé.",
     correct: "Corriger par un addendum",
     claimBanner:
-      "Prenez l’examen en charge pour commencer le compte-rendu. Il vous sera réservé jusqu’à la signature, ou jusqu’à ce que vous le rendiez au pool.",
+      "Prenez l’examen en charge pour commencer le compte-rendu. Il vous est réservé jusqu’à la signature, ou jusqu’à ce que vous le rendiez.",
+    urgentClaimBanner:
+      "Urgence de votre liste d’urgence : prenez-la en charge pour commencer le compte-rendu. La première prise vous revient.",
+    priors: {
+      title: (count: number) =>
+        count > 1
+          ? `${count} antériorités partagées`
+          : "1 antériorité partagée",
+      signedReport: "Compte-rendu signé",
+      noReport: "Sans compte-rendu signé",
+      open: "Ouvrir l’antériorité dans un nouvel onglet",
+    },
     clinicalInfo: "Renseignement clinique",
     copyToIndication: "Recopier dans l’indication clinique",
     indication: "Indication",
@@ -488,7 +505,7 @@ export const reading = {
   },
   /** Messages des actions serveur du circuit de lecture. */
   actions: {
-    releaseDemoAction: "Le retour d’un examen au pool",
+    releaseDemoAction: "Rendre un examen",
     signDemoAction: "La signature",
     pdfDemoAction: "Le téléchargement du PDF",
     addendumDemoAction: "L’ajout d’un addendum",

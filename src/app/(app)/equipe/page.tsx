@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { Siren } from "lucide-react";
 
+import { ReadingDialog } from "@/components/domain/reading-dialog";
 import {
   InviteMemberButton,
   MemberActions,
 } from "@/components/domain/team-actions";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { listMembers } from "@/lib/data/organization";
+import { describeModalities } from "@/lib/modalities";
 import { formatDate, formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
@@ -35,6 +38,11 @@ function initials(name: string): string {
  *
  * La liste vient du service, qui revérifie en base que l'utilisateur est
  * toujours membre avant de la lui montrer.
+ *
+ * Pour chaque radiologue de la clinique, le responsable règle les
+ * modalités qu'il lit (elles bornent ce qu'on peut lui attribuer) et sa
+ * place sur la liste d'urgence (il peut alors prendre une urgence sans
+ * attribution).
  */
 export default async function TeamPage() {
   const session = await requireSession(["clinic_staff"]);
@@ -81,6 +89,22 @@ export default async function TeamPage() {
                   <p className="truncate text-2xs text-tertiary">
                     {member.email ?? "—"}
                   </p>
+                  {member.role === "radiologist" && (
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-2xs text-secondary">
+                      <span className="truncate">
+                        {describeModalities(
+                          member.readModalities,
+                          t.assignment.modalities,
+                        )}
+                      </span>
+                      {member.urgentReader && (
+                        <span className="inline-flex items-center gap-1 font-medium text-urgent">
+                          <Siren className="size-3" aria-hidden />
+                          {t.assignment.reading.urgentBadge}
+                        </span>
+                      )}
+                    </p>
+                  )}
                   {/* Téléphone : rôle et date passent sous le nom, qui
                       sinon se réduisait à son initiale. */}
                   <p className="mt-0.5 truncate text-2xs text-tertiary sm:hidden">
@@ -97,6 +121,15 @@ export default async function TeamPage() {
                 <span className="hidden w-36 shrink-0 text-right text-2xs text-tertiary md:inline">
                   {messages.since(formatDate(member.joinedAt, locale))}
                 </span>
+
+                {member.role === "radiologist" && (
+                  <ReadingDialog
+                    membershipId={member.membershipId}
+                    name={formatPersonName(member.title, member.fullName)}
+                    readModalities={member.readModalities}
+                    urgentReader={member.urgentReader}
+                  />
+                )}
 
                 <div className="w-8 shrink-0">
                   {!member.isMe && (

@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 
 import type { StudyStatus } from "@/components/domain/study-status";
 import { ApiError, apiFetch, apiGet } from "@/lib/api/client";
+import { z } from "zod";
+
 import {
   studyPageSchema,
   studySchema,
@@ -232,11 +234,11 @@ export async function listStudyPageAt(
 /**
  * Prochain examen à lire, dans l'ordre de la file.
  *
- * Le service ordonne : les examens en attente de prise en charge, par
- * échéance (`order=deadline`), retards en tête. C'est l'ordre exact de la
- * file « À lire », quel que soit le nombre d'examens en attente ; l'écran
- * le recalculait auparavant sur les deux cents plus récents, dans un autre
- * ordre.
+ * Le service ordonne : les examens pas encore commencés, par échéance
+ * (`order=deadline`), retards en tête. Pour un radiologue, ce sont ceux
+ * qui lui sont attribués (`assigned`) et les urgences de sa liste
+ * d'urgence (`received`, les seules qu'il voie sans attribution) : l'ordre
+ * exact de la file « À lire ».
  *
  * @param currentId Examen ouvert, à ne pas proposer.
  * @returns L'identifiant du suivant, ou `null` s'il n'y en a pas.
@@ -246,11 +248,50 @@ export async function findNextStudyId(
 ): Promise<string | null> {
   // Deux lignes : l'examen ouvert peut être lui-même le premier de la file.
   const { studies } = await listStudyPage({
-    status: ["received"],
+    status: ["received", "assigned"],
     order: "deadline",
     limit: 2,
   });
   return studies.find((study) => study.id !== currentId)?.id ?? null;
+}
+
+/**
+ * Antériorités partagées avec le radiologue pour l'examen qu'il lit.
+ *
+ * Par défaut, un radiologue ne voit aucun autre examen du patient : le
+ * responsable de la clinique, ou l'équipe IMAFRIK, choisit ceux qu'il lui
+ * partage. Chacun s'ouvre en lecture seule, avec son compte-rendu signé.
+ *
+ * @param studyId Examen lu.
+ * @returns Les antériorités, les plus récentes d'abord ; vide si aucune,
+ *          ou si l'utilisateur n'est pas radiologue.
+ */
+export async function listPriors(studyId: string): Promise<Study[]> {
+  if (isDemoMode()) return demoPriors(studyId);
+  const session = await getSession();
+  if (session?.active?.role !== "radiologist") return [];
+  const rows = await apiGet(
+    `/studies/${encodeURIComponent(studyId)}/priors`,
+    z.array(studySchema),
+    { notFoundAsNull: true },
+  );
+  return (rows ?? []).map(toStudy);
+}
+
+/**
+ * Antériorités de démonstration : les examens rendus du même patient,
+ * comme si le responsable les avait partagées.
+ */
+function demoPriors(studyId: string): Study[] {
+  const study = DEMO_STUDIES.find((candidate) => candidate.id === studyId);
+  if (!study?.patientId) return [];
+  return DEMO_STUDIES.filter(
+    (other) =>
+      other.id !== study.id &&
+      other.clinicId === study.clinicId &&
+      other.patientId === study.patientId &&
+      (other.status === "reported" || other.status === "delivered"),
+  ).sort((a, b) => b.receivedAt.getTime() - a.receivedAt.getTime());
 }
 
 /** Taille de page maximale acceptée par le service. */
@@ -279,16 +320,30 @@ export async function getStudy(id: string): Promise<Study | null> {
 }
 
 /**
- * Restreint le jeu de démonstration à ce que verrait l'organisation
- * active — **simule les politiques RLS**, et rien de plus. Sans cette
+ * Restreint le jeu de démonstration à ce que verrait l'utilisateur actif
+ * — **simule les politiques RLS**, et rien de plus. Sans cette
  * restriction, la démonstration montrerait à une clinique les patients
- * d'une autre, ce qui donnerait une idée fausse des garanties.
+ * d'une autre, ou à un radiologue les examens d'un confrère, ce qui
+ * donnerait une idée fausse des garanties.
+ *
+ * Le radiologue de démonstration voit ce qui lui est attribué, ce qu'il a
+ * signé, et les urgences sans titulaire, comme s'il était sur la liste
+ * d'urgence des deux établissements.
  */
 async function demoScope(): Promise<Study[]> {
   const session = await getSession();
-  if (session?.active?.organizationKind !== "clinic") return DEMO_STUDIES;
+  if (session?.active?.organizationKind === "clinic") {
+    return DEMO_STUDIES.filter(
+      (study) => study.clinic === session.active?.organizationName,
+    );
+  }
+  if (session?.active?.role !== "radiologist") return DEMO_STUDIES;
   return DEMO_STUDIES.filter(
-    (study) => study.clinic === session.active?.organizationName,
+    (study) =>
+      study.assignedTo === DEMO_USER_ID ||
+      (study.assignedTo === null &&
+        study.urgent &&
+        study.status === "received"),
   );
 }
 

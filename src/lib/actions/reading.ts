@@ -49,8 +49,10 @@ export interface ClaimedStudy {
  * Prend un examen en charge et ouvre son brouillon.
  *
  * Les deux gestes sont liés : prendre un examen, c'est s'apprêter à le
- * rédiger. Le service refuse si un autre radiologue a été plus rapide —
- * deux personnes ne peuvent pas rédiger le même compte-rendu.
+ * rédiger. Le service ne l'accepte que pour un examen attribué au
+ * radiologue, ou une urgence de sa liste d'urgence ; il refuse si un
+ * confrère a pris l'urgence le premier : deux personnes ne peuvent pas
+ * rédiger le même compte-rendu.
  *
  * Idempotent pour celui qui l'a déjà pris : rouvrir son propre examen
  * renvoie le même brouillon.
@@ -85,10 +87,12 @@ export async function claimStudy(
 }
 
 /**
- * Rend un examen au pool.
+ * Rend un examen avant de l'avoir signé : il redevient « à attribuer ».
  *
  * Le brouillon commencé est effacé avec lui : sinon le radiologue
- * suivant ne pourrait ni le reprendre ni en ouvrir un autre.
+ * suivant ne pourrait ni le reprendre ni en ouvrir un autre. Le
+ * radiologue ne le voit plus ; la clinique (et l'équipe IMAFRIK qui l'avait
+ * attribué) en est prévenue par le service.
  */
 export async function releaseStudy(studyId: string): Promise<ActionResult> {
   if (isDemoMode()) {

@@ -11,20 +11,20 @@ export const pages = {
     worklist: {
       title: "À lire",
       purpose:
-        "La file de travail de votre groupe : les examens qui restent à lire, classés par échéance. Vous y voyez ce que vous avez pris en charge, ce qui est libre et ce qu’un confrère lit déjà.",
+        "Les examens qu’on vous confie, classés par échéance : ceux qui vous sont attribués et, si vous êtes sur la liste d’urgence d’une clinique, les urgences à prendre. Vous ne voyez ni les examens des autres radiologues, ni leurs comptes-rendus.",
       steps: [
-        "Regardez les indicateurs : « À prendre », « Urgences libres », « En retard » et « Prochaine échéance ».",
+        "Regardez les indicateurs : « Attribués à vous », « Urgences à prendre », « En retard » et « Prochaine échéance ».",
         "Filtrez par modalité ou par clinique, cliquez sur « Urgences seulement », ou cherchez un patient.",
-        "Terminez d’abord la section « Pris en charge par vous », puis prenez dans « À prendre », classée par échéance.",
+        "Lisez d’abord « Attribués à vous », par échéance. Une urgence de « Urgences à prendre » revient au premier radiologue qui la prend.",
         "Cliquez sur une ligne (ou J, K puis Entrée) pour ouvrir l’examen, puis sur « Prendre en charge » dans l’écran de lecture.",
-        "Laissez la page ouverte : la file se met à jour toute seule toutes les 30 secondes et signale chaque nouvelle urgence.",
+        "Laissez la page ouverte : la file se met à jour toute seule toutes les 30 secondes et signale chaque nouvelle urgence à prendre.",
       ],
       terms: [
-        "examen",
+        "attribution",
+        "listeUrgence",
         "urgence",
         "delaiPromis",
         "priseEnCharge",
-        "renseignementClinique",
       ],
     },
     myStudies: {
@@ -35,7 +35,7 @@ export const pages = {
         "Repérez les examens les plus pressés : la colonne « Échéance » indique le temps restant, les plus proches en tête.",
         "Cliquez sur une ligne pour rouvrir l’examen dans l’écran de lecture et reprendre son compte-rendu.",
         "Signez le compte-rendu : l’examen quitte cette liste et rejoint vos « Comptes-rendus ».",
-        "Si la liste est vide, prenez un examen en charge depuis la file « À lire ».",
+        "Si la liste est vide, ouvrez un examen qui vous est attribué, depuis la file « À lire », pour le prendre en charge.",
       ],
       terms: ["examen", "priseEnCharge", "delaiPromis", "signature"],
     },
@@ -125,8 +125,8 @@ export const pages = {
       purpose:
         "L’écran où vous lisez un examen et rédigez son compte-rendu : les images dans le viewer à gauche, le compte-rendu à droite. Une fois signé, le compte-rendu part à la clinique et n’est plus modifiable.",
       steps: [
-        "Lisez le « Renseignement clinique », puis parcourez les images dans le viewer ; « Plein écran » les agrandit.",
-        "Cliquez sur « Prendre en charge » : l’examen vous est réservé jusqu’à la signature, ou jusqu’à « Rendre au pool », qui efface le brouillon.",
+        "Lisez le « Renseignement clinique » et parcourez les images ; une antériorité partagée s’ouvre en lecture seule, dans un nouvel onglet.",
+        "Cliquez sur « Prendre en charge » : l’examen vous est réservé jusqu’à la signature, ou jusqu’à « Rendre l’examen », qui efface le brouillon et prévient la clinique.",
         "Rédigez les sections, avec « Modèle » pour remplir celles encore vides ; le texte s’enregistre automatiquement.",
         "Cliquez sur « Signer », vérifiez les points signalés, saisissez votre code personnel, puis cliquez sur « Signer et transmettre ».",
         "Cliquez sur « Examen suivant » pour enchaîner ; pour corriger un compte-rendu signé, cliquez sur « Corriger par un addendum ».",
@@ -135,7 +135,7 @@ export const pages = {
         "viewer",
         "renseignementClinique",
         "priseEnCharge",
-        "pool",
+        "anteriorite",
         "codePersonnel",
       ],
     },
@@ -146,7 +146,7 @@ export const pages = {
       purpose:
         "Le point de départ de votre clinique : les comptes-rendus signés à télécharger, vos derniers examens envoyés et l’activité des 30 derniers jours.",
       steps: [
-        "Lisez les quatre indicateurs : examens envoyés, en cours de lecture, comptes-rendus prêts et délai médian sur 30 jours.",
+        "Lisez les quatre indicateurs : examens à attribuer, en cours de lecture, comptes-rendus prêts et délai médian sur 30 jours. Un examen « À attribuer » n’est vu d’aucun radiologue.",
         "Dans « Comptes-rendus à télécharger », cliquez sur « Télécharger le PDF » pour récupérer un compte-rendu signé.",
         "Cliquez sur le nom d’un patient pour lire son compte-rendu complet avant de le télécharger.",
         "Suivez vos envois dans « Derniers examens envoyés » : l’état de chacun s’affiche à droite, et la mention « Urgent » signale une urgence.",
@@ -170,33 +170,33 @@ export const pages = {
     studies: {
       title: "Examens",
       purpose:
-        "Tous les examens envoyés par votre clinique, avec leur état et celui de leur compte-rendu. C’est ici que vous retrouvez un dossier précis.",
+        "Tous les examens envoyés par votre clinique, avec le radiologue qui les lit et l’état de leur compte-rendu. C’est ici que vous attribuez vos examens à vos radiologues.",
       steps: [
+        "Cliquez sur « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore, les plus pressés en tête.",
+        "Sur une ligne, cliquez sur « Attribuer », choisissez un radiologue parmi ceux qui lisent la modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
         "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
-        "Lisez l’état de chaque examen : « En attente », « En lecture », « Prêt à télécharger » ou « Téléchargé ». Un bord rouge et « Urgent » signalent une urgence.",
-        "Dans la colonne « Compte-rendu », repérez les documents « À télécharger ».",
-        "Cliquez sur une ligne pour ouvrir la fiche de l’examen.",
-        "Cliquez sur « Actualiser » pour voir les derniers changements, ou sur « Envoyer » pour transmettre un nouvel examen.",
+        "Dans la colonne « Compte-rendu », repérez les documents « À télécharger ». Un bord rouge et « Urgent » signalent une urgence.",
+        "Cliquez sur une ligne pour ouvrir la fiche de l’examen, ou sur « Envoyer » pour transmettre un nouvel examen.",
       ],
-      terms: ["examen", "compteRendu", "urgence"],
+      terms: ["attribution", "anteriorite", "modalitesLues", "urgence"],
     },
     study: {
       title: "Fiche de l’examen",
       purpose:
-        "Tout sur un examen : ses images, l’avancement de la lecture et son compte-rendu une fois signé. Tant que le compte-rendu n’est pas signé, vous pouvez signaler une urgence et compléter le renseignement clinique.",
+        "Tout sur un examen : ses images, qui le lit, l’avancement de la lecture et son compte-rendu une fois signé. Tant que le compte-rendu n’est pas signé, vous pouvez l’attribuer, partager des antériorités, signaler une urgence et compléter le renseignement clinique.",
       steps: [
+        "Dans « Attribution », cliquez sur « Attribuer » (ou « Réattribuer ») : choisissez le radiologue, cochez les antériorités à lui partager, ou retirez-en une.",
         "Suivez la lecture dans « Avancement », de « Examen reçu » à « Compte-rendu remis ».",
         "Si l’examen ne peut pas attendre, cochez « Examen urgent ». Rien n’est transmis au radiologue avant d’avoir cliqué sur « Enregistrer ».",
         "Décrivez le contexte et la question posée au radiologue dans « Renseignement clinique », puis cliquez sur « Enregistrer ».",
-        "Cliquez sur « Ouvrir les images » pour afficher l’examen dans le viewer.",
         "Une fois le compte-rendu signé, cliquez sur « Télécharger le PDF », ou sur « Document complet » pour l’ouvrir.",
       ],
       terms: [
+        "attribution",
+        "anteriorite",
         "urgence",
+        "listeUrgence",
         "renseignementClinique",
-        "delaiPromis",
-        "viewer",
-        "compteRendu",
       ],
     },
     reports: {
@@ -226,14 +226,15 @@ export const pages = {
     team: {
       title: "Équipe",
       purpose:
-        "Les membres de votre établissement qui ont accès à IMAFRIK, avec leur rôle. Chacun a son propre compte, et c’est ici que vous invitez ou retirez vos collègues.",
+        "Les membres de votre établissement qui ont accès à IMAFRIK, avec leur rôle. Chacun a son propre compte, et c’est ici que vous invitez ou retirez vos collègues, et réglez ce que lit chacun de vos radiologues.",
       steps: [
+        "Pour un radiologue, cliquez sur « Modalités et urgences » : cochez les modalités qu’il lit, et mettez-le sur la liste d’urgence s’il peut prendre une urgence sans attribution.",
         "Cliquez sur « Inviter », puis saisissez le nom complet et l’adresse électronique de la personne.",
         "Choisissez son rôle : « Clinique » pour le personnel, ou « Radiologue ». Un radiologue n’accède aux examens qu’après vérification de son numéro d’ordre.",
         "Cliquez sur « Envoyer l’invitation » : la personne reçoit un lien par courriel et choisit elle-même son mot de passe.",
         "Pour retirer un membre, ouvrez le menu au bout de sa ligne, puis choisissez « Retirer de l’équipe ». Son accès est coupé immédiatement.",
       ],
-      terms: ["organisation", "habilitation"],
+      terms: ["organisation", "habilitation", "modalitesLues", "listeUrgence"],
     },
     settings: {
       title: "Paramètres",
@@ -309,15 +310,15 @@ export const pages = {
         "Suit la mise en service d’une clinique et son activité sur trente jours. Vous y raccordez ses passerelles par un code, réglez la conservation des images, la langue et le logo des comptes-rendus, et pouvez mettre fin au contrat.",
       steps: [
         "Suivez la « Mise en service » : la première étape non franchie est celle qui appelle une action.",
-        "Dans « Raccorder une passerelle », cliquez sur « Émettre un code » : il vaut 15 minutes, une seule fois, et ne sera plus affiché.",
-        "Dictez ce code à l’installateur, ou transmettez-le par un canal chiffré : il le saisit dans le kit d’installation, sur le poste.",
+        "Dans « Raccorder une passerelle », cliquez sur « Émettre un code » (15 minutes, une seule fois) et dictez-le à l’installateur, qui le saisit dans le kit.",
         "Quand le poste apparaît « En attente d’approbation » dans « Passerelles », vérifiez-le avec la clinique, puis cliquez sur « Approuver ».",
+        "Dans « Liste d’urgence », cochez les radiologues, de la clinique ou du réseau, qui peuvent prendre ses urgences sans attribution, puis cliquez sur « Enregistrer ».",
         "Réglez au besoin la conservation des images, la langue des comptes-rendus et le logo en filigrane.",
       ],
       terms: [
         "passerelle",
         "codeEnrolement",
-        "pool",
+        "listeUrgence",
         "contratService",
         "compteRendu",
       ],
@@ -369,15 +370,15 @@ export const pages = {
       steps: [
         "Utilisez les filtres « À valider », « Signature à vérifier » et « En attente », ou cherchez un compte par nom ou adresse.",
         "Pour un compte « Rattaché à aucune organisation », cliquez sur « Rattacher », puis choisissez l’organisation et le rôle.",
-        "Cliquez sur « Examiner le dossier », ouvrez le document, puis choisissez « Accepter et habiliter » ou « Refuser » avec un motif.",
-        "Cliquez sur « Signature à vérifier » pour comparer la signature et le cachet déposés, puis « Accepter » ou « Refuser ».",
+        "Cliquez sur « Examiner le dossier » ou « Signature à vérifier », ouvrez les pièces, puis acceptez ou refusez avec un motif.",
         "Pour un téléphone perdu ou changé, vérifiez l’identité par un autre canal, puis cliquez sur « Réinitialiser ».",
+        "Sur l’appartenance d’un radiologue, l’icône de réglage ouvre ses « Modalités lues » : elles bornent ce qu’on peut lui attribuer.",
       ],
       terms: [
         "rattachement",
         "habilitation",
         "justificatif",
-        "doubleAuthentification",
+        "modalitesLues",
         "signature",
       ],
     },
@@ -389,10 +390,10 @@ export const pages = {
         "Cherchez un examen par patient, identifiant ou modalité dans la barre de recherche.",
         "Cliquez sur « Urgences en cours » pour voir les urgences pas encore rendues, les plus en retard en tête.",
         "Cliquez sur le nom du patient pour ouvrir les images et le compte-rendu, sans pouvoir rédiger ni signer.",
-        "Pour un examen non signé, cliquez sur le bouton d’attribution, choisissez un radiologue, puis cliquez sur « Attribuer ».",
-        "Pour le reprendre à son titulaire, rouvrez la même fenêtre et cliquez sur « Remettre dans la file ».",
+        "Pour un examen non signé, cliquez sur le bouton d’attribution, choisissez un radiologue qui lit sa modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
+        "Pour le reprendre à son titulaire, rouvrez la même fenêtre et cliquez sur « Retirer l’attribution » : l’examen attend une nouvelle attribution.",
       ],
-      terms: ["examen", "attribution", "urgence", "priseEnCharge", "pool"],
+      terms: ["attribution", "anteriorite", "urgence", "modalitesLues", "pool"],
     },
     requests: {
       title: "Demandes reçues",
@@ -468,11 +469,11 @@ export const pages = {
     worklist: {
       title: "À lire",
       purpose:
-        "La file de lecture de toute la plateforme, en consultation : examens à prendre et examens en cours de lecture, par ordre d’échéance. L’équipe la surveille sans rien prendre en charge.",
+        "La file de lecture de toute la plateforme, en consultation : examens à attribuer et examens chez un radiologue, par ordre d’échéance. L’équipe la surveille sans rien prendre en charge.",
       steps: [
-        "Lisez les indicateurs : « À prendre », « Urgences libres », « En retard » et « Prochaine échéance ».",
+        "Lisez les indicateurs : « À attribuer », « Urgences à prendre », « En retard » et « Prochaine échéance ».",
         "Affinez la file avec la recherche, « Urgences seulement », les pastilles de modalité ou la liste « Toutes les cliniques ».",
-        "Repérez dans « En cours de lecture » les examens déjà pris, avec le nom du radiologue dans la colonne « Suivi ».",
+        "Repérez dans « Chez un radiologue » les examens attribués ou en lecture, avec le nom du radiologue dans la colonne « Suivi ».",
         "Ouvrez un examen d’un clic, ou avec j, k et Entrée, pour le consulter : vous ne pouvez ni le prendre en charge ni le signer.",
         "Laissez l’écran ouvert : la file se met à jour toutes les 30 secondes et signale chaque nouvelle urgence.",
       ],

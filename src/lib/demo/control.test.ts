@@ -104,7 +104,10 @@ describe("réseau de démonstration", () => {
     const now = Date.now();
     const { live } = demoOverview(now);
     const open = DEMO_STUDIES.filter(
-      (s) => s.status === "received" || s.status === "in_progress",
+      (s) =>
+        s.status === "received" ||
+        s.status === "assigned" ||
+        s.status === "in_progress",
     );
     const waiting = open.filter((s) => s.assignedTo === null);
     expect(live.waiting).toBe(waiting.length);

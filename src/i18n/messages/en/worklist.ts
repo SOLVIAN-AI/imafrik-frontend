@@ -3,10 +3,10 @@ import type { AppMessages } from "@/i18n/messages/fr";
 /** Texts for the "worklist" area, in English. */
 export const worklist: AppMessages["worklist"] = {
   scope: {
-    empty: "Group worklist",
-    clinics: (list: string) => `Group worklist: ${list}`,
+    empty: "The examinations entrusted to you",
+    clinics: (list: string) => `The examinations entrusted to you: ${list}`,
     count: (count: number) =>
-      `Group worklist: ${count} ${count === 1 ? "facility" : "facilities"}`,
+      `The examinations entrusted to you: ${count} ${count === 1 ? "facility" : "facilities"}`,
   },
   supervision: {
     scope: {
@@ -15,30 +15,31 @@ export const worklist: AppMessages["worklist"] = {
       count: (count: number) =>
         `The whole platform, read-only: ${count} ${count === 1 ? "facility" : "facilities"}`,
     },
-    readingHint: (count: number) => `and ${count} being read`,
-    reading: { title: "Being read", hint: "by a radiologist" },
+    readingHint: (count: number) => `and ${count} with a radiologist`,
+    reading: { title: "With a radiologist", hint: "assigned or being read" },
+    open: { title: "To assign", hint: "waiting for a radiologist" },
+    toAssign: "To assign",
   },
   metrics: {
-    toTake: "To claim",
-    mineHint: (count: number) => `plus ${count} assigned to you`,
-    urgentOpen: "Unclaimed urgent",
-    urgentHint: "claim these first",
+    toTake: "Assigned to you",
+    mineHint: (count: number) => `including ${count} in progress`,
+    urgentOpen: "Urgent to take",
+    urgentHint: "the first to take it gets it",
     overdue: "Overdue",
     overdueHint: "turnaround exceeded",
     nextDeadline: "Next deadline",
   },
   arrivals: {
-    many: (count: number) => `${count} new urgent examinations in the worklist`,
-    one: (study: string) => `New urgent examination: ${study}`,
+    many: (count: number) => `${count} new urgent examinations to take`,
+    one: (study: string) => `New urgent examination to take: ${study}`,
   },
   truncated:
     "The worklist holds more examinations than this screen shows: only those closest to their deadline are listed. Narrow it down with the search or the filters.",
   groups: {
-    mine: { title: "Claimed by you", hint: "to complete" },
-    open: { title: "To claim", hint: "by deadline" },
-    colleagues: {
-      title: "With a colleague",
-      hint: "view only",
+    mine: { title: "Assigned to you", hint: "by deadline" },
+    open: {
+      title: "Urgent to take",
+      hint: "urgent list: the first to take it gets it",
     },
   },
   refreshNote: (seconds: number) =>
@@ -70,14 +71,15 @@ export const worklist: AppMessages["worklist"] = {
     empty: {
       title: "Worklist clear",
       detail:
-        "No examinations are awaiting reporting. New examinations appear here as soon as they are received.",
+        "No examinations are waiting for you. An examination appears here as soon as it is assigned to you, and an urgent one from your urgent list as soon as it is received.",
     },
   },
   myStudies: {
-    description: "Examinations you have claimed that are still to be reported",
+    description: "Examinations you are reading that are still to be signed",
     empty: {
       title: "No examinations in progress",
-      detail: "Claim an examination from the “To read” worklist.",
+      detail:
+        "Open an examination assigned to you, from the “To read” worklist, to take it on.",
     },
   },
   filters: {

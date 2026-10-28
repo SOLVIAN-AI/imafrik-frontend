@@ -98,3 +98,39 @@ export function resolveStep(step: TourStep): Element | null {
 export function visibleSteps(steps: readonly TourStep[]): TourStep[] {
   return steps.filter((step) => !step.optional || resolveStep(step) !== null);
 }
+
+/**
+ * Ménage de la place sous un élément, le temps d'une étape : la marge
+ * basse de son conteneur défilant s'allonge de `room` pixels.
+ *
+ * Un élément en fin de page (la file, sur téléphone) ne pouvait pas
+ * remonter : le conteneur ne défilait pas plus loin, et la bulle se posait
+ * sur ses dernières lignes. Avec la place ménagée, il remonte en haut de
+ * la fenêtre, la bulle dessous.
+ *
+ * @param element Élément montré.
+ * @param room    Place à ménager, en pixels.
+ * @returns De quoi rendre au conteneur sa marge d'origine.
+ */
+export function makeRoomBelow(element: Element, room: number): () => void {
+  let container: HTMLElement | null = element.parentElement;
+  while (container) {
+    const overflow = getComputedStyle(container).overflowY;
+    if (
+      (overflow === "auto" || overflow === "scroll") &&
+      container.scrollHeight > container.clientHeight
+    ) {
+      break;
+    }
+    container = container.parentElement;
+  }
+  const target =
+    container ?? (document.scrollingElement as HTMLElement | null) ?? null;
+  if (!target) return () => {};
+  const original = target.style.paddingBottom;
+  const current = Number.parseFloat(getComputedStyle(target).paddingBottom);
+  target.style.paddingBottom = `${(Number.isFinite(current) ? current : 0) + room}px`;
+  return () => {
+    target.style.paddingBottom = original;
+  };
+}

@@ -307,6 +307,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics/{clinic_id}/urgent-readers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Liste d'urgence d'une clinique
+         * @description Radiologues qui peuvent lire la clinique, et leur place sur sa liste d'urgence.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["list_urgent_readers_admin_clinics__clinic_id__urgent_readers_get"];
+        /**
+         * Régler la liste d'urgence d'une clinique
+         * @description Remplace la liste d'urgence d'une clinique, radiologues du réseau compris.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         *         Unprocessable: Un radiologue ne peut pas lire la clinique.
+         */
+        put: operations["update_urgent_readers_admin_clinics__clinic_id__urgent_readers_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/contact-requests": {
         parameters: {
             query?: never;
@@ -611,6 +642,30 @@ export interface paths {
          *         Conflict: Elle n'est pas active.
          */
         post: operations["suspend_gateway_admin_gateways__gateway_id__suspend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/memberships/{membership_id}/modalities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Régler les modalités d'un radiologue
+         * @description Modalités lues par un radiologue, par l'appartenance donnée.
+         *
+         *     Raises:
+         *         NotFound: Appartenance introuvable.
+         *         Unprocessable: L'appartenance n'est pas celle d'un radiologue.
+         */
+        put: operations["update_modalities_admin_memberships__membership_id__modalities_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -949,7 +1004,7 @@ export interface paths {
         };
         /**
          * Attribution d'un examen
-         * @description Titulaire de l'examen et radiologues à qui l'attribuer.
+         * @description Titulaire de l'examen, radiologues à qui l'attribuer, antériorités partagées.
          *
          *     Raises:
          *         NotFound: Examen introuvable.
@@ -957,23 +1012,19 @@ export interface paths {
         get: operations["get_assignment_admin_studies__study_id__assignment_get"];
         /**
          * Attribuer un examen à un radiologue
-         * @description Réserve l'examen au radiologue choisi, et le prévient.
-         *
-         *     Réattribuer à son titulaire actuel ne change rien et ne renvoie pas de
-         *     courriel. Réattribuer un examen en cours de rédaction efface le
-         *     brouillon du titulaire précédent, sur confirmation seulement.
+         * @description Réserve l'examen au radiologue choisi, partage les antériorités cochées, le prévient.
          *
          *     Raises:
          *         NotFound: Examen introuvable.
          *         Conflict: Compte-rendu déjà signé, ou brouillon en cours sans
          *             confirmation.
-         *         Unprocessable: Le radiologue ne verrait pas l'examen.
+         *         Unprocessable: Le radiologue ne peut pas recevoir l'examen.
          */
         put: operations["assign_admin_studies__study_id__assignment_put"];
         post?: never;
         /**
-         * Remettre un examen dans la file
-         * @description Rend l'examen à la file commune, ouvert à tous les radiologues éligibles.
+         * Retirer l'attribution d'un examen
+         * @description Retire l'examen à son titulaire : il revient « à attribuer ».
          *
          *     Raises:
          *         NotFound: Examen introuvable.
@@ -981,6 +1032,76 @@ export interface paths {
          *             confirmation.
          */
         delete: operations["unassign_admin_studies__study_id__assignment_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/studies/{study_id}/prior-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Antériorités du patient, à partager
+         * @description Examens antérieurs du patient dans la même clinique : certains, puis probables.
+         *
+         *     Raises:
+         *         NotFound: Examen introuvable.
+         */
+        get: operations["get_prior_candidates_admin_studies__study_id__prior_candidates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/studies/{study_id}/prior-shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Partager des antériorités avec le lecteur
+         * @description Partage des antériorités avec le titulaire actuel de l'examen.
+         *
+         *     Raises:
+         *         NotFound: Examen introuvable.
+         *         Conflict: L'examen n'est attribué à personne.
+         */
+        post: operations["add_prior_shares_admin_studies__study_id__prior_shares_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/studies/{study_id}/prior-shares/{share_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Retirer une antériorité partagée
+         * @description Retire une antériorité partagée pour cet examen.
+         *
+         *     Raises:
+         *         NotFound: Examen ou partage introuvable.
+         */
+        delete: operations["revoke_prior_share_admin_studies__study_id__prior_shares__share_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1098,7 +1219,7 @@ export interface paths {
          *     du compte est saisi pour confirmer ; un compte encore membre d'une
          *     organisation active n'est anonymisé que si le retrait de ses
          *     appartenances est explicitement confirmé (``remove_memberships``).
-         *     Ses examens en cours retournent alors au pool, et ses jetons sont
+         *     Ses examens en cours redeviennent alors « à attribuer », et ses jetons sont
          *     révoqués.
          *
          *     La trace est écrite en deux temps, comme pour la réinitialisation de
@@ -1178,8 +1299,8 @@ export interface paths {
          *     - **reject** refuse le justificatif, avec un motif que le radiologue
          *       lira ; il en dépose un autre.
          *     - **revoke** retire l'habilitation : l'accès se ferme à la requête
-         *       suivante, et les examens que ce radiologue avait pris en charge
-         *       retournent au pool, ses brouillons avec.
+         *       suivante, et les examens que ce radiologue tenait redeviennent
+         *       « à attribuer », ses brouillons effacés.
          *
          *     La décision porte sur ce que l'administrateur a eu sous les yeux : le
          *     justificatif (``document_id``) et, pour un inscrit, le numéro d'ordre
@@ -1440,6 +1561,119 @@ export interface paths {
          */
         post: operations["give_feedback_assist_runs__run_id__feedback_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clinic/studies/{study_id}/assignment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Attribution d'un examen de la clinique
+         * @description Titulaire de l'examen, radiologues de la clinique à qui l'attribuer, partages.
+         *
+         *     Raises:
+         *         NotFound: Examen introuvable dans la clinique active.
+         */
+        get: operations["get_assignment_clinic_studies__study_id__assignment_get"];
+        /**
+         * Attribuer un examen à un radiologue de la clinique
+         * @description Réserve l'examen au radiologue choisi, partage les antériorités cochées, le prévient.
+         *
+         *     Raises:
+         *         NotFound: Examen introuvable dans la clinique active.
+         *         Conflict: Compte-rendu déjà signé, ou brouillon en cours sans
+         *             confirmation.
+         *         Unprocessable: Le radiologue n'est pas un radiologue habilité de
+         *             la clinique, ou ne lit pas la modalité de l'examen.
+         */
+        put: operations["assign_clinic_studies__study_id__assignment_put"];
+        post?: never;
+        /**
+         * Retirer l'attribution d'un examen de la clinique
+         * @description Retire l'examen à son titulaire : il revient « à attribuer ».
+         *
+         *     Raises:
+         *         NotFound: Examen introuvable dans la clinique active.
+         *         Conflict: Compte-rendu déjà signé, ou brouillon en cours sans
+         *             confirmation.
+         */
+        delete: operations["unassign_clinic_studies__study_id__assignment_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clinic/studies/{study_id}/prior-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Antériorités du patient, à partager
+         * @description Examens antérieurs du patient dans la clinique : certains, puis probables.
+         *
+         *     Raises:
+         *         NotFound: Examen introuvable dans la clinique active.
+         */
+        get: operations["get_prior_candidates_clinic_studies__study_id__prior_candidates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clinic/studies/{study_id}/prior-shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Partager des antériorités avec le lecteur
+         * @description Partage des antériorités avec le titulaire actuel de l'examen.
+         *
+         *     Raises:
+         *         NotFound: Examen introuvable dans la clinique active.
+         *         Conflict: L'examen n'est attribué à personne.
+         */
+        post: operations["add_prior_shares_clinic_studies__study_id__prior_shares_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clinic/studies/{study_id}/prior-shares/{share_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Retirer une antériorité partagée
+         * @description Retire une antériorité partagée pour cet examen.
+         *
+         *     Raises:
+         *         NotFound: Examen ou partage introuvable dans la clinique active.
+         */
+        delete: operations["revoke_prior_share_clinic_studies__study_id__prior_shares__share_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2454,9 +2688,9 @@ export interface paths {
          *     sa requête suivante, sans attendre l'expiration de son jeton —
          *     ``auth_role()`` relit l'appartenance en base, et ses jetons de
          *     visualisation et de dépôt sont révoqués. Les examens qu'un radiologue
-         *     avait pris en charge et qu'il ne peut plus atteindre retournent au
-         *     pool, avec ses brouillons (déclencheur
-         *     ``release_unreachable_assignments``).
+         *     tenait et qu'il ne peut plus atteindre redeviennent « à attribuer »,
+         *     ses brouillons effacés (déclencheur ``release_unreachable_assignments``),
+         *     et il quitte la liste d'urgence de la clinique.
          *
          *     Args:
          *         membership_id: Appartenance à retirer.
@@ -2468,6 +2702,30 @@ export interface paths {
          *         NotFound: Appartenance absente de cette clinique.
          */
         delete: operations["remove_member_organization_members__membership_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organization/members/{membership_id}/reading": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Régler les modalités et la liste d'urgence d'un radiologue
+         * @description Modalités lues par un radiologue de la clinique, et sa place sur la liste d'urgence.
+         *
+         *     Raises:
+         *         NotFound: Appartenance absente de la clinique active.
+         *         Unprocessable: L'appartenance n'est pas celle d'un radiologue.
+         */
+        put: operations["update_reading_organization_members__membership_id__reading_put"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2752,9 +3010,13 @@ export interface paths {
          * @description Liste les examens visibles par l'appelant, page par page.
          *
          *     Le périmètre est décidé par RLS, pas par ce code : une clinique voit
-         *     ses propres examens, un radiologue voit le pool des cliniques sous
-         *     contrat avec son groupe. Chaque examen porte son échéance
-         *     (``due_at``), calculée d'après les délais promis en vigueur.
+         *     ses propres examens, un radiologue ce qu'on lui confie. Sa liste est
+         *     sa liste de travail (``radiologist_works_on``) : les examens qui lui
+         *     sont attribués, ceux dont il a écrit le compte-rendu et les urgences
+         *     à prendre de sa liste ; les antériorités partagées avec lui s'ouvrent
+         *     depuis l'examen qu'il lit (``GET /studies/{id}/priors``), pas d'ici.
+         *     Chaque examen porte son échéance (``due_at``), calculée d'après les
+         *     délais promis en vigueur.
          *
          *     Pagination par curseur, comme le journal d'audit : la page suivante
          *     reprend juste après la dernière ligne lue, sur la clé de tri complète
@@ -2865,11 +3127,13 @@ export interface paths {
         put?: never;
         /**
          * Prendre un examen en charge
-         * @description Pool commun : le premier radiologue qui ouvre l'examen se l'attribue.
+         * @description Prend en charge un examen attribué à l'appelant, ou une urgence de sa liste.
          *
          *     La prise en charge est le préalable à toute rédaction : seul le
          *     radiologue assigné peut ouvrir un brouillon, et c'est la base qui le
-         *     vérifie.
+         *     vérifie. Une urgence non attribuée revient au premier radiologue de
+         *     la liste d'urgence qui la prend ; la trace le dit
+         *     (``study.urgent_claimed``).
          *
          *     Args:
          *         study_id: Examen à prendre.
@@ -2879,10 +3143,44 @@ export interface paths {
          *         L'examen, assigné à l'appelant.
          *
          *     Raises:
-         *         Conflict: Déjà pris en charge par un autre radiologue.
-         *         Forbidden: Examen hors du périmètre de l'appelant.
+         *         Conflict: Urgence déjà prise par un autre radiologue.
+         *         Forbidden: Examen hors du périmètre de l'appelant, non attribué
+         *             hors urgence, ou déjà rendu.
          */
         post: operations["claim_studies__study_id__claim_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/studies/{study_id}/priors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Antériorités partagées pour un examen
+         * @description Les examens antérieurs du patient partagés avec l'appelant pour cet examen.
+         *
+         *     Chacun s'ouvre en lecture seule : images, et compte-rendu signé
+         *     (``report_id``) s'il y en a un.
+         *
+         *     Args:
+         *         study_id: Examen que l'appelant lit.
+         *         principal: Radiologue authentifié.
+         *
+         *     Returns:
+         *         Les antériorités, les plus récentes d'abord.
+         *
+         *     Raises:
+         *         NotFound: Examen inexistant ou hors du périmètre de l'appelant.
+         */
+        get: operations["list_priors_studies__study_id__priors_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2899,19 +3197,23 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Rendre un examen au pool
-         * @description Rend au pool un examen pris par erreur.
+         * Rendre un examen
+         * @description Rend un examen avant de l'avoir signé : il redevient « à attribuer ».
          *
          *     Le brouillon éventuellement commencé est effacé avec lui : un
          *     brouillon orphelin bloquerait le radiologue suivant, qui ne pourrait
-         *     ni le modifier ni en créer un autre.
+         *     ni le modifier ni en créer un autre. Les antériorités partagées pour
+         *     cet examen sont retirées (déclencheur
+         *     ``trg_revoke_prior_shares_on_unassign``) et les viewers ouverts sur
+         *     l'examen et ses antériorités, fermés. Les responsables de la clinique
+         *     sont prévenus ; une urgence rendue l'est aussi à sa liste d'urgence.
          *
          *     Args:
-         *         study_id: Examen à libérer.
+         *         study_id: Examen à rendre.
          *         principal: Radiologue authentifié.
          *
          *     Returns:
-         *         L'examen, redevenu disponible.
+         *         L'examen, de nouveau à attribuer.
          *
          *     Raises:
          *         Forbidden: L'examen n'est pas attribué à l'appelant, ou il est
@@ -4012,7 +4314,8 @@ export interface components {
          *         profile_id: Profil du radiologue.
          *         name: Titre et nom.
          *         organization_name: Clinique ou groupe par lequel il lit l'examen.
-         *         via_pool: Vrai pour un libéral, qui lit par un groupe sous contrat.
+         *         via_pool: Vrai pour un radiologue du réseau, qui lit par un groupe
+         *             sous contrat.
          *         open_studies: Examens qu'il détient déjà sans les avoir signés.
          */
         AssignmentCandidate: {
@@ -4038,6 +4341,8 @@ export interface components {
          *         radiologist_id: Radiologue choisi.
          *         discard_draft: Confirme l'effacement du brouillon du titulaire
          *             actuel, quand il en a commencé un.
+         *         share_prior_ids: Antériorités du patient cochées dans la fenêtre
+         *             d'attribution ; rien n'est partagé d'office.
          */
         AssignmentRequest: {
             /**
@@ -4050,6 +4355,8 @@ export interface components {
              * Format: uuid
              */
             radiologist_id: string;
+            /** Share Prior Ids */
+            share_prior_ids?: string[];
         };
         /**
          * AssignmentState
@@ -4058,13 +4365,16 @@ export interface components {
          *     Attributes:
          *         study_id: Examen.
          *         status: Étape du cycle de vie.
+         *         priority: Urgence ou routine.
+         *         modality: Modalité, qui borne les radiologues éligibles.
          *         assigned_to: Titulaire, s'il y en a un.
          *         assigned_to_name: Son nom.
-         *         assigned_at: Instant de l'attribution par l'équipe ; nul quand le
-         *             radiologue a pris l'examen en charge lui-même.
+         *         assigned_at: Instant de l'attribution ; nul quand le radiologue a
+         *             pris une urgence lui-même sans attribution préalable.
          *         draft_in_progress: Vrai si le titulaire a commencé à rédiger : une
          *             réattribution effacerait son texte.
          *         candidates: Radiologues éligibles, les moins chargés d'abord.
+         *         prior_shares: Antériorités partagées pour cet examen.
          *         notified: Après une attribution, vrai si le radiologue a été
          *             prévenu par courriel ; nul en lecture.
          */
@@ -4079,8 +4389,17 @@ export interface components {
             candidates: components["schemas"]["AssignmentCandidate"][];
             /** Draft In Progress */
             draft_in_progress: boolean;
+            /** Modality */
+            modality: string | null;
             /** Notified */
             notified?: boolean | null;
+            /** Prior Shares */
+            prior_shares: components["schemas"]["PriorShareOut"][];
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "routine" | "urgent";
             /**
              * Status
              * @enum {string}
@@ -5589,6 +5908,9 @@ export interface components {
          *         role: Rôle dans l'organisation.
          *         joined_at: Date d'arrivée.
          *         is_me: ``True`` pour l'appelant.
+         *         read_modalities: Radiologue : groupes de modalités qu'il lit ;
+         *             ``None`` pour toutes.
+         *         urgent_reader: Radiologue : sur la liste d'urgence de la clinique.
          */
         Member: {
             /** Email */
@@ -5612,6 +5934,8 @@ export interface components {
              * Format: uuid
              */
             profile_id: string;
+            /** Read Modalities */
+            read_modalities?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other")[] | null;
             /**
              * Role
              * @enum {string}
@@ -5619,6 +5943,11 @@ export interface components {
             role: "platform_admin" | "radiologist" | "clinic_staff";
             /** Title */
             title: string | null;
+            /**
+             * Urgent Reader
+             * @default false
+             */
+            urgent_reader: boolean;
         };
         /**
          * MembershipGrant
@@ -5641,12 +5970,17 @@ export interface components {
          * @description Indicateurs du périmètre de l'appelant, calculés en base.
          *
          *     Le périmètre est celui que RLS accorde : une clinique mesure ses
-         *     propres examens, un radiologue le pool qu'il sert.
+         *     propres examens, un radiologue sa liste de travail (ce qu'on lui
+         *     confie, et les urgences de sa liste ; pas les antériorités partagées).
          *
          *     Attributes:
          *         by_status: Nombre d'examens par étape.
          *         urgent_open: Urgences pas encore rendues.
          *         assigned_to_me: Examens en cours de lecture par l'appelant.
+         *         assigned_new: Examens attribués à l'appelant, pas encore commencés.
+         *         to_assign: Examens qui attendent une attribution.
+         *         urgent_to_take: Urgences sans titulaire : pour un radiologue,
+         *             celles de sa liste d'urgence, à prendre.
          *         received_last_30_days: Examens reçus sur trente jours.
          *         median_turnaround_minutes: Délai médian entre réception et
          *             signature, sur trente jours. ``None`` sans examen rendu.
@@ -5654,6 +5988,11 @@ export interface components {
          *             par la clinique.
          */
         Metrics: {
+            /**
+             * Assigned New
+             * @default 0
+             */
+            assigned_new: number;
             /** Assigned To Me */
             assigned_to_me: number;
             /** By Status */
@@ -5666,8 +6005,18 @@ export interface components {
             received_last_30_days: number;
             /** Reports To Download */
             reports_to_download: number;
+            /**
+             * To Assign
+             * @default 0
+             */
+            to_assign: number;
             /** Urgent Open */
             urgent_open: number;
+            /**
+             * Urgent To Take
+             * @default 0
+             */
+            urgent_to_take: number;
         };
         /**
          * MfaReset
@@ -5676,6 +6025,14 @@ export interface components {
         MfaReset: {
             /** Removed Factors */
             removed_factors: number;
+        };
+        /**
+         * ModalitiesUpdate
+         * @description Modalités d'un radiologue, réglées par l'équipe IMAFRIK.
+         */
+        ModalitiesUpdate: {
+            /** Read Modalities */
+            read_modalities?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other")[] | null;
         };
         /**
          * Modality
@@ -6092,6 +6449,109 @@ export interface components {
             etag: string;
         };
         /**
+         * PriorCandidateOut
+         * @description Examen antérieur du patient, proposé au partage.
+         *
+         *     Attributes:
+         *         study_id: Examen antérieur.
+         *         match: ``certain`` (même identifiant patient) ou ``probable``
+         *             (même nom et même date de naissance : à vérifier).
+         *         study_date: Date de l'examen.
+         *         modality: Modalité.
+         *         body_part: Région.
+         *         patient_name: Nom tel que l'appareil l'a écrit.
+         *         patient_id_local: Identifiant de la clinique.
+         *         patient_birthdate: Date de naissance.
+         *         has_signed_report: Vrai si un compte-rendu signé l'accompagne.
+         *         shared: Vrai s'il est déjà partagé avec le radiologue considéré.
+         */
+        PriorCandidateOut: {
+            /** Body Part */
+            body_part: string | null;
+            /** Has Signed Report */
+            has_signed_report: boolean;
+            /**
+             * Match
+             * @enum {string}
+             */
+            match: "certain" | "probable";
+            /** Modality */
+            modality: string | null;
+            /** Patient Birthdate */
+            patient_birthdate: string | null;
+            /** Patient Id Local */
+            patient_id_local: string | null;
+            /** Patient Name */
+            patient_name: string | null;
+            /** Shared */
+            shared: boolean;
+            /**
+             * Study Date
+             * Format: date-time
+             */
+            study_date: string;
+            /**
+             * Study Id
+             * Format: uuid
+             */
+            study_id: string;
+        };
+        /**
+         * PriorShareOut
+         * @description Antériorité partagée avec le radiologue qui lit l'examen.
+         *
+         *     Attributes:
+         *         id: Partage.
+         *         prior_study_id: Examen antérieur.
+         *         profile_id: Radiologue à qui il est partagé.
+         *         study_date: Date de l'examen antérieur.
+         *         modality: Sa modalité.
+         *         body_part: Sa région.
+         *         has_signed_report: Vrai si un compte-rendu signé l'accompagne.
+         *         shared_at: Instant du partage.
+         */
+        PriorShareOut: {
+            /** Body Part */
+            body_part: string | null;
+            /** Has Signed Report */
+            has_signed_report: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Modality */
+            modality: string | null;
+            /**
+             * Prior Study Id
+             * Format: uuid
+             */
+            prior_study_id: string;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /**
+             * Shared At
+             * Format: date-time
+             */
+            shared_at: string;
+            /**
+             * Study Date
+             * Format: date-time
+             */
+            study_date: string;
+        };
+        /**
+         * PriorShareRequest
+         * @description Antériorités à partager avec le radiologue qui lit l'examen.
+         */
+        PriorShareRequest: {
+            /** Prior Ids */
+            prior_ids: string[];
+        };
+        /**
          * PrioritySla
          * @description Délais d'une priorité sur une période.
          */
@@ -6236,6 +6696,21 @@ export interface components {
             missing: ("tailscale_credentials" | "pacs_host" | "pacs_certificate")[];
             /** Ready */
             ready: boolean;
+        };
+        /**
+         * ReadingSettings
+         * @description Lecture d'un radiologue de la clinique.
+         *
+         *     Attributes:
+         *         read_modalities: Groupes de modalités qu'il lit ; ``None`` pour
+         *             tous. Au moins un.
+         *         urgent_reader: Sur la liste d'urgence de la clinique.
+         */
+        ReadingSettings: {
+            /** Read Modalities */
+            read_modalities?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other")[] | null;
+            /** Urgent Reader */
+            urgent_reader: boolean;
         };
         /**
          * RenewalRequest
@@ -7461,6 +7936,43 @@ export interface components {
             token: string;
         };
         /**
+         * UrgentReader
+         * @description Un radiologue qui peut lire la clinique, et sa place sur la liste d'urgence.
+         *
+         *     Attributes:
+         *         profile_id: Profil du radiologue.
+         *         name: Titre et nom.
+         *         organization_name: Clinique ou groupe par lequel il la lit.
+         *         via_pool: Vrai pour un radiologue du réseau.
+         *         read_modalities: Groupes de modalités lus ; ``None`` pour tous.
+         *         urgent_reader: Sur la liste d'urgence de la clinique.
+         */
+        UrgentReader: {
+            /** Name */
+            name: string;
+            /** Organization Name */
+            organization_name: string;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /** Read Modalities */
+            read_modalities: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other")[] | null;
+            /** Urgent Reader */
+            urgent_reader: boolean;
+            /** Via Pool */
+            via_pool: boolean;
+        };
+        /**
+         * UrgentReadersUpdate
+         * @description Liste d'urgence entière d'une clinique.
+         */
+        UrgentReadersUpdate: {
+            /** Profile Ids */
+            profile_ids: string[];
+        };
+        /**
          * UserMembership
          * @description Appartenance d'un compte.
          */
@@ -7482,6 +7994,11 @@ export interface components {
             organization_kind: "clinic" | "radiology_group";
             /** Organization Name */
             organization_name: string;
+            /**
+             * Read Modalities
+             * @description Radiologue : groupes de modalités lus ; None pour tous.
+             */
+            read_modalities?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other")[] | null;
             /**
              * Role
              * @enum {string}
@@ -7648,7 +8165,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.released" | "study.assigned" | "study.unassigned" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "organization.state_changed" | "organization.pool_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.unassigned" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -8094,6 +8611,76 @@ export interface operations {
             };
         };
     };
+    list_urgent_readers_admin_clinics__clinic_id__urgent_readers_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UrgentReader"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_urgent_readers_admin_clinics__clinic_id__urgent_readers_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UrgentReadersUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UrgentReader"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_contact_requests_admin_contact_requests_get: {
         parameters: {
             query?: never;
@@ -8526,6 +9113,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GatewayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_modalities_admin_memberships__membership_id__modalities_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                membership_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModalitiesUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserMembership"];
                 };
             };
             /** @description Validation Error */
@@ -9148,6 +9772,112 @@ export interface operations {
             };
         };
     };
+    get_prior_candidates_admin_studies__study_id__prior_candidates_get: {
+        parameters: {
+            query?: {
+                radiologist_id?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriorCandidateOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_prior_shares_admin_studies__study_id__prior_shares_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PriorShareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_prior_share_admin_studies__study_id__prior_shares__share_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+                share_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_system_admin_system_get: {
         parameters: {
             query?: never;
@@ -9617,6 +10347,217 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_assignment_clinic_studies__study_id__assignment_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assign_clinic_studies__study_id__assignment_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unassign_clinic_studies__study_id__assignment_delete: {
+        parameters: {
+            query?: {
+                discard_draft?: boolean;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_prior_candidates_clinic_studies__study_id__prior_candidates_get: {
+        parameters: {
+            query?: {
+                radiologist_id?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriorCandidateOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_prior_shares_clinic_studies__study_id__prior_shares_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PriorShareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_prior_share_clinic_studies__study_id__prior_shares__share_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+                share_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentState"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -10919,6 +11860,43 @@ export interface operations {
             };
         };
     };
+    update_reading_organization_members__membership_id__reading_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                membership_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReadingSettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Member"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_platform_settings_platform_settings_get: {
         parameters: {
             query?: never;
@@ -11295,6 +12273,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Study"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_priors_studies__study_id__priors_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Study"][];
                 };
             };
             /** @description Validation Error */

@@ -119,12 +119,12 @@ test.describe("tour de contrôle", () => {
         .getByText("Dossier incomplet"),
     ).toBeVisible();
 
-    // Retirer l'habilitation prévient que les examens retournent au pool.
+    // Retirer l'habilitation prévient que les examens redeviennent à attribuer.
     await kponton
       .getByRole("button", { name: "Retirer l’habilitation" })
       .click();
     const dialogue = page.getByRole("dialog");
-    await expect(dialogue).toContainText("retournent au pool");
+    await expect(dialogue).toContainText("redeviennent « à attribuer »");
     await dialogue.getByRole("button", { name: "Annuler" }).click();
     await expect(dialogue).toHaveCount(0);
   });

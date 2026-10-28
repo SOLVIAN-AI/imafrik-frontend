@@ -1,10 +1,10 @@
-import { FileText, ImageOff, Maximize2, PenTool } from "lucide-react";
+import { FileText, ImageOff, Maximize2 } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type * as React from "react";
 
 import { AddendaPanel } from "@/components/domain/addenda-panel";
-import { getSigningContext } from "@/lib/data/signing";
+import { AssignmentPanel } from "@/components/domain/assignment-panel";
 import { ClinicalInfoForm } from "@/components/domain/clinical-info-form";
 import { DownloadPdfButton } from "@/components/domain/download-pdf-button";
 import { ReportDocument } from "@/components/editor/report-document";
@@ -16,6 +16,7 @@ import {
 import { StudyTimeline } from "@/components/domain/study-timeline";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
+import { getAssignment } from "@/lib/actions/assignment";
 import { getReportForStudy } from "@/lib/data/reports";
 import { getStudy, type Study } from "@/lib/data/studies";
 import { requireSession } from "@/lib/session/server";
@@ -26,16 +27,15 @@ import type { AppMessages } from "@/i18n";
 import type { Locale } from "@/lib/i18n/locale";
 
 /**
- * Fiche d'un examen.
+ * Fiche d'un examen, vue de la clinique.
  *
- * **Écran partagé, pas écran dupliqué.** La clinique et le radiologue y
- * cherchent la même chose — de quoi s'agit-il, où en est-on, que dit le
- * compte-rendu — et seules les actions diffèrent : l'un télécharge un
- * PDF, l'autre ouvre la lecture. Deux écrans séparés auraient divergé au
- * premier champ ajouté.
+ * De quoi s'agit-il, où en est-on, qui le lit, que dit le compte-rendu :
+ * le responsable y attribue l'examen à un radiologue et lui partage les
+ * antériorités du patient, signale une urgence, télécharge le PDF.
  *
- * À ne pas confondre avec `/lecture/[id]`, qui est le poste de travail du
- * radiologue : ici on consulte, là on rédige.
+ * Le radiologue ne la voit plus : il ne consulte que ce qu'on lui confie,
+ * dans son poste de travail (`/lecture/[id]`), où il est renvoyé ; ici on
+ * suit, là on rédige.
  */
 export default async function StudySheetPage({
   params,
@@ -49,33 +49,28 @@ export default async function StudySheetPage({
   // L'équipe IMAFRIK contrôle l'examen dans l'écran de lecture, qui montre
   // tout : images, renseignement, compte-rendu même en cours, attribution
   // et annulation. La fiche de la clinique n'en montrerait qu'une part.
-  if (session.active.role === "platform_admin") {
+  // Le radiologue aussi : il ne consulte que ce qu'on lui confie, et le
+  // lit dans son poste de travail.
+  if (session.active.role !== "clinic_staff") {
     redirect(`/lecture/${encodeURIComponent(studyId)}`);
   }
   const { t, locale } = await getMessages();
   const messages = t.clinic.study;
 
-  // Les deux lectures sont indépendantes : les enchaîner ferait attendre
-  // l'écran pour rien.
-  const [study, report] = await Promise.all([
+  // Les lectures sont indépendantes : les enchaîner ferait attendre
+  // l'écran pour rien. L'attribution est facultative : son échec laisse
+  // la fiche s'afficher.
+  const [study, report, assignment] = await Promise.all([
     getStudy(studyId),
     getReportForStudy(studyId),
+    getAssignment("clinic", studyId),
   ]);
   if (!study) notFound();
 
-  const isRadiologist = session.active.role === "radiologist";
-  // Un radiologue peut ajouter un addendum à un compte-rendu signé : son
-  // code personnel est demandé.
-  const signing =
-    isRadiologist && report?.status === "signed"
-      ? await getSigningContext()
-      : null;
   // La clinique signale l'urgence et complète le renseignement tant que
   // le compte-rendu n'est pas signé : le service applique la même règle.
   const canEditClinical =
-    session.active.role === "clinic_staff" &&
-    study.status !== "reported" &&
-    study.status !== "delivered";
+    study.status !== "reported" && study.status !== "delivered";
   // Un brouillon n'est visible que de son auteur, dans l'écran de
   // lecture ; ici, seul un document signé s'affiche.
   const signed = report?.status === "signed" ? report : null;
@@ -89,16 +84,7 @@ export default async function StudySheetPage({
           <>
             {study.urgent && <UrgentMarker />}
             <StudyStatusChip status={study.status} />
-            {isRadiologist && !signed ? (
-              <Button size="sm" asChild>
-                <Link href={`/lecture/${study.id}`} prefetch={false}>
-                  <PenTool />
-                  {messages.readAndWrite}
-                </Link>
-              </Button>
-            ) : signed ? (
-              <DownloadPdfButton reportId={signed.id} />
-            ) : null}
+            {signed && <DownloadPdfButton reportId={signed.id} />}
           </>
         }
       />
@@ -158,8 +144,8 @@ export default async function StudySheetPage({
             <AddendaPanel
               reportId={signed.id}
               addenda={signed.addenda}
-              canAdd={isRadiologist}
-              signing={signing}
+              canAdd={false}
+              signing={null}
             />
           )}
         </div>
@@ -177,6 +163,19 @@ export default async function StudySheetPage({
               />
             </div>
           </Panel>
+
+          <AssignmentPanel
+            studyId={study.id}
+            patient={formatPatientName(study.patientName)}
+            state={assignment.ok ? assignment.data : null}
+            signedBy={
+              signed
+                ? formatPersonName(signed.signerTitle, signed.signedBy ?? "")
+                : null
+            }
+            messages={t.assignment}
+            locale={locale}
+          />
 
           {canEditClinical && (
             <ClinicalInfoForm

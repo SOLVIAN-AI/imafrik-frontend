@@ -115,20 +115,24 @@ export function byDeadline(
 
 /** La file, découpée selon ce que le radiologue peut en faire. */
 export interface WorklistSections {
-  /** Pris en charge par lui, pas encore rendus : à reprendre. */
+  /** Attribués à lui, pas encore rendus : commencés ou non. */
   mine: Study[];
-  /** Libres : à prendre, dans l'ordre des échéances. */
+  /**
+   * Sans titulaire. Pour un radiologue : les urgences de sa liste
+   * d'urgence, que le premier qui les prend obtient (il ne voit aucun
+   * autre examen sans attribution). Pour l'équipe IMAFRIK, en
+   * consultation : ce qui attend une attribution.
+   */
   open: Study[];
-  /** Pris par un confrère : pour mémoire, rien à y faire. */
+  /**
+   * Chez un autre radiologue : seule l'équipe IMAFRIK, en consultation,
+   * en voit. Un radiologue ne voit jamais l'examen d'un confrère.
+   */
   colleagues: Study[];
 }
 
 /**
  * Découpe la file.
- *
- * Mêler les examens pris par un confrère aux examens libres faisait
- * ouvrir des dossiers qu'on ne peut que consulter ; ils forment une
- * section à part, en fin de file.
  *
  * @param studies Examens non rendus.
  * @param userId  Radiologue connecté.
@@ -322,7 +326,7 @@ export function shortDemographics(
 // ─── Arrivées ─────────────────────────────────────────────────────────
 
 /**
- * Urgences libres apparues depuis le relevé précédent.
+ * Urgences à prendre apparues depuis le relevé précédent.
  *
  * Le premier relevé d'une session n'alerte de rien : ce qui est déjà là
  * à l'ouverture de l'écran n'est pas une arrivée.

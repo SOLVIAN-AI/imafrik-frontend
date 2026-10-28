@@ -9,6 +9,12 @@ export const clinic: AppMessages["clinic"] = {
     title: "Dashboard",
     send: "Send an examination",
     metrics: {
+      toAssign: "To assign",
+      toAssignHint: "no radiologist can see them yet",
+      urgentWaiting: (count: number) =>
+        count > 1
+          ? `including ${count} urgent ones, open to your urgent list`
+          : "including 1 urgent one, open to your urgent list",
       sent: "Sent in the last 30 days",
       inReading: "Being read",
       reportsReady: "Reports ready",
@@ -38,14 +44,12 @@ export const clinic: AppMessages["clinic"] = {
       patient: "Patient",
       study: "Examination",
       status: "Status",
-      slices: "Images",
       sent: "Sent",
       report: "Report",
     },
     pending: "Pending",
   },
   study: {
-    readAndWrite: "Read and report",
     report: "Report",
     signedBy: "Signed by",
     fullDocument: "Full document",

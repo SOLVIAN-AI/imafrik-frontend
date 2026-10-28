@@ -382,7 +382,7 @@ export function CredentialReview({
 }
 
 /**
- * Retrait de l'habilitation : coupe l'accès aux examens et rend au pool
+ * Retrait de l'habilitation : coupe l'accès aux examens et rend « à attribuer »
  * ceux que le radiologue avait pris en charge. La confirmation le dit
  * avant.
  */

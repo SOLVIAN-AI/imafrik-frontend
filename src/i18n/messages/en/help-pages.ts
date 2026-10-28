@@ -6,20 +6,20 @@ export const pages: typeof fr = {
     worklist: {
       title: "To read",
       purpose:
-        "Your group’s worklist: the examinations still to be reported, sorted by deadline. You see what you have claimed, what is free to claim and what a colleague is already reading.",
+        "The examinations entrusted to you, sorted by deadline: those assigned to you and, if you are on a clinic’s urgent list, the urgent examinations to take. You see neither other radiologists’ examinations nor their reports.",
       steps: [
-        "Check the indicators: “To claim”, “Unclaimed urgent”, “Overdue” and “Next deadline”.",
+        "Check the indicators: “Assigned to you”, “Urgent to take”, “Overdue” and “Next deadline”.",
         "Filter by modality or clinic, click “Urgent only”, or search for a patient.",
-        "Finish the “Claimed by you” section first, then pick from “To claim”, sorted by deadline.",
-        "Click a row (or J, K then Enter) to open the examination, then click “Claim” on the reading screen.",
-        "Keep the page open: the worklist refreshes automatically every 30 seconds and flags each new urgent examination.",
+        "Read “Assigned to you” first, by deadline. An examination under “Urgent to take” goes to the first radiologist who takes it.",
+        "Click a row (or J, K then Enter) to open the examination, then click “Take on” on the reading screen.",
+        "Keep the page open: the worklist refreshes automatically every 30 seconds and flags each new urgent examination to take.",
       ],
       terms: [
-        "examen",
+        "attribution",
+        "listeUrgence",
         "urgence",
         "delaiPromis",
         "priseEnCharge",
-        "renseignementClinique",
       ],
     },
     myStudies: {
@@ -30,7 +30,7 @@ export const pages: typeof fr = {
         "Spot the most pressing ones: the “Deadline” column shows the time left, closest first.",
         "Click a row to reopen the examination on the reading screen and continue its report.",
         "Sign the report: the examination leaves this list and moves to your “Reports”.",
-        "If the list is empty, claim an examination from the “To read” worklist.",
+        "If the list is empty, open an examination assigned to you, from the “To read” worklist, to take it on.",
       ],
       terms: ["examen", "priseEnCharge", "delaiPromis", "signature"],
     },
@@ -120,8 +120,8 @@ export const pages: typeof fr = {
       purpose:
         "Where you read an examination and write its report: the images in the viewer on the left, the report on the right. Once signed, the report goes to the clinic and can no longer be edited.",
       steps: [
-        "Read the “Clinical information”, then go through the images in the viewer; “Full screen” enlarges them.",
-        "Click “Claim”: the examination is reserved for you until you sign it, or until “Return to pool”, which deletes the draft.",
+        "Read the “Clinical information” and go through the images; a shared prior examination opens read-only, in a new tab.",
+        "Click “Take on”: the examination is reserved for you until you sign it, or until “Return the examination”, which deletes the draft and notifies the clinic.",
         "Write the sections, using “Template” to fill those still empty; the text is saved automatically.",
         "Click “Sign”, check the flagged points, enter your personal code, then click “Sign and send”.",
         "Click “Next examination” to move on; to correct a signed report, click “Correct with an addendum”.",
@@ -130,7 +130,7 @@ export const pages: typeof fr = {
         "viewer",
         "renseignementClinique",
         "priseEnCharge",
-        "pool",
+        "anteriorite",
         "codePersonnel",
       ],
     },
@@ -141,7 +141,7 @@ export const pages: typeof fr = {
       purpose:
         "Your clinic’s starting point: signed reports to download, the latest examinations you sent, and activity over the last 30 days.",
       steps: [
-        "Read the four figures: examinations sent, being read, reports ready, and the median turnaround over 30 days.",
+        "Read the four figures: examinations to assign, being read, reports ready, and the median turnaround over 30 days. An examination “To assign” is seen by no radiologist.",
         "Under “Reports to download”, click “Download PDF” to get a signed report.",
         "Click a patient’s name to read the full report before downloading it.",
         "Follow what you sent under “Latest examinations sent”: each status shows on the right, and “Urgent” marks an urgent examination.",
@@ -165,33 +165,33 @@ export const pages: typeof fr = {
     studies: {
       title: "Examinations",
       purpose:
-        "All the examinations your clinic has sent, with their status and the status of their report. This is where you find a specific case.",
+        "All the examinations your clinic has sent, with the radiologist reading them and the status of their report. This is where you assign your examinations to your radiologists.",
       steps: [
+        "Click “To assign” to see only the examinations no radiologist can see yet, the most pressing first.",
+        "On a row, click “Assign”, choose a radiologist among those reading the modality, tick the useful prior examinations, then click “Assign”.",
         "Type a patient name, an ID or a modality in the search box, then press Enter.",
-        "Read each examination’s status: “Waiting”, “Being read”, “Ready to download” or “Downloaded”. A red edge and “Urgent” mark urgent ones.",
-        "In the “Report” column, look for documents marked “To download”.",
-        "Click a row to open the examination page.",
-        "Click “Refresh” to see the latest changes, or “Send” to send a new examination.",
+        "In the “Report” column, look for documents marked “To download”. A red edge and “Urgent” mark urgent ones.",
+        "Click a row to open the examination page, or “Send” to send a new examination.",
       ],
-      terms: ["examen", "compteRendu", "urgence"],
+      terms: ["attribution", "anteriorite", "modalitesLues", "urgence"],
     },
     study: {
       title: "Examination page",
       purpose:
-        "Everything about one examination: its images, reading progress and, once signed, its report. Until the report is signed, you can flag the examination as urgent and complete the clinical information.",
+        "Everything about one examination: its images, who reads it, reading progress and, once signed, its report. Until the report is signed, you can assign it, share prior examinations, flag it as urgent and complete the clinical information.",
       steps: [
+        "Under “Assignment”, click “Assign” (or “Reassign”): choose the radiologist, tick the prior examinations to share with them, or withdraw one.",
         "Follow the reading under “Progress”, from “Examination received” to “Report delivered”.",
         "If the examination cannot wait, tick “Urgent examination”. Nothing reaches the radiologist until you click “Save”.",
         "Describe the context and your question for the radiologist under “Clinical information”, then click “Save”.",
-        "Click “Open images” to view the examination in the viewer.",
         "Once the report is signed, click “Download PDF”, or “Full document” to open it.",
       ],
       terms: [
+        "attribution",
+        "anteriorite",
         "urgence",
+        "listeUrgence",
         "renseignementClinique",
-        "delaiPromis",
-        "viewer",
-        "compteRendu",
       ],
     },
     reports: {
@@ -221,14 +221,15 @@ export const pages: typeof fr = {
     team: {
       title: "Team",
       purpose:
-        "The members of your facility who have access to IMAFRIK, with their role. Everyone has their own account, and this is where you invite or remove colleagues.",
+        "The members of your facility who have access to IMAFRIK, with their role. Everyone has their own account, and this is where you invite or remove colleagues, and set what each of your radiologists reads.",
       steps: [
+        "For a radiologist, click “Modalities and urgent list”: tick the modalities they read, and put them on the urgent list if they may take an urgent examination without an assignment.",
         "Click “Invite”, then enter the person’s full name and email address.",
         "Choose their role: “Clinic” for staff, or “Radiologist”. A radiologist can only access examinations once their registration number has been verified.",
         "Click “Send invitation”: the person receives a link by email and chooses their own password.",
         "To remove a member, open the menu at the end of their row and choose “Remove from team”. Their access ends immediately.",
       ],
-      terms: ["organisation", "habilitation"],
+      terms: ["organisation", "habilitation", "modalitesLues", "listeUrgence"],
     },
     settings: {
       title: "Settings",
@@ -304,15 +305,15 @@ export const pages: typeof fr = {
         "Follows a clinic’s onboarding and its activity over thirty days. From here you connect its gateways with a code, set image retention, the report language and logo, and can end the contract.",
       steps: [
         "Follow “Onboarding”: the first step not yet completed is the one that calls for action.",
-        "In “Connect a gateway”, click “Issue a code”: it is valid for 15 minutes, once only, and will not be shown again.",
-        "Read the code out to the installer, or send it over an encrypted channel: they enter it in the installation kit, on the workstation.",
+        "In “Connect a gateway”, click “Issue a code” (15 minutes, once only) and read it out to the installer, who enters it in the kit.",
         "When the workstation shows “Awaiting approval” under “Gateways”, check it with the clinic, then click “Approve”.",
+        "Under “Urgent list”, tick the radiologists, from the clinic or the network, who may take its urgent examinations without an assignment, then click “Save”.",
         "If needed, set the image retention, the report language and the watermark logo.",
       ],
       terms: [
         "passerelle",
         "codeEnrolement",
-        "pool",
+        "listeUrgence",
         "contratService",
         "compteRendu",
       ],
@@ -364,15 +365,15 @@ export const pages: typeof fr = {
       steps: [
         "Use the “To review”, “Signature to review” and “Pending” filters, or search for an account by name or email.",
         "For an account “Not attached to any organisation”, click “Attach”, then choose the organisation and the role.",
-        "Click “Review the file”, open the document, then choose “Accept and approve” or “Refuse” with a reason.",
-        "Click “Signature to review” to compare the uploaded signature and stamp, then “Accept” or “Reject”.",
+        "Click “Review the file” or “Signature to review”, open the documents, then accept or refuse with a reason.",
         "For a lost or replaced phone, verify the person’s identity through another channel, then click “Reset”.",
+        "On a radiologist’s membership, the settings icon opens their “Modalities read”: they limit what can be assigned to them.",
       ],
       terms: [
         "rattachement",
         "habilitation",
         "justificatif",
-        "doubleAuthentification",
+        "modalitesLues",
         "signature",
       ],
     },
@@ -384,10 +385,10 @@ export const pages: typeof fr = {
         "Search for an examination by patient, ID or modality in the search bar.",
         "Click “Open urgent cases” to see urgent examinations not yet reported, the most overdue first.",
         "Click the patient’s name to open the images and the report, without being able to write or sign.",
-        "For an unsigned examination, click the assign button, choose a radiologist, then click “Assign”.",
-        "To take it back from its holder, reopen the same window and click “Return to the queue”.",
+        "For an unsigned examination, click the assign button, choose a radiologist who reads its modality, tick the useful prior examinations, then click “Assign”.",
+        "To take it back from its holder, reopen the same window and click “Withdraw the assignment”: the examination waits for a new assignment.",
       ],
-      terms: ["examen", "attribution", "urgence", "priseEnCharge", "pool"],
+      terms: ["attribution", "anteriorite", "urgence", "modalitesLues", "pool"],
     },
     requests: {
       title: "Incoming requests",
@@ -463,11 +464,11 @@ export const pages: typeof fr = {
     worklist: {
       title: "To read",
       purpose:
-        "The whole platform’s worklist, read-only: examinations to claim and examinations being read, by deadline. The team monitors it without claiming anything.",
+        "The whole platform’s worklist, read-only: examinations to assign and examinations with a radiologist, by deadline. The team monitors it without taking anything on.",
       steps: [
-        "Read the indicators: “To claim”, “Unclaimed urgent”, “Overdue” and “Next deadline”.",
+        "Read the indicators: “To assign”, “Urgent to take”, “Overdue” and “Next deadline”.",
         "Narrow the worklist with the search, “Urgent only”, the modality chips or the “All clinics” list.",
-        "Under “Being read”, find the examinations already claimed, with the radiologist’s name in the “Status” column.",
+        "Under “With a radiologist”, find the examinations assigned or being read, with the radiologist’s name in the “Status” column.",
         "Open an examination with a click, or with j, k and Enter, to view it: you can neither claim nor sign it.",
         "Leave the screen open: the worklist refreshes every 30 seconds and flags each new urgent examination.",
       ],

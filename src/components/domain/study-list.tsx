@@ -4,15 +4,16 @@ import { FileCheck, Inbox, SearchX } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { AssignDialog } from "@/components/domain/assign-dialog";
 import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
   UrgentMarker,
 } from "@/components/domain/study-status";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useLocale, useMessages } from "@/i18n/client";
+import { useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
-import { formatCount, formatPatientName } from "@/lib/format";
+import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
@@ -30,22 +31,39 @@ import { cn } from "@/lib/utils";
  * (`reportedAt`, la date de signature), que le service renvoie avec la
  * liste : aucun appel supplémentaire par ligne.
  *
- * @param studies  Examens à afficher.
- * @param filtered Une recherche est active : l'état vide dit « aucun
- *                 résultat » plutôt que « aucun examen ».
+ * **Qui le lit.** La colonne « Radiologue » dit à qui l'examen est
+ * attribué, ou qu'il est « à attribuer » : aucun radiologue ne le voit
+ * tant qu'on ne le lui a pas confié. Le responsable l'attribue d'un clic,
+ * sur la ligne.
+ *
+ * @param studies    Examens à afficher.
+ * @param filtered   Une recherche ou une vue est active : l'état vide dit
+ *                   « aucun résultat » plutôt que « aucun examen ».
+ * @param assignable Le responsable de la clinique attribue depuis la liste.
  */
 export function StudyList({
   studies,
   filtered = false,
+  assignable = false,
 }: {
   studies: Study[];
   filtered?: boolean;
+  assignable?: boolean;
 }) {
   const router = useRouter();
   const messages = useMessages();
   const t = messages.clinic.studies;
   const reports = messages.clinic.reports;
-  const locale = useLocale();
+  const views = messages.assignment.list;
+  const open = (study: Study) =>
+    study.status === "received" ||
+    study.status === "assigned" ||
+    study.status === "in_progress";
+  /** Qui lit l'examen, ou qu'il attend une attribution. */
+  const reader = (study: Study) =>
+    study.reportedBy ??
+    study.assignedToName ??
+    (study.status === "received" ? null : "—");
 
   if (studies.length === 0) {
     return (
@@ -109,8 +127,23 @@ export function StudyList({
                   muted={study.status === "delivered"}
                 />
                 <StudyStatusChip status={study.status} />
+                {reader(study) === null && (
+                  <span className="text-2xs font-medium text-progress">
+                    {views.unassigned}
+                  </span>
+                )}
               </div>
             </Link>
+            {assignable && open(study) && (
+              <div className="flex justify-end px-4 pb-3">
+                <AssignDialog
+                  portal="clinic"
+                  studyId={study.id}
+                  patient={formatPatientName(study.patientName)}
+                  assigned={study.assignedTo !== null}
+                />
+              </div>
+            )}
           </li>
         ))}
       </ul>
@@ -119,17 +152,17 @@ export function StudyList({
         <table className="w-full border-separate border-spacing-0 text-sm">
           <thead className="sticky top-0 z-10">
             <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
-              <th scope="col" className="w-[30%]">
+              <th scope="col" className="w-[26%]">
                 <span className="label-eyebrow">{t.columns.patient}</span>
               </th>
-              <th scope="col" className="w-[18%]">
+              <th scope="col" className="w-[14%]">
                 <span className="label-eyebrow">{t.columns.study}</span>
               </th>
-              <th scope="col" className="w-[16%]">
+              <th scope="col" className="w-[14%]">
                 <span className="label-eyebrow">{t.columns.status}</span>
               </th>
-              <th scope="col" className="w-[10%] text-right">
-                <span className="label-eyebrow">{t.columns.slices}</span>
+              <th scope="col" className="w-[20%]">
+                <span className="label-eyebrow">{views.radiologist}</span>
               </th>
               <th scope="col" className="w-[10%] text-right">
                 <span className="label-eyebrow">{t.columns.sent}</span>
@@ -145,8 +178,14 @@ export function StudyList({
               <tr
                 key={study.id}
                 onClick={(event) => {
-                  // Le lien gère lui-même son clic (et ses modificateurs).
-                  if ((event.target as HTMLElement).closest("a")) return;
+                  // La fenêtre d'attribution est rendue hors de la ligne
+                  // (portail), mais ses clics remontent l'arbre React
+                  // jusqu'ici : ils ne doivent pas ouvrir la fiche.
+                  if (!event.currentTarget.contains(event.target as Node))
+                    return;
+                  // Le lien et le bouton gèrent eux-mêmes leur clic.
+                  if ((event.target as HTMLElement).closest("a, button"))
+                    return;
                   router.push(`/examens/${study.id}`);
                 }}
                 className={cn(
@@ -184,8 +223,27 @@ export function StudyList({
                   <StudyStatusChip status={study.status} />
                 </td>
 
-                <td className="text-right text-secondary tabular-nums">
-                  {formatCount(study.instanceCount, locale)}
+                <td>
+                  <div className="flex items-center justify-between gap-2">
+                    {reader(study) === null ? (
+                      <span className="text-xs font-medium text-progress">
+                        {views.unassigned}
+                      </span>
+                    ) : (
+                      <span className="truncate text-secondary">
+                        {reader(study)}
+                      </span>
+                    )}
+                    {assignable && open(study) && (
+                      <AssignDialog
+                        portal="clinic"
+                        studyId={study.id}
+                        patient={formatPatientName(study.patientName)}
+                        assigned={study.assignedTo !== null}
+                        compact
+                      />
+                    )}
+                  </div>
                 </td>
 
                 <td className="text-right tabular-nums">
