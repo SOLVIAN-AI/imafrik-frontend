@@ -13,6 +13,7 @@ import {
 import { isDemoMode } from "@/lib/demo/mode";
 import { DEMO_REPORTS } from "@/lib/demo/reports";
 import { DEMO_STUDIES, demoDraftSections } from "@/lib/demo/studies";
+import { clinicViewApi } from "@/lib/clinic-view";
 
 /**
  * Correction apportée à un compte-rendu signé.
@@ -160,28 +161,65 @@ function demoReport(
  * N'en crée jamais : une lecture n'écrit rien. Le brouillon s'ouvre par
  * `openDraft`, après prise en charge.
  *
+ * @param studyId  Examen.
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK : le compte-rendu
+ *                 tel que le voit son responsable, signé seulement.
  * @returns Le compte-rendu visible, ou `null` — pas encore rédigé, ou
  *          pas encore signé pour une clinique.
  */
 export async function getReportForStudy(
   studyId: string,
+  clinicId?: string,
 ): Promise<Report | null> {
-  if (isDemoMode()) return demoReport((sid) => sid === studyId);
-  const row = await apiGet(
-    `/studies/${encodeURIComponent(studyId)}/report`,
-    reportSchema,
-    {
-      notFoundAsNull: true,
-    },
-  );
+  if (isDemoMode()) {
+    return demoReportOf(
+      demoReport((sid) => sid === studyId),
+      clinicId,
+    );
+  }
+  const path = clinicId
+    ? `${clinicViewApi(clinicId)}/studies/${encodeURIComponent(studyId)}/report`
+    : `/studies/${encodeURIComponent(studyId)}/report`;
+  const row = await apiGet(path, reportSchema, { notFoundAsNull: true });
   return row ? toReport(row) : null;
 }
 
-/** Un compte-rendu par son identifiant. */
-export async function getReport(id: string): Promise<Report | null> {
-  if (isDemoMode()) return demoReport((_, rid) => rid === id);
-  const row = await apiGet(`/reports/${encodeURIComponent(id)}`, reportSchema, {
-    notFoundAsNull: true,
-  });
+/**
+ * Un compte-rendu par son identifiant.
+ *
+ * @param id       Compte-rendu.
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK : signé, et
+ *                 d'un examen de cette clinique seulement.
+ */
+export async function getReport(
+  id: string,
+  clinicId?: string,
+): Promise<Report | null> {
+  if (isDemoMode()) {
+    return demoReportOf(
+      demoReport((_, rid) => rid === id),
+      clinicId,
+    );
+  }
+  const path = clinicId
+    ? `${clinicViewApi(clinicId)}/reports/${encodeURIComponent(id)}`
+    : `/reports/${encodeURIComponent(id)}`;
+  const row = await apiGet(path, reportSchema, { notFoundAsNull: true });
   return row ? toReport(row) : null;
+}
+
+/**
+ * Ce que le responsable d'une clinique de démonstration voit d'un
+ * compte-rendu : signé, et de l'un de ses examens. Sans clinique, le
+ * compte-rendu tel quel.
+ */
+function demoReportOf(
+  report: Report | null,
+  clinicId: string | undefined,
+): Report | null {
+  if (!report || !clinicId) return report;
+  const study = DEMO_STUDIES.find((s) => s.id === report.studyId);
+  return report.status === "signed" && study?.clinicId === clinicId
+    ? report
+    : null;
 }

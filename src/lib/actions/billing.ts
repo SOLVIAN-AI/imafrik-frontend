@@ -9,6 +9,7 @@ import {
   run,
 } from "@/lib/actions/result";
 import { apiSend } from "@/lib/api/client";
+import { clinicViewPath } from "@/lib/clinic-view";
 import {
   billingMonthSchema,
   clinicPlanSchema,
@@ -65,6 +66,8 @@ export async function saveClinicPlan(
   if (result.ok) {
     revalidatePath(`/admin/organisations/${clinicId}`);
     revalidatePath("/admin/facturation");
+    // Le relevé de la clinique, dans la vue des cliniques.
+    revalidatePath(clinicViewPath(clinicId, "/activite"));
   }
   return result;
 }

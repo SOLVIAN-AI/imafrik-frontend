@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { clinicViewPath } from "@/lib/clinic-view";
 import { publicSitePaths } from "@/lib/i18n/routes";
 import {
   homeFor,
@@ -121,6 +122,8 @@ describe("tour de contrôle", () => {
       "/admin/systeme",
       "/admin/audit",
       "/admin/reglages",
+      "/admin/vue-clinique",
+      "/admin/vue-clinique/org-1/examens/e1",
     ]) {
       expect(isRouteAllowed("platform_admin", path)).toBe(true);
       expect(isRouteAllowed("radiologist", path)).toBe(false);
@@ -143,8 +146,15 @@ describe("tour de contrôle", () => {
   });
 
   it("n'a qu'une entrée active par adresse du portail", () => {
-    const items = navigationFor("platform_admin").flatMap(
-      (group) => group.items,
+    // Les entrées de la vue des cliniques mènent sous la clinique consultée,
+    // comme la barre latérale les résout.
+    const items = navigationFor("platform_admin").flatMap((group) =>
+      group.clinicScoped
+        ? group.items.map((item) => ({
+            ...item,
+            href: clinicViewPath("org-1", item.href),
+          }))
+        : group.items,
     );
     for (const item of items) {
       const active = items.filter((candidate) =>
@@ -160,6 +170,7 @@ describe("blocs de la barre latérale", () => {
     const blocks = navigationBlocks(navigationFor("platform_admin"));
     expect(blocks.map((block) => block.key)).toEqual([
       "administration",
+      "clinicView",
       "radiologistView",
       "account",
     ]);
@@ -195,6 +206,34 @@ describe("blocs de la barre latérale", () => {
       "/modeles",
       "/formation",
     ]);
+  });
+
+  it("replie la vue des cliniques, sur les écrans du responsable sans ses gestes", () => {
+    const vue = navigationBlocks(navigationFor("platform_admin")).find(
+      (block) => block.key === "clinicView",
+    );
+    expect(vue?.collapsible).toBe(true);
+    expect(vue?.clinicScoped).toBe(true);
+    const ecrans = vue?.sections.flat().map((item) => item.href) ?? [];
+    expect(ecrans).toEqual([
+      "/tableau-de-bord",
+      "/examens",
+      "/comptes-rendus",
+      "/equipe",
+      "/activite",
+    ]);
+    // Ce sont des écrans du responsable : il les a tous dans sa navigation.
+    const responsable = navigationFor("clinic_staff")
+      .flatMap((group) => group.items)
+      .map((item) => item.href);
+    expect(ecrans.every((href) => responsable.includes(href))).toBe(true);
+    expect(ecrans).not.toContain("/envoyer");
+    expect(ecrans).not.toContain("/parametres");
+    // Seule la vue des cliniques porte le choix d'une clinique.
+    const autres = navigationBlocks(navigationFor("platform_admin")).filter(
+      (block) => block.key !== "clinicView",
+    );
+    expect(autres.some((block) => block.clinicScoped)).toBe(false);
   });
 
   it("ne change rien aux portails sans suite ni repli", () => {

@@ -20,7 +20,12 @@ export const glossary = {
   consultation: {
     term: "Consultation",
     definition:
-      "Accès en lecture seule de l’équipe IMAFRIK aux écrans des radiologues : file, brouillons, comptes-rendus et images. Elle voit tout sans prendre en charge, rédiger ni signer, et chaque ouverture d’examen est tracée.",
+      "Accès en lecture seule de l’équipe IMAFRIK aux écrans des radiologues (file, brouillons, comptes-rendus, images) et, dans la vue des cliniques, à ceux du responsable d’une clinique. Elle voit sans prendre en charge, rédiger ni signer, et chaque ouverture est tracée.",
+  },
+  vueCliniques: {
+    term: "Vue des cliniques",
+    definition:
+      "Les écrans du responsable d’une clinique, ouverts par l’équipe IMAFRIK avec les données de cette clinique et les mêmes chiffres. Lecture seule : ni envoi, ni invitation, ni renseignement clinique, et un PDF téléchargé n’est pas remis. Chaque ouverture est tracée au journal d’audit.",
   },
   filetSecurite: {
     term: "Filet de sécurité",

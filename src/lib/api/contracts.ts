@@ -636,6 +636,18 @@ const _adminOrganization: Matches<
   Schemas["AdminOrganization"]
 > = true;
 
+/** La clinique consultée par l'équipe IMAFRIK (vue des cliniques). */
+export const clinicViewSchema = z.object({
+  id: uuid,
+  name: z.string(),
+  city: z.string().nullable(),
+  is_active: z.boolean(),
+});
+const _clinicView: Matches<
+  z.input<typeof clinicViewSchema>,
+  Schemas["ClinicView"]
+> = true;
+
 export const contactRequestSchema = z.object({
   id: uuid,
   full_name: z.string(),
@@ -1696,6 +1708,7 @@ export const CONTRACT_CHECKS = [
   _organization,
   _member,
   _adminOrganization,
+  _clinicView,
   _contactRequest,
   _opsRun,
   _alert,

@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -34,6 +34,7 @@ import { setLanguage } from "@/lib/actions/profile";
 import { formatPatientName } from "@/lib/format";
 import { LOCALE_NAMES, LOCALES } from "@/lib/i18n/locale";
 import { isTyping } from "@/lib/keyboard";
+import { clinicIdOf, clinicViewPath } from "@/lib/clinic-view";
 import { navigationFor } from "@/lib/navigation";
 import type { ListSearchScope } from "@/lib/search/list-search";
 import type { UserRole } from "@/lib/session/types";
@@ -161,6 +162,7 @@ export function CommandPalette({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { active } = useSession();
   const { resolvedTheme, setTheme } = useTheme();
   const t = useMessages();
@@ -227,8 +229,21 @@ export function CommandPalette({
       run: () => openHit(hit),
     }));
 
+    // Vue des cliniques : ses écrans sont ceux de la clinique consultée, et
+    // n'existent pas tant qu'aucune n'est choisie (comme dans la barre
+    // latérale).
+    const clinicId = clinicIdOf(pathname);
     const screens: Command[] = navigationFor(active.role)
-      .flatMap((group) => group.items)
+      .flatMap((group) =>
+        !group.clinicScoped
+          ? group.items
+          : clinicId
+            ? group.items.map((item) => ({
+                ...item,
+                href: clinicViewPath(clinicId, item.href),
+              }))
+            : [],
+      )
       .filter(
         (item) => !needle || normalize(t.nav.items[item.key]).includes(needle),
       )
@@ -277,6 +292,7 @@ export function CommandPalette({
     hits,
     query,
     active.role,
+    pathname,
     resolvedTheme,
     setTheme,
     go,

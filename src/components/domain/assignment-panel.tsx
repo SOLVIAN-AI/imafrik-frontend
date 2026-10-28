@@ -4,7 +4,10 @@ import { AssignDialog } from "@/components/domain/assign-dialog";
 import { DateTime } from "@/components/domain/date-time";
 import { Panel } from "@/components/layout/app-shell";
 import type { AppMessages } from "@/i18n";
-import type { AssignmentState } from "@/lib/actions/assignment";
+import type {
+  AssignmentPortal,
+  AssignmentState,
+} from "@/lib/actions/assignment";
 import { formatDate } from "@/lib/format";
 import type { Locale } from "@/lib/i18n/locale";
 
@@ -17,12 +20,16 @@ import type { Locale } from "@/lib/i18n/locale";
  * personne, aucun radiologue ne le voit : le bloc le dit, sauf pour une
  * urgence, que la liste d'urgence voit et peut prendre.
  *
+ * Dans la vue des cliniques, l'équipe IMAFRIK y voit le même état et
+ * attribue par son propre portail (`portal="team"`).
+ *
  * @param studyId  Examen.
  * @param patient  Nom du patient, pour l'intitulé accessible du bouton.
  * @param state    Attribution lue par le service, `null` si indisponible.
  * @param signedBy Signataire, une fois le compte-rendu signé.
  * @param messages Textes de l'attribution.
  * @param locale   Langue de l'utilisateur.
+ * @param portal   Portail qui attribue : la clinique, ou l'équipe IMAFRIK.
  */
 export function AssignmentPanel({
   studyId,
@@ -31,6 +38,7 @@ export function AssignmentPanel({
   signedBy,
   messages,
   locale,
+  portal = "clinic",
 }: {
   studyId: string;
   patient: string;
@@ -38,6 +46,7 @@ export function AssignmentPanel({
   signedBy: string | null;
   messages: AppMessages["assignment"];
   locale: Locale;
+  portal?: AssignmentPortal;
 }) {
   const text = messages.sheet;
   const open =
@@ -49,7 +58,7 @@ export function AssignmentPanel({
         <h2 className="label-eyebrow flex-1">{text.title}</h2>
         {open && (
           <AssignDialog
-            portal="clinic"
+            portal={portal}
             studyId={studyId}
             patient={patient}
             assigned={state.assignedTo !== null}

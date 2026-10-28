@@ -25,6 +25,10 @@ export const LIST_SEARCH_SCOPES = [
   "examens",
   "admin-examens",
   "comptes-rendus",
+  // Vue des cliniques : l'équipe IMAFRIK cherche dans les listes du
+  // responsable sans filtrer les siennes.
+  "vue-clinique-examens",
+  "vue-clinique-comptes-rendus",
 ] as const;
 
 /** Une liste d'examens recherchable. */

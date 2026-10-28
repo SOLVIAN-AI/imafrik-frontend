@@ -358,6 +358,8 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | `/admin/systeme` | Dépendances, PACS, version, filets de sécurité (sauvegardes, exercices, réconciliation, conservation). | Fait |
 | `/admin/audit` | Journal d'audit, filtré par action, paginé par curseur. | Fait |
 | `/admin/reglages` | Délais promis, bandeau de maintenance. | Fait |
+| `/admin/vue-clinique` | **Vue des cliniques** : choix de la clinique à consulter (le même choix que le sélecteur de la navigation). | Fait |
+| `/admin/vue-clinique/[clinique]/…` | Les écrans du responsable de la clinique choisie, avec ses données et ses chiffres, en consultation : tableau de bord, examens (et « À attribuer »), fiche d’un examen, comptes-rendus, équipe, règles d’attribution, activité et facturation. Bandeau permanent « Consultation de … », ouverture tracée au journal (`organization.viewed`). Aucun geste du responsable ; l’équipe y attribue par son portail et règle les règles d’attribution, la liste d’urgence et la formule restant sur la fiche de la clinique. Les écrans sont les mêmes composants que ceux du responsable (`components/clinic-screens`), lus par `/admin/clinics/{id}/view/…`. | Fait |
 | `/admin/contrats` | Qui sert qui (`service_contracts`). | V2 (en SQL pour l'instant) |
 
 **13 écrans.**

@@ -1,4 +1,4 @@
-import { ArrowLeft, Ban, Check, Circle } from "lucide-react";
+import { ArrowLeft, Ban, Check, Circle, Eye } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -36,6 +36,7 @@ import {
 } from "@/lib/format";
 import { getAssignmentRules } from "@/lib/actions/assignment-rules";
 import { getUrgentReaders } from "@/lib/actions/urgent-readers";
+import { clinicViewPath } from "@/lib/clinic-view";
 import { getClinicPlan } from "@/lib/data/activity";
 import { getClinicGateways, getEnrollmentCodes } from "@/lib/data/gateways";
 import { LOCALE_NAMES } from "@/lib/i18n/locale";
@@ -126,6 +127,14 @@ export default async function ClinicPage({
             <Button asChild variant="secondary" size="sm">
               <Link href={`/admin/activite?clinique=${clinic.id}`}>
                 {text.detailedActivity}
+              </Link>
+            </Button>
+            {/* Les écrans de son responsable, tels qu'il les voit. Jamais
+                préchargés : ouvrir la vue se trace au journal. */}
+            <Button asChild variant="secondary" size="sm">
+              <Link href={clinicViewPath(clinic.id)} prefetch={false}>
+                <Eye aria-hidden />
+                {t.clinicView.chooser.title}
               </Link>
             </Button>
           </>
@@ -282,6 +291,7 @@ export default async function ClinicPage({
         </div>
 
         <Section
+          id="liste-urgence"
           title={t.assignment.urgentReaders.title}
           description={t.assignment.urgentReaders.description}
         >
@@ -318,6 +328,7 @@ export default async function ClinicPage({
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Section
+            id="abonnement"
             title={t.admin.plan.title}
             description={
               plan

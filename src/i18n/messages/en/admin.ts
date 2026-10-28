@@ -812,6 +812,7 @@ export const admin: AppMessages["admin"] = {
       "organization.urgent_readers_changed": "Urgent list changed",
       "organization.assignment_rules_changed": "Assignment rules changed",
       "organization.plan_changed": "Subscription plan changed",
+      "organization.viewed": "Clinic opened in view-only mode",
       "organization.retention_changed": "Retention period changed",
       "organization.report_language_changed": "Report language changed",
       "organization.logo_changed": "Report logo changed",

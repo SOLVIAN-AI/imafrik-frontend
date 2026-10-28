@@ -45,6 +45,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/components/providers/session-provider";
+import {
+  CLINIC_VIEW_ROOT,
+  clinicIdOf,
+  clinicScreenOf,
+  clinicViewPath,
+  type ViewableClinic,
+} from "@/lib/clinic-view";
 import { formatPersonName } from "@/lib/format";
 import { clearLocalData } from "@/lib/local-data";
 import {
@@ -299,6 +306,100 @@ function UserCard() {
   );
 }
 
+/**
+ * Choix de la clinique consultée, en tête de la vue des cliniques.
+ *
+ * La clinique est dans l'adresse (`/admin/vue-clinique/{clinique}/...`) :
+ * la choisir, c'est y aller. On garde l'écran où l'on est (l'équipe d'une
+ * clinique mène à l'équipe d'une autre) ; une fiche propre à la première
+ * (un examen, un compte-rendu) ramène à sa liste.
+ *
+ * @param clinics  Cliniques proposées, par nom.
+ * @param current  Clinique consultée, lue dans l'adresse ; `null` hors de la vue.
+ * @param pathname Adresse courante.
+ */
+function ClinicPicker({
+  clinics,
+  current,
+  pathname,
+}: {
+  clinics: readonly ViewableClinic[];
+  current: string | null;
+  pathname: string;
+}) {
+  const t = useMessages().clinicView.picker;
+  const selected = clinics.find((clinic) => clinic.id === current);
+  const label = current ? (selected?.name ?? t.label) : t.choose;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          data-testid="clinic-picker"
+          className={cn(
+            "group mb-1 flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5",
+            "border border-border-subtle text-sm transition-colors duration-100",
+            "hover:border-border-default hover:bg-surface-hover",
+            "data-[state=open]:border-border-default data-[state=open]:bg-surface-hover",
+            current ? "font-medium text-primary" : "text-secondary",
+          )}
+        >
+          <Hospital className="size-4 shrink-0 text-accent" aria-hidden />
+          {/* Le nom accessible commence par le texte visible (WCAG 2.5.3). */}
+          <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+          <span className="sr-only">{t.change}</span>
+          <ChevronsUpDown
+            className="size-3.5 shrink-0 text-tertiary transition-colors group-hover:text-secondary"
+            aria-hidden
+          />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuLabel>{t.label}</DropdownMenuLabel>
+        {clinics.length === 0 ? (
+          <DropdownMenuItem disabled>{t.empty}</DropdownMenuItem>
+        ) : (
+          clinics.map((clinic) => (
+            <DropdownMenuItem key={clinic.id} asChild>
+              {/* Jamais préchargé : ouvrir la vue d'une clinique se trace au
+                  journal, ce que le simple survol d'une liste ne doit pas
+                  faire. Un lien, et non un clic programmé : le tiroir du
+                  téléphone se referme sur un lien suivi. */}
+              <Link
+                href={clinicViewPath(clinic.id, clinicScreenOf(pathname))}
+                prefetch={false}
+                aria-current={clinic.id === current ? "page" : undefined}
+              >
+                <Hospital
+                  className="size-3.5 shrink-0 text-tertiary"
+                  aria-hidden
+                />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-xs font-medium">
+                    {clinic.name}
+                  </span>
+                  {clinic.city && (
+                    <span className="truncate text-2xs text-tertiary">
+                      {clinic.city}
+                    </span>
+                  )}
+                </span>
+                {clinic.id === current && (
+                  <Check
+                    className="size-3.5 shrink-0 text-accent"
+                    aria-hidden
+                  />
+                )}
+              </Link>
+            </DropdownMenuItem>
+          ))
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 /** Une entrée de navigation. */
 function NavLink({
   item,
@@ -412,16 +513,34 @@ function writeFold(key: string, open: boolean): void {
  * cet appareil. Un clic sur son titre l'emporte, le temps de la page.
  */
 function NavBlockView({
-  block,
+  block: declared,
   counts,
   pathname,
+  clinics,
 }: {
   block: NavBlock;
   counts: NavCounts | null;
   pathname: string;
+  clinics: readonly ViewableClinic[];
 }) {
   const t = useMessages();
   const listId = React.useId();
+  // Vue des cliniques : ses entrées mènent aux écrans de la clinique
+  // consultée, et n'existent pas tant qu'aucune n'est choisie.
+  const clinicId = declared.clinicScoped ? clinicIdOf(pathname) : null;
+  const block = declared.clinicScoped
+    ? {
+        ...declared,
+        sections: clinicId
+          ? declared.sections.map((items) =>
+              items.map((item) => ({
+                ...item,
+                href: clinicViewPath(clinicId, item.href),
+              })),
+            )
+          : [],
+      }
+    : declared;
   const remembered = React.useSyncExternalStore(
     noSubscribe,
     () => (block.key ? readFold(block.key) : false),
@@ -431,9 +550,11 @@ function NavBlockView({
     open: boolean;
     path: string;
   } | null>(null);
-  const containsActive = block.sections.some((items) =>
-    items.some((item) => isActive(item, pathname)),
-  );
+  const containsActive =
+    (block.clinicScoped && pathname.startsWith(`${CLINIC_VIEW_ROOT}/`)) ||
+    block.sections.some((items) =>
+      items.some((item) => isActive(item, pathname)),
+    );
   const open =
     !block.collapsible ||
     (choice?.path === pathname ? choice.open : containsActive || remembered);
@@ -468,6 +589,13 @@ function NavBlockView({
           <p className="label-eyebrow mb-1 px-2.5">{title}</p>
         ))}
       <div id={listId} hidden={!open}>
+        {block.clinicScoped && (
+          <ClinicPicker
+            clinics={clinics}
+            current={clinicId}
+            pathname={pathname}
+          />
+        )}
         {block.sections.map((items, index) => (
           <React.Fragment key={items[0]?.href ?? index}>
             {index > 0 && (
@@ -514,9 +642,12 @@ function NavBlockView({
  */
 export function Sidebar({
   counts,
+  clinics = [],
   className,
 }: {
   counts: NavCounts | null;
+  /** Équipe IMAFRIK : les cliniques de la vue des cliniques. */
+  clinics?: readonly ViewableClinic[];
   className?: string;
 }) {
   const pathname = usePathname();
@@ -546,6 +677,7 @@ export function Sidebar({
             block={block}
             counts={counts}
             pathname={pathname}
+            clinics={clinics}
           />
         ))}
       </div>

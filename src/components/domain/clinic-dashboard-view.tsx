@@ -16,6 +16,10 @@ import {
   UrgentMarker,
 } from "@/components/domain/study-status";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import {
+  useClinicHref,
+  useClinicView,
+} from "@/components/providers/clinic-view-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
 import { useLocale, useMessages } from "@/i18n/client";
@@ -91,6 +95,10 @@ function buildMetrics(
 /**
  * Tableau de bord de la clinique.
  *
+ * Le même dans la vue des cliniques, où l'équipe IMAFRIK le consulte :
+ * au nom de la clinique consultée, ses liens sous sa vue, sans « Envoyer
+ * un examen », geste du responsable.
+ *
  * @param recent  Derniers examens envoyés.
  * @param ready   Comptes-rendus signés pas encore téléchargés.
  * @param metrics Indicateurs calculés par le service.
@@ -105,24 +113,30 @@ export function ClinicDashboardView({
   metrics: Metrics;
 }) {
   const { active } = useSession();
+  const consultation = useClinicView();
+  const href = useClinicHref();
   const t = useMessages();
   const locale = useLocale();
   const messages = t.clinic.dashboard;
+  const clinic = consultation ?? {
+    name: active.organizationName,
+    city: active.city,
+  };
 
   return (
     <>
       <PageHeader
         title={messages.title}
-        description={[active.organizationName, active.city]
-          .filter(Boolean)
-          .join(" · ")}
+        description={[clinic.name, clinic.city].filter(Boolean).join(" · ")}
         actions={
-          <Button size="sm" asChild data-tour="send-study">
-            <Link href="/envoyer">
-              <Upload />
-              {messages.send}
-            </Link>
-          </Button>
+          consultation ? undefined : (
+            <Button size="sm" asChild data-tour="send-study">
+              <Link href="/envoyer">
+                <Upload />
+                {messages.send}
+              </Link>
+            </Button>
+          )
         }
       />
 
@@ -149,7 +163,10 @@ export function ClinicDashboardView({
         >
           <SectionTitle
             title={messages.readyTitle}
-            action={{ label: t.common.actions.seeAll, href: "/comptes-rendus" }}
+            action={{
+              label: t.common.actions.seeAll,
+              href: href("/comptes-rendus"),
+            }}
           />
 
           {ready.length === 0 ? (
@@ -162,7 +179,7 @@ export function ClinicDashboardView({
                   className="flex items-center gap-3 px-4 py-3"
                 >
                   <Link
-                    href={`/comptes-rendus/${study.reportId}`}
+                    href={href(`/comptes-rendus/${study.reportId}`)}
                     className="min-w-0 flex-1 rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-accent"
                   >
                     <p className="truncate text-sm font-medium">
@@ -196,7 +213,10 @@ export function ClinicDashboardView({
         <Panel className="flex flex-col overflow-hidden">
           <SectionTitle
             title={messages.recentTitle}
-            action={{ label: t.common.actions.seeAll, href: "/examens" }}
+            action={{
+              label: t.common.actions.seeAll,
+              href: href("/examens"),
+            }}
           />
 
           {recent.length === 0 ? (
@@ -211,7 +231,7 @@ export function ClinicDashboardView({
                   className={cn(study.urgent && "rail-urgent")}
                 >
                   <Link
-                    href={`/examens/${study.id}`}
+                    href={href(`/examens/${study.id}`)}
                     className={cn(
                       "flex w-full items-center gap-2 px-4 py-2.5 text-left",
                       "transition-colors hover:bg-surface-hover",

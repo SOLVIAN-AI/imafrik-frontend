@@ -15,6 +15,7 @@ import { HelpMenu } from "@/components/tour/help-menu";
 import { useSession } from "@/components/providers/session-provider";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { Button } from "@/components/ui/button";
+import type { ViewableClinic } from "@/lib/clinic-view";
 import type { NavCounts } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useMessages } from "@/i18n/client";
@@ -156,7 +157,14 @@ function DemoBadge() {
  * qui porte les actions de l'écran courant. Séparer les deux évite qu'un utilisateur
  * cherche une action au mauvais endroit.
  */
-export function Topbar({ counts }: { counts: NavCounts | null }) {
+export function Topbar({
+  counts,
+  clinics,
+}: {
+  counts: NavCounts | null;
+  /** Équipe IMAFRIK : les cliniques de la vue des cliniques. */
+  clinics: readonly ViewableClinic[];
+}) {
   const t = useMessages();
   return (
     <div
@@ -167,7 +175,7 @@ export function Topbar({ counts }: { counts: NavCounts | null }) {
     >
       {/* Téléphone et tablette : menu et marque, la barre latérale étant
           repliée dans un tiroir. */}
-      <MobileNav counts={counts} />
+      <MobileNav counts={counts} clinics={clinics} />
       <Link
         href="/"
         className="flex min-h-6 shrink-0 items-center py-1 lg:hidden"

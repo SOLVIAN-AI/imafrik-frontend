@@ -183,7 +183,7 @@ function HelpPanel({
     setView("guide");
   };
   const goTo = (key: string) => {
-    const href = hrefOf(active.role, key);
+    const href = hrefOf(active.role, key, pathname);
     setQuery("");
     setView("page");
     if (href && href !== pathname) router.push(href);

@@ -32,6 +32,7 @@ export const nav = {
     tracking: "Suivi",
     facility: "Établissement",
     administration: "Administration",
+    clinicView: "Vue des cliniques",
     radiologistView: "Vue des radiologues",
   },
   mainNavigation: "Navigation principale",

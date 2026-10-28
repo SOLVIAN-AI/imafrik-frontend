@@ -528,6 +528,132 @@ export const pages = {
         "journalAudit",
       ],
     },
+    clinicViews: {
+      title: "Vue des cliniques",
+      purpose:
+        "Choisissez une clinique pour ouvrir ses écrans tels que les voit son responsable, avec ses vraies données, en lecture seule. Chaque ouverture est tracée au journal d’audit.",
+      steps: [
+        "Cliquez sur une clinique de la liste, ou choisissez-la dans « Vue des cliniques » de la navigation.",
+        "Le bandeau « Consultation de » rappelle sur chaque écran quelle clinique vous consultez.",
+        "Passez d’un écran à l’autre depuis la navigation : tableau de bord, examens, comptes-rendus, équipe, activité et facturation.",
+        "Cliquez sur « Retour à la console » pour revenir à la tour de contrôle.",
+      ],
+      terms: ["vueCliniques", "consultation", "journalAudit"],
+    },
+    clinicDashboard: {
+      title: "Tableau de bord de la clinique",
+      purpose:
+        "Le tableau de bord du responsable de la clinique consultée : examens à attribuer, en lecture, comptes-rendus prêts et délai médian sur 30 jours, avec les mêmes chiffres que lui.",
+      steps: [
+        "Lisez les quatre indicateurs : un examen « À attribuer » n’est vu d’aucun radiologue.",
+        "Dans « Comptes-rendus à télécharger », ouvrez un compte-rendu. Un PDF téléchargé par l’équipe ne le marque pas remis à la clinique.",
+        "Dans « Derniers examens envoyés », cliquez sur un examen pour ouvrir sa fiche.",
+        "Changez de clinique avec le sélecteur de la navigation : vous restez sur le même écran.",
+      ],
+      terms: ["vueCliniques", "attribution", "delaiMedian", "compteRendu"],
+    },
+    clinicStudies: {
+      title: "Examens de la clinique",
+      purpose:
+        "Les examens de la clinique consultée, tels que les voit son responsable, avec le radiologue de chacun. L’équipe y attribue un examen par son propre portail ; elle n’envoie aucun examen au nom de la clinique.",
+      steps: [
+        "Cliquez sur « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore, les plus pressés en tête.",
+        "Sur une ligne, cliquez sur « Attribuer » : la fenêtre de l’équipe propose aussi les radiologues du réseau qui lisent la clinique.",
+        "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
+        "Cliquez sur une ligne pour ouvrir la fiche de l’examen.",
+      ],
+      terms: ["vueCliniques", "attribution", "anteriorite", "urgence"],
+    },
+    clinicStudy: {
+      title: "Fiche de l’examen",
+      purpose:
+        "Un examen de la clinique consultée, tel que le voit son responsable : images, attribution, avancement et compte-rendu signé. Le renseignement clinique et l’urgence restent au responsable : ils se lisent ici sans se modifier.",
+      steps: [
+        "Dans « Attribution », lisez qui lit l’examen et depuis quand ; « Attribuer » ou « Réattribuer » le confie par le portail de l’équipe.",
+        "Suivez la lecture dans « Avancement », de « Examen reçu » à « Compte-rendu remis ».",
+        "Cliquez sur « Ouvrir les images » pour l’écran de lecture, en consultation : l’ouverture est tracée à votre nom.",
+        "Une fois le compte-rendu signé, ouvrez « Document complet ». Votre téléchargement du PDF ne le marque pas remis.",
+      ],
+      terms: [
+        "vueCliniques",
+        "attribution",
+        "anteriorite",
+        "renseignementClinique",
+        "consultation",
+      ],
+    },
+    clinicReports: {
+      title: "Comptes-rendus de la clinique",
+      purpose:
+        "Les comptes-rendus signés et remis de la clinique consultée, ceux que voit son responsable. « À télécharger » dit que la clinique ne l’a pas encore récupéré : un téléchargement par l’équipe n’y change rien.",
+      steps: [
+        "Cherchez un patient par son nom, son identifiant ou la modalité, puis appuyez sur Entrée.",
+        "Repérez la mention « À télécharger » : la clinique n’a pas encore récupéré ce compte-rendu.",
+        "Cliquez sur une ligne pour ouvrir le compte-rendu signé.",
+        "Le PDF que vous téléchargez est tracé à votre nom, sans marquer le compte-rendu remis.",
+      ],
+      terms: ["vueCliniques", "compteRendu", "signature"],
+    },
+    clinicReport: {
+      title: "Compte-rendu signé",
+      purpose:
+        "Un compte-rendu signé de la clinique consultée, tel que le lit son responsable : le document, son signataire et ses addenda, sans commande d’édition ni annulation.",
+      steps: [
+        "Vérifiez en tête le signataire, la date de signature et, s’il est indiqué, son numéro d’ordre.",
+        "Lisez la section « Addenda » sous le texte, si elle apparaît.",
+        "Cliquez sur « Télécharger le PDF » : le téléchargement est tracé à votre nom, sans marquer le compte-rendu remis.",
+        "Pour annuler un compte-rendu signé par erreur, ouvrez-le depuis « Comptes-rendus » de la vue des radiologues.",
+      ],
+      terms: ["vueCliniques", "compteRendu", "addendum", "codeVerification"],
+    },
+    clinicTeam: {
+      title: "Équipe de la clinique",
+      purpose:
+        "L’équipe de la clinique consultée : ses responsables et ses radiologues, avec les modalités que lit chacun et sa place sur la liste d’urgence. En consultation, l’équipe IMAFRIK n’y invite ni n’y retire personne.",
+      steps: [
+        "Lisez pour chaque radiologue ses modalités et, s’il y figure, la mention « Liste d’urgence ».",
+        "Un avis signale une clinique sans responsable, ou avec un seul : personne n’y prendrait le relais.",
+        "Cliquez sur « Liste d’urgence » pour la régler depuis la fiche de la clinique, radiologues du réseau compris.",
+        "Cliquez sur « Règles d’attribution » pour lire et régler qui reçoit d’office les examens.",
+      ],
+      terms: [
+        "vueCliniques",
+        "responsable",
+        "modalitesLues",
+        "listeUrgence",
+        "regleAttribution",
+      ],
+    },
+    clinicTeamRules: {
+      title: "Règles d’attribution de la clinique",
+      purpose:
+        "Les règles qui confient d’office les examens de la clinique consultée, à leur arrivée. L’équipe IMAFRIK les règle ici comme depuis la fiche de la clinique, radiologues du réseau compris.",
+      steps: [
+        "Dans « Radiologue par modalité », lisez ou choisissez qui reçoit tous les examens d’une modalité.",
+        "Dans « Planning de la semaine », ajoutez ou retirez un créneau : radiologue, jours et, au besoin, heures.",
+        "Deux radiologues de garde en même temps laissent l’examen à attribuer : l’écran le signale.",
+        "Cliquez sur « Enregistrer les règles ». Elles valent pour les examens qui arrivent ensuite.",
+      ],
+      terms: ["regleAttribution", "planning", "modalitesLues", "attribution"],
+    },
+    clinicActivity: {
+      title: "Activité et facturation de la clinique",
+      purpose:
+        "Le bilan du mois de la clinique consultée, par les mêmes calculs que pour son responsable : examens reçus, délais, performances de chaque radiologue et relevé de facturation.",
+      steps: [
+        "Changez de mois avec les flèches placées de part et d’autre du mois affiché.",
+        "Lisez l’activité, puis « Performances par radiologue » ; cliquez sur un intitulé pour trier.",
+        "Dans « Facturation », lisez l’abonnement, les forfaits techniques et le total HT, provisoire jusqu’à la clôture du mois.",
+        "Cliquez sur « Formule d’abonnement » pour la renseigner depuis la fiche de la clinique, ou sur « Exporter en CSV ».",
+      ],
+      terms: [
+        "delaiMedian",
+        "acte",
+        "forfaitTechnique",
+        "formuleAbonnement",
+        "moisClos",
+      ],
+    },
     worklist: {
       title: "À lire",
       purpose:

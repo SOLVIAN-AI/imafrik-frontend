@@ -865,6 +865,7 @@ export const admin = {
       "organization.urgent_readers_changed": "Liste d’urgence modifiée",
       "organization.assignment_rules_changed": "Règles d’attribution modifiées",
       "organization.plan_changed": "Formule d’abonnement modifiée",
+      "organization.viewed": "Clinique ouverte en consultation",
       "organization.retention_changed": "Durée de conservation modifiée",
       "organization.report_language_changed":
         "Langue des comptes-rendus modifiée",

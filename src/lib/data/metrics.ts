@@ -4,7 +4,10 @@ import { cache } from "react";
 
 import type { StudyStatus } from "@/components/domain/study-status";
 import { apiGet } from "@/lib/api/client";
+import type { z } from "zod";
 import { metricsSchema } from "@/lib/api/contracts";
+import { clinicViewApi } from "@/lib/clinic-view";
+import { demoClinicStudies } from "@/lib/data/studies";
 import { isDemoMode } from "@/lib/demo/mode";
 import { DEMO_STUDIES, DEMO_USER_ID } from "@/lib/demo/studies";
 import { getSession } from "@/lib/session/server";
@@ -51,8 +54,27 @@ const STATUSES: StudyStatus[] = [
  */
 export const getMetrics = cache(async (): Promise<Metrics> => {
   if (isDemoMode()) return demoMetrics();
+  return toMetrics(await apiGet("/metrics/summary", metricsSchema));
+});
 
-  const raw = await apiGet("/metrics/summary", metricsSchema);
+/**
+ * Indicateurs d'une clinique, tels que les lit son responsable : pour
+ * l'équipe IMAFRIK qui la consulte (vue des cliniques). Le même calcul que
+ * {@link getMetrics} pour le responsable, borné à la clinique nommée.
+ *
+ * @param clinicId Clinique consultée.
+ */
+export const getClinicMetrics = cache(
+  async (clinicId: string): Promise<Metrics> => {
+    if (isDemoMode()) return demoMetricsOf(demoClinicStudies(clinicId));
+    return toMetrics(
+      await apiGet(`${clinicViewApi(clinicId)}/metrics`, metricsSchema),
+    );
+  },
+);
+
+/** Traduit les indicateurs depuis la forme de l'API. */
+function toMetrics(raw: z.output<typeof metricsSchema>): Metrics {
   return {
     byStatus: Object.fromEntries(
       STATUSES.map((status) => [status, raw.by_status[status] ?? 0]),
@@ -66,7 +88,7 @@ export const getMetrics = cache(async (): Promise<Metrics> => {
     medianTurnaroundMinutes: raw.median_turnaround_minutes,
     reportsToDownload: raw.reports_to_download,
   };
-});
+}
 
 /** Indicateurs calculés sur le jeu de démonstration, avec le même périmètre. */
 async function demoMetrics(): Promise<Metrics> {
@@ -87,7 +109,11 @@ async function demoMetrics(): Promise<Metrics> {
                 study.status === "received"),
           )
         : DEMO_STUDIES;
+  return demoMetricsOf(studies);
+}
 
+/** Indicateurs de démonstration d'un périmètre d'examens. */
+function demoMetricsOf(studies: typeof DEMO_STUDIES): Metrics {
   const byStatus = Object.fromEntries(
     STATUSES.map((status) => [
       status,

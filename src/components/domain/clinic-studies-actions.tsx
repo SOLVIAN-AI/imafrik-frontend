@@ -4,6 +4,7 @@ import { Upload } from "lucide-react";
 import Link from "next/link";
 
 import { ListToolbar } from "@/components/domain/list-toolbar";
+import { useClinicView } from "@/components/providers/clinic-view-provider";
 import { Button } from "@/components/ui/button";
 import { useMessages } from "@/i18n/client";
 
@@ -13,11 +14,16 @@ import { useMessages } from "@/i18n/client";
  *
  * Extraites de la page pour que celle-ci reste un composant serveur ;
  * composant client pour lire les textes dans la langue de l'utilisateur.
+ * Dans la vue des cliniques, la recherche seulement : envoyer un examen
+ * est le geste du responsable.
  *
  * @param search Recherche en cours, relue par la page serveur.
  */
 export function ClinicStudiesActions({ search }: { search?: string }) {
   const t = useMessages();
+  if (useClinicView()) {
+    return <ListToolbar scope="vue-clinique-examens" search={search} />;
+  }
   return (
     <>
       <ListToolbar scope="examens" search={search} />

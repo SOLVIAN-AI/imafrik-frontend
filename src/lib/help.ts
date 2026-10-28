@@ -12,6 +12,7 @@
  */
 
 import type { AppMessages } from "@/i18n";
+import { clinicIdOf } from "@/lib/clinic-view";
 import type { UserRole } from "@/lib/session/types";
 
 type HelpMessages = AppMessages["help"];
@@ -65,8 +66,9 @@ export function helpRoleOf(role: UserRole): HelpRole {
 
 /**
  * Écrans de chaque rôle. Un motif finissant par `/*` couvre les
- * sous-pages (une fiche, un compte-rendu) ; les motifs plus précis
- * passent avant, l'ordre de la liste fait foi.
+ * sous-pages (une fiche, un compte-rendu) ; un segment `:nom` vaut pour
+ * un segment quelconque (la clinique de la vue des cliniques). Les motifs
+ * plus précis passent avant, l'ordre de la liste fait foi.
  */
 const SCREENS: Record<
   HelpRole,
@@ -114,6 +116,16 @@ const SCREENS: Record<
     ["/admin/systeme", "system"],
     ["/admin/audit", "audit"],
     ["/admin/reglages", "controls"],
+    // Vue des cliniques : les écrans du responsable, en consultation.
+    ["/admin/vue-clinique", "clinicViews"],
+    ["/admin/vue-clinique/:clinique/tableau-de-bord", "clinicDashboard"],
+    ["/admin/vue-clinique/:clinique/examens/*", "clinicStudy"],
+    ["/admin/vue-clinique/:clinique/examens", "clinicStudies"],
+    ["/admin/vue-clinique/:clinique/comptes-rendus/*", "clinicReport"],
+    ["/admin/vue-clinique/:clinique/comptes-rendus", "clinicReports"],
+    ["/admin/vue-clinique/:clinique/equipe/regles", "clinicTeamRules"],
+    ["/admin/vue-clinique/:clinique/equipe", "clinicTeam"],
+    ["/admin/vue-clinique/:clinique/activite", "clinicActivity"],
     ["/worklist", "worklist", ["table"]],
     ["/formation/*", "trainingExercise"],
     ["/formation", "training"],
@@ -126,11 +138,19 @@ const SCREENS: Record<
 };
 
 function matches(pattern: string, pathname: string): boolean {
-  if (pattern.endsWith("/*")) {
-    const base = pattern.slice(0, -2);
-    return pathname.startsWith(`${base}/`) && pathname.length > base.length + 1;
+  const below = pattern.endsWith("/*");
+  const wanted = (below ? pattern.slice(0, -2) : pattern).split("/");
+  const segments = pathname.replace(/\/$/, "").split("/");
+  if (
+    below ? segments.length <= wanted.length : segments.length !== wanted.length
+  ) {
+    return false;
   }
-  return pathname === pattern || pathname === `${pattern}/`;
+  return wanted.every(
+    (segment, index) =>
+      segments[index] === segment ||
+      (segment.startsWith(":") && segments[index] !== ""),
+  );
 }
 
 /**
@@ -164,12 +184,30 @@ export function helpScreensOf(role: UserRole): HelpScreen[] {
   }));
 }
 
-/** Adresse d'un écran sans paramètre, pour y mener depuis la recherche. */
-export function hrefOf(role: UserRole, key: string): string | null {
+/**
+ * Adresse d'un écran sans paramètre, pour y mener depuis la recherche.
+ *
+ * @param role     Rôle de l'appartenance active.
+ * @param key      Écran cherché.
+ * @param pathname Adresse courante : dans la vue des cliniques, un écran
+ *                 de la vue mène à celui de la clinique consultée.
+ */
+export function hrefOf(
+  role: UserRole,
+  key: string,
+  pathname?: string,
+): string | null {
   const found = SCREENS[ROLE[role]].find(
     ([pattern, candidate]) => candidate === key && !pattern.endsWith("/*"),
   );
-  return found ? found[0] : null;
+  if (!found) return null;
+  if (!found[0].includes("/:clinique")) return found[0];
+  // Un écran de la vue des cliniques : celui de la clinique consultée, si
+  // l'on y est déjà ; sinon, aucune adresse sans clinique.
+  const clinicId = pathname ? clinicIdOf(pathname) : null;
+  return clinicId
+    ? found[0].replace(":clinique", encodeURIComponent(clinicId))
+    : null;
 }
 
 /**

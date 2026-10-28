@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
  * @param flush       Sans marge intérieure : listes et tableaux bord à bord.
  */
 export function Section({
+  id,
   title,
   description,
   action,
@@ -46,6 +47,8 @@ export function Section({
   className,
   children,
 }: {
+  /** Ancre, quand une autre page y mène. */
+  id?: string;
   title: string;
   description?: React.ReactNode;
   action?: { label: string; href: string };
@@ -55,7 +58,10 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <Panel className={cn("flex min-w-0 flex-col overflow-hidden", className)}>
+    <Panel
+      id={id}
+      className={cn("flex min-w-0 flex-col overflow-hidden", className)}
+    >
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border-subtle px-4 py-3">
         <div className="min-w-0">
           <h2 className="label-eyebrow">{title}</h2>

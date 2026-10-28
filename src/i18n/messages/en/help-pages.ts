@@ -523,6 +523,132 @@ export const pages: typeof fr = {
         "journalAudit",
       ],
     },
+    clinicViews: {
+      title: "Clinics’ view",
+      purpose:
+        "Choose a clinic to open its screens as its manager sees them, with its real data, in view-only mode. Each opening is recorded in the audit log.",
+      steps: [
+        "Click a clinic in the list, or choose it under “Clinics’ view” in the navigation.",
+        "The “Viewing” banner reminds you on every screen which clinic you are viewing.",
+        "Move between screens from the navigation: dashboard, examinations, reports, team, activity and billing.",
+        "Click “Back to the console” to return to the control tower.",
+      ],
+      terms: ["vueCliniques", "consultation", "journalAudit"],
+    },
+    clinicDashboard: {
+      title: "Clinic dashboard",
+      purpose:
+        "The dashboard of the viewed clinic’s manager: examinations to assign, in reading, reports ready and 30-day median turnaround, with the same figures as theirs.",
+      steps: [
+        "Read the four indicators: an examination “To assign” is seen by no radiologist.",
+        "Under “Reports to download”, open a report. A PDF downloaded by the team does not mark it as delivered to the clinic.",
+        "Under “Latest examinations sent”, click an examination to open its page.",
+        "Switch clinic with the picker in the navigation: you stay on the same screen.",
+      ],
+      terms: ["vueCliniques", "attribution", "delaiMedian", "compteRendu"],
+    },
+    clinicStudies: {
+      title: "Clinic examinations",
+      purpose:
+        "The viewed clinic’s examinations, as its manager sees them, with each one’s radiologist. The team assigns an examination through its own portal; it never sends an examination on the clinic’s behalf.",
+      steps: [
+        "Click “To assign” to see only the examinations no radiologist sees yet, the most pressing first.",
+        "On a row, click “Assign”: the team’s window also offers the network radiologists who read for the clinic.",
+        "Type a patient name, an ID or a modality in the search, then press Enter.",
+        "Click a row to open the examination’s page.",
+      ],
+      terms: ["vueCliniques", "attribution", "anteriorite", "urgence"],
+    },
+    clinicStudy: {
+      title: "Examination page",
+      purpose:
+        "An examination of the viewed clinic, as its manager sees it: images, assignment, progress and signed report. Clinical information and urgency remain the manager’s: they are shown here, not edited.",
+      steps: [
+        "Under “Assignment”, see who reads the examination and since when; “Assign” or “Reassign” hands it over through the team’s portal.",
+        "Follow the reading under “Progress”, from “Examination received” to “Report delivered”.",
+        "Click “Open images” for the reading screen, in view-only mode: the opening is logged under your name.",
+        "Once the report is signed, open “Full document”. Your PDF download does not mark it as delivered.",
+      ],
+      terms: [
+        "vueCliniques",
+        "attribution",
+        "anteriorite",
+        "renseignementClinique",
+        "consultation",
+      ],
+    },
+    clinicReports: {
+      title: "Clinic reports",
+      purpose:
+        "The viewed clinic’s signed and delivered reports, those its manager sees. “To download” means the clinic has not retrieved it yet: a download by the team changes nothing.",
+      steps: [
+        "Search for a patient by name, ID or modality, then press Enter.",
+        "Look for “To download”: the clinic has not retrieved this report yet.",
+        "Click a row to open the signed report.",
+        "The PDF you download is logged under your name, without marking the report as delivered.",
+      ],
+      terms: ["vueCliniques", "compteRendu", "signature"],
+    },
+    clinicReport: {
+      title: "Signed report",
+      purpose:
+        "A signed report of the viewed clinic, as its manager reads it: the document, its signer and its addenda, with no editing or voiding control.",
+      steps: [
+        "Check the signer, the signing date and, if shown, the licence number at the top.",
+        "Read the “Addenda” section below the text, if it appears.",
+        "Click “Download PDF”: the download is logged under your name, without marking the report as delivered.",
+        "To void a report signed by mistake, open it from “Reports” in the radiologists’ view.",
+      ],
+      terms: ["vueCliniques", "compteRendu", "addendum", "codeVerification"],
+    },
+    clinicTeam: {
+      title: "Clinic team",
+      purpose:
+        "The viewed clinic’s team: its managers and radiologists, with the modalities each one reads and their place on the urgent list. In view-only mode, the IMAFRIK team neither invites nor removes anyone.",
+      steps: [
+        "Read each radiologist’s modalities and, if shown, the “Urgent list” mention.",
+        "A notice flags a clinic with no manager, or a single one: nobody would take over.",
+        "Click “Urgent list” to set it from the clinic page, network radiologists included.",
+        "Click “Assignment rules” to read and set who automatically receives the examinations.",
+      ],
+      terms: [
+        "vueCliniques",
+        "responsable",
+        "modalitesLues",
+        "listeUrgence",
+        "regleAttribution",
+      ],
+    },
+    clinicTeamRules: {
+      title: "Clinic assignment rules",
+      purpose:
+        "The rules that automatically hand over the viewed clinic’s examinations on arrival. The IMAFRIK team sets them here as from the clinic page, network radiologists included.",
+      steps: [
+        "Under “Radiologist for each modality”, read or choose who receives every examination of a modality.",
+        "Under “Weekly schedule”, add or remove a slot: radiologist, days and, if needed, hours.",
+        "Two radiologists on call at the same time leave the examination to assign: the screen flags it.",
+        "Click “Save the rules”. They apply to the examinations that arrive afterwards.",
+      ],
+      terms: ["regleAttribution", "planning", "modalitesLues", "attribution"],
+    },
+    clinicActivity: {
+      title: "Clinic activity and billing",
+      purpose:
+        "The viewed clinic’s monthly review, with the same calculations as for its manager: examinations received, turnaround, each radiologist’s performance and the billing statement.",
+      steps: [
+        "Change month with the arrows on either side of the month shown.",
+        "Read the activity, then “Performance by radiologist”; click a heading to sort.",
+        "Under “Billing”, read the subscription, the technical fees and the total excl. tax, provisional until the month is closed.",
+        "Click “Subscription plan” to set it from the clinic page, or “Export as CSV”.",
+      ],
+      terms: [
+        "delaiMedian",
+        "acte",
+        "forfaitTechnique",
+        "formuleAbonnement",
+        "moisClos",
+      ],
+    },
     worklist: {
       title: "To read",
       purpose:

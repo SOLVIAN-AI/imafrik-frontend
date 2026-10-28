@@ -5,6 +5,10 @@ import Link from "next/link";
 import type * as React from "react";
 
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import {
+  useClinicHref,
+  useClinicView,
+} from "@/components/providers/clinic-view-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { DateTime } from "@/components/domain/date-time";
 import { DownloadPdfButton } from "@/components/domain/download-pdf-button";
@@ -39,6 +43,9 @@ import { cn } from "@/lib/utils";
  * l'écran de lecture, où il se suit en consultation ; un document signé,
  * sa fiche. Elle télécharge tout PDF signé depuis la liste.
  *
+ * Dans la vue des cliniques, l'équipe IMAFRIK voit la liste de la
+ * clinique consultée, comme son responsable.
+ *
  * @param studies Examens rendus de la page, chacun avec son compte-rendu.
  * @param search  Recherche en cours, relue par la page serveur.
  * @param footer  Pied de liste : pagination, rendue par la page serveur.
@@ -59,10 +66,14 @@ export function ReportsView({
   filter?: React.ReactNode;
 }) {
   const { active } = useSession();
+  const consultation = useClinicView();
+  const href = useClinicHref();
   const t = useMessages().clinic.reports;
 
-  const isClinic = active.role === "clinic_staff";
-  const isAdmin = active.role === "platform_admin";
+  // Dans la vue des cliniques, l'équipe IMAFRIK voit la liste du
+  // responsable : celle de la clinique, pas la sienne.
+  const isClinic = consultation !== null || active.role === "clinic_staff";
+  const isAdmin = consultation === null && active.role === "platform_admin";
   const rows = studies.filter((study) => study.reportId);
 
   return (
@@ -79,7 +90,12 @@ export function ReportsView({
         actions={
           <>
             {filter}
-            <ListToolbar scope="comptes-rendus" search={search} />
+            <ListToolbar
+              scope={
+                consultation ? "vue-clinique-comptes-rendus" : "comptes-rendus"
+              }
+              search={search}
+            />
           </>
         }
       />
@@ -123,7 +139,7 @@ export function ReportsView({
                       href={
                         draft
                           ? `/lecture/${study.id}`
-                          : `/comptes-rendus/${study.reportId}`
+                          : href(`/comptes-rendus/${study.reportId}`)
                       }
                       className={cn(
                         "flex min-w-0 flex-1 items-center gap-3 py-3 pl-4 text-left sm:gap-4",
