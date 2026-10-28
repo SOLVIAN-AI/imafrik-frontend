@@ -367,6 +367,15 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* Un intitulé de colonne ne passe jamais à la ligne, dans aucun
+     tableau : quand la largeur manque, c'est le tableau qui défile dans
+     son conteneur (`overflow-x-auto`), jamais la page. Un intitulé trop
+     long prend un libellé court, l'intitulé complet en info-bulle et dans
+     le nom accessible. */
+  thead th {
+    white-space: nowrap;
+  }
+
   /* Les titres portent le poids et le resserrement. Un titre qui se
      distingue du corps de texte par sa seule taille donne une page
      molle ; le resserrement, lui, ne se remarque pas consciemment mais

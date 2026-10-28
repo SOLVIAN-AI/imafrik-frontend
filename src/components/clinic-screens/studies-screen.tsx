@@ -2,10 +2,16 @@ import Link from "next/link";
 
 import { ClinicStudiesActions } from "@/components/domain/clinic-studies-actions";
 import { ListPagination } from "@/components/domain/list-pagination";
+import { ModalityTabs } from "@/components/domain/modality-tabs";
 import { StudyList } from "@/components/domain/study-list";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { type ClinicConsultation, clinicHref } from "@/lib/clinic-view";
-import { listStudyPageAt, STUDY_LIST_PAGE_SIZE } from "@/lib/data/studies";
+import {
+  getModalityCounts,
+  listStudyPageAt,
+  STUDY_LIST_PAGE_SIZE,
+} from "@/lib/data/studies";
+import { MODALITY_PARAM, readModalityGroup } from "@/lib/modalities";
 import {
   pageHref,
   readCursor,
@@ -38,12 +44,15 @@ const TO_ASSIGN = "a-attribuer";
  * liste mène à la page suivante. La liste s'arrêtait auparavant aux deux
  * cents premiers examens, et l'en-tête annonçait « 200 examens ».
  *
+ * Des onglets la classent par groupe de modalités, chacun avec son nombre
+ * d'examens, combinables avec la vue et la recherche (`?modalite=`).
+ *
  * Dans la vue des cliniques, l'équipe IMAFRIK voit la même liste, lue par
  * la vue de la clinique ; elle attribue par son propre portail.
  *
  * @param consultation Clinique consultée par l'équipe IMAFRIK ; `null`
  *                     pour son responsable.
- * @param params       Paramètres de l'adresse : vue et curseur.
+ * @param params       Paramètres de l'adresse : vue, modalité et curseur.
  */
 export async function StudiesScreen({
   consultation,
@@ -59,18 +68,33 @@ export async function StudiesScreen({
     session,
   );
   const toAssign = params[VIEW_PARAM] === TO_ASSIGN;
-  const { studies, total, nextCursor } = await listStudyPageAt(
-    {
-      search,
-      limit: STUDY_LIST_PAGE_SIZE,
-      cursor: readCursor(params),
-      ...(toAssign ? { status: ["received"], order: "deadline" } : {}),
-    },
-    pageHref(pathname, params, null),
-    consultation?.clinicId,
-  );
-  const { t } = await getMessages();
+  const modalityGroup = readModalityGroup(params[MODALITY_PARAM]);
+  // Les filtres de la liste, groupe de modalités mis à part : ceux des
+  // comptes de chaque onglet.
+  const filters = {
+    search,
+    ...(toAssign ? { status: ["received" as const] } : {}),
+  };
+  const [{ studies, total, nextCursor }, counts] = await Promise.all([
+    listStudyPageAt(
+      {
+        ...filters,
+        modalityGroup,
+        limit: STUDY_LIST_PAGE_SIZE,
+        cursor: readCursor(params),
+        ...(toAssign ? { order: "deadline" as const } : {}),
+      },
+      pageHref(pathname, params, null),
+      consultation?.clinicId,
+    ),
+    getModalityCounts(filters, consultation?.clinicId),
+  ]);
+  const { t, locale } = await getMessages();
   const views = t.assignment.list;
+  // Changer de vue garde le groupe de modalités, et inversement.
+  const withoutView = Object.fromEntries(
+    Object.entries(params).filter(([key]) => key !== VIEW_PARAM),
+  );
   const clinicName = consultation?.name ?? session.active.organizationName;
 
   return (
@@ -86,12 +110,21 @@ export async function StudiesScreen({
         className="flex gap-1 px-4 pb-3 sm:px-6"
       >
         {[
-          { key: "all", label: views.all, active: !toAssign, href: pathname },
+          {
+            key: "all",
+            label: views.all,
+            active: !toAssign,
+            href: pageHref(pathname, withoutView, null),
+          },
           {
             key: TO_ASSIGN,
             label: views.toAssign,
             active: toAssign,
-            href: pageHref(pathname, { [VIEW_PARAM]: TO_ASSIGN }, null),
+            href: pageHref(
+              pathname,
+              { ...withoutView, [VIEW_PARAM]: TO_ASSIGN },
+              null,
+            ),
           },
         ].map((view) => (
           <Link
@@ -109,11 +142,20 @@ export async function StudiesScreen({
         ))}
       </nav>
 
+      <ModalityTabs
+        counts={counts}
+        active={modalityGroup}
+        pathname={pathname}
+        params={params}
+        labels={t.assignment}
+        locale={locale}
+      />
+
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
         <Panel className="flex min-h-0 flex-col overflow-hidden">
           <StudyList
             studies={studies}
-            filtered={Boolean(search) || toAssign}
+            filtered={Boolean(search) || toAssign || Boolean(modalityGroup)}
             assignable
           />
           <ListPagination

@@ -167,6 +167,18 @@ const _studyPage: Matches<
   Schemas["StudyPage"]
 > = true;
 
+/** Combien d'examens de chaque groupe de modalités une liste montrerait. */
+export const modalityCountsSchema = z.object({
+  total: z.number().int(),
+  groups: z.array(
+    z.object({ modality_group: modalityGroupSchema, count: z.number().int() }),
+  ),
+});
+const _modalityCounts: Matches<
+  z.input<typeof modalityCountsSchema>,
+  Schemas["StudyModalityCounts"]
+> = true;
+
 export const addendumSchema = z.object({
   id: uuid,
   report_id: uuid,
@@ -1162,6 +1174,10 @@ export const adminUserSchema = z.object({
   // Images de signature ou de cachet en attente de l’équipe IMAFRIK.
   signing_review_due: count,
   memberships: z.array(userMembershipSchema),
+  // Radiologue : cliniques dont il est sur la liste d'urgence.
+  urgent_lists: z
+    .array(z.object({ clinic_id: uuid, clinic_name: z.string() }))
+    .optional(),
 });
 const _adminUser: Matches<
   z.input<typeof adminUserSchema>,
@@ -1691,6 +1707,7 @@ export const CONTRACT_CHECKS = [
   _priorCandidate,
   _assignment,
   _studyPage,
+  _modalityCounts,
   _report,
   _viewer,
   _viewerRenewed,

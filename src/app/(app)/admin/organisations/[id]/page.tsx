@@ -129,6 +129,13 @@ export default async function ClinicPage({
                 {text.detailedActivity}
               </Link>
             </Button>
+            <Button asChild variant="secondary" size="sm">
+              <Link
+                href={`/admin/activite?onglet=radiologues&clinique=${clinic.id}`}
+              >
+                {text.radiologistPerformance}
+              </Link>
+            </Button>
             {/* Les écrans de son responsable, tels qu'il les voit. Jamais
                 préchargés : ouvrir la vue se trace au journal. */}
             <Button asChild variant="secondary" size="sm">

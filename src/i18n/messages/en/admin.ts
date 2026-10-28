@@ -182,6 +182,17 @@ export const admin: AppMessages["admin"] = {
     journey: "Examination journey",
     journeyDescription:
       "Median duration of each stage, with the longest highlighted",
+    tabs: {
+      label: "Sections",
+      ensemble: "Overview",
+      radiologues: "By radiologist",
+      cliniques: "By clinic",
+      billing: "Billing",
+    },
+    focus: (name: string) => `${name}’s performance`,
+    focusNone:
+      "This radiologist has no activity this month: no examination received in the month was handed to them.",
+    seeAll: "All radiologists",
     byClinic: "By clinic",
     byClinicDescription:
       "Throughput is measured on the link between the gateway and the central PACS",
@@ -277,6 +288,7 @@ export const admin: AppMessages["admin"] = {
     ownRadiologists: "dedicated radiologists",
     backToOrganisations: "Organisations",
     detailedActivity: "Detailed activity",
+    radiologistPerformance: "Radiologist performance",
     onboarding: "Onboarding",
     stepsDone: (done: number, total: number) =>
       `${done} of ${total} step${total === 1 ? "" : "s"} completed`,
@@ -428,6 +440,13 @@ export const admin: AppMessages["admin"] = {
   },
 
   users: {
+    reading: {
+      urgentLists: (names: string) => `Urgent list: ${names}`,
+      noUrgentList: "On no urgent list",
+      performance: "See their performance",
+      filter: "Modality read",
+      anyModality: "All modalities",
+    },
     accountCount: (count: number) =>
       `${count} account${count === 1 ? "" : "s"}`,
     withoutMfa: (count: number) => `${count} without two-factor authentication`,

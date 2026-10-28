@@ -528,6 +528,8 @@ export interface AdminUser {
   /** Images de signature ou de cachet déposées, à vérifier par l'équipe. */
   signingReviewDue: number;
   memberships: UserMembership[];
+  /** Radiologue : cliniques dont il est sur la liste d'urgence, par nom. */
+  urgentLists: { clinicId: string; clinicName: string }[];
 }
 
 /** Filtres de la liste des comptes. */
@@ -540,6 +542,8 @@ export interface UserFilters {
   unverified?: boolean;
   /** Seulement les radiologues dont une signature ou un cachet attend l'équipe. */
   signing?: boolean;
+  /** Seulement les radiologues qui lisent ce groupe de modalités. */
+  modality?: ModalityGroup;
 }
 
 /** Comptes de la plateforme, appartenances et dernière connexion. */
@@ -555,6 +559,13 @@ export async function listUsers(
         (!filters.pending || user.memberships.length === 0) &&
         (!filters.unverified || credentialReviewDue(user)) &&
         (!filters.signing || user.signing_review_due > 0) &&
+        (!filters.modality ||
+          user.memberships.some(
+            (membership) =>
+              membership.role === "radiologist" &&
+              (!membership.read_modalities ||
+                membership.read_modalities.includes(filters.modality!)),
+          )) &&
         (!needle ||
           user.full_name.toLocaleLowerCase("fr").includes(needle) ||
           (user.email ?? "").toLocaleLowerCase("fr").includes(needle)),
@@ -565,6 +576,7 @@ export async function listUsers(
     if (filters.pending) params.set("pending", "true");
     if (filters.unverified) params.set("unverified", "true");
     if (filters.signing) params.set("signing", "true");
+    if (filters.modality) params.set("modality", filters.modality);
     rows = await apiGet(`/admin/users?${params}`, z.array(adminUserSchema));
   }
   return rows.map((row) => ({
@@ -589,6 +601,10 @@ export async function listUsers(
       organizationKind: membership.organization_kind,
       role: membership.role,
       readModalities: membership.read_modalities ?? null,
+    })),
+    urgentLists: (row.urgent_lists ?? []).map((entry) => ({
+      clinicId: entry.clinic_id,
+      clinicName: entry.clinic_name,
     })),
   }));
 }

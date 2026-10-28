@@ -57,7 +57,7 @@ test.describe("l’équipe IMAFRIK", () => {
   }) => {
     await page.goto("/admin");
     const nav = page.getByRole("navigation", { name: "Navigation principale" });
-    // Repliée, comme la vue des radiologues ; aucune clinique choisie.
+    // Repliée, comme les lectures ; aucune clinique choisie.
     const vue = nav.getByRole("button", { name: "Vue des cliniques" });
     await expect(vue).toHaveAttribute("aria-expanded", "false");
     await vue.click();

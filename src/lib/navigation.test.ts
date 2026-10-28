@@ -195,7 +195,7 @@ describe("blocs de la barre latérale", () => {
     ]);
   });
 
-  it("replie la vue des radiologues, en consultation", () => {
+  it("replie les lectures, en consultation", () => {
     const vue = navigationBlocks(navigationFor("platform_admin")).find(
       (block) => block.key === "radiologistView",
     );

@@ -1,4 +1,4 @@
-import { Activity, Receipt } from "lucide-react";
+import { Activity, ChevronRight, Receipt } from "lucide-react";
 import Link from "next/link";
 
 import { ControlBody, Figure, Section } from "@/components/admin/control-ui";
@@ -117,8 +117,40 @@ export async function ActivityScreen({
         }
       />
 
+      {/* Les trois parties de l'écran, à un clic. */}
+      <nav
+        aria-label={text.anchors.label}
+        className="flex shrink-0 flex-wrap items-center gap-1 px-4 pb-3 sm:px-6"
+      >
+        {(
+          [
+            ["#activite", text.anchors.activity],
+            ["#performances", text.anchors.performance],
+            ["#facturation", text.anchors.billing],
+          ] as const
+        ).map(([anchor, label]) => (
+          <a
+            key={anchor}
+            href={anchor}
+            className="rounded-md px-2.5 py-1 text-xs whitespace-nowrap text-secondary transition-colors hover:bg-surface-hover hover:text-primary"
+          >
+            {label}
+          </a>
+        ))}
+        {consultation && (
+          <Link
+            href={`/admin/activite?onglet=radiologues&clinique=${encodeURIComponent(consultation.clinicId)}`}
+            className="ml-auto flex min-h-6 items-center gap-1 text-xs whitespace-nowrap text-tertiary transition-colors hover:text-accent"
+          >
+            {t.clinicView.activity.console}
+            <ChevronRight className="size-3.5" aria-hidden />
+          </Link>
+        )}
+      </nav>
+
       <ControlBody label={text.title}>
         <Section
+          id="activite"
           title={text.activity.title}
           description={text.activity.description}
         >
@@ -209,6 +241,7 @@ export async function ActivityScreen({
         )}
 
         <Section
+          id="performances"
           title={text.performance.title}
           description={text.performance.description}
           flush
@@ -217,6 +250,7 @@ export async function ActivityScreen({
         </Section>
 
         <Section
+          id="facturation"
           title={text.billing.title}
           description={formatMonth(month, locale)}
           flush

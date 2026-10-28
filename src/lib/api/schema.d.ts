@@ -642,6 +642,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics/{clinic_id}/view/studies/modality-counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Examens d'une clinique par groupe de modalités, vus de son responsable
+         * @description Les comptes par groupe du responsable (``GET /studies/modality-counts``).
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["count_by_modality_admin_clinics__clinic_id__view_studies_modality_counts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/clinics/{clinic_id}/view/studies/{study_id}": {
         parameters: {
             query?: never;
@@ -1559,6 +1582,9 @@ export interface paths {
          *         signing: Seulement les comptes dont une image de signature ou de
          *             cachet attend la décision de l'équipe IMAFRIK (pastille
          *             « Signature à vérifier »).
+         *         modality: Seulement les radiologues qui lisent ce groupe de
+         *             modalités dans au moins une organisation (une appartenance sans
+         *             liste les lit tous).
          */
         get: operations["list_users_admin_users_get"];
         put?: never;
@@ -3519,6 +3545,7 @@ export interface paths {
          *             urgences de la tour de contrôle.
          *         q: Recherche libre, insensible à la casse. Le nom se cherche tel
          *             qu'il s'affiche (voir :func:`search_text`).
+         *         modality_group: Restreint à un groupe de modalités.
          *         mine: Restreint aux examens que l'appelant a pris en charge.
          *         order: Ordre de tri, voir :data:`StudyOrder`.
          *         limit: Nombre maximal d'examens renvoyés.
@@ -3534,6 +3561,31 @@ export interface paths {
          *         Unprocessable: Curseur illisible, ou émis pour un autre ordre.
          */
         get: operations["list_studies_studies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/studies/modality-counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Examens visibles par groupe de modalités
+         * @description Combien d'examens de chaque groupe la liste montrerait.
+         *
+         *     Les mêmes filtres que ``GET /studies``, groupe de modalités mis à part,
+         *     dans le même périmètre (RLS, liste de travail d'un radiologue) : le
+         *     nombre affiché sur l'onglet d'un groupe est le total de la liste
+         *     filtrée sur ce groupe.
+         */
+        get: operations["count_by_modality_studies_modality_counts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4562,6 +4614,11 @@ export interface components {
             signing_review_due: number;
             /** Title */
             title: string | null;
+            /**
+             * Urgent Lists
+             * @description Radiologue : cliniques dont il est sur la liste d'urgence, la sienne ou celles qu'il lit pour le réseau.
+             */
+            urgent_lists?: components["schemas"]["UrgentListEntry"][];
         };
         /**
          * AgentReportRequest
@@ -6918,6 +6975,19 @@ export interface components {
             radiologist_id: string;
         };
         /**
+         * ModalityCount
+         * @description Examens d'un groupe de modalités.
+         */
+        ModalityCount: {
+            /** Count */
+            count: number;
+            /**
+             * Modality Group
+             * @enum {string}
+             */
+            modality_group: "radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other";
+        };
+        /**
          * MonthClosure
          * @description Le mois à clore.
          */
@@ -8468,6 +8538,24 @@ export interface components {
             study_instance_uid: string;
         };
         /**
+         * StudyModalityCounts
+         * @description Combien d'examens de chaque groupe de modalités une liste montrerait.
+         *
+         *     Comptés par la base, avec les mêmes filtres que la liste (statut,
+         *     priorité, recherche) et dans le périmètre de l'appelant, groupe de
+         *     modalités mis à part : de quoi nommer chaque onglet de la liste.
+         *
+         *     Attributes:
+         *         total: Tous groupes confondus.
+         *         groups: Chaque groupe, dans l'ordre des écrans, zéro compris.
+         */
+        StudyModalityCounts: {
+            /** Groups */
+            groups: components["schemas"]["ModalityCount"][];
+            /** Total */
+            total: number;
+        };
+        /**
          * StudyPage
          * @description Une page d'examens.
          *
@@ -9017,6 +9105,19 @@ export interface components {
             expires_in: number;
             /** Token */
             token: string;
+        };
+        /**
+         * UrgentListEntry
+         * @description Une clinique dont le compte est sur la liste d'urgence.
+         */
+        UrgentListEntry: {
+            /**
+             * Clinic Id
+             * Format: uuid
+             */
+            clinic_id: string;
+            /** Clinic Name */
+            clinic_name: string;
         };
         /**
          * UrgentReader
@@ -10220,6 +10321,8 @@ export interface operations {
                 priority?: ("routine" | "urgent") | null;
                 /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
                 q?: string | null;
+                /** @description Seulement les examens de ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
                 /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance */
                 order?: "recent" | "received" | "deadline";
                 limit?: number;
@@ -10243,6 +10346,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StudyPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    count_by_modality_admin_clinics__clinic_id__view_studies_modality_counts_get: {
+        parameters: {
+            query?: {
+                /** @description Un ou plusieurs statuts ; vide = tous */
+                status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
+                /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
+                q?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyModalityCounts"];
                 };
             };
             /** @description Validation Error */
@@ -11625,6 +11768,7 @@ export interface operations {
                 pending?: boolean;
                 unverified?: boolean;
                 signing?: boolean;
+                modality?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
             };
             header?: {
                 authorization?: string | null;
@@ -13993,6 +14137,8 @@ export interface operations {
                 priority?: ("routine" | "urgent") | null;
                 /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
                 q?: string | null;
+                /** @description Seulement les examens de ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
                 /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance */
@@ -14016,6 +14162,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StudyPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    count_by_modality_studies_modality_counts_get: {
+        parameters: {
+            query?: {
+                /** @description Un ou plusieurs statuts ; vide = tous */
+                status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
+                /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
+                q?: string | null;
+                /** @description Seulement les examens pris en charge par l'appelant */
+                mine?: boolean;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyModalityCounts"];
                 };
             };
             /** @description Validation Error */

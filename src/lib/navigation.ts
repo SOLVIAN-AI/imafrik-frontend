@@ -228,10 +228,12 @@ const CLINIC_NAV: NavGroup[] = [
  *   comptes-rendus, équipe, activité et facturation). Les gestes du
  *   responsable (envoyer, inviter, renseigner un examen, télécharger au
  *   nom de la clinique) restent les siens ;
- * - la **vue des radiologues** ouvre leurs écrans sur toute la plateforme
- *   (la file à lire, les comptes-rendus, les modèles, la formation). Les
- *   gestes médicaux (prise en charge, rédaction, signature) restent aux
- *   radiologues.
+ * - les **lectures** ouvrent les écrans de lecture sur toute la plateforme
+ *   (la file à lire, les comptes-rendus, les modèles, la formation). Ce
+ *   n'est pas ce que voit un radiologue, qui ne voit que ce qu'on lui
+ *   confie : c'est la file de tous, avec ce qui attend une attribution et
+ *   ce qui est chez chaque radiologue. Les gestes médicaux (prise en
+ *   charge, rédaction, signature) restent aux radiologues.
  */
 const ADMIN_NAV: NavGroup[] = [
   {
@@ -280,6 +282,8 @@ const ADMIN_NAV: NavGroup[] = [
     ],
   },
   {
+    // « Lectures » : la clé garde son ancien nom, celui sous lequel chaque
+    // poste a mémorisé le repli du bloc (`imafrik-navigation:`).
     key: "radiologistView",
     collapsible: true,
     items: [

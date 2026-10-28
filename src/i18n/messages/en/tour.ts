@@ -132,9 +132,13 @@ export const tour: AppMessages["tour"] = {
         title: "Organisations",
         body: "Clinics and radiology groups, their contracts and settings.",
       },
-      training: {
-        title: "Training",
-        body: "Preview sample cases before they are published, and see who has practised on the accounts page.",
+      clinics: {
+        title: "Clinics’ view",
+        body: "Choose a clinic: its screens open as its manager sees them, with its data, in view-only mode.",
+      },
+      readings: {
+        title: "Readings",
+        body: "The whole platform’s worklist, reports, templates and training, in view-only mode: what awaits a radiologist and what each one holds.",
       },
       help: {
         title: "Need help?",

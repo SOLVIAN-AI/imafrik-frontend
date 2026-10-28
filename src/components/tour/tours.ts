@@ -154,8 +154,14 @@ export const TOURS: readonly TourDefinition[] = [
         placement: "right",
       },
       {
-        id: "training",
-        target: "nav-training",
+        id: "clinics",
+        target: "nav-group-clinicView",
+        fallback: "menu",
+        placement: "right",
+      },
+      {
+        id: "readings",
+        target: "nav-group-radiologistView",
         fallback: "menu",
         placement: "right",
       },

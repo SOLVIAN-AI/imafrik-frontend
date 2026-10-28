@@ -38,6 +38,7 @@ export const clinicView = {
   },
   activity: {
     plan: "Formule d’abonnement",
+    console: "Par radiologue, dans la console",
   },
   reports: {
     teamDownload:

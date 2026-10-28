@@ -42,7 +42,7 @@ for (const membership of Object.keys(NAV_BY_MEMBERSHIP) as DemoMembership[]) {
         for (const href of NAV_BY_MEMBERSHIP[membership]) {
           await test.step(href, async () => {
             const link = nav.locator(`a[href="${href}"]`);
-            // Une entrée d'un bloc replié (la vue des radiologues, chez
+            // Une entrée d'un bloc replié (les lectures, chez
             // l'équipe IMAFRIK) s'ouvre d'abord par le titre de son bloc.
             if (!(await link.isVisible())) {
               const bloc = await link.evaluate(

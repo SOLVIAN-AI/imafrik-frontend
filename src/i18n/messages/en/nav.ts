@@ -33,7 +33,7 @@ export const nav: AppMessages["nav"] = {
     facility: "Facility",
     administration: "Administration",
     clinicView: "Clinics’ view",
-    radiologistView: "Radiologists’ view",
+    radiologistView: "Readings",
   },
   mainNavigation: "Main navigation",
   switchOrganisation: "Switch organisation",

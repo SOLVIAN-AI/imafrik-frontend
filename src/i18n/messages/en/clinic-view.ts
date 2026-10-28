@@ -30,6 +30,7 @@ export const clinicView: AppMessages["clinicView"] = {
   },
   activity: {
     plan: "Subscription plan",
+    console: "By radiologist, in the console",
   },
   reports: {
     teamDownload:

@@ -7,15 +7,18 @@ import { ApiError, apiFetch, apiGet } from "@/lib/api/client";
 import { z } from "zod";
 
 import {
+  modalityCountsSchema,
   studyPageSchema,
   studySchema,
   viewerTokenSchema,
   type ApiStudy,
+  type ModalityGroup,
 } from "@/lib/api/contracts";
 import { clinicViewApi } from "@/lib/clinic-view";
 import { isDemoMode } from "@/lib/demo/mode";
 import type { Locale } from "@/lib/i18n/locale";
 import { DEMO_STUDIES, DEMO_USER_ID } from "@/lib/demo/studies";
+import { MODALITY_GROUPS, modalityGroupOf } from "@/lib/modalities";
 import { searchableText } from "@/lib/search/list-search";
 import { isConfiguredViewer } from "@/lib/security/urls";
 import { getSession } from "@/lib/session/server";
@@ -133,6 +136,8 @@ export interface StudyQuery {
   status?: StudyStatus[];
   /** Seulement les examens de cette priorité, filtrés par le service. */
   priority?: "routine" | "urgent";
+  /** Seulement les examens de ce groupe de modalités, filtrés par le service. */
+  modalityGroup?: ModalityGroup;
   /** Recherche libre : nom ou identifiant du patient, modalité. */
   search?: string;
   /** Seulement les examens que l'utilisateur a pris en charge. */
@@ -212,6 +217,7 @@ export async function listStudyPage(
   const params = new URLSearchParams();
   for (const status of query.status ?? []) params.append("status", status);
   if (query.priority) params.set("priority", query.priority);
+  if (query.modalityGroup) params.set("modality_group", query.modalityGroup);
   if (query.search) params.set("q", query.search);
   if (query.mine && !clinicId) params.set("mine", "true");
   if (query.order) params.set("order", query.order);
@@ -225,6 +231,62 @@ export async function listStudyPage(
     total: page.total,
     nextCursor: page.next_cursor ?? null,
   };
+}
+
+/** Combien d'examens de chaque groupe de modalités une liste montrerait. */
+export interface ModalityCounts {
+  /** Tous groupes confondus. */
+  total: number;
+  /** Chaque groupe, zéro compris. */
+  byGroup: Record<ModalityGroup, number>;
+}
+
+/**
+ * Le nombre d'examens de chaque groupe de modalités, pour les onglets d'une
+ * liste.
+ *
+ * Compté par le service avec les mêmes filtres que la liste (statut,
+ * priorité, recherche), groupe mis à part, dans le périmètre de
+ * l'utilisateur : le nombre d'un onglet est le total de la liste filtrée
+ * sur ce groupe.
+ *
+ * @param query    Filtres de la liste ; son groupe, son ordre et sa page
+ *                 sont ignorés.
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK, voir
+ *                 {@link listStudyPage}.
+ */
+export async function getModalityCounts(
+  query: Pick<StudyQuery, "status" | "priority" | "search" | "mine">,
+  clinicId?: string,
+): Promise<ModalityCounts> {
+  if (isDemoMode()) {
+    const { studies } = demoPage(
+      clinicId ? demoClinicStudies(clinicId) : await demoScope(),
+      { ...query, limit: STUDY_PAGE_LIMIT * 100 },
+    );
+    const byGroup = Object.fromEntries(
+      MODALITY_GROUPS.map((group) => [group, 0]),
+    ) as Record<ModalityGroup, number>;
+    for (const study of studies) byGroup[modalityGroupOf(study.modality)] += 1;
+    return { total: studies.length, byGroup };
+  }
+  const params = new URLSearchParams();
+  for (const status of query.status ?? []) params.append("status", status);
+  if (query.priority) params.set("priority", query.priority);
+  if (query.search) params.set("q", query.search);
+  if (query.mine && !clinicId) params.set("mine", "true");
+  const path = clinicId
+    ? `${clinicViewApi(clinicId)}/studies/modality-counts`
+    : "/studies/modality-counts";
+  const raw = await apiGet(
+    `${path}?${params.toString()}`,
+    modalityCountsSchema,
+  );
+  const byGroup = Object.fromEntries(
+    MODALITY_GROUPS.map((group) => [group, 0]),
+  ) as Record<ModalityGroup, number>;
+  for (const row of raw.groups) byGroup[row.modality_group] = row.count;
+  return { total: raw.total, byGroup };
 }
 
 /**
@@ -432,6 +494,11 @@ function demoPage(studies: Study[], query: StudyQuery): StudyPage {
   if (query.priority) {
     const urgent = query.priority === "urgent";
     result = result.filter((study) => study.urgent === urgent);
+  }
+  if (query.modalityGroup) {
+    result = result.filter(
+      (study) => modalityGroupOf(study.modality) === query.modalityGroup,
+    );
   }
   if (query.mine) {
     result = result.filter((study) => study.assignedTo === DEMO_USER_ID);

@@ -7,6 +7,9 @@
  * l'écran peut simplement retomber sur la valeur par défaut.
  */
 
+import type { ModalityGroup } from "@/lib/api/contracts";
+import { MODALITY_PARAM, MODALITY_SLUGS } from "@/lib/modalities";
+
 type Param = string | string[] | undefined;
 
 /** Périodes d'analyse proposées, en jours. */
@@ -113,14 +116,21 @@ export function parseUserFilter(params: {
 }
 
 /**
- * Adresse de la liste des comptes pour un filtre, recherche conservée.
+ * Adresse de la liste des comptes pour un filtre, recherche et modalité
+ * conservées.
  *
- * @param filter Filtre voulu.
- * @param query  Recherche en cours.
+ * @param filter   Filtre voulu.
+ * @param query    Recherche en cours.
+ * @param modality Modalité lue retenue (`?modalite=scanner`).
  */
-export function userListHref(filter: UserListFilter, query?: string): string {
+export function userListHref(
+  filter: UserListFilter,
+  query?: string,
+  modality?: ModalityGroup,
+): string {
   const next = new URLSearchParams();
   if (query) next.set("q", query);
+  if (modality) next.set(MODALITY_PARAM, MODALITY_SLUGS[modality]);
   if (filter === "pending") next.set("attente", "1");
   if (filter === "unverified") next.set("validation", "attente");
   if (filter === "signing") next.set("signature", "attente");

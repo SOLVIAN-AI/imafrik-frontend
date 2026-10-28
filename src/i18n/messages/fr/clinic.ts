@@ -281,12 +281,45 @@ export const clinic = {
       emptyDetail:
         "Les examens que la clinique envoie apparaissent ici, mois par mois.",
     },
+    /** Les parties de l'écran, en tête. */
+    anchors: {
+      label: "Sur cette page",
+      activity: "Activité",
+      performance: "Performances par radiologue",
+      billing: "Facturation",
+    },
     performance: {
       title: "Performances par radiologue",
       description:
         "Examens reçus dans le mois : délais, délais promis tenus, tendance par rapport au mois précédent. Cliquez sur un intitulé pour trier.",
-      note: "Délai médian : la moitié des examens est rendue plus vite ; contrairement à la moyenne, un examen exceptionnellement long ne le déforme pas. 90e centile : neuf examens sur dix sont rendus plus vite.",
-      empty: "Aucun radiologue n’a d’activité ce mois-ci.",
+      emptyTitle: "Aucune activité de radiologue ce mois-ci",
+      emptyDetail:
+        "Les performances s’affichent dès qu’un examen reçu dans le mois est confié à un radiologue habilité, puis signé.",
+      noSigned:
+        "Aucun compte-rendu signé ce mois-ci : les délais restent vides jusqu’au premier acte signé. Les examens en cours et rendus sont déjà comptés.",
+      legendTitle: "Ce que mesure chaque colonne",
+      /** Une phrase par indicateur : info-bulle de l'intitulé et légende. */
+      legend: {
+        signed:
+          "Comptes-rendus signés des examens reçus dans le mois, urgences comprises.",
+        median:
+          "La moitié des examens est rendue plus vite, de la réception à la signature ; un examen exceptionnellement long ne le déforme pas.",
+        mean: "La moyenne des délais de la réception à la signature, qu’un seul examen très long tire vers le haut.",
+        p90: "Neuf examens sur dix sont rendus plus vite : il montre les plus longues attentes.",
+        withinSla: (routine: string, urgent: string) =>
+          `Part signée dans le délai promis à la clinique : ${routine} en routine, ${urgent} en urgence.`,
+        pickup:
+          "Délai médian entre l’attribution de l’examen et le début de sa lecture.",
+        reading:
+          "Durée médiane entre le début de la lecture et la signature du compte-rendu.",
+        released:
+          "Examens rendus par le radiologue avant de les signer (« Rendre l’examen »), dans le mois.",
+        urgentClaimed:
+          "Urgences prises sans attribution sur la liste d’urgence, dans le mois.",
+        open: "À l’instant : examens attribués pas encore commencés, puis examens en lecture.",
+        trend:
+          "Flèche sous un chiffre : l’écart avec le mois précédent, en vert s’il s’améliore.",
+      },
       groups: {
         overall: "Toutes priorités",
         routine: "Routine",
@@ -312,13 +345,6 @@ export const clinic = {
         released: "Rendus sans signature",
         urgentClaimed: "Urgences prises",
         open: "En cours",
-      },
-      hints: {
-        pickup: "de l’attribution au début de la lecture",
-        reading: "du début de la lecture à la signature",
-        released: "« Rendre l’examen », avant signature",
-        urgentClaimed: "sur la liste d’urgence",
-        open: "à l’instant : attribués non commencés, en lecture",
       },
       sortBy: (column: string) => `Trier par ${column}`,
       urgentShare: (count: number) =>

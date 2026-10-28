@@ -33,7 +33,7 @@ export const nav = {
     facility: "Établissement",
     administration: "Administration",
     clinicView: "Vue des cliniques",
-    radiologistView: "Vue des radiologues",
+    radiologistView: "Lectures",
   },
   mainNavigation: "Navigation principale",
   switchOrganisation: "Changer d’organisation",

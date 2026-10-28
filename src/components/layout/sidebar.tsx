@@ -574,6 +574,7 @@ function NavBlockView({
             aria-expanded={open}
             aria-controls={listId}
             onClick={toggle}
+            data-tour={block.key ? `nav-group-${block.key}` : undefined}
             className="label-eyebrow mb-1 flex w-full items-center justify-between rounded-md px-2.5 py-0.5 text-left transition-colors hover:text-secondary"
           >
             {title}
