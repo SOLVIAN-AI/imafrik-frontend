@@ -283,10 +283,10 @@ export const pages = {
     settings: {
       title: "Paramètres",
       purpose:
-        "Vos réglages personnels et ceux de votre clinique. Le plus important est « Qui lit vos examens » : tous les radiologues de la plateforme, ou seulement ceux de votre équipe. Chaque bloc s’enregistre séparément.",
+        "Vos réglages personnels et ceux de votre clinique. Le plus important est « Qui lit vos examens » : vos radiologues et ceux du réseau IMAFRIK, ou seulement les vôtres. Chaque bloc s’enregistre séparément.",
       steps: [
         "Dans « Profil » et « Langue », vérifiez votre nom, votre fonction et la langue de vos écrans, puis cliquez sur « Enregistrer » dans chaque bloc.",
-        "Dans « Qui lit vos examens », choisissez « Tous les radiologues de la plateforme » ou « Nos radiologues uniquement », puis cliquez sur « Enregistrer ».",
+        "Dans « Qui lit vos examens », choisissez « Nos radiologues et le réseau IMAFRIK » ou « Nos radiologues uniquement », puis cliquez sur « Enregistrer ».",
         "Avec « Nos radiologues uniquement », assurez-vous que vos radiologues couvrent aussi la nuit et le week-end.",
         "Pour changer de mot de passe, remplissez les trois champs et cliquez sur « Changer le mot de passe ». Vérifiez que la double authentification est « Active ».",
         "Dans « Engagements », cliquez sur « Télécharger mon exemplaire » pour obtenir la convention de service acceptée.",

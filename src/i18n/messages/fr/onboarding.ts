@@ -77,12 +77,12 @@ export const onboarding = {
   },
   reading: {
     legend: "Qui lit vos examens",
-    poolTitle: "Tous les radiologues de la plateforme",
+    poolTitle: "Nos radiologues et le réseau IMAFRIK",
     poolDetail:
-      "Vos examens entrent dans la file commune ; le premier radiologue disponible les prend.",
+      "Vous attribuez vos examens à vos radiologues ; l’équipe IMAFRIK peut aussi les confier aux radiologues de son réseau.",
     ownTitle: "Nos radiologues uniquement",
     ownDetail:
-      "Seuls les radiologues que vous inviterez dans votre équipe verront vos examens.",
+      "Seuls les radiologues que vous inviterez dans votre équipe pourront recevoir vos examens.",
     note: "Ce réglage se change à tout moment dans les paramètres.",
   },
   firstStudy: {

@@ -331,7 +331,7 @@ export function shortDemographics(
  * Le premier relevé d'une session n'alerte de rien : ce qui est déjà là
  * à l'ouverture de l'écran n'est pas une arrivée.
  *
- * @param previous Identifiants des urgences libres au relevé précédent,
+ * @param previous Identifiants des urgences à prendre au relevé précédent,
  *                 `null` au premier relevé.
  * @param open     Examens libres actuels.
  * @returns Les urgences nouvelles, et les identifiants à retenir.

@@ -47,15 +47,15 @@ export const settings: AppMessages["settings"] = {
   pool: {
     title: "Who reads your examinations",
     description:
-      "The setting applies immediately; an examination already taken on by a radiologist stays with them.",
-    poolTitle: "All radiologists on the platform",
+      "A radiologist only sees the examinations assigned to them. This setting says who they can be assigned to; it applies immediately.",
+    poolTitle: "Our radiologists and the IMAFRIK network",
     poolDetail:
-      "Your examinations join the shared worklist. The first available radiologist takes them on.",
+      "You assign your examinations to your radiologists; the IMAFRIK team can also entrust them to its network radiologists, for instance at night or when your team is away.",
     ownTitle: "Our own radiologists only",
     ownDetail:
-      "Only the radiologists you have invited to your team can see your examinations. Nobody else.",
+      "Only the radiologists on your team can receive your examinations. Nobody else.",
     ownWarning:
-      "No radiologist on the platform will be able to read your examinations, including at night and at weekends. Make sure your own radiologists cover these periods.",
+      "No IMAFRIK network radiologist will be able to read your examinations, including at night and at weekends, and those a network radiologist was reading without having signed them are to assign again. Make sure your own radiologists cover these periods.",
     saved: "Setting saved.",
   },
   password: {

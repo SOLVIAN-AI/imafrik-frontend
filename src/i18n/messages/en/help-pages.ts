@@ -278,10 +278,10 @@ export const pages: typeof fr = {
     settings: {
       title: "Settings",
       purpose:
-        "Your personal settings and your clinic’s. The key one is “Who reads your examinations”: every radiologist on the platform, or only those on your team. Each block is saved separately.",
+        "Your personal settings and your clinic’s. The key one is “Who reads your examinations”: your radiologists and the IMAFRIK network’s, or only yours. Each block is saved separately.",
       steps: [
         "Under “Profile” and “Language”, check your name, your position and the language of your screens, then click “Save” in each block.",
-        "Under “Who reads your examinations”, choose “All radiologists on the platform” or “Our own radiologists only”, then click “Save”.",
+        "Under “Who reads your examinations”, choose “Our radiologists and the IMAFRIK network” or “Our own radiologists only”, then click “Save”.",
         "With “Our own radiologists only”, make sure your radiologists also cover nights and weekends.",
         "To change your password, fill in the three fields and click “Change password”. Check that two-factor authentication shows “Enabled”.",
         "Under “Agreements”, click “Download my copy” to get the service agreement you accepted.",

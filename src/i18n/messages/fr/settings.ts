@@ -47,15 +47,15 @@ export const settings = {
   pool: {
     title: "Qui lit vos examens",
     description:
-      "Le réglage s’applique immédiatement ; un examen déjà pris en charge ne change pas de main.",
-    poolTitle: "Tous les radiologues de la plateforme",
+      "Un radiologue ne voit que les examens qu’on lui attribue. Ce réglage dit à qui ils peuvent l’être ; il s’applique immédiatement.",
+    poolTitle: "Nos radiologues et le réseau IMAFRIK",
     poolDetail:
-      "Vos examens entrent dans la file commune. Le premier radiologue disponible les prend en charge.",
+      "Vous attribuez vos examens à vos radiologues ; l’équipe IMAFRIK peut aussi les confier aux radiologues de son réseau, par exemple la nuit ou quand votre équipe est absente.",
     ownTitle: "Nos radiologues uniquement",
     ownDetail:
-      "Seuls les radiologues que vous avez invités dans votre équipe voient vos examens. Personne d’autre.",
+      "Seuls les radiologues de votre équipe peuvent recevoir vos examens. Personne d’autre.",
     ownWarning:
-      "Aucun radiologue de la plateforme ne pourra lire vos examens, y compris la nuit et le week-end. Assurez-vous que vos propres radiologues couvrent ces périodes.",
+      "Aucun radiologue du réseau IMAFRIK ne pourra lire vos examens, y compris la nuit et le week-end, et ceux qu’un radiologue du réseau lisait sans les avoir signés redeviennent « à attribuer ». Assurez-vous que vos propres radiologues couvrent ces périodes.",
     saved: "Réglage enregistré.",
   },
   password: {

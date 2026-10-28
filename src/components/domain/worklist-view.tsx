@@ -132,7 +132,7 @@ function describeScope(
 /**
  * Alerte à l'arrivée d'une urgence à prendre (liste d'urgence).
  *
- * Le compte des urgences libres dans le titre de l'onglet est calculé par
+ * Le compte des urgences à prendre dans le titre de l'onglet est calculé par
  * la page, dans ses métadonnées (`app/(app)/worklist/page.tsx`) : écrit ici
  * dans `document.title`, il était effacé par Next aussitôt après
  * l'hydratation.

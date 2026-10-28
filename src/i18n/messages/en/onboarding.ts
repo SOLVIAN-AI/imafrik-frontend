@@ -72,12 +72,12 @@ export const onboarding: AppMessages["onboarding"] = {
   },
   reading: {
     legend: "Who reads your examinations",
-    poolTitle: "All radiologists on the platform",
+    poolTitle: "Our radiologists and the IMAFRIK network",
     poolDetail:
-      "Your examinations join the shared worklist; the first available radiologist takes them on.",
+      "You assign your examinations to your radiologists; the IMAFRIK team can also entrust them to its network radiologists.",
     ownTitle: "Our own radiologists only",
     ownDetail:
-      "Only the radiologists you invite to your team will see your examinations.",
+      "Only the radiologists you invite to your team will be able to receive your examinations.",
     note: "You can change this setting at any time in Settings.",
   },
   firstStudy: {

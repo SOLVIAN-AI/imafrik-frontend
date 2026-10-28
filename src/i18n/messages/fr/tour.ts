@@ -25,11 +25,11 @@ export const tour = {
       },
       worklist: {
         title: "La file à lire",
-        body: "Les examens envoyés par les cliniques arrivent ici, classés par échéance. Le compteur dit combien attendent un lecteur ; il passe au rouge tant qu’une urgence n’est pas rendue.",
+        body: "Les examens qu’on vous attribue arrivent ici, classés par échéance, avec les urgences de votre liste d’urgence. Vous ne voyez que ce qu’on vous confie.",
       },
       metrics: {
         title: "L’essentiel d’un coup d’œil",
-        body: "Examens à prendre, urgences libres, retards et prochaine échéance : ces indicateurs se mettent à jour avec la file, toutes les trente secondes.",
+        body: "Examens attribués à vous, urgences à prendre, retards et prochaine échéance : ces indicateurs se mettent à jour avec la file, toutes les trente secondes.",
       },
       filters: {
         title: "Filtrer la file",
@@ -89,7 +89,7 @@ export const tour = {
     "clinique-accueil": {
       welcome: {
         title: "Bienvenue sur IMAFRIK",
-        body: "En une minute, voici comment envoyer un examen, suivre sa lecture et récupérer son compte-rendu.",
+        body: "En une minute, voici comment envoyer un examen, l’attribuer à un radiologue, suivre sa lecture et récupérer son compte-rendu.",
       },
       send: {
         title: "Envoyer un examen",
@@ -97,7 +97,7 @@ export const tour = {
       },
       stats: {
         title: "Suivre l’activité",
-        body: "Examens envoyés, en cours de lecture, comptes-rendus prêts, et délai médian de la réception à la signature, sur trente jours.",
+        body: "Examens à attribuer, en cours de lecture, comptes-rendus prêts, et délai médian de la réception à la signature, sur trente jours. Aucun radiologue ne voit un examen tant qu’il n’est pas attribué.",
       },
       ready: {
         title: "Récupérer les comptes-rendus",
@@ -105,11 +105,11 @@ export const tour = {
       },
       studies: {
         title: "Vos examens",
-        body: "Le suivi de chaque examen, de l’envoi à la signature. Sur sa fiche, vous pouvez signaler une urgence et compléter le renseignement clinique.",
+        body: "Le suivi de chaque examen, de l’envoi à la signature. Attribuez-le à un radiologue, avec les antériorités utiles ; sur sa fiche, signalez une urgence et complétez le renseignement clinique.",
       },
       team: {
         title: "Votre équipe",
-        body: "Invitez les collègues de votre établissement : chacun a son propre compte.",
+        body: "Invitez vos responsables et vos radiologues : chacun a son propre compte. Réglez ici les modalités de chaque radiologue, la liste d’urgence et les règles d’attribution.",
       },
       help: {
         title: "Besoin d’aide ?",
