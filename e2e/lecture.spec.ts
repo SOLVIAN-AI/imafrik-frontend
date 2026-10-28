@@ -117,3 +117,87 @@ test("le plein écran couvre la fenêtre quand le navigateur le refuse", async (
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-fullscreen]")).toHaveCount(0);
 });
+
+/**
+ * Un glissé horizontal du pavé tactile ne quitte pas l'écran de lecture.
+ *
+ * Signalé le 28 octobre 2026 : glisser à deux doigts vers la droite
+ * faisait glisser toute la page vers l'écran précédent, au risque de
+ * quitter un compte-rendu en cours. Le navigateur de test n'a pas de pavé
+ * tactile : on vérifie ce qui empêche le geste (la racine ne le propage
+ * pas, la molette horizontale est annulée sur chaque volet), et qu'il n'a
+ * rien déplacé. La molette verticale, elle, reste à la page.
+ */
+test("un glissé horizontal ne fait pas revenir à la page précédente", async ({
+  page,
+}) => {
+  await page.goto("/worklist");
+  await page.goto("/lecture/1");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  const adresse = page.url();
+
+  const racine = await page.evaluate(() => ({
+    html: getComputedStyle(document.documentElement).overscrollBehaviorX,
+    body: getComputedStyle(document.body).overscrollBehaviorX,
+  }));
+  expect(racine).toEqual({ html: "none", body: "none" });
+
+  await page.evaluate(() => {
+    const fenetre = window as unknown as { annulees: boolean[] };
+    fenetre.annulees = [];
+    window.addEventListener("wheel", (event) =>
+      fenetre.annulees.push(event.defaultPrevented),
+    );
+  });
+  // Relevé sans le vider : un sondage qui lirait à mi-geste ne perd rien.
+  const annulees = () =>
+    page.evaluate(() => [
+      ...(window as unknown as { annulees: boolean[] }).annulees,
+    ]);
+  const oublier = () =>
+    page.evaluate(() => {
+      (window as unknown as { annulees: boolean[] }).annulees.length = 0;
+    });
+
+  for (const volet of ["#viewer", "#report", "header"]) {
+    const boite = await page.locator(volet).first().boundingBox();
+    expect(boite, volet).not.toBeNull();
+    if (!boite) continue;
+    await page.mouse.move(
+      boite.x + boite.width / 2,
+      boite.y + boite.height / 2,
+    );
+    await oublier();
+    await page.mouse.wheel(-240, 0);
+    await page.mouse.wheel(240, 0);
+    await expect.poll(annulees, { message: volet }).toEqual([true, true]);
+  }
+
+  // La molette verticale sur le compte-rendu n'est pas retenue.
+  const compteRendu = await page.locator("#report").boundingBox();
+  if (compteRendu) {
+    await page.mouse.move(
+      compteRendu.x + compteRendu.width / 2,
+      compteRendu.y + compteRendu.height / 2,
+    );
+  }
+  await oublier();
+  await page.mouse.wheel(0, 240);
+  await expect.poll(annulees).toEqual([false]);
+
+  await expect(page).toHaveURL(adresse);
+  expect(await page.evaluate(() => window.scrollX)).toBe(0);
+});
+
+/** Ailleurs, le geste du navigateur reste : rien n'est posé hors de la lecture. */
+test("hors de l'écran de lecture, le glissé reste celui du navigateur", async ({
+  page,
+}) => {
+  await page.goto("/worklist");
+  await expect(page.locator("table a[data-row-link]").first()).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => getComputedStyle(document.documentElement).overscrollBehaviorX,
+    ),
+  ).toBe("auto");
+});
