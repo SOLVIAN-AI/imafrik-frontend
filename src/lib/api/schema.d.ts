@@ -948,6 +948,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Performances des radiologues sur un mois
+         * @description Les performances de chaque radiologue, pour une clinique ou tout le réseau.
+         *
+         *     Raises:
+         *         Unprocessable: Mois à venir.
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["get_network_performance_admin_performance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/pipeline": {
         parameters: {
             query?: never;
@@ -2931,6 +2955,32 @@ export interface paths {
          *         Unprocessable: L'appartenance n'est pas celle d'un radiologue.
          */
         put: operations["update_reading_organization_members__membership_id__reading_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organization/performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Performances des radiologues de la clinique sur un mois
+         * @description Délais, délais promis tenus, examens rendus et en cours, par radiologue.
+         *
+         *     Pour les examens de la clinique active. Réservé à ses responsables : un
+         *     radiologue ne voit jamais les chiffres d'un confrère.
+         *
+         *     Raises:
+         *         Unprocessable: Mois à venir.
+         */
+        get: operations["get_performance_organization_performance_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -5092,8 +5142,6 @@ export interface components {
         ClinicMonthActivity: {
             /** By Modality */
             by_modality: components["schemas"]["ClinicModalityActivity"][];
-            /** By Radiologist */
-            by_radiologist: components["schemas"]["ClinicRadiologistActivity"][];
             /**
              * Clinic Id
              * Format: uuid
@@ -5179,37 +5227,6 @@ export interface components {
              * @enum {string}
              */
             plan: "essential" | "pro" | "facility";
-        };
-        /**
-         * ClinicRadiologistActivity
-         * @description Comptes-rendus signés par un radiologue, pour les examens reçus dans le mois.
-         */
-        ClinicRadiologistActivity: {
-            /** Full Name */
-            full_name: string;
-            /**
-             * Median Minutes
-             * @description Réception → signature.
-             */
-            median_minutes: number | null;
-            /**
-             * Median Reading Minutes
-             * @description Prise en charge → signature.
-             */
-            median_reading_minutes: number | null;
-            /**
-             * Profile Id
-             * Format: uuid
-             */
-            profile_id: string;
-            /** Signed */
-            signed: number;
-            /** Title */
-            title: string | null;
-            /** Urgent */
-            urgent: number;
-            /** Within Sla */
-            within_sla: number | null;
         };
         /**
          * ClinicStatement
@@ -7182,6 +7199,28 @@ export interface components {
             within_sla: number | null;
         };
         /**
+         * PriorityDelays
+         * @description Délais réception → signature d'une priorité, pour un radiologue.
+         *
+         *     Attributes:
+         *         median_minutes: Délai médian : la moitié des examens est rendue plus
+         *             vite. Un examen exceptionnellement long ne le déforme pas.
+         *         mean_minutes: Délai moyen, qu'un seul examen très long tire vers le
+         *             haut.
+         *         p90_minutes: 90e centile : neuf examens sur dix sont rendus plus vite.
+         *         within_sla: Part signée dans le délai promis, de 0 à 1.
+         */
+        PriorityDelays: {
+            /** Mean Minutes */
+            mean_minutes: number | null;
+            /** Median Minutes */
+            median_minutes: number | null;
+            /** P90 Minutes */
+            p90_minutes: number | null;
+            /** Within Sla */
+            within_sla: number | null;
+        };
+        /**
          * PrioritySla
          * @description Délais d'une priorité sur une période.
          */
@@ -7331,6 +7370,89 @@ export interface components {
             title: string | null;
             /** Urgent */
             urgent: number;
+        };
+        /**
+         * RadiologistPerformance
+         * @description Les performances d'un radiologue sur un mois.
+         *
+         *     Attributes:
+         *         signed_routine: Comptes-rendus signés en routine, pour les examens
+         *             reçus dans le mois.
+         *         signed_urgent: En urgence.
+         *         median_minutes: Délai médian réception → signature, toutes
+         *             priorités : la base du tri et de la tendance.
+         *         within_sla: Part signée dans le délai promis, toutes priorités.
+         *         pickup_median_minutes: Délai médian attribution → début de lecture.
+         *         reading_median_minutes: Durée médiane début de lecture → signature.
+         *         released: Examens rendus sans être signés (« Rendre l'examen »)
+         *             dans le mois.
+         *         urgent_claimed: Urgences prises sur la liste d'urgence dans le mois.
+         *         assigned_waiting: À l'instant, examens attribués pas encore commencés.
+         *         in_reading: À l'instant, examens en lecture.
+         *         previous_median_minutes: Délai médian du mois précédent.
+         *         previous_within_sla: Part dans les délais du mois précédent.
+         */
+        RadiologistPerformance: {
+            /** Assigned Waiting */
+            assigned_waiting: number;
+            /** Full Name */
+            full_name: string;
+            /** In Reading */
+            in_reading: number;
+            /** Median Minutes */
+            median_minutes: number | null;
+            /** Pickup Median Minutes */
+            pickup_median_minutes: number | null;
+            /** Previous Median Minutes */
+            previous_median_minutes: number | null;
+            /** Previous Within Sla */
+            previous_within_sla: number | null;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /** Reading Median Minutes */
+            reading_median_minutes: number | null;
+            /** Released */
+            released: number;
+            routine: components["schemas"]["PriorityDelays"];
+            /** Signed Routine */
+            signed_routine: number;
+            /** Signed Urgent */
+            signed_urgent: number;
+            /** Title */
+            title: string | null;
+            urgent: components["schemas"]["PriorityDelays"];
+            /** Urgent Claimed */
+            urgent_claimed: number;
+            /** Within Sla */
+            within_sla: number | null;
+        };
+        /**
+         * RadiologistPerformanceMonth
+         * @description Les performances des radiologues sur un mois, rangées par délai médian.
+         *
+         *     Attributes:
+         *         month: Premier jour du mois.
+         *         clinic_id: Clinique ; nul pour tout le réseau.
+         *         sla_routine_minutes: Délai promis en routine.
+         *         sla_urgent_minutes: Délai promis en urgence.
+         */
+        RadiologistPerformanceMonth: {
+            /** Clinic Id */
+            clinic_id: string | null;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Radiologists */
+            radiologists: components["schemas"]["RadiologistPerformance"][];
+            /** Sla Routine Minutes */
+            sla_routine_minutes: number;
+            /** Sla Urgent Minutes */
+            sla_urgent_minutes: number;
         };
         /**
          * Readiness
@@ -10286,6 +10408,41 @@ export interface operations {
             };
         };
     };
+    get_network_performance_admin_performance_get: {
+        parameters: {
+            query: {
+                /** @description Mois, AAAA-MM. */
+                month: string;
+                clinic_id?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RadiologistPerformanceMonth"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_pipeline_admin_pipeline_get: {
         parameters: {
             query?: {
@@ -12935,6 +13092,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Member"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_performance_organization_performance_get: {
+        parameters: {
+            query: {
+                /** @description Mois, AAAA-MM. */
+                month: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RadiologistPerformanceMonth"];
                 };
             };
             /** @description Validation Error */

@@ -66,16 +66,6 @@ export interface MonthActivity {
     medianMinutes: number | null;
     withinSla: number | null;
   }[];
-  byRadiologist: {
-    id: string;
-    /** Titre et nom : « Dr Adjo Kponton ». */
-    name: string;
-    signed: number;
-    urgent: number;
-    medianMinutes: number | null;
-    medianReadingMinutes: number | null;
-    withinSla: number | null;
-  }[];
 }
 
 /** Forfaits techniques d'un type d'examen. */
@@ -157,15 +147,6 @@ export function toMonthActivity(api: ApiClinicMonthActivity): MonthActivity {
       urgent: row.urgent,
       signed: row.signed,
       medianMinutes: row.median_minutes,
-      withinSla: row.within_sla,
-    })),
-    byRadiologist: api.by_radiologist.map((row) => ({
-      id: row.profile_id,
-      name: formatPersonName(row.title, row.full_name),
-      signed: row.signed,
-      urgent: row.urgent,
-      medianMinutes: row.median_minutes,
-      medianReadingMinutes: row.median_reading_minutes,
       withinSla: row.within_sla,
     })),
   };

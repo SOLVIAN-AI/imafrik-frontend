@@ -196,13 +196,6 @@ export const admin: AppMessages["admin"] = {
       volume: "Volume",
       lastSent: "Last sent",
     },
-    byRadiologist: "By radiologist",
-    byRadiologistDescription:
-      "Total turnaround (receipt → signature) and reading time (claim → signature)",
-    noReport: "No reports signed in this period.",
-    signed: "signed",
-    radiologistTimes: (total: string, reading: string) =>
-      `turnaround ${total} · reading ${reading}`,
   },
 
   flow: {

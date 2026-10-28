@@ -259,20 +259,20 @@ export const pages: typeof fr = {
     activity: {
       title: "Activity and billing",
       purpose:
-        "Each month at a glance: the examinations received, how many were reported, how fast and within the promised times, then the billing statement, the same one the IMAFRIK team sees. For the clinic’s managers only.",
+        "Each month at a glance: the examinations received, how many were reported and how fast, each radiologist’s performance, then the billing statement, the same one the IMAFRIK team sees. For the clinic’s managers only.",
       steps: [
         "Change the month with the arrows on either side of the month shown.",
-        "Read the activity: examinations received, reported, median turnaround and share reported within the promised times, then the detail by modality and radiologist.",
+        "Read the activity, then “Performance by radiologist”: median, mean and 90th percentile turnaround, times met and trend; click a heading to sort.",
         "Under “Billing”, read the subscription, the technical fees by examination type, at the normal or urgent rate, and the total excluding tax.",
         "“Provisional statement”: the month can still change. “Month closed”: the IMAFRIK team has frozen it, it no longer changes.",
         "Click “Export as CSV” to download the month’s statement.",
       ],
       terms: [
+        "delaiMedian",
+        "centile90",
         "acte",
         "forfaitTechnique",
-        "formuleAbonnement",
         "moisClos",
-        "honoraire",
       ],
     },
     settings: {
@@ -312,15 +312,21 @@ export const pages: typeof fr = {
     analytics: {
       title: "Activity",
       purpose:
-        "Analyses activity over a period: volumes received, reporting turnaround, the duration of each stage of an examination’s journey, arrival times and modalities, then the same figures by clinic and by radiologist.",
+        "Analyses activity over a period: volumes received, reporting turnaround, the duration of each stage of an examination’s journey, arrival times and modalities, then the same figures by clinic, and each radiologist’s performance over a month.",
       steps: [
         "Choose the period at the top of the page: 7 d, 30 d, 90 d or 1 year.",
         "Keep “Whole network” or pick a clinic from the list to see its activity only.",
         "Read the period totals, then compare “Reporting turnaround” with the routine commitment line.",
         "In “Examination journey”, find the highlighted stage: it is the longest one.",
-        "In “By clinic”, click a name to show that clinic only, and look for throughput values flagged in colour.",
+        "In “Performance by radiologist”, choose the month and sort the columns: median, mean and 90th percentile turnaround, times met, returned and in-progress examinations.",
       ],
-      terms: ["delaiPromis", "urgence", "priseEnCharge", "passerelle", "pacs"],
+      terms: [
+        "delaiPromis",
+        "delaiMedian",
+        "centile90",
+        "priseEnCharge",
+        "urgence",
+      ],
     },
     flow: {
       title: "Image flow",

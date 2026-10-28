@@ -6,6 +6,7 @@ import {
   clinicMonthActivitySchema,
   clinicPlanSchema,
   clinicStatementSchema,
+  performanceMonthSchema,
 } from "@/lib/api/contracts";
 import {
   type BillingMonth,
@@ -24,6 +25,8 @@ import {
   demoStatement,
 } from "@/lib/demo/billing";
 import { isDemoMode } from "@/lib/demo/mode";
+import { demoPerformance } from "@/lib/demo/performance";
+import { type PerformanceMonth, toPerformanceMonth } from "@/lib/performance";
 import { getSession } from "@/lib/session/server";
 
 /**
@@ -56,6 +59,44 @@ export async function getMonthActivity(month: string): Promise<MonthActivity> {
         clinicMonthActivitySchema,
       );
   return toMonthActivity(row);
+}
+
+/**
+ * Les performances des radiologues de la clinique active sur un mois.
+ *
+ * Réservées à ses responsables : le service refuse un radiologue.
+ *
+ * @param month Mois `AAAA-MM`, pas à venir.
+ */
+export async function getPerformance(month: string): Promise<PerformanceMonth> {
+  const row = isDemoMode()
+    ? demoPerformance(month, await demoClinicId())
+    : await apiGet(
+        `/organization/performance${query(month)}`,
+        performanceMonthSchema,
+      );
+  return toPerformanceMonth(row);
+}
+
+/**
+ * Les performances des radiologues, pour une clinique ou tout le réseau
+ * (équipe IMAFRIK).
+ *
+ * @param month    Mois `AAAA-MM`, pas à venir.
+ * @param clinicId Clinique, ou `null` pour tout le réseau.
+ */
+export async function getNetworkPerformance(
+  month: string,
+  clinicId: string | null,
+): Promise<PerformanceMonth> {
+  const clinic = clinicId ? `&clinic_id=${encodeURIComponent(clinicId)}` : "";
+  const row = isDemoMode()
+    ? demoPerformance(month, clinicId)
+    : await apiGet(
+        `/admin/performance${query(month)}${clinic}`,
+        performanceMonthSchema,
+      );
+  return toPerformanceMonth(row);
 }
 
 /**

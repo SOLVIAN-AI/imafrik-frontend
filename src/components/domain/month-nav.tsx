@@ -16,31 +16,34 @@ import type { Locale } from "@/lib/i18n/locale";
  * @param month   Mois affiché, `AAAA-MM`.
  * @param current Mois en cours, `AAAA-MM`.
  * @param path    Adresse de l'écran, sans paramètre.
+ * @param query   Autres paramètres de l'adresse, gardés d'un mois à l'autre
+ *                (la clinique filtrée, la période d'un autre bloc).
  * @param labels  Intitulés du groupe et des deux flèches.
  */
 export function MonthNav({
   month,
   current,
   path,
+  query = {},
   locale,
   labels,
 }: {
   month: string;
   current: string;
   path: string;
+  query?: Record<string, string>;
   locale: Locale;
   labels: { month: string; previousMonth: string; nextMonth: string };
 }) {
+  const href = (offset: number) =>
+    `${path}?${new URLSearchParams({ ...query, mois: shiftMonth(month, offset) })}`;
   return (
     <nav
       aria-label={labels.month}
       className="flex items-center gap-1 rounded-lg border border-border-subtle bg-surface-sunken p-0.5"
     >
       <Button asChild variant="ghost" size="icon">
-        <Link
-          href={`${path}?mois=${shiftMonth(month, -1)}`}
-          aria-label={labels.previousMonth}
-        >
+        <Link href={href(-1)} aria-label={labels.previousMonth}>
           <ChevronLeft />
         </Link>
       </Button>
@@ -49,10 +52,7 @@ export function MonthNav({
       </span>
       {month < current ? (
         <Button asChild variant="ghost" size="icon">
-          <Link
-            href={`${path}?mois=${shiftMonth(month, 1)}`}
-            aria-label={labels.nextMonth}
-          >
+          <Link href={href(1)} aria-label={labels.nextMonth}>
             <ChevronRight />
           </Link>
         </Button>

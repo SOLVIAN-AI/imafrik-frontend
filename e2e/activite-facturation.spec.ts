@@ -59,8 +59,51 @@ test.describe("le responsable de la clinique", () => {
     await expect(
       modalites.getByRole("rowheader", { name: "Scanner" }),
     ).toBeVisible();
+
+    // Les performances par radiologue : rangées par délai médian, triables.
+    const performances = page.getByRole("table").filter({
+      has: page.getByRole("columnheader", { name: /Radiologue/ }),
+    });
+    const medianes = performances.getByRole("columnheader", {
+      name: "Trier par Délai médian",
+    });
+    await expect(medianes).toHaveAttribute("aria-sort", "ascending");
+    for (const colonne of [
+      "Moyen",
+      "90e centile",
+      "Prise en charge",
+      "Lecture",
+      "Rendus sans signature",
+      "Urgences prises",
+      "En cours",
+    ]) {
+      await expect(
+        performances
+          .getByRole("button", {
+            name: `Trier par ${colonne}`,
+            exact: true,
+          })
+          .first(),
+      ).toBeVisible();
+    }
+    const premier = () =>
+      performances.getByRole("rowheader").first().textContent();
+    const avant = await premier();
+    await performances
+      .getByRole("button", { name: "Trier par Actes signés" })
+      .click();
     await expect(
-      page.getByRole("columnheader", { name: "Radiologue" }),
+      performances.getByRole("columnheader", {
+        name: "Trier par Actes signés",
+      }),
+    ).toHaveAttribute("aria-sort", "descending");
+    await expect(medianes).toHaveAttribute("aria-sort", "none");
+    await performances
+      .getByRole("button", { name: "Trier par Délai médian" })
+      .click();
+    expect(await premier()).toBe(avant);
+    await expect(
+      page.getByText(/contrairement à la moyenne/).first(),
     ).toBeVisible();
 
     // Le relevé du mois en cours : provisoire, formule Pro.
@@ -108,6 +151,12 @@ test.describe("le responsable de la clinique, en anglais", () => {
     ).toBeVisible();
     await expect(page.getByText("Pro plan")).toBeVisible();
     await expect(page.getByText("Radiologists’ fees")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Performance by radiologist" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Sort by Median turnaround" }),
+    ).toBeVisible();
   });
 });
 
@@ -124,6 +173,34 @@ test.describe("un radiologue", () => {
 
 test.describe("l'équipe IMAFRIK", () => {
   test.use({ membership: "m-admin", langue: "fr" });
+
+  test("lit les performances des radiologues du mois choisi", async ({
+    page,
+    checkA11y,
+  }) => {
+    await page.goto("/admin/activite?jours=30");
+    await expect(
+      page.getByRole("heading", { name: "Performances par radiologue" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Trier par Délai médian" }),
+    ).toHaveAttribute("aria-sort", "ascending");
+    await expect(
+      page.getByRole("rowheader", { name: "Dr Adjo Kponton" }),
+    ).toBeVisible();
+    await checkA11y();
+    // Le mois précédent garde la période de l'écran.
+    await page
+      .getByRole("navigation", { name: "Mois" })
+      .getByRole("link", { name: "Mois précédent" })
+      .click();
+    await expect(page).toHaveURL(
+      new RegExp(`jours=30.*mois=${PRECEDENT}|mois=${PRECEDENT}.*jours=30`),
+    );
+    await expect(
+      page.getByRole("rowheader", { name: "Dr Adjo Kponton" }),
+    ).toBeVisible();
+  });
 
   test("lit le relevé de chaque clinique, le même que celui du responsable", async ({
     page,

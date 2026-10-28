@@ -149,11 +149,6 @@ export function demoMonthActivity(
     const group = groupOf(flow.modality.code);
     groups.set(group, [...(groups.get(group) ?? []), flow]);
   }
-  const readers = new Map<string, DemoFlow[]>();
-  for (const flow of flows) {
-    if (flow.signedAt === null || flow.reader === null) continue;
-    readers.set(flow.reader.id, [...(readers.get(flow.reader.id) ?? []), flow]);
-  }
 
   return {
     clinic_id: clinicId,
@@ -178,26 +173,6 @@ export function demoMonthActivity(
         (a, b) =>
           b.routine + b.urgent - (a.routine + a.urgent) ||
           a.modality_group.localeCompare(b.modality_group),
-      ),
-    by_radiologist: [...readers.values()]
-      .map((rows) => {
-        const reader = rows[0].reader!;
-        const reading = rows
-          .filter((flow) => flow.claimedAt !== null)
-          .map((flow) => (flow.signedAt! - flow.claimedAt!) / 60_000);
-        return {
-          profile_id: reader.id,
-          full_name: reader.name,
-          title: reader.title,
-          signed: rows.length,
-          urgent: rows.filter((flow) => flow.urgent).length,
-          median_minutes: measure(rows).median_minutes,
-          median_reading_minutes: round1(quantile(reading, 0.5)),
-          within_sla: measure(rows).within_sla,
-        };
-      })
-      .sort(
-        (a, b) => b.signed - a.signed || a.full_name.localeCompare(b.full_name),
       ),
   };
 }

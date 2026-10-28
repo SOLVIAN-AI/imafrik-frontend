@@ -858,19 +858,51 @@ const _monthModality: Matches<
   Schemas["ClinicModalityActivity"]
 > = true;
 
-const monthRadiologistSchema = z.object({
+const priorityDelaysSchema = z.object({
+  median_minutes: minutes,
+  mean_minutes: minutes,
+  p90_minutes: minutes,
+  within_sla: ratio,
+});
+const _priorityDelays: Matches<
+  z.input<typeof priorityDelaysSchema>,
+  Schemas["PriorityDelays"]
+> = true;
+
+const radiologistPerformanceSchema = z.object({
   profile_id: uuid,
   full_name: z.string(),
   title: z.string().nullable(),
-  signed: count,
-  urgent: count,
+  signed_routine: count,
+  signed_urgent: count,
   median_minutes: minutes,
-  median_reading_minutes: minutes,
   within_sla: ratio,
+  routine: priorityDelaysSchema,
+  urgent: priorityDelaysSchema,
+  pickup_median_minutes: minutes,
+  reading_median_minutes: minutes,
+  released: count,
+  urgent_claimed: count,
+  assigned_waiting: count,
+  in_reading: count,
+  previous_median_minutes: minutes,
+  previous_within_sla: ratio,
 });
-const _monthRadiologist: Matches<
-  z.input<typeof monthRadiologistSchema>,
-  Schemas["ClinicRadiologistActivity"]
+const _radiologistPerformance: Matches<
+  z.input<typeof radiologistPerformanceSchema>,
+  Schemas["RadiologistPerformance"]
+> = true;
+
+export const performanceMonthSchema = z.object({
+  month: isoDate,
+  clinic_id: uuid.nullable(),
+  sla_routine_minutes: count,
+  sla_urgent_minutes: count,
+  radiologists: z.array(radiologistPerformanceSchema),
+});
+const _performanceMonth: Matches<
+  z.input<typeof performanceMonthSchema>,
+  Schemas["RadiologistPerformanceMonth"]
 > = true;
 
 export const clinicMonthActivitySchema = z.object({
@@ -886,7 +918,6 @@ export const clinicMonthActivitySchema = z.object({
   routine: monthPrioritySchema,
   urgent: monthPrioritySchema,
   by_modality: z.array(monthModalitySchema),
-  by_radiologist: z.array(monthRadiologistSchema),
 });
 const _clinicMonthActivity: Matches<
   z.input<typeof clinicMonthActivitySchema>,
@@ -1675,7 +1706,9 @@ export const CONTRACT_CHECKS = [
   _pipelineStudy,
   _monthPriority,
   _monthModality,
-  _monthRadiologist,
+  _priorityDelays,
+  _radiologistPerformance,
+  _performanceMonth,
   _clinicMonthActivity,
   _statementLine,
   _outOfGrid,
@@ -1727,6 +1760,7 @@ export type ApiControlAnalytics = z.output<typeof controlAnalyticsSchema>;
 export type ApiPipelineStudy = z.output<typeof pipelineStudySchema>;
 export type ApiClinicMonthActivity = z.output<typeof clinicMonthActivitySchema>;
 export type ApiClinicStatement = z.output<typeof clinicStatementSchema>;
+export type ApiPerformanceMonth = z.output<typeof performanceMonthSchema>;
 export type ApiBillingMonth = z.output<typeof billingMonthSchema>;
 export type ApiClinicPlan = z.output<typeof clinicPlanSchema>;
 export type FeeClass = z.output<typeof feeClassSchema>;

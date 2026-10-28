@@ -215,13 +215,6 @@ export const admin = {
       volume: "Volume",
       lastSent: "Dernier envoi",
     },
-    byRadiologist: "Par radiologue",
-    byRadiologistDescription:
-      "Délai total (réception → signature) et temps de lecture (prise en charge → signature)",
-    noReport: "Aucun compte-rendu signé sur la période.",
-    signed: "signés",
-    radiologistTimes: (total: string, reading: string) =>
-      `délai ${total} · lecture ${reading}`,
   },
 
   flow: {

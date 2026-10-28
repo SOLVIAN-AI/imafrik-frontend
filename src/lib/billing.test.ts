@@ -18,6 +18,8 @@ import {
   demoStatement,
 } from "@/lib/demo/billing";
 import { DEMO_NETWORK } from "@/lib/demo/control";
+import { demoPerformance } from "@/lib/demo/performance";
+import { toPerformanceMonth } from "@/lib/performance";
 
 /** 28 octobre 2026, 9 h UTC : octobre est ouvert, septembre clos le 3 octobre. */
 const NOW = Date.UTC(2026, 9, 28, 9);
@@ -177,9 +179,31 @@ describe("relevés de démonstration", () => {
       activity.received,
     );
     expect(activity.signed).toBe(statement.acts + outOfGrid);
+    // Les actes signés par radiologue sont ceux des performances du mois.
+    const performance = toPerformanceMonth(
+      demoPerformance("2026-09", STJ, NOW),
+    );
     expect(
-      activity.byRadiologist.reduce((sum, row) => sum + row.signed, 0),
+      performance.radiologists.reduce(
+        (sum, row) => sum + row.signedRoutine + row.signedUrgent,
+        0,
+      ),
     ).toBe(activity.signed);
+    expect(
+      Object.fromEntries(
+        statement.radiologists.map((row) => [
+          row.name,
+          row.routine + row.urgent,
+        ]),
+      ),
+    ).toEqual(
+      Object.fromEntries(
+        performance.radiologists.map((row) => [
+          row.name,
+          row.signedRoutine + row.signedUrgent,
+        ]),
+      ),
+    );
 
     const month = toBillingMonth(demoBillingMonth("2026-09", NOW));
     expect(month.closedAt).toEqual(new Date("2026-10-03T08:00:00Z"));

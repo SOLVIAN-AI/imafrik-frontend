@@ -313,7 +313,7 @@ attend des comptes-rendus.
 | `/comptes-rendus` | Comptes-rendus reçus, recherche par patient, identifiant ou modalité (faite par le service), liste paginée. | V1 |
 | `/equipe` | Membres, rôles, invitations. | V2 |
 | `/equipe/regles` | Règles d'attribution : radiologue par modalité, puis planning de la semaine (gardes de nuit comprises) ; les chevauchements de garde sont signalés. | Fait |
-| `/activite` | Activité et facturation, responsables seulement (P1, étape 4) : examens reçus du mois, rendus, délai médian et délais tenus, par modalité et par radiologue ; relevé de facturation du mois (abonnement, forfaits techniques, actes par radiologue), provisoire puis figé à la clôture, le même que celui de l'équipe IMAFRIK ; export CSV. | Fait |
+| `/activite` | Activité et facturation, responsables seulement (P1, étape 4) : examens reçus du mois, rendus, délai médian et délais tenus, par modalité ; performances par radiologue (délais médian, moyen et 90e centile en routine et en urgence, prise en charge, lecture, examens rendus, urgences prises, en cours, tendance), tableau triable ; relevé de facturation du mois (abonnement, forfaits techniques, actes par radiologue), provisoire puis figé à la clôture, le même que celui de l'équipe IMAFRIK ; export CSV. | Fait |
 | `/patients` | Vue par patient : tous ses examens, tous ses comptes-rendus. | V3 |
 | `/parametres` | Établissement, paramètres DICOM, notifications, sécurité. | V1 |
 
@@ -347,7 +347,7 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | Route | Écran | État |
 | --- | --- | --- |
 | `/admin` | **Cockpit** : alertes, files en direct, délais promis tenus, réseau, exploitation. | Fait |
-| `/admin/activite` | Volumes, délais (médiane, 9 sur 10), étapes du parcours, heures d'arrivée, par clinique (débit), modalité, radiologue. Période et clinique dans l'adresse. | Fait |
+| `/admin/activite` | Volumes, délais (médiane, 9 sur 10), étapes du parcours, heures d'arrivée, par clinique (débit), modalité ; performances par radiologue du mois choisi (le même tableau que le responsable de la clinique). Période, mois et clinique dans l'adresse. | Fait |
 | `/admin/flux` | Flux d'images examen par examen : débit de réception, frise acquisition → remise. | Fait |
 | `/admin/organisations` | Volumes sur 30 jours, dernier envoi, suspension, invitation. | Fait |
 | `/admin/organisations/[id]` | Mise en service d'une clinique, activité, liste d'urgence, **règles d'attribution**, **durée de conservation des images**, état du contrat et **fin de contrat**. | Fait |

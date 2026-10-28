@@ -117,6 +117,16 @@ export const glossary: typeof fr = {
     definition:
       "The time between receiving an examination and signing its report that IMAFRIK commits to: 30 minutes for an urgent one and 2 hours for routine, unless the team has set otherwise.",
   },
+  delaiMedian: {
+    term: "Median turnaround",
+    definition:
+      "The time within which half the examinations are reported. Unlike the mean, which a single very long examination pulls up, one exceptional case does not distort it.",
+  },
+  centile90: {
+    term: "90th percentile",
+    definition:
+      "The time within which nine examinations out of ten are reported: it shows the longest waits without stopping at the single worst case.",
+  },
   dicom: {
     term: "DICOM",
     definition:

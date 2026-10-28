@@ -264,20 +264,20 @@ export const pages = {
     activity: {
       title: "Activité et facturation",
       purpose:
-        "Le bilan de chaque mois : les examens reçus, combien sont rendus, en combien de temps et dans les délais promis, puis le relevé de facturation, le même que celui de l’équipe IMAFRIK. Réservé aux responsables de la clinique.",
+        "Le bilan de chaque mois : les examens reçus, combien sont rendus et dans quels délais, les performances de chaque radiologue, puis le relevé de facturation, le même que celui de l’équipe IMAFRIK. Réservé aux responsables de la clinique.",
       steps: [
         "Changez de mois avec les flèches placées de part et d’autre du mois affiché.",
-        "Lisez l’activité : examens reçus, rendus, délai médian et part rendue dans les délais promis, puis le détail par modalité et par radiologue.",
+        "Lisez l’activité, puis « Performances par radiologue » : délais médian, moyen et 90e centile, délais tenus et tendance ; cliquez sur un intitulé pour trier.",
         "Dans « Facturation », lisez l’abonnement, les forfaits techniques par type d’examen, au tarif normal ou urgent, et le total HT.",
         "« Relevé provisoire » : le mois peut encore changer. « Mois clos » : l’équipe IMAFRIK l’a figé, il ne change plus.",
         "Cliquez sur « Exporter en CSV » pour télécharger le relevé du mois.",
       ],
       terms: [
+        "delaiMedian",
+        "centile90",
         "acte",
         "forfaitTechnique",
-        "formuleAbonnement",
         "moisClos",
-        "honoraire",
       ],
     },
     settings: {
@@ -317,15 +317,21 @@ export const pages = {
     analytics: {
       title: "Activité",
       purpose:
-        "Analyse l’activité sur une période : volumes reçus, délais de lecture, durée de chaque étape du parcours d’un examen, heures d’arrivée et modalités, puis les mêmes chiffres par clinique et par radiologue.",
+        "Analyse l’activité sur une période : volumes reçus, délais de lecture, durée de chaque étape du parcours d’un examen, heures d’arrivée et modalités, puis les mêmes chiffres par clinique, et les performances de chaque radiologue sur un mois.",
       steps: [
         "Choisissez la période en haut de page : 7 j, 30 j, 90 j ou 1 an.",
         "Gardez « Tout le réseau » ou choisissez une clinique dans la liste pour ne voir que son activité.",
         "Lisez les totaux de la période, puis comparez le « Délai de lecture » à la ligne du délai promis en routine.",
         "Dans « Parcours d’un examen », repérez l’étape mise en évidence : c’est la plus longue.",
-        "Dans « Par clinique », cliquez sur un nom pour n’afficher que cette clinique, et repérez les débits signalés en couleur.",
+        "Dans « Performances par radiologue », choisissez le mois et triez les colonnes : délais médian, moyen et 90e centile, délais tenus, examens rendus et en cours.",
       ],
-      terms: ["delaiPromis", "urgence", "priseEnCharge", "passerelle", "pacs"],
+      terms: [
+        "delaiPromis",
+        "delaiMedian",
+        "centile90",
+        "priseEnCharge",
+        "urgence",
+      ],
     },
     flow: {
       title: "Flux d’images",

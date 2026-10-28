@@ -5,11 +5,16 @@ import { ControlBody, Figure, Section } from "@/components/admin/control-ui";
 import { CsvButton } from "@/components/admin/csv-button";
 import { BillingStatement } from "@/components/domain/billing-statement";
 import { MonthNav } from "@/components/domain/month-nav";
+import { PerformanceTable } from "@/components/domain/performance-table";
 import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { parseMonth } from "@/lib/admin-params";
 import { statementCsvRows } from "@/lib/billing";
-import { getMonthActivity, getStatement } from "@/lib/data/activity";
+import {
+  getMonthActivity,
+  getPerformance,
+  getStatement,
+} from "@/lib/data/activity";
 import {
   formatCount,
   formatMinutes,
@@ -46,8 +51,9 @@ export default async function ActivityPage({
   const params = await searchParams;
   const month = parseMonth(params.mois);
   const current = parseMonth(undefined);
-  const [activity, statement] = await Promise.all([
+  const [activity, performance, statement] = await Promise.all([
     getMonthActivity(month),
+    getPerformance(month),
     getStatement(month),
   ]);
   const duration = (minutes: number | null) => formatMinutes(minutes, locale);
@@ -133,125 +139,57 @@ export default async function ActivityPage({
             />
           </Section>
         ) : (
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <Section title={text.activity.byModality} flush>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[32rem] border-separate border-spacing-0 text-sm">
-                  <thead>
-                    <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:px-4 [&>th]:text-right [&>th]:font-medium [&>th:first-child]:text-left">
-                      {[
-                        columns.modality,
-                        columns.routine,
-                        columns.urgent,
-                        columns.signed,
-                        columns.median,
-                        columns.withinSla,
-                      ].map((label) => (
-                        <th key={label} scope="col">
-                          <span className="label-eyebrow">{label}</span>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activity.byModality.map((row) => (
-                      <tr
-                        key={row.group}
-                        className="[&>td]:h-10 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4 [&>td]:text-right [&>td]:tabular-nums"
-                      >
-                        <th
-                          scope="row"
-                          className="h-10 border-b border-border-subtle px-4 text-left font-medium"
-                        >
-                          {t.assignment.modalities[row.group]}
-                        </th>
-                        <td>{count(row.routine)}</td>
-                        <td>{count(row.urgent)}</td>
-                        <td>{count(row.signed)}</td>
-                        <td>{duration(row.medianMinutes)}</td>
-                        <td>{percent(row.withinSla)}</td>
-                      </tr>
+          <Section title={text.activity.byModality} flush>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[32rem] border-separate border-spacing-0 text-sm">
+                <thead>
+                  <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:px-4 [&>th]:text-right [&>th]:font-medium [&>th:first-child]:text-left">
+                    {[
+                      columns.modality,
+                      columns.routine,
+                      columns.urgent,
+                      columns.signed,
+                      columns.median,
+                      columns.withinSla,
+                    ].map((label) => (
+                      <th key={label} scope="col">
+                        <span className="label-eyebrow">{label}</span>
+                      </th>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </Section>
-
-            <Section
-              title={text.activity.byRadiologist}
-              description={text.activity.byRadiologistDescription}
-              flush
-            >
-              {activity.byRadiologist.length === 0 ? (
-                <p className="px-4 py-8 text-center text-xs text-tertiary">
-                  {text.activity.noRadiologist}
-                </p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[34rem] border-separate border-spacing-0 text-sm">
-                    <thead>
-                      <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:px-4 [&>th]:text-right [&>th]:font-medium [&>th:first-child]:text-left">
-                        <th scope="col">
-                          <span className="label-eyebrow">
-                            {columns.radiologist}
-                          </span>
-                        </th>
-                        <th scope="col">
-                          <span className="label-eyebrow">
-                            {columns.signed}
-                          </span>
-                        </th>
-                        <th scope="col">
-                          <span className="label-eyebrow">
-                            {columns.urgent}
-                          </span>
-                        </th>
-                        <th scope="col">
-                          <span className="label-eyebrow">
-                            {columns.median}
-                          </span>
-                        </th>
-                        <th scope="col">
-                          <span
-                            className="label-eyebrow"
-                            title={text.activity.readingHint}
-                          >
-                            {columns.reading}
-                          </span>
-                        </th>
-                        <th scope="col">
-                          <span className="label-eyebrow">
-                            {columns.withinSla}
-                          </span>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activity.byRadiologist.map((row) => (
-                        <tr
-                          key={row.id}
-                          className="[&>td]:h-10 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4 [&>td]:text-right [&>td]:tabular-nums"
-                        >
-                          <th
-                            scope="row"
-                            className="h-10 border-b border-border-subtle px-4 text-left font-medium"
-                          >
-                            {row.name}
-                          </th>
-                          <td>{count(row.signed)}</td>
-                          <td>{count(row.urgent)}</td>
-                          <td>{duration(row.medianMinutes)}</td>
-                          <td>{duration(row.medianReadingMinutes)}</td>
-                          <td>{percent(row.withinSla)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </Section>
-          </div>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activity.byModality.map((row) => (
+                    <tr
+                      key={row.group}
+                      className="[&>td]:h-10 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4 [&>td]:text-right [&>td]:tabular-nums"
+                    >
+                      <th
+                        scope="row"
+                        className="h-10 border-b border-border-subtle px-4 text-left font-medium"
+                      >
+                        {t.assignment.modalities[row.group]}
+                      </th>
+                      <td>{count(row.routine)}</td>
+                      <td>{count(row.urgent)}</td>
+                      <td>{count(row.signed)}</td>
+                      <td>{duration(row.medianMinutes)}</td>
+                      <td>{percent(row.withinSla)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
         )}
+
+        <Section
+          title={text.performance.title}
+          description={text.performance.description}
+          flush
+        >
+          <PerformanceTable performance={performance} />
+        </Section>
 
         <Section
           title={text.billing.title}

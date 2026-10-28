@@ -122,6 +122,16 @@ export const glossary = {
     definition:
       "Temps entre la réception d’un examen et la signature de son compte-rendu auquel IMAFRIK s’engage : 30 minutes pour une urgence et 2 heures en routine, sauf réglage contraire de l’équipe.",
   },
+  delaiMedian: {
+    term: "Délai médian",
+    definition:
+      "Délai en deçà duquel la moitié des examens est rendue. Contrairement à la moyenne, qu’un seul examen très long tire vers le haut, il ne se laisse pas déformer par un cas exceptionnel.",
+  },
+  centile90: {
+    term: "90e centile",
+    definition:
+      "Délai en deçà duquel neuf examens sur dix sont rendus : il montre les attentes les plus longues sans s’arrêter au seul pire cas.",
+  },
   dicom: {
     term: "DICOM",
     definition:

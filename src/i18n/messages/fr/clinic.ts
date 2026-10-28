@@ -269,9 +269,6 @@ export const clinic = {
       slaHint: (routine: string, urgent: string) =>
         `${routine} en routine, ${urgent} en urgence`,
       byModality: "Par modalité",
-      byRadiologist: "Par radiologue",
-      byRadiologistDescription:
-        "Comptes-rendus signés pour les examens reçus dans le mois",
       columns: {
         modality: "Modalité",
         routine: "Routine",
@@ -279,14 +276,62 @@ export const clinic = {
         signed: "Rendus",
         median: "Délai médian",
         withinSla: "Dans les délais",
-        radiologist: "Radiologue",
-        reading: "Lecture",
       },
-      readingHint: "de la prise en charge à la signature",
-      noRadiologist: "Aucun compte-rendu signé pour les examens de ce mois.",
       emptyTitle: "Aucun examen reçu ce mois-ci",
       emptyDetail:
         "Les examens que la clinique envoie apparaissent ici, mois par mois.",
+    },
+    performance: {
+      title: "Performances par radiologue",
+      description:
+        "Examens reçus dans le mois : délais, délais promis tenus, tendance par rapport au mois précédent. Cliquez sur un intitulé pour trier.",
+      note: "Délai médian : la moitié des examens est rendue plus vite ; contrairement à la moyenne, un examen exceptionnellement long ne le déforme pas. 90e centile : neuf examens sur dix sont rendus plus vite.",
+      empty: "Aucun radiologue n’a d’activité ce mois-ci.",
+      groups: {
+        overall: "Toutes priorités",
+        routine: "Routine",
+        urgent: "Urgence",
+        workflow: "Médianes",
+        month: "Dans le mois",
+      },
+      columns: {
+        name: "Radiologue",
+        signed: "Actes signés",
+        median: "Délai médian",
+        withinSla: "Dans les délais",
+        routineMedian: "Médian",
+        routineMean: "Moyen",
+        routineP90: "90e centile",
+        routineWithinSla: "Dans les délais",
+        urgentMedian: "Médian",
+        urgentMean: "Moyen",
+        urgentP90: "90e centile",
+        urgentWithinSla: "Dans les délais",
+        pickup: "Prise en charge",
+        reading: "Lecture",
+        released: "Rendus sans signature",
+        urgentClaimed: "Urgences prises",
+        open: "En cours",
+      },
+      hints: {
+        pickup: "de l’attribution au début de la lecture",
+        reading: "du début de la lecture à la signature",
+        released: "« Rendre l’examen », avant signature",
+        urgentClaimed: "sur la liste d’urgence",
+        open: "à l’instant : attribués non commencés, en lecture",
+      },
+      sortBy: (column: string) => `Trier par ${column}`,
+      urgentShare: (count: number) =>
+        count > 1 ? `dont ${count} urgences` : `dont ${count} urgence`,
+      open: (waiting: number, reading: number) =>
+        `${waiting} attribué${waiting > 1 ? "s" : ""} non commencé${waiting > 1 ? "s" : ""}, ${reading} en lecture`,
+      points: (value: string) => `${value} pt`,
+      trend: {
+        better: (value: string) =>
+          `en amélioration de ${value} sur le mois précédent`,
+        worse: (value: string) => `en recul de ${value} sur le mois précédent`,
+        same: "stable sur le mois précédent",
+      },
     },
     billing: {
       title: "Facturation",
