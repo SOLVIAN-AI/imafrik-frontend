@@ -3,6 +3,7 @@ import { admin } from "@/i18n/messages/en/admin";
 import { agreements } from "@/i18n/messages/en/agreements";
 import { assignment } from "@/i18n/messages/en/assignment";
 import { clinic } from "@/i18n/messages/en/clinic";
+import { clinicView } from "@/i18n/messages/en/clinic-view";
 import { common } from "@/i18n/messages/en/common";
 import { credentials } from "@/i18n/messages/en/credentials";
 import { gateways } from "@/i18n/messages/en/gateways";
@@ -29,6 +30,8 @@ import { worklist } from "@/i18n/messages/en/worklist";
  *   erreurs), verrouillage, mot de passe ;
  * - `worklist`, `reading` : portail radiologue, file et écran de lecture ;
  * - `clinic`, `onboarding` : portail clinique, mise en service ;
+ * - `clinicView` : vue des cliniques, les écrans du responsable ouverts
+ *   en consultation par l'équipe IMAFRIK ;
  * - `assignment` : attribution des examens, antériorités, modalités et
  *   liste d'urgence, pour la clinique et l'équipe IMAFRIK ;
  * - `credentials` : habilitation des radiologues, partout où elle se dit ;
@@ -46,6 +49,7 @@ export const en: AppMessages = {
   worklist,
   reading,
   clinic,
+  clinicView,
   assignment,
   onboarding,
   credentials,

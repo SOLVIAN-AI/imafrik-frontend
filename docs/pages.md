@@ -307,7 +307,7 @@ attend des comptes-rendus.
 | Route | Écran | Phase |
 | --- | --- | --- |
 | `/tableau-de-bord` | Envoyés aujourd'hui, en cours de lecture, prêts à récupérer, délai moyen. La question du matin. | V1 |
-| `/examens` | Tous les examens envoyés, avec leur état d'avancement. | V1 |
+| `/examens` | Tous les examens envoyés, avec leur état d'avancement ; vue « À attribuer » et onglets par groupe de modalités avec leur nombre (`?modalite=`). | V1 |
 | `/examens/[id]` | Fiche d'un examen : images en consultation, état, compte-rendu dès qu'il est signé, téléchargement du PDF. Écran partagé : le radiologue y accède aussi, et y trouve le bouton qui ouvre la lecture. | V1 |
 | `/envoyer` | Envoi manuel de fichiers DICOM depuis le navigateur, et rappel des paramètres d'envoi automatique. Voir la décision n° 2. | V1 |
 | `/comptes-rendus` | Comptes-rendus reçus, recherche par patient, identifiant ou modalité (faite par le service), liste paginée. | V1 |
@@ -347,17 +347,19 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | Route | Écran | État |
 | --- | --- | --- |
 | `/admin` | **Cockpit** : alertes, files en direct, délais promis tenus, réseau, exploitation. | Fait |
-| `/admin/activite` | Volumes, délais (médiane, 9 sur 10), étapes du parcours, heures d'arrivée, par clinique (débit), modalité ; performances par radiologue du mois choisi (le même tableau que le responsable de la clinique). Période, mois et clinique dans l'adresse. | Fait |
+| `/admin/activite` | Trois rubriques à un clic (`?onglet=`) : vue d'ensemble (volumes, délais, étapes du parcours, heures d'arrivée, modalités), **par radiologue** (performances du mois choisi, le même tableau que le responsable, chaque indicateur expliqué en info-bulle et en légende ; `?radiologue=` met une ligne en évidence, depuis « Comptes »), par clinique (débit) ; lien vers la facturation. Rubrique, période, mois et clinique dans l'adresse. | Fait |
 | `/admin/flux` | Flux d'images examen par examen : débit de réception, frise acquisition → remise. | Fait |
 | `/admin/organisations` | Volumes sur 30 jours, dernier envoi, suspension, invitation. | Fait |
 | `/admin/organisations/[id]` | Mise en service d'une clinique, activité, liste d'urgence, **règles d'attribution**, **durée de conservation des images**, état du contrat et **fin de contrat**. | Fait |
-| `/admin/utilisateurs` | Comptes : rattachement, **validation des numéros d'ordre** (filtre « À valider », `?validation=attente`), double authentification, réinitialisation, **anonymisation** (droit à l'effacement : nom saisi, retrait des appartenances confirmé pour un membre actif). | Fait |
-| `/admin/examens` | Recherche globale, urgences en cours. | Fait |
+| `/admin/utilisateurs` | Comptes : rattachement, **validation des numéros d'ordre** (filtre « À valider », `?validation=attente`), double authentification, réinitialisation, **anonymisation** (droit à l'effacement : nom saisi, retrait des appartenances confirmé pour un membre actif). Pour chaque radiologue, ses **modalités lues** en clair avec le bouton « Modalités », ses listes d'urgence et « Voir ses performances » ; filtre « Modalité lue » (`?modalite=`). | Fait |
+| `/admin/examens` | Recherche globale, urgences en cours, onglets par groupe de modalités avec leur nombre (`?modalite=`), comptés par le service. | Fait |
 | `/admin/demandes` | Demandes reçues par le site (établissement ou radiologue, numéro d'ordre déclaré), suivi et notes. | Fait |
 | `/admin/facturation` | Relevé du mois de chaque clinique, le même que celui de son responsable (un seul calcul, dans le service) ; totaux, cliniques sans formule, « Clore le mois » qui fige les relevés ; export CSV protégé contre l'injection de formules. La formule d'abonnement se renseigne sur la fiche de la clinique. | Fait |
 | `/admin/systeme` | Dépendances, PACS, version, filets de sécurité (sauvegardes, exercices, réconciliation, conservation). | Fait |
 | `/admin/audit` | Journal d'audit, filtré par action, paginé par curseur. | Fait |
 | `/admin/reglages` | Délais promis, bandeau de maintenance. | Fait |
+| `/admin/vue-clinique` | **Vue des cliniques** : choix de la clinique à consulter (le même choix que le sélecteur de la navigation). | Fait |
+| `/admin/vue-clinique/[clinique]/…` | Les écrans du responsable de la clinique choisie, avec ses données et ses chiffres, en consultation : tableau de bord, examens (et « À attribuer »), fiche d’un examen, comptes-rendus, équipe, règles d’attribution, activité et facturation. Bandeau permanent « Consultation de … », ouverture tracée au journal (`organization.viewed`). Aucun geste du responsable ; l’équipe y attribue par son portail et règle les règles d’attribution, la liste d’urgence et la formule restant sur la fiche de la clinique. Les écrans sont les mêmes composants que ceux du responsable (`components/clinic-screens`), lus par `/admin/clinics/{id}/view/…`. | Fait |
 | `/admin/contrats` | Qui sert qui (`service_contracts`). | V2 (en SQL pour l'instant) |
 
 **13 écrans.**

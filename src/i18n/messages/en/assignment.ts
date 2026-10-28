@@ -92,6 +92,12 @@ export const assignment: AppMessages["assignment"] = {
     filterLabel: "Show",
     radiologist: "Radiologist",
     unassigned: "To assign",
+    modalityLabel: "Modalities",
+    allModalities: "All",
+    modalityCount: (label: string, count: number) =>
+      count === 1
+        ? `${label}, 1 examination`
+        : `${label}, ${count} examinations`,
   },
   modalities: {
     radiography: "Radiography",
@@ -108,6 +114,8 @@ export const assignment: AppMessages["assignment"] = {
       "The modalities they read limit what can be assigned to them; the urgent list lets them take an urgent examination without waiting for it to be assigned.",
     trigger: "Modalities and urgent list",
     triggerLabel: (name: string) => `Modalities and urgent list for ${name}`,
+    button: "Modalities",
+    buttonLabel: (name: string) => `Modalities read by ${name}`,
     modalities: "Modalities read",
     modalitiesHint: "At least one. All ticked: they read everything.",
     urgent: "Urgent list",

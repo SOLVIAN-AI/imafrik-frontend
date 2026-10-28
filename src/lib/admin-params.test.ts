@@ -67,6 +67,9 @@ describe("filtre de la liste des comptes", () => {
   });
 
   it("garde la recherche d’un filtre à l’autre", () => {
+    expect(userListHref("all", undefined, "ct")).toBe(
+      "/admin/utilisateurs?modalite=scanner",
+    );
     expect(userListHref("unverified")).toBe(
       "/admin/utilisateurs?validation=attente",
     );

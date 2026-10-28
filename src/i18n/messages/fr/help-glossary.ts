@@ -20,7 +20,22 @@ export const glossary = {
   consultation: {
     term: "Consultation",
     definition:
-      "Accès en lecture seule de l’équipe IMAFRIK aux écrans des radiologues : file, brouillons, comptes-rendus et images. Elle voit tout sans prendre en charge, rédiger ni signer, et chaque ouverture d’examen est tracée.",
+      "Accès en lecture seule de l’équipe IMAFRIK aux écrans des radiologues (file, brouillons, comptes-rendus, images) et, dans la vue des cliniques, à ceux du responsable d’une clinique. Elle voit sans prendre en charge, rédiger ni signer, et chaque ouverture est tracée.",
+  },
+  vueCliniques: {
+    term: "Vue des cliniques",
+    definition:
+      "Les écrans du responsable d’une clinique, ouverts par l’équipe IMAFRIK avec les données de cette clinique et les mêmes chiffres. Lecture seule : ni envoi, ni invitation, ni renseignement clinique, et un PDF téléchargé n’est pas remis. Chaque ouverture est tracée au journal d’audit.",
+  },
+  groupeModalites: {
+    term: "Groupe de modalités",
+    definition:
+      "Classement des examens par appareil : Radiographie (HSG comprise), Mammographie, Échographie, Scanner, IRM, Autres. Les listes d’examens se filtrent par groupe ; c’est aussi ce qu’un radiologue lit.",
+  },
+  dureeLecture: {
+    term: "Durée de lecture",
+    definition:
+      "Temps entre le début de la lecture d’un examen et la signature de son compte-rendu, en médiane. La prise en charge, elle, va de l’attribution au début de la lecture.",
   },
   filetSecurite: {
     term: "Filet de sécurité",

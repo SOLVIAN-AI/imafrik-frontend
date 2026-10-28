@@ -927,7 +927,7 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
     signing_review_due: id === DEMO_SIGNING_REVIEW_PROFILE ? 1 : 0,
     memberships,
   });
-  return [
+  const users = [
     user(
       READERS[0].id,
       READERS[0].name,
@@ -1079,6 +1079,22 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       "BJ-RAD-0477",
     ),
   ];
+  // Modalités lues et listes d'urgence, comme les règle l'équipe : Dr
+  // Diallo ne lit que le scanner et l'IRM ; Dr Kponton est sur la liste
+  // d'urgence de Saint-Joseph (voir `demoUrgentReaders`).
+  const saintJoseph = DEMO_NETWORK[0];
+  return users.map((row) => ({
+    ...row,
+    memberships: row.memberships.map((membership) =>
+      row.id === READERS[3].id && membership.role === "radiologist"
+        ? { ...membership, read_modalities: ["ct", "mri"] as ModalityGroup[] }
+        : membership,
+    ),
+    urgent_lists:
+      row.id === READERS[0].id
+        ? [{ clinic_id: saintJoseph.id, clinic_name: saintJoseph.name }]
+        : [],
+  }));
 }
 
 /**

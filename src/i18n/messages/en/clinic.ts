@@ -248,12 +248,43 @@ export const clinic: AppMessages["clinic"] = {
       emptyDetail:
         "The examinations your clinic sends appear here, month by month.",
     },
+    anchors: {
+      label: "On this page",
+      activity: "Activity",
+      performance: "Performance by radiologist",
+      billing: "Billing",
+    },
     performance: {
       title: "Performance by radiologist",
       description:
         "Examinations received during the month: turnaround, promised times met, trend against the previous month. Click a heading to sort.",
-      note: "Median turnaround: half the examinations are reported faster; unlike the mean, one exceptionally long examination does not distort it. 90th percentile: nine examinations out of ten are reported faster.",
-      empty: "No radiologist has any activity this month.",
+      emptyTitle: "No radiologist activity this month",
+      emptyDetail:
+        "Performance appears as soon as an examination received during the month is handed to a credentialed radiologist, then signed.",
+      noSigned:
+        "No report signed this month: turnaround stays empty until the first signed procedure. Examinations in progress and returned are already counted.",
+      legendTitle: "What each column measures",
+      legend: {
+        signed:
+          "Signed reports for examinations received during the month, urgent ones included.",
+        median:
+          "Half the examinations are reported faster, from receipt to signing; one exceptionally long examination does not distort it.",
+        mean: "The average time from receipt to signing, which a single very long examination pulls up.",
+        p90: "Nine examinations out of ten are reported faster: it shows the longest waits.",
+        withinSla: (routine: string, urgent: string) =>
+          `Share signed within the time promised to the clinic: ${routine} for routine, ${urgent} for urgent.`,
+        pickup:
+          "Median time between the examination’s assignment and the start of its reading.",
+        reading:
+          "Median time between the start of reading and the report’s signature.",
+        released:
+          "Examinations the radiologist returned before signing them (“Return the examination”), during the month.",
+        urgentClaimed:
+          "Urgent examinations taken from the urgent list without assignment, during the month.",
+        open: "Right now: examinations assigned but not started, then examinations being read.",
+        trend:
+          "Arrow under a figure: the change from the previous month, green when it improves.",
+      },
       groups: {
         overall: "All priorities",
         routine: "Routine",
@@ -279,13 +310,6 @@ export const clinic: AppMessages["clinic"] = {
         released: "Returned unsigned",
         urgentClaimed: "Urgent taken",
         open: "In progress",
-      },
-      hints: {
-        pickup: "from assignment to the start of reading",
-        reading: "from the start of reading to signing",
-        released: "“Return the examination”, before signing",
-        urgentClaimed: "from the urgent list",
-        open: "right now: assigned not started, being read",
       },
       sortBy: (column: string) => `Sort by ${column}`,
       urgentShare: (count: number) => `${count} urgent`,

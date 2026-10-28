@@ -5,6 +5,7 @@ import { Menu, X } from "lucide-react";
 import * as React from "react";
 
 import { Sidebar } from "@/components/layout/sidebar";
+import type { ViewableClinic } from "@/lib/clinic-view";
 import type { NavCounts } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useMessages } from "@/i18n/client";
@@ -22,7 +23,13 @@ import { useMessages } from "@/i18n/client";
  * Le tiroir se referme dès qu'un lien est suivi — sans quoi il resterait
  * ouvert par-dessus l'écran demandé.
  */
-export function MobileNav({ counts }: { counts: NavCounts | null }) {
+export function MobileNav({
+  counts,
+  clinics,
+}: {
+  counts: NavCounts | null;
+  clinics: readonly ViewableClinic[];
+}) {
   const t = useMessages();
   const [open, setOpen] = React.useState(false);
 
@@ -54,7 +61,11 @@ export function MobileNav({ counts }: { counts: NavCounts | null }) {
           <DialogPrimitive.Title className="sr-only">
             {t.nav.mainNavigation}
           </DialogPrimitive.Title>
-          <Sidebar counts={counts} className="w-full bg-surface-base" />
+          <Sidebar
+            counts={counts}
+            clinics={clinics}
+            className="w-full bg-surface-base"
+          />
           <DialogPrimitive.Close
             aria-label={t.nav.closeNavigation}
             className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-lg text-tertiary transition-colors hover:bg-surface-hover hover:text-primary"

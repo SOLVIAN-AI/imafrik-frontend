@@ -51,6 +51,10 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       // Passerelles : vue d'ensemble et fiche, gestes compris.
       "/admin/passerelles",
       "/admin/passerelles/gw-pka-radio",
+      // Vue des cliniques : le bandeau au-dessus des écrans du responsable.
+      "/admin/vue-clinique/org-stj/tableau-de-bord",
+      "/admin/vue-clinique/org-stj/examens/1",
+      "/admin/vue-clinique/org-stj/activite",
     ],
   },
 ];

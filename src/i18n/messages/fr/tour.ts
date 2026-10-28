@@ -133,9 +133,13 @@ export const tour = {
         title: "Les organisations",
         body: "Cliniques et groupes de radiologie, leurs contrats et leurs réglages.",
       },
-      training: {
-        title: "La formation",
-        body: "Prévisualisez les cas d’exemple avant leur publication, et voyez qui s’est exercé dans la page des comptes.",
+      clinics: {
+        title: "La vue des cliniques",
+        body: "Choisissez une clinique : ses écrans s’ouvrent tels que les voit son responsable, avec ses données, en consultation.",
+      },
+      readings: {
+        title: "Les lectures",
+        body: "La file de toute la plateforme, les comptes-rendus, les modèles et la formation, en consultation : ce qui attend un radiologue et ce qui est chez chacun.",
       },
       help: {
         title: "Besoin d’aide ?",

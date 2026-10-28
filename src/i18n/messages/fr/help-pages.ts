@@ -170,15 +170,21 @@ export const pages = {
     studies: {
       title: "Examens",
       purpose:
-        "Tous les examens envoyés par votre clinique, avec le radiologue qui les lit et l’état de leur compte-rendu. C’est ici que vous attribuez vos examens à vos radiologues.",
+        "Tous les examens envoyés par votre clinique, avec le radiologue qui les lit et l’état de leur compte-rendu. C’est ici que vous attribuez vos examens à vos radiologues, modalité par modalité si vous le souhaitez.",
       steps: [
         "Cliquez sur « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore, les plus pressés en tête.",
+        "Choisissez un groupe de modalités dans les onglets (Radiographie, Scanner…) : chacun dit combien d’examens il compte.",
         "Sur une ligne, cliquez sur « Attribuer », choisissez un radiologue parmi ceux qui lisent la modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
         "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
-        "Dans la colonne « Compte-rendu », repérez les documents « À télécharger ». Un bord rouge et « Urgent » signalent une urgence.",
         "Cliquez sur une ligne pour ouvrir la fiche de l’examen, ou sur « Envoyer » pour transmettre un nouvel examen.",
       ],
-      terms: ["attribution", "anteriorite", "modalitesLues", "urgence"],
+      terms: [
+        "attribution",
+        "groupeModalites",
+        "anteriorite",
+        "modalitesLues",
+        "urgence",
+      ],
     },
     study: {
       title: "Fiche de l’examen",
@@ -264,21 +270,15 @@ export const pages = {
     activity: {
       title: "Activité et facturation",
       purpose:
-        "Le bilan de chaque mois : les examens reçus, combien sont rendus et dans quels délais, les performances de chaque radiologue, puis le relevé de facturation, le même que celui de l’équipe IMAFRIK. Réservé aux responsables de la clinique.",
+        "Le bilan de chaque mois en trois parties, à un clic depuis l’en-tête : l’activité, les performances de chaque radiologue, puis le relevé de facturation, le même que celui de l’équipe IMAFRIK. Réservé aux responsables de la clinique.",
       steps: [
-        "Changez de mois avec les flèches placées de part et d’autre du mois affiché.",
-        "Lisez l’activité, puis « Performances par radiologue » : délais médian, moyen et 90e centile, délais tenus et tendance ; cliquez sur un intitulé pour trier.",
-        "Dans « Facturation », lisez l’abonnement, les forfaits techniques par type d’examen, au tarif normal ou urgent, et le total HT.",
-        "« Relevé provisoire » : le mois peut encore changer. « Mois clos » : l’équipe IMAFRIK l’a figé, il ne change plus.",
+        "Changez de mois avec les flèches ; « Activité », « Performances par radiologue » et « Facturation » mènent à chaque partie.",
+        "Dans les performances, triez les colonnes ; survolez un intitulé, ou lisez la légende sous le tableau, pour ce que mesure chaque indicateur.",
+        "Sans compte-rendu signé dans le mois, le tableau le dit : ses délais restent vides jusqu’au premier acte signé.",
+        "Dans « Facturation », lisez l’abonnement, les forfaits techniques et le total HT, provisoire jusqu’à la clôture du mois.",
         "Cliquez sur « Exporter en CSV » pour télécharger le relevé du mois.",
       ],
-      terms: [
-        "delaiMedian",
-        "centile90",
-        "acte",
-        "forfaitTechnique",
-        "moisClos",
-      ],
+      terms: ["delaiMedian", "centile90", "dureeLecture", "acte", "moisClos"],
     },
     settings: {
       title: "Paramètres",
@@ -317,20 +317,20 @@ export const pages = {
     analytics: {
       title: "Activité",
       purpose:
-        "Analyse l’activité sur une période : volumes reçus, délais de lecture, durée de chaque étape du parcours d’un examen, heures d’arrivée et modalités, puis les mêmes chiffres par clinique, et les performances de chaque radiologue sur un mois.",
+        "L’activité de la plateforme en trois rubriques, à un clic dès l’en-tête : vue d’ensemble d’une période, performances de chaque radiologue sur un mois, activité par clinique. Chaque rubrique a son adresse, à partager telle quelle.",
       steps: [
-        "Choisissez la période en haut de page : 7 j, 30 j, 90 j ou 1 an.",
-        "Gardez « Tout le réseau » ou choisissez une clinique dans la liste pour ne voir que son activité.",
-        "Lisez les totaux de la période, puis comparez le « Délai de lecture » à la ligne du délai promis en routine.",
-        "Dans « Parcours d’un examen », repérez l’étape mise en évidence : c’est la plus longue.",
-        "Dans « Performances par radiologue », choisissez le mois et triez les colonnes : délais médian, moyen et 90e centile, délais tenus, examens rendus et en cours.",
+        "Choisissez la rubrique : « Vue d’ensemble », « Par radiologue » ou « Par clinique » ; « Facturation » ouvre les relevés du mois.",
+        "Gardez « Tout le réseau » ou choisissez une clinique ; la période (7 j à 1 an) vaut pour la vue d’ensemble, le mois pour les radiologues.",
+        "Dans « Par radiologue », triez les colonnes ; survolez un intitulé, ou lisez la légende sous le tableau, pour ce que mesure chaque indicateur.",
+        "Depuis « Comptes », « Voir ses performances » ouvre cette rubrique sur la ligne du radiologue, mise en évidence.",
+        "Sans compte-rendu signé dans le mois, le tableau le dit : ses délais restent vides jusqu’au premier acte signé.",
       ],
       terms: [
-        "delaiPromis",
         "delaiMedian",
         "centile90",
+        "delaiPromis",
+        "dureeLecture",
         "priseEnCharge",
-        "urgence",
       ],
     },
     flow: {
@@ -422,19 +422,19 @@ export const pages = {
     accounts: {
       title: "Comptes",
       purpose:
-        "Liste tous les comptes de la plateforme. Vous y rattachez les inscrits à une organisation, examinez les justificatifs, signatures et cachets des radiologues, vérifiez la double authentification et traitez les demandes d’effacement.",
+        "Liste tous les comptes de la plateforme. Vous y rattachez les inscrits, examinez les dossiers des radiologues, réglez les modalités que chacun lit, vérifiez la double authentification et traitez les demandes d’effacement.",
       steps: [
-        "Utilisez les filtres « À valider », « Signature à vérifier » et « En attente », ou cherchez un compte par nom ou adresse.",
+        "Utilisez les filtres « À valider », « Signature à vérifier » et « En attente », « Modalité lue », ou cherchez un compte par nom ou adresse.",
         "Pour un compte « Rattaché à aucune organisation », cliquez sur « Rattacher », puis choisissez l’organisation et le rôle.",
         "Cliquez sur « Examiner le dossier » ou « Signature à vérifier », ouvrez les pièces, puis acceptez ou refusez avec un motif.",
+        "Sur la ligne d’un radiologue, lisez ses modalités et ses listes d’urgence ; « Modalités » les règle, « Voir ses performances » ouvre ses chiffres.",
         "Pour un téléphone perdu ou changé, vérifiez l’identité par un autre canal, puis cliquez sur « Réinitialiser ».",
-        "Sur l’appartenance d’un radiologue, l’icône de réglage ouvre ses « Modalités lues » : elles bornent ce qu’on peut lui attribuer.",
       ],
       terms: [
         "rattachement",
         "habilitation",
-        "justificatif",
         "modalitesLues",
+        "listeUrgence",
         "signature",
       ],
     },
@@ -443,13 +443,19 @@ export const pages = {
       purpose:
         "Liste les examens de toute la plateforme, toutes organisations confondues, pour répondre vite à une clinique. Le nom du patient ouvre les images et le compte-rendu en consultation seule, et chaque ouverture est tracée.",
       steps: [
-        "Cherchez un examen par patient, identifiant ou modalité dans la barre de recherche.",
-        "Cliquez sur « Urgences en cours » pour voir les urgences pas encore rendues, les plus en retard en tête.",
+        "Choisissez un groupe de modalités dans les onglets (Radiographie, Scanner, IRM…) : chacun dit combien d’examens il compte.",
+        "Cherchez un examen par patient, identifiant ou modalité, ou cliquez sur « Urgences en cours », les plus en retard en tête.",
         "Cliquez sur le nom du patient pour ouvrir les images et le compte-rendu, sans pouvoir rédiger ni signer.",
         "Pour un examen non signé, cliquez sur le bouton d’attribution, choisissez un radiologue qui lit sa modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
-        "Pour le reprendre à son titulaire, rouvrez la même fenêtre et cliquez sur « Retirer l’attribution » : l’examen attend une nouvelle attribution.",
+        "Pour le reprendre à son titulaire, rouvrez la même fenêtre et cliquez sur « Retirer l’attribution ».",
       ],
-      terms: ["attribution", "anteriorite", "urgence", "modalitesLues", "pool"],
+      terms: [
+        "groupeModalites",
+        "attribution",
+        "anteriorite",
+        "urgence",
+        "pool",
+      ],
     },
     requests: {
       title: "Demandes reçues",
@@ -526,6 +532,132 @@ export const pages = {
         "passerelle",
         "doubleAuthentification",
         "journalAudit",
+      ],
+    },
+    clinicViews: {
+      title: "Vue des cliniques",
+      purpose:
+        "Choisissez une clinique pour ouvrir ses écrans tels que les voit son responsable, avec ses vraies données, en lecture seule. Chaque ouverture est tracée au journal d’audit.",
+      steps: [
+        "Cliquez sur une clinique de la liste, ou choisissez-la dans « Vue des cliniques » de la navigation.",
+        "Le bandeau « Consultation de » rappelle sur chaque écran quelle clinique vous consultez.",
+        "Passez d’un écran à l’autre depuis la navigation : tableau de bord, examens, comptes-rendus, équipe, activité et facturation.",
+        "Cliquez sur « Retour à la console » pour revenir à la tour de contrôle.",
+      ],
+      terms: ["vueCliniques", "consultation", "journalAudit"],
+    },
+    clinicDashboard: {
+      title: "Tableau de bord de la clinique",
+      purpose:
+        "Le tableau de bord du responsable de la clinique consultée : examens à attribuer, en lecture, comptes-rendus prêts et délai médian sur 30 jours, avec les mêmes chiffres que lui.",
+      steps: [
+        "Lisez les quatre indicateurs : un examen « À attribuer » n’est vu d’aucun radiologue.",
+        "Dans « Comptes-rendus à télécharger », ouvrez un compte-rendu. Un PDF téléchargé par l’équipe ne le marque pas remis à la clinique.",
+        "Dans « Derniers examens envoyés », cliquez sur un examen pour ouvrir sa fiche.",
+        "Changez de clinique avec le sélecteur de la navigation : vous restez sur le même écran.",
+      ],
+      terms: ["vueCliniques", "attribution", "delaiMedian", "compteRendu"],
+    },
+    clinicStudies: {
+      title: "Examens de la clinique",
+      purpose:
+        "Les examens de la clinique consultée, tels que les voit son responsable, avec le radiologue de chacun. L’équipe y attribue un examen par son propre portail ; elle n’envoie aucun examen au nom de la clinique.",
+      steps: [
+        "Cliquez sur « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore ; les onglets de modalités les classent.",
+        "Sur une ligne, cliquez sur « Attribuer » : la fenêtre de l’équipe propose aussi les radiologues du réseau qui lisent la clinique.",
+        "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
+        "Cliquez sur une ligne pour ouvrir la fiche de l’examen.",
+      ],
+      terms: ["vueCliniques", "attribution", "anteriorite", "urgence"],
+    },
+    clinicStudy: {
+      title: "Fiche de l’examen",
+      purpose:
+        "Un examen de la clinique consultée, tel que le voit son responsable : images, attribution, avancement et compte-rendu signé. Le renseignement clinique et l’urgence restent au responsable : ils se lisent ici sans se modifier.",
+      steps: [
+        "Dans « Attribution », lisez qui lit l’examen et depuis quand ; « Attribuer » ou « Réattribuer » le confie par le portail de l’équipe.",
+        "Suivez la lecture dans « Avancement », de « Examen reçu » à « Compte-rendu remis ».",
+        "Cliquez sur « Ouvrir les images » pour l’écran de lecture, en consultation : l’ouverture est tracée à votre nom.",
+        "Une fois le compte-rendu signé, ouvrez « Document complet ». Votre téléchargement du PDF ne le marque pas remis.",
+      ],
+      terms: [
+        "vueCliniques",
+        "attribution",
+        "anteriorite",
+        "renseignementClinique",
+        "consultation",
+      ],
+    },
+    clinicReports: {
+      title: "Comptes-rendus de la clinique",
+      purpose:
+        "Les comptes-rendus signés et remis de la clinique consultée, ceux que voit son responsable. « À télécharger » dit que la clinique ne l’a pas encore récupéré : un téléchargement par l’équipe n’y change rien.",
+      steps: [
+        "Cherchez un patient par son nom, son identifiant ou la modalité, puis appuyez sur Entrée.",
+        "Repérez la mention « À télécharger » : la clinique n’a pas encore récupéré ce compte-rendu.",
+        "Cliquez sur une ligne pour ouvrir le compte-rendu signé.",
+        "Le PDF que vous téléchargez est tracé à votre nom, sans marquer le compte-rendu remis.",
+      ],
+      terms: ["vueCliniques", "compteRendu", "signature"],
+    },
+    clinicReport: {
+      title: "Compte-rendu signé",
+      purpose:
+        "Un compte-rendu signé de la clinique consultée, tel que le lit son responsable : le document, son signataire et ses addenda, sans commande d’édition ni annulation.",
+      steps: [
+        "Vérifiez en tête le signataire, la date de signature et, s’il est indiqué, son numéro d’ordre.",
+        "Lisez la section « Addenda » sous le texte, si elle apparaît.",
+        "Cliquez sur « Télécharger le PDF » : le téléchargement est tracé à votre nom, sans marquer le compte-rendu remis.",
+        "Pour annuler un compte-rendu signé par erreur, ouvrez-le depuis « Comptes-rendus » du bloc « Lectures ».",
+      ],
+      terms: ["vueCliniques", "compteRendu", "addendum", "codeVerification"],
+    },
+    clinicTeam: {
+      title: "Équipe de la clinique",
+      purpose:
+        "L’équipe de la clinique consultée : ses responsables et ses radiologues, avec les modalités que lit chacun et sa place sur la liste d’urgence. En consultation, l’équipe IMAFRIK n’y invite ni n’y retire personne.",
+      steps: [
+        "Lisez pour chaque radiologue ses modalités et, s’il y figure, la mention « Liste d’urgence ».",
+        "Un avis signale une clinique sans responsable, ou avec un seul : personne n’y prendrait le relais.",
+        "Cliquez sur « Liste d’urgence » pour la régler depuis la fiche de la clinique, radiologues du réseau compris.",
+        "Cliquez sur « Règles d’attribution » pour lire et régler qui reçoit d’office les examens.",
+      ],
+      terms: [
+        "vueCliniques",
+        "responsable",
+        "modalitesLues",
+        "listeUrgence",
+        "regleAttribution",
+      ],
+    },
+    clinicTeamRules: {
+      title: "Règles d’attribution de la clinique",
+      purpose:
+        "Les règles qui confient d’office les examens de la clinique consultée, à leur arrivée. L’équipe IMAFRIK les règle ici comme depuis la fiche de la clinique, radiologues du réseau compris.",
+      steps: [
+        "Dans « Radiologue par modalité », lisez ou choisissez qui reçoit tous les examens d’une modalité.",
+        "Dans « Planning de la semaine », ajoutez ou retirez un créneau : radiologue, jours et, au besoin, heures.",
+        "Deux radiologues de garde en même temps laissent l’examen à attribuer : l’écran le signale.",
+        "Cliquez sur « Enregistrer les règles ». Elles valent pour les examens qui arrivent ensuite.",
+      ],
+      terms: ["regleAttribution", "planning", "modalitesLues", "attribution"],
+    },
+    clinicActivity: {
+      title: "Activité et facturation de la clinique",
+      purpose:
+        "Le bilan du mois de la clinique consultée, par les mêmes calculs que pour son responsable : examens reçus, délais, performances de chaque radiologue et relevé de facturation.",
+      steps: [
+        "Changez de mois avec les flèches placées de part et d’autre du mois affiché.",
+        "Lisez l’activité, puis « Performances par radiologue » ; cliquez sur un intitulé pour trier.",
+        "Dans « Facturation », lisez l’abonnement, les forfaits techniques et le total HT, provisoire jusqu’à la clôture du mois.",
+        "Cliquez sur « Formule d’abonnement » pour la renseigner depuis la fiche de la clinique, ou sur « Exporter en CSV ».",
+      ],
+      terms: [
+        "delaiMedian",
+        "acte",
+        "forfaitTechnique",
+        "formuleAbonnement",
+        "moisClos",
       ],
     },
     worklist: {

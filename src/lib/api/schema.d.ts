@@ -458,6 +458,259 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics/{clinic_id}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * La clinique consultée
+         * @description La clinique, sans tracer d'ouverture : pour chaque écran de la vue.
+         *
+         *     L'ouverture, elle, se trace une fois, à l'entrée dans la vue
+         *     (``POST``) ; passer d'un écran à l'autre de la même clinique n'en est
+         *     pas une nouvelle.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["read_view_admin_clinics__clinic_id__view_get"];
+        put?: never;
+        /**
+         * Ouvrir une clinique en consultation
+         * @description Ouvre la vue d'une clinique et trace l'ouverture.
+         *
+         *     Chaque ouverture est inscrite au journal d'audit
+         *     (``organization.viewed``, au nom du membre de l'équipe, rattachée à la
+         *     clinique) ; une réouverture dans le quart d'heure ne l'est pas de
+         *     nouveau (:data:`VIEW_TRACE_WINDOW`).
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        post: operations["open_view_admin_clinics__clinic_id__view_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/view/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Activité d'une clinique sur un mois
+         * @description L'activité du mois (``GET /organization/activity``).
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         *         Unprocessable: Mois à venir.
+         */
+        get: operations["read_activity_admin_clinics__clinic_id__view_activity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/view/billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Relevé de facturation d'une clinique pour un mois
+         * @description Le relevé du mois (``GET /organization/billing``).
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable, ou mois clos avant son arrivée.
+         *         Unprocessable: Mois à venir.
+         */
+        get: operations["read_statement_admin_clinics__clinic_id__view_billing_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/view/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Équipe d'une clinique
+         * @description Les membres de la clinique (``GET /organization/members``).
+         *
+         *     Aucun n'est l'appelant : ``is_me`` est toujours faux.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["list_members_admin_clinics__clinic_id__view_members_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/view/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Indicateurs d'une clinique, vus de son responsable
+         * @description Les indicateurs du tableau de bord (``GET /metrics/summary``).
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["read_metrics_admin_clinics__clinic_id__view_metrics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/view/reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Un compte-rendu signé d'une clinique
+         * @description Le compte-rendu signé et ses addenda (``GET /reports/{id}``).
+         *
+         *     Raises:
+         *         NotFound: Compte-rendu inconnu, non signé, ou d'une autre clinique.
+         */
+        get: operations["read_report_admin_clinics__clinic_id__view_reports__report_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/view/studies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Examens d'une clinique, vus de son responsable
+         * @description La liste des examens du responsable (``GET /studies``), pour une clinique.
+         *
+         *     Mêmes filtres, même ordre, même pagination.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         *         Unprocessable: Curseur illisible, ou émis pour un autre ordre.
+         */
+        get: operations["list_studies_admin_clinics__clinic_id__view_studies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/view/studies/modality-counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Examens d'une clinique par groupe de modalités, vus de son responsable
+         * @description Les comptes par groupe du responsable (``GET /studies/modality-counts``).
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["count_by_modality_admin_clinics__clinic_id__view_studies_modality_counts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/view/studies/{study_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Un examen d'une clinique, vu de son responsable
+         * @description La fiche de l'examen (``GET /studies/{id}``), s'il est de cette clinique.
+         *
+         *     Raises:
+         *         NotFound: Examen inconnu, ou d'une autre clinique.
+         */
+        get: operations["get_study_admin_clinics__clinic_id__view_studies__study_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/view/studies/{study_id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Compte-rendu signé d'un examen d'une clinique
+         * @description Le compte-rendu signé de l'examen (``GET /studies/{id}/report``).
+         *
+         *     Raises:
+         *         NotFound: Aucun compte-rendu signé pour un examen de cette clinique.
+         */
+        get: operations["read_study_report_admin_clinics__clinic_id__view_studies__study_id__report_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/contact-requests": {
         parameters: {
             query?: never;
@@ -1329,6 +1582,9 @@ export interface paths {
          *         signing: Seulement les comptes dont une image de signature ou de
          *             cachet attend la décision de l'équipe IMAFRIK (pastille
          *             « Signature à vérifier »).
+         *         modality: Seulement les radiologues qui lisent ce groupe de
+         *             modalités dans au moins une organisation (une appartenance sans
+         *             liste les lit tous).
          */
         get: operations["list_users_admin_users_get"];
         put?: never;
@@ -3289,6 +3545,7 @@ export interface paths {
          *             urgences de la tour de contrôle.
          *         q: Recherche libre, insensible à la casse. Le nom se cherche tel
          *             qu'il s'affiche (voir :func:`search_text`).
+         *         modality_group: Restreint à un groupe de modalités.
          *         mine: Restreint aux examens que l'appelant a pris en charge.
          *         order: Ordre de tri, voir :data:`StudyOrder`.
          *         limit: Nombre maximal d'examens renvoyés.
@@ -3304,6 +3561,31 @@ export interface paths {
          *         Unprocessable: Curseur illisible, ou émis pour un autre ordre.
          */
         get: operations["list_studies_studies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/studies/modality-counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Examens visibles par groupe de modalités
+         * @description Combien d'examens de chaque groupe la liste montrerait.
+         *
+         *     Les mêmes filtres que ``GET /studies``, groupe de modalités mis à part,
+         *     dans le même périmètre (RLS, liste de travail d'un radiologue) : le
+         *     nombre affiché sur l'onglet d'un groupe est le total de la liste
+         *     filtrée sur ce groupe.
+         */
+        get: operations["count_by_modality_studies_modality_counts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4332,6 +4614,11 @@ export interface components {
             signing_review_due: number;
             /** Title */
             title: string | null;
+            /**
+             * Urgent Lists
+             * @description Radiologue : cliniques dont il est sur la liste d'urgence, la sienne ou celles qu'il lit pour le réseau.
+             */
+            urgent_lists?: components["schemas"]["UrgentListEntry"][];
         };
         /**
          * AgentReportRequest
@@ -5281,6 +5568,29 @@ export interface components {
             total: number | null;
             /** Unreported */
             unreported: number;
+        };
+        /**
+         * ClinicView
+         * @description La clinique consultée, pour le bandeau de la vue.
+         *
+         *     Attributes:
+         *         id: Identifiant.
+         *         name: Nom.
+         *         city: Ville.
+         *         is_active: Suspendue = son responsable n'y a plus accès.
+         */
+        ClinicView: {
+            /** City */
+            city: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Name */
+            name: string;
         };
         /**
          * ClinicalInfo
@@ -6663,6 +6973,19 @@ export interface components {
              * Format: uuid
              */
             radiologist_id: string;
+        };
+        /**
+         * ModalityCount
+         * @description Examens d'un groupe de modalités.
+         */
+        ModalityCount: {
+            /** Count */
+            count: number;
+            /**
+             * Modality Group
+             * @enum {string}
+             */
+            modality_group: "radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other";
         };
         /**
          * MonthClosure
@@ -8215,6 +8538,24 @@ export interface components {
             study_instance_uid: string;
         };
         /**
+         * StudyModalityCounts
+         * @description Combien d'examens de chaque groupe de modalités une liste montrerait.
+         *
+         *     Comptés par la base, avec les mêmes filtres que la liste (statut,
+         *     priorité, recherche) et dans le périmètre de l'appelant, groupe de
+         *     modalités mis à part : de quoi nommer chaque onglet de la liste.
+         *
+         *     Attributes:
+         *         total: Tous groupes confondus.
+         *         groups: Chaque groupe, dans l'ordre des écrans, zéro compris.
+         */
+        StudyModalityCounts: {
+            /** Groups */
+            groups: components["schemas"]["ModalityCount"][];
+            /** Total */
+            total: number;
+        };
+        /**
          * StudyPage
          * @description Une page d'examens.
          *
@@ -8766,6 +9107,19 @@ export interface components {
             token: string;
         };
         /**
+         * UrgentListEntry
+         * @description Une clinique dont le compte est sur la liste d'urgence.
+         */
+        UrgentListEntry: {
+            /**
+             * Clinic Id
+             * Format: uuid
+             */
+            clinic_id: string;
+            /** Clinic Name */
+            clinic_name: string;
+        };
+        /**
          * UrgentReader
          * @description Un radiologue qui peut lire la clinique, et sa place sur la liste d'urgence.
          *
@@ -8995,7 +9349,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.auto_assigned" | "study.unassigned" | "study.urgent_alerted" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.assignment_rules_changed" | "organization.plan_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "billing.month_closed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.auto_assigned" | "study.unassigned" | "study.urgent_alerted" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.assignment_rules_changed" | "organization.plan_changed" | "organization.viewed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "billing.month_closed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -9707,6 +10061,399 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UrgentReader"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_view_admin_clinics__clinic_id__view_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    open_view_admin_clinics__clinic_id__view_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_activity_admin_clinics__clinic_id__view_activity_get: {
+        parameters: {
+            query: {
+                /** @description Mois, AAAA-MM. */
+                month: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicMonthActivity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_statement_admin_clinics__clinic_id__view_billing_get: {
+        parameters: {
+            query: {
+                /** @description Mois, AAAA-MM. */
+                month: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicStatement"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_members_admin_clinics__clinic_id__view_members_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Member"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_metrics_admin_clinics__clinic_id__view_metrics_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Metrics"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_report_admin_clinics__clinic_id__view_reports__report_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Report"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_studies_admin_clinics__clinic_id__view_studies_get: {
+        parameters: {
+            query?: {
+                /** @description Un ou plusieurs statuts ; vide = tous */
+                status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
+                /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
+                q?: string | null;
+                /** @description Seulement les examens de ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+                /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance */
+                order?: "recent" | "received" | "deadline";
+                limit?: number;
+                /** @description Position après laquelle reprendre : next_cursor de la page précédente */
+                cursor?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    count_by_modality_admin_clinics__clinic_id__view_studies_modality_counts_get: {
+        parameters: {
+            query?: {
+                /** @description Un ou plusieurs statuts ; vide = tous */
+                status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
+                /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
+                q?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyModalityCounts"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_study_admin_clinics__clinic_id__view_studies__study_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Study"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_study_report_admin_clinics__clinic_id__view_studies__study_id__report_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Report"];
                 };
             };
             /** @description Validation Error */
@@ -11021,6 +11768,7 @@ export interface operations {
                 pending?: boolean;
                 unverified?: boolean;
                 signing?: boolean;
+                modality?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
             };
             header?: {
                 authorization?: string | null;
@@ -13389,6 +14137,8 @@ export interface operations {
                 priority?: ("routine" | "urgent") | null;
                 /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
                 q?: string | null;
+                /** @description Seulement les examens de ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
                 /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance */
@@ -13412,6 +14162,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StudyPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    count_by_modality_studies_modality_counts_get: {
+        parameters: {
+            query?: {
+                /** @description Un ou plusieurs statuts ; vide = tous */
+                status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
+                /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
+                q?: string | null;
+                /** @description Seulement les examens pris en charge par l'appelant */
+                mine?: boolean;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyModalityCounts"];
                 };
             };
             /** @description Validation Error */

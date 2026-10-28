@@ -28,6 +28,9 @@ import { cn } from "@/lib/utils";
  * Elles bornent ce qu'on peut lui attribuer et les urgences qu'il voit.
  * Toutes cochées : il lit tout.
  *
+ * Le bouton porte son libellé, « Modalités » : réduit à une icône dans
+ * l'étiquette d'une clinique, on ne le trouvait pas.
+ *
  * @param membershipId   Appartenance du radiologue.
  * @param name           Son nom.
  * @param organization   Organisation de l'appartenance.
@@ -94,13 +97,12 @@ export function ModalitiesDialog({
     >
       <DialogTrigger asChild>
         <Button
-          size="icon"
-          variant="ghost"
-          className="size-6"
-          aria-label={text.triggerLabel(`${name} (${organization})`)}
-          title={text.modalities}
+          size="sm"
+          variant="secondary"
+          aria-label={text.buttonLabel(`${name} (${organization})`)}
         >
-          <SlidersHorizontal className="size-3.5" />
+          <SlidersHorizontal />
+          {text.button}
         </Button>
       </DialogTrigger>
       <DialogContent>

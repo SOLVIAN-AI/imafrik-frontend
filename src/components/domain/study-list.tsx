@@ -10,6 +10,10 @@ import {
   StudyStatusChip,
   UrgentMarker,
 } from "@/components/domain/study-status";
+import {
+  useClinicHref,
+  useClinicView,
+} from "@/components/providers/clinic-view-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
@@ -36,6 +40,10 @@ import { cn } from "@/lib/utils";
  * tant qu'on ne le lui a pas confié. Le responsable l'attribue d'un clic,
  * sur la ligne.
  *
+ * Dans la vue des cliniques, l'équipe IMAFRIK y voit la même liste ; ses
+ * liens restent sous la vue, et « Attribuer » passe par le portail de
+ * l'équipe (`/admin/studies`), qui est son propre geste.
+ *
  * @param studies    Examens à afficher.
  * @param filtered   Une recherche ou une vue est active : l'état vide dit
  *                   « aucun résultat » plutôt que « aucun examen ».
@@ -51,6 +59,8 @@ export function StudyList({
   assignable?: boolean;
 }) {
   const router = useRouter();
+  const href = useClinicHref();
+  const portal = useClinicView() ? "team" : "clinic";
   const messages = useMessages();
   const t = messages.clinic.studies;
   const reports = messages.clinic.reports;
@@ -82,7 +92,7 @@ export function StudyList({
         {studies.map((study) => (
           <li key={study.id}>
             <Link
-              href={`/examens/${study.id}`}
+              href={href(`/examens/${study.id}`)}
               className={cn(
                 "flex items-start gap-3 px-4 py-3 transition-colors active:bg-surface-active",
                 study.urgent && "rail-urgent",
@@ -137,7 +147,7 @@ export function StudyList({
             {assignable && open(study) && (
               <div className="flex justify-end px-4 pb-3">
                 <AssignDialog
-                  portal="clinic"
+                  portal={portal}
                   studyId={study.id}
                   patient={formatPatientName(study.patientName)}
                   assigned={study.assignedTo !== null}
@@ -186,7 +196,7 @@ export function StudyList({
                   // Le lien et le bouton gèrent eux-mêmes leur clic.
                   if ((event.target as HTMLElement).closest("a, button"))
                     return;
-                  router.push(`/examens/${study.id}`);
+                  router.push(href(`/examens/${study.id}`));
                 }}
                 className={cn(
                   "cursor-pointer",
@@ -200,7 +210,7 @@ export function StudyList({
                 <td>
                   <div className="flex items-center gap-2">
                     <Link
-                      href={`/examens/${study.id}`}
+                      href={href(`/examens/${study.id}`)}
                       className="-my-1 truncate rounded-sm py-1 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                     >
                       {formatPatientName(study.patientName)}
@@ -236,7 +246,7 @@ export function StudyList({
                     )}
                     {assignable && open(study) && (
                       <AssignDialog
-                        portal="clinic"
+                        portal={portal}
                         studyId={study.id}
                         patient={formatPatientName(study.patientName)}
                         assigned={study.assignedTo !== null}

@@ -1,5 +1,12 @@
-import { ShieldAlert, ShieldCheck, UserRoundSearch } from "lucide-react";
+import {
+  BarChart3,
+  ShieldAlert,
+  ShieldCheck,
+  Siren,
+  UserRoundSearch,
+} from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { AnonymizeDialog } from "@/components/admin/anonymize-dialog";
 import { ControlBody, Section, Segmented } from "@/components/admin/control-ui";
@@ -11,6 +18,7 @@ import { GrantDialog } from "@/components/admin/grant-dialog";
 import { SigningReviewDialog } from "@/components/admin/signing-review-dialog";
 import { MfaResetButton } from "@/components/admin/mfa-reset-button";
 import { ModalitiesDialog } from "@/components/admin/modalities-dialog";
+import { ModalityFilter } from "@/components/admin/modality-filter";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { SearchBox } from "@/components/admin/search-box";
 import { CredentialChip } from "@/components/domain/credential-chip";
@@ -27,7 +35,11 @@ import {
   type TraineeProgress,
 } from "@/lib/data/training";
 import { formatPersonName } from "@/lib/format";
-import { describeModalities } from "@/lib/modalities";
+import {
+  describeModalities,
+  MODALITY_PARAM,
+  readModalityGroup,
+} from "@/lib/modalities";
 import { roleRequiresMfa } from "@/lib/session/mfa";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
@@ -64,6 +76,8 @@ export default async function UsersPage({
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q : undefined;
   const filter = parseUserFilter(params);
+  // `?modalite=scanner` : les radiologues qui lisent ce groupe.
+  const modality = readModalityGroup(params[MODALITY_PARAM]);
 
   const [
     users,
@@ -79,6 +93,7 @@ export default async function UsersPage({
       pending: filter === "pending",
       unverified: filter === "unverified",
       signing: filter === "signing",
+      modality,
     }),
     listUsers({ pending: true }).then((rows) => rows.length),
     listUsers({ unverified: true }).then((rows) => rows.length),
@@ -144,25 +159,30 @@ export default async function UsersPage({
               options={[
                 {
                   label: t.admin.shared.all,
-                  href: userListHref("all", query),
+                  href: userListHref("all", query, modality),
                   active: filter === "all",
                 },
                 {
                   label: counted(text.unverifiedFilter, unverifiedCount),
-                  href: userListHref("unverified", query),
+                  href: userListHref("unverified", query, modality),
                   active: filter === "unverified",
                 },
                 {
                   label: counted(text.signingFilter, signingCount),
-                  href: userListHref("signing", query),
+                  href: userListHref("signing", query, modality),
                   active: filter === "signing",
                 },
                 {
                   label: counted(text.pendingFilter, pendingCount),
-                  href: userListHref("pending", query),
+                  href: userListHref("pending", query, modality),
                   active: filter === "pending",
                 },
               ]}
+            />
+            <ModalityFilter
+              label={text.reading.filter}
+              any={text.reading.anyModality}
+              active={modality}
             />
             <SearchBox
               label={text.searchLabel}
@@ -326,14 +346,6 @@ function UserRow({
                 {" · "}
                 {t.common.roles[membership.role]}
               </span>
-              {membership.role === "radiologist" && (
-                <ModalitiesDialog
-                  membershipId={membership.membershipId}
-                  name={formatPersonName(user.title, user.fullName)}
-                  organization={membership.organizationName}
-                  readModalities={membership.readModalities}
-                />
-              )}
             </li>
           ))
         )}
@@ -356,7 +368,71 @@ function UserRow({
       {radiologist && (
         <CredentialRow user={user} isSelf={isSelf} training={training} t={t} />
       )}
+      {user.memberships.some((m) => m.role === "radiologist") && (
+        <ReadingRow user={user} t={t} />
+      )}
     </li>
+  );
+}
+
+/**
+ * Ce que lit un radiologue, en clair sur sa ligne : ses modalités pour
+ * chaque organisation, avec le bouton « Modalités » qui les règle, les
+ * listes d'urgence où il figure, et ses performances, à un clic.
+ */
+function ReadingRow({ user, t }: { user: AdminUser; t: AppMessages }) {
+  const text = t.admin.users.reading;
+  const name = formatPersonName(user.title, user.fullName);
+  return (
+    <div
+      className="order-last col-span-2 flex flex-wrap items-center gap-x-4 gap-y-2 md:col-span-4"
+      data-testid="reading-row"
+    >
+      {user.memberships
+        .filter((membership) => membership.role === "radiologist")
+        .map((membership) => (
+          <span
+            key={membership.membershipId}
+            className="flex flex-wrap items-center gap-2 text-2xs"
+          >
+            <span className="text-tertiary">
+              {membership.organizationName} :
+            </span>
+            <span className="font-medium text-primary">
+              {describeModalities(
+                membership.readModalities,
+                t.assignment.modalities,
+              )}
+            </span>
+            <ModalitiesDialog
+              membershipId={membership.membershipId}
+              name={name}
+              organization={membership.organizationName}
+              readModalities={membership.readModalities}
+            />
+          </span>
+        ))}
+      <span
+        className={cn(
+          "inline-flex items-center gap-1 text-2xs",
+          user.urgentLists.length > 0 ? "text-urgent" : "text-tertiary",
+        )}
+      >
+        <Siren className="size-3" aria-hidden />
+        {user.urgentLists.length > 0
+          ? text.urgentLists(
+              user.urgentLists.map((entry) => entry.clinicName).join(", "),
+            )
+          : text.noUrgentList}
+      </span>
+      <Link
+        href={`/admin/activite?onglet=radiologues&radiologue=${encodeURIComponent(user.id)}`}
+        className="ml-auto inline-flex min-h-6 items-center gap-1 text-2xs text-accent underline decoration-accent/40 underline-offset-2 hover:decoration-accent"
+      >
+        <BarChart3 className="size-3" aria-hidden />
+        {text.performance}
+      </Link>
+    </div>
   );
 }
 

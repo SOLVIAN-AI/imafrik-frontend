@@ -3,6 +3,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
+import { useClinicView } from "@/components/providers/clinic-view-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { useMessages } from "@/i18n/client";
 import { cn } from "@/lib/utils";
@@ -81,11 +82,13 @@ export function StudyStatusChip({
 }: StudyStatusChipProps) {
   const t = useMessages();
   const { active } = useSession();
+  const consultation = useClinicView();
   // La clinique lit l'état du point de vue de ce qu'elle attend (« Prêt à
   // télécharger »), le radiologue et l'équipe IMAFRIK du point de vue du
-  // travail (« À lire », « Signé »).
+  // travail (« À lire », « Signé »). Dans la vue des cliniques, l'équipe
+  // lit les mots du responsable.
   const labels =
-    active.role === "clinic_staff"
+    consultation || active.role === "clinic_staff"
       ? t.common.studyStatusClinic
       : t.common.studyStatus;
   return (

@@ -102,8 +102,11 @@ test.describe("le responsable de la clinique", () => {
       .getByRole("button", { name: "Trier par Délai médian" })
       .click();
     expect(await premier()).toBe(avant);
+    // Chaque indicateur expliqué en une phrase, sous le tableau.
     await expect(
-      page.getByText(/contrairement à la moyenne/).first(),
+      page
+        .getByRole("region", { name: "Ce que mesure chaque colonne" })
+        .getByText(/un examen exceptionnellement long ne le déforme pas/),
     ).toBeVisible();
 
     // Le relevé du mois en cours : provisoire, formule Pro.
@@ -179,6 +182,12 @@ test.describe("l'équipe IMAFRIK", () => {
     checkA11y,
   }) => {
     await page.goto("/admin/activite?jours=30");
+    // Les performances ont leur rubrique, à un clic dès l'en-tête.
+    await page
+      .getByRole("navigation", { name: "Rubriques" })
+      .getByRole("link", { name: "Par radiologue" })
+      .click();
+    await expect(page).toHaveURL(/onglet=radiologues/);
     await expect(
       page.getByRole("heading", { name: "Performances par radiologue" }),
     ).toBeVisible();
@@ -194,9 +203,9 @@ test.describe("l'équipe IMAFRIK", () => {
       .getByRole("navigation", { name: "Mois" })
       .getByRole("link", { name: "Mois précédent" })
       .click();
-    await expect(page).toHaveURL(
-      new RegExp(`jours=30.*mois=${PRECEDENT}|mois=${PRECEDENT}.*jours=30`),
-    );
+    await expect(page).toHaveURL(new RegExp(`mois=${PRECEDENT}`));
+    await expect(page).toHaveURL(/jours=30/);
+    await expect(page).toHaveURL(/onglet=radiologues/);
     await expect(
       page.getByRole("rowheader", { name: "Dr Adjo Kponton" }),
     ).toBeVisible();

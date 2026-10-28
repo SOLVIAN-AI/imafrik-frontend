@@ -71,6 +71,10 @@ const SCREENS: {
         "/admin/passerelles",
         "/admin/passerelles/gw-esp-nouveau",
         "/admin/reglages",
+        // Vue des cliniques : les écrans du responsable, sous le bandeau.
+        "/admin/vue-clinique",
+        "/admin/vue-clinique/org-stj/examens",
+        "/admin/vue-clinique/org-stj/equipe",
       ],
       en: [
         "/admin",
@@ -80,6 +84,10 @@ const SCREENS: {
         "/admin/passerelles",
         "/admin/passerelles/gw-esp-nouveau",
         "/admin/reglages",
+        // Vue des cliniques : les écrans du responsable, sous le bandeau.
+        "/admin/vue-clinique",
+        "/admin/vue-clinique/org-stj/examens",
+        "/admin/vue-clinique/org-stj/equipe",
       ],
     },
   },

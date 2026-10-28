@@ -201,6 +201,18 @@ export const admin = {
     journey: "Parcours d’un examen",
     journeyDescription:
       "Durée médiane de chaque étape, la plus longue étant mise en évidence",
+    /** Rubriques de l'écran, à un clic depuis l'en-tête. */
+    tabs: {
+      label: "Rubriques",
+      ensemble: "Vue d’ensemble",
+      radiologues: "Par radiologue",
+      cliniques: "Par clinique",
+      billing: "Facturation",
+    },
+    focus: (name: string) => `Performances de ${name}`,
+    focusNone:
+      "Ce radiologue n’a aucune activité ce mois-ci : aucun examen reçu dans le mois ne lui a été confié.",
+    seeAll: "Tous les radiologues",
     byClinic: "Par clinique",
     byClinicDescription:
       "Le débit est celui de la liaison entre la passerelle et le PACS central",
@@ -296,6 +308,7 @@ export const admin = {
     ownRadiologists: "radiologues attitrés",
     backToOrganisations: "Organisations",
     detailedActivity: "Activité détaillée",
+    radiologistPerformance: "Performances des radiologues",
     onboarding: "Mise en service",
     stepsDone: (done: number, total: number) =>
       `${done} étape${done > 1 ? "s" : ""} sur ${total}`,
@@ -459,6 +472,14 @@ export const admin = {
   },
 
   users: {
+    /** Ce que lit un radiologue, sur sa ligne. */
+    reading: {
+      urgentLists: (names: string) => `Liste d’urgence : ${names}`,
+      noUrgentList: "Sur aucune liste d’urgence",
+      performance: "Voir ses performances",
+      filter: "Modalité lue",
+      anyModality: "Toutes les modalités",
+    },
     accountCount: (count: number) => `${count} compte${count > 1 ? "s" : ""}`,
     withoutMfa: (count: number) => `${count} sans double authentification`,
     pendingFilter: "En attente",
@@ -865,6 +886,7 @@ export const admin = {
       "organization.urgent_readers_changed": "Liste d’urgence modifiée",
       "organization.assignment_rules_changed": "Règles d’attribution modifiées",
       "organization.plan_changed": "Formule d’abonnement modifiée",
+      "organization.viewed": "Clinique ouverte en consultation",
       "organization.retention_changed": "Durée de conservation modifiée",
       "organization.report_language_changed":
         "Langue des comptes-rendus modifiée",

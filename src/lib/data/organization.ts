@@ -9,9 +9,11 @@ import {
   type ApiMember,
   type ModalityGroup,
 } from "@/lib/api/contracts";
+import { clinicViewApi } from "@/lib/clinic-view";
 import { isDemoMode } from "@/lib/demo/mode";
+import { DEMO_MEMBERSHIPS, demoSession } from "@/lib/session/demo";
 import { getSession } from "@/lib/session/server";
-import type { OrgKind, UserRole } from "@/lib/session/types";
+import type { OrgKind, Session, UserRole } from "@/lib/session/types";
 
 /** L'organisation active et ses réglages. */
 export interface Organization {
@@ -181,26 +183,54 @@ export async function getOrganization(): Promise<Organization> {
   };
 }
 
-/** Les membres de l'organisation active, triés par nom. */
-export async function listMembers(): Promise<Member[]> {
+/**
+ * Les membres de l'organisation active, triés par nom.
+ *
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK (vue des
+ *                 cliniques) : son équipe, telle que la voit son
+ *                 responsable ; personne n'y est l'utilisateur.
+ */
+export async function listMembers(clinicId?: string): Promise<Member[]> {
   if (isDemoMode()) {
+    if (clinicId) return demoClinicMembers(clinicId);
     const session = await getSession();
-    const me: Member = {
-      membershipId: session!.active.id,
-      profileId: session!.user.id,
-      fullName: session!.user.fullName,
-      title: session!.user.title || null,
-      email: session!.user.email,
-      role: session!.active.role,
-      joinedAt: new Date("2026-06-02T09:00:00Z"),
-      isMe: true,
-      readModalities: null,
-      urgentReader: false,
-    };
-    return [me, ...(DEMO_COLLEAGUES[session!.active.id] ?? [])].sort((a, b) =>
-      a.fullName.localeCompare(b.fullName, "fr"),
-    );
+    return demoMembers(session!, true);
   }
-  const rows = await apiGet("/organization/members", z.array(memberSchema));
+  const path = clinicId
+    ? `${clinicViewApi(clinicId)}/members`
+    : "/organization/members";
+  const rows = await apiGet(path, z.array(memberSchema));
   return rows.map(toMember);
+}
+
+/** L'équipe de démonstration d'une session : son titulaire et ses collègues. */
+function demoMembers(session: Session, isMe: boolean): Member[] {
+  const me: Member = {
+    membershipId: session.active.id,
+    profileId: session.user.id,
+    fullName: session.user.fullName,
+    title: session.user.title || null,
+    email: session.user.email,
+    role: session.active.role,
+    joinedAt: new Date("2026-06-02T09:00:00Z"),
+    isMe,
+    readModalities: null,
+    urgentReader: false,
+  };
+  return [me, ...(DEMO_COLLEAGUES[session.active.id] ?? [])].sort((a, b) =>
+    a.fullName.localeCompare(b.fullName, "fr"),
+  );
+}
+
+/**
+ * L'équipe d'une clinique de démonstration : celle de la Clinique
+ * Saint-Joseph, que voit sa responsable ; les autres n'ont encore aucun
+ * membre, comme une clinique tout juste raccordée.
+ */
+function demoClinicMembers(clinicId: string): Member[] {
+  const clinic = DEMO_MEMBERSHIPS.find(
+    (membership) => membership.role === "clinic_staff",
+  )!;
+  if (clinicId !== clinic.organizationId) return [];
+  return demoMembers(demoSession(clinic.id), false);
 }

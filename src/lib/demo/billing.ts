@@ -15,6 +15,7 @@ import {
   type DemoFlow,
   demoFlows,
 } from "@/lib/demo/control";
+import { modalityGroupOf } from "@/lib/modalities";
 
 /**
  * Activité et facturation de démonstration, pour la clinique et l'équipe.
@@ -42,27 +43,6 @@ const DEMO_PLANS: Record<string, { plan: Plan; fee: number } | undefined> = {
   },
   "org-glf": { plan: "facility", fee: 120_000 },
 };
-
-/** Groupe d'une modalité DICOM, comme `public.modality_group`. */
-function groupOf(code: string): ModalityGroup {
-  switch (code) {
-    case "CR":
-    case "DX":
-    case "RF":
-    case "XA":
-      return "radiography";
-    case "MG":
-      return "mammography";
-    case "US":
-      return "ultrasound";
-    case "CT":
-      return "ct";
-    case "MR":
-      return "mri";
-    default:
-      return "other";
-  }
-}
 
 /** Tarif de base de chaque groupe de la grille ; les autres sont hors grille. */
 const BASE_FEE: Partial<Record<ModalityGroup, FeeClass>> = {
@@ -146,7 +126,7 @@ export function demoMonthActivity(
 
   const groups = new Map<ModalityGroup, DemoFlow[]>();
   for (const flow of flows) {
-    const group = groupOf(flow.modality.code);
+    const group = modalityGroupOf(flow.modality.code);
     groups.set(group, [...(groups.get(group) ?? []), flow]);
   }
 
@@ -190,7 +170,7 @@ function compute(
 
   const counts = new Map<string, { routine: number; urgent: number }>();
   for (const flow of signed) {
-    const group = groupOf(flow.modality.code);
+    const group = modalityGroupOf(flow.modality.code);
     const key = BASE_FEE[group] ?? group;
     const entry = counts.get(key) ?? { routine: 0, urgent: 0 };
     if (flow.urgent) entry.urgent += 1;

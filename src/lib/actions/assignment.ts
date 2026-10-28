@@ -10,6 +10,7 @@ import {
   run,
 } from "@/lib/actions/result";
 import { apiGet, apiSend } from "@/lib/api/client";
+import { CLINIC_VIEW_ROOT } from "@/lib/clinic-view";
 import {
   type ApiAssignmentState,
   type ApiPriorCandidate,
@@ -154,6 +155,9 @@ function revalidateScreens(studyId: string) {
   revalidatePath(`/examens/${studyId}`);
   revalidatePath(`/lecture/${studyId}`);
   revalidatePath("/tableau-de-bord");
+  // La vue des cliniques, où l'équipe IMAFRIK attribue aussi : tous ses
+  // écrans, quelle que soit la clinique.
+  revalidatePath(`${CLINIC_VIEW_ROOT}/[clinicId]`, "layout");
 }
 
 /**

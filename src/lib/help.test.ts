@@ -13,7 +13,8 @@ import {
   normalize,
   searchHelp,
 } from "@/lib/help";
-import { navigationFor } from "@/lib/navigation";
+import { clinicViewPath } from "@/lib/clinic-view";
+import { type NavGroup, navigationFor } from "@/lib/navigation";
 import type { UserRole } from "@/lib/session/types";
 
 const ROLES: UserRole[] = ["radiologist", "clinic_staff", "platform_admin"];
@@ -32,8 +33,17 @@ const SUBPAGES: Record<UserRole, string[]> = {
     "/lecture/abc",
     "/formation/scanner-thorax",
     "/comptes-rendus/r1",
+    "/admin/vue-clinique",
+    "/admin/vue-clinique/org-1/examens/e1",
+    "/admin/vue-clinique/org-1/comptes-rendus/r1",
+    "/admin/vue-clinique/org-1/equipe/regles",
   ],
 };
+
+/** Adresse d'une entrée de navigation, telle que la barre latérale la suit. */
+function hrefOfItem(group: NavGroup, href: string): string {
+  return group.clinicScoped ? clinicViewPath("org-1", href) : href;
+}
 
 function pagesOf(messages: typeof fr, role: UserRole) {
   return messages.help.pages[helpRoleOf(role)] as Record<string, HelpPage>;
@@ -43,7 +53,7 @@ describe("chaque écran a son aide", () => {
   for (const role of ROLES) {
     it(`reconnaît chaque entrée de la navigation et chaque sous-page (${role})`, () => {
       const hrefs = navigationFor(role).flatMap((group) =>
-        group.items.map((item) => item.href),
+        group.items.map((item) => hrefOfItem(group, item.href)),
       );
       for (const href of [...hrefs, ...SUBPAGES[role]]) {
         expect(helpScreenFor(role, href), href).not.toBeNull();
@@ -138,6 +148,41 @@ describe("écrans reconnus", () => {
   it("mène depuis la recherche à l’adresse sans paramètre", () => {
     expect(hrefOf("clinic_staff", "studies")).toBe("/examens");
     expect(hrefOf("clinic_staff", "study")).toBeNull();
+  });
+
+  it("lit les écrans de la vue des cliniques, quelle que soit la clinique", () => {
+    const screen = (path: string) => helpScreenFor("platform_admin", path)?.key;
+    expect(screen("/admin/vue-clinique")).toBe("clinicViews");
+    expect(screen("/admin/vue-clinique/org-1/tableau-de-bord")).toBe(
+      "clinicDashboard",
+    );
+    expect(screen("/admin/vue-clinique/org-2/examens")).toBe("clinicStudies");
+    expect(screen("/admin/vue-clinique/org-2/examens/e1")).toBe("clinicStudy");
+    expect(screen("/admin/vue-clinique/org-2/equipe")).toBe("clinicTeam");
+    expect(screen("/admin/vue-clinique/org-2/equipe/regles")).toBe(
+      "clinicTeamRules",
+    );
+    // Une adresse sans clinique n'est pas un écran de la vue.
+    expect(screen("/admin/vue-clinique//examens")).toBeUndefined();
+    // Le responsable, lui, n'a pas ces écrans.
+    expect(
+      helpScreenFor("clinic_staff", "/admin/vue-clinique/org-1/examens"),
+    ).toBeNull();
+  });
+
+  it("mène depuis la recherche à l’écran de la clinique consultée", () => {
+    expect(hrefOf("platform_admin", "clinicViews")).toBe("/admin/vue-clinique");
+    expect(hrefOf("platform_admin", "clinicTeam")).toBeNull();
+    expect(
+      hrefOf(
+        "platform_admin",
+        "clinicTeam",
+        "/admin/vue-clinique/org-1/examens",
+      ),
+    ).toBe("/admin/vue-clinique/org-1/equipe");
+    expect(
+      hrefOf("platform_admin", "clinicStudy", "/admin/vue-clinique/org-1"),
+    ).toBeNull();
   });
 });
 

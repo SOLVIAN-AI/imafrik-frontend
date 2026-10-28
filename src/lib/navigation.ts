@@ -83,6 +83,12 @@ export interface NavGroup {
    * temps en temps. Il s'ouvre de lui-même sur une de ses pages.
    */
   collapsible?: boolean;
+  /**
+   * Écrans d'une clinique choisie (vue des cliniques) : les adresses sont
+   * celles du responsable, que la navigation place sous la clinique
+   * consultée (`lib/clinic-view.ts`). Le bloc porte le choix de la clinique.
+   */
+  clinicScoped?: boolean;
 }
 
 /**
@@ -91,6 +97,8 @@ export interface NavGroup {
 export interface NavBlock {
   key?: NavGroupKey;
   collapsible: boolean;
+  /** Écrans d'une clinique choisie, voir {@link NavGroup.clinicScoped}. */
+  clinicScoped: boolean;
   /** Paquets d'entrées, séparés par un filet. */
   sections: NavItem[][];
 }
@@ -111,6 +119,7 @@ export function navigationBlocks(groups: readonly NavGroup[]): NavBlock[] {
       blocks.push({
         key: group.key,
         collapsible: group.collapsible ?? false,
+        clinicScoped: group.clinicScoped ?? false,
         sections: [group.items],
       });
     }
@@ -211,12 +220,20 @@ const CLINIC_NAV: NavGroup[] = [
  * tourne, ce qui s'est passé, ce qui se règle. Ces outils se suivent :
  * rien d'autre ne vient s'intercaler entre eux.
  *
- * Puis la **vue des radiologues**, repliée : elle ouvre en consultation
- * leurs écrans sur toute la plateforme (la file à lire, les
- * comptes-rendus, les modèles, la formation). IMAFRIK supervise son
- * service comme ses utilisateurs le vivent, de temps en temps ; les
- * gestes médicaux (prise en charge, rédaction, signature) restent aux
- * radiologues.
+ * Puis les deux vues de consultation, repliées, où IMAFRIK supervise son
+ * service comme ses utilisateurs le vivent, de temps en temps :
+ *
+ * - la **vue des cliniques** ouvre les écrans du responsable d'une
+ *   clinique choisie, avec ses données (tableau de bord, examens,
+ *   comptes-rendus, équipe, activité et facturation). Les gestes du
+ *   responsable (envoyer, inviter, renseigner un examen, télécharger au
+ *   nom de la clinique) restent les siens ;
+ * - les **lectures** ouvrent les écrans de lecture sur toute la plateforme
+ *   (la file à lire, les comptes-rendus, les modèles, la formation). Ce
+ *   n'est pas ce que voit un radiologue, qui ne voit que ce qu'on lui
+ *   confie : c'est la file de tous, avec ce qui attend une attribution et
+ *   ce qui est chez chaque radiologue. Les gestes médicaux (prise en
+ *   charge, rédaction, signature) restent aux radiologues.
  */
 const ADMIN_NAV: NavGroup[] = [
   {
@@ -251,6 +268,22 @@ const ADMIN_NAV: NavGroup[] = [
     ],
   },
   {
+    key: "clinicView",
+    collapsible: true,
+    clinicScoped: true,
+    // Les écrans du responsable, dans l'ordre de sa navigation. Ni
+    // « Envoyer un examen » ni les paramètres : ce sont ses gestes.
+    items: [
+      { href: "/tableau-de-bord", key: "dashboard", icon: "dashboard" },
+      { href: "/examens", key: "studies", icon: "studies" },
+      { href: "/comptes-rendus", key: "reports", icon: "reports" },
+      { href: "/equipe", key: "team", icon: "team" },
+      { href: "/activite", key: "activity", icon: "analytics" },
+    ],
+  },
+  {
+    // « Lectures » : la clé garde son ancien nom, celui sous lequel chaque
+    // poste a mémorisé le repli du bloc (`imafrik-navigation:`).
     key: "radiologistView",
     collapsible: true,
     items: [

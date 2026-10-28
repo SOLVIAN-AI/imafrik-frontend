@@ -15,7 +15,22 @@ export const glossary: typeof fr = {
   consultation: {
     term: "Read-only view",
     definition:
-      "The IMAFRIK team’s read-only access to the radiologists’ screens: worklist, drafts, reports and images. The team sees everything without claiming, writing or signing, and every examination opened is logged.",
+      "The IMAFRIK team’s read-only access to the radiologists’ screens (worklist, drafts, reports, images) and, in the clinics’ view, to a clinic manager’s screens. The team views without claiming, writing or signing, and every opening is logged.",
+  },
+  vueCliniques: {
+    term: "Clinics’ view",
+    definition:
+      "A clinic manager’s screens, opened by the IMAFRIK team with that clinic’s data and the same figures. View-only: no sending, no invitations, no clinical information, and a downloaded PDF is not delivered. Each opening is recorded in the audit log.",
+  },
+  groupeModalites: {
+    term: "Modality group",
+    definition:
+      "Examinations sorted by equipment: Radiography (HSG included), Mammography, Ultrasound, CT, MRI, Other. Examination lists filter by group; it is also what a radiologist reads.",
+  },
+  dureeLecture: {
+    term: "Reading time",
+    definition:
+      "Time between the start of an examination’s reading and the signature of its report, as a median. Pick-up runs from assignment to the start of reading.",
   },
   filetSecurite: {
     term: "Safety net",

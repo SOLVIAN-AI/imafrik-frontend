@@ -12,11 +12,18 @@ import {
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { ListPagination } from "@/components/domain/list-pagination";
 import { ListToolbar } from "@/components/domain/list-toolbar";
+import { ModalityTabs } from "@/components/domain/modality-tabs";
 import {
+  getModalityCounts,
   listStudyPage,
   listStudyPageAt,
   STUDY_LIST_PAGE_SIZE,
 } from "@/lib/data/studies";
+import {
+  MODALITY_PARAM,
+  MODALITY_SLUGS,
+  readModalityGroup,
+} from "@/lib/modalities";
 import { pageHref, readCursor } from "@/lib/pagination";
 import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
@@ -54,7 +61,7 @@ export default async function AdminStudiesPage({
   searchParams,
 }: PageProps<"/admin/examens">) {
   const session = await requireSession(["platform_admin"]);
-  const { t } = await getMessages();
+  const { t, locale } = await getMessages();
   const text = t.admin.studies;
   const params = await searchParams;
   const search = await readListSearch("admin-examens", session);
@@ -63,18 +70,29 @@ export default async function AdminStudiesPage({
   // sur toute la base : filtrer ici une page des plus récents laissait de
   // côté les urgences en retard, justement les plus anciennes.
   const urgentOnly = params.urgent === "1";
-  const [{ studies, total, nextCursor }, stuck] = await Promise.all([
+  // `?modalite=scanner` : un groupe de modalités, compté par onglet.
+  const modalityGroup = readModalityGroup(params[MODALITY_PARAM]);
+  // Les filtres de la liste, groupe mis à part : ceux des comptes.
+  const filters = {
+    search,
+    ...(urgentOnly && {
+      priority: "urgent" as const,
+      status: [
+        "received" as const,
+        "assigned" as const,
+        "in_progress" as const,
+      ],
+    }),
+  };
+  const [{ studies, total, nextCursor }, stuck, counts] = await Promise.all([
     listStudyPageAt(
       {
-        search,
+        ...filters,
+        modalityGroup,
         limit: STUDY_LIST_PAGE_SIZE,
         cursor: readCursor(params),
-        ...(urgentOnly && {
-          priority: "urgent",
-          status: ["received", "assigned", "in_progress"],
-          // Les plus anciennes, donc les plus en retard, d'abord.
-          order: "deadline",
-        }),
+        // Les plus anciennes, donc les plus en retard, d'abord.
+        ...(urgentOnly && { order: "deadline" as const }),
       },
       pageHref("/admin/examens", params, null),
     ),
@@ -83,7 +101,12 @@ export default async function AdminStudiesPage({
     listStudyPage({ status: ["received"], priority: "urgent", limit: 1 }).then(
       (page) => page.total,
     ),
+    getModalityCounts(filters),
   ]);
+  // Le filtre des urgences garde le groupe de modalités, et inversement.
+  const modality = modalityGroup
+    ? { [MODALITY_PARAM]: MODALITY_SLUGS[modalityGroup] }
+    : {};
 
   return (
     <>
@@ -101,12 +124,16 @@ export default async function AdminStudiesPage({
               options={[
                 {
                   label: t.admin.shared.all,
-                  href: "/admin/examens",
+                  href: pageHref("/admin/examens", modality, null),
                   active: !urgentOnly,
                 },
                 {
                   label: text.openUrgent,
-                  href: "/admin/examens?urgent=1",
+                  href: pageHref(
+                    "/admin/examens",
+                    { ...modality, urgent: "1" },
+                    null,
+                  ),
                   active: urgentOnly,
                 },
               ]}
@@ -122,6 +149,15 @@ export default async function AdminStudiesPage({
           <span>{text.stuck(stuck)}</span>
         </div>
       )}
+
+      <ModalityTabs
+        counts={counts}
+        active={modalityGroup}
+        pathname="/admin/examens"
+        params={params}
+        labels={t.assignment}
+        locale={locale}
+      />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
         <Panel className="flex min-h-0 flex-col overflow-hidden">

@@ -10,6 +10,7 @@ import {
   run,
 } from "@/lib/actions/result";
 import { apiGet, apiSend } from "@/lib/api/client";
+import { clinicViewPath } from "@/lib/clinic-view";
 import {
   assignmentRulesSchema,
   modalityGroupSchema,
@@ -134,9 +135,13 @@ export async function saveAssignmentRules(
     ),
   );
   if (result.ok) {
-    revalidatePath(
-      clinicId === null ? "/equipe/regles" : `/admin/organisations/${clinicId}`,
-    );
+    if (clinicId === null) {
+      revalidatePath("/equipe/regles");
+    } else {
+      revalidatePath(`/admin/organisations/${clinicId}`);
+      // La vue de la clinique, où l'équipe règle aussi ses règles.
+      revalidatePath(clinicViewPath(clinicId, "/equipe/regles"));
+    }
   }
   return result;
 }

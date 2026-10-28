@@ -96,6 +96,12 @@ export const assignment = {
     filterLabel: "Afficher",
     radiologist: "Radiologue",
     unassigned: "À attribuer",
+    /** Onglets des groupes de modalités d'une liste d'examens. */
+    modalityLabel: "Modalités",
+    allModalities: "Toutes",
+    /** Nom accessible d'un onglet : groupe et nombre d'examens. */
+    modalityCount: (label: string, count: number) =>
+      count > 1 ? `${label}, ${count} examens` : `${label}, ${count} examen`,
   },
   /** Groupes de modalités qu'un radiologue lit. */
   modalities: {
@@ -114,6 +120,9 @@ export const assignment = {
       "Les modalités qu’il lit bornent ce qu’on peut lui attribuer ; la liste d’urgence lui permet de prendre une urgence sans attendre qu’on la lui confie.",
     trigger: "Modalités et urgences",
     triggerLabel: (name: string) => `Modalités et urgences de ${name}`,
+    /** Bouton libellé des modalités, sur la ligne d'un compte. */
+    button: "Modalités",
+    buttonLabel: (name: string) => `Modalités lues par ${name}`,
     modalities: "Modalités lues",
     modalitiesHint: "Au moins une. Toutes cochées : il lit tout.",
     urgent: "Liste d’urgence",

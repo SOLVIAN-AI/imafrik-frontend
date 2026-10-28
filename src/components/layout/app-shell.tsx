@@ -9,6 +9,7 @@ import { MAIN_CONTENT_ID, SkipLink } from "@/components/layout/skip-link";
 import { InactivityLock } from "@/components/session/inactivity-lock";
 import { Topbar } from "@/components/layout/topbar";
 import { useSession } from "@/components/providers/session-provider";
+import type { ViewableClinic } from "@/lib/clinic-view";
 import { homeFor, isRouteAllowed, type NavCounts } from "@/lib/navigation";
 import { useRecordReturnPath } from "@/lib/return-path";
 import { cn } from "@/lib/utils";
@@ -202,11 +203,14 @@ export function Panel({
  */
 export function AppShell({
   counts,
+  clinics = [],
   banner = null,
   children,
 }: {
   /** Compteurs de navigation ; `null` si le service n'a pas répondu. */
   counts: NavCounts | null;
+  /** Équipe IMAFRIK : les cliniques que la vue des cliniques propose. */
+  clinics?: readonly ViewableClinic[];
   /** Bandeau de maintenance, réglé par l'équipe IMAFRIK ; `null` sans bandeau. */
   banner?: string | null;
   children: React.ReactNode;
@@ -226,9 +230,9 @@ export function AppShell({
       <SkipLink label={t.common.skipToContent} />
       {/* Barre latérale fixe à partir de 1024 px ; en dessous, la même
           navigation s'ouvre en tiroir depuis la barre supérieure. */}
-      <Sidebar counts={counts} className="hidden lg:flex" />
+      <Sidebar counts={counts} clinics={clinics} className="hidden lg:flex" />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar counts={counts} />
+        <Topbar counts={counts} clinics={clinics} />
         {banner && <MaintenanceBanner message={banner} />}
         {/* Démonstration : aucune session réelle à fermer. */}
         {!isDemo && <InactivityLock />}

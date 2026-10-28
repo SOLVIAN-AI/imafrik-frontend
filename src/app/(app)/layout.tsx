@@ -6,6 +6,7 @@ import { SessionProvider } from "@/components/providers/session-provider";
 import { HelpProvider } from "@/components/help/help-panel";
 import { TourProvider } from "@/components/tour/tour-provider";
 import { getPendingAgreements } from "@/lib/data/agreements";
+import { listViewableClinics } from "@/lib/data/clinic-view";
 import { getPlatformSettings } from "@/lib/data/control";
 import { getMetrics } from "@/lib/data/metrics";
 import type { NavCounts } from "@/lib/navigation";
@@ -60,11 +61,13 @@ async function navCounts(): Promise<NavCounts | null> {
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const session = await requireSession();
   // En parallèle : le bandeau ne doit pas retarder la navigation, ni
-  // l'inverse. Les trois lectures tolèrent un service muet.
-  const [counts, settings, pendingAgreements] = await Promise.all([
+  // l'inverse. Les quatre lectures tolèrent un service muet. Les
+  // cliniques ne servent qu'à l'équipe IMAFRIK, pour sa vue des cliniques.
+  const [counts, settings, pendingAgreements, clinics] = await Promise.all([
     navCounts(),
     getPlatformSettings(),
     getPendingAgreements(),
+    session.active.role === "platform_admin" ? listViewableClinics() : [],
   ]);
   if (pendingAgreements.length > 0) redirect("/engagements");
 
@@ -79,6 +82,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         <HelpProvider>
           <AppShell
             counts={counts}
+            clinics={clinics}
             banner={settings?.maintenanceMessage ?? null}
           >
             {children}

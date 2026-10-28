@@ -24,6 +24,7 @@ import {
   demoMonthActivity,
   demoStatement,
 } from "@/lib/demo/billing";
+import { clinicViewApi } from "@/lib/clinic-view";
 import { isDemoMode } from "@/lib/demo/mode";
 import { demoPerformance } from "@/lib/demo/performance";
 import { type PerformanceMonth, toPerformanceMonth } from "@/lib/performance";
@@ -49,13 +50,20 @@ async function demoClinicId(): Promise<string> {
 /**
  * L'activité de la clinique active sur un mois.
  *
- * @param month Mois `AAAA-MM`, pas à venir.
+ * @param month    Mois `AAAA-MM`, pas à venir.
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK (vue des
+ *                 cliniques) : la même activité que lit son responsable.
  */
-export async function getMonthActivity(month: string): Promise<MonthActivity> {
+export async function getMonthActivity(
+  month: string,
+  clinicId?: string,
+): Promise<MonthActivity> {
   const row = isDemoMode()
-    ? demoMonthActivity(await demoClinicId(), month)
+    ? demoMonthActivity(clinicId ?? (await demoClinicId()), month)
     : await apiGet(
-        `/organization/activity${query(month)}`,
+        clinicId
+          ? `${clinicViewApi(clinicId)}/activity${query(month)}`
+          : `/organization/activity${query(month)}`,
         clinicMonthActivitySchema,
       );
   return toMonthActivity(row);
@@ -102,18 +110,27 @@ export async function getNetworkPerformance(
 /**
  * Le relevé de facturation de la clinique active pour un mois.
  *
- * @param month Mois `AAAA-MM`, pas à venir.
+ * @param month    Mois `AAAA-MM`, pas à venir.
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK (vue des
+ *                 cliniques) : le même relevé que lit son responsable.
  * @returns Le relevé, ou `null` pour un mois clos avant l'arrivée de la
  *          clinique.
  */
-export async function getStatement(month: string): Promise<Statement | null> {
+export async function getStatement(
+  month: string,
+  clinicId?: string,
+): Promise<Statement | null> {
   if (isDemoMode()) {
-    return toStatement(demoStatement(await demoClinicId(), month));
+    return toStatement(
+      demoStatement(clinicId ?? (await demoClinicId()), month),
+    );
   }
   try {
     return toStatement(
       await apiGet(
-        `/organization/billing${query(month)}`,
+        clinicId
+          ? `${clinicViewApi(clinicId)}/billing${query(month)}`
+          : `/organization/billing${query(month)}`,
         clinicStatementSchema,
       ),
     );

@@ -64,13 +64,25 @@ interface Lang {
 /** Au-delà, une barre par jour devient illisible : on passe à la semaine. */
 const DAILY_LIMIT = 90;
 
+/** Rubriques de l'écran, telles que l'adresse les nomme (`?onglet=`). */
+const TABS = ["ensemble", "radiologues", "cliniques"] as const;
+type Tab = (typeof TABS)[number];
+
+/** La rubrique demandée ; la vue d'ensemble à défaut. */
+function parseTab(value: string | string[] | undefined): Tab {
+  return TABS.find((tab) => tab === value) ?? "ensemble";
+}
+
 /**
  * Activité de la plateforme sur une période.
  *
- * Volumes, délais et leur décomposition par étape, heures d'arrivée,
- * puis les mêmes chiffres par clinique, par modalité et par radiologue.
- * Période et clinique vivent dans l'adresse : une vue se partage telle
- * quelle.
+ * Trois rubriques, à un clic dès l'en-tête, chacune à son adresse
+ * (`?onglet=`) : la **vue d'ensemble** (volumes, délais et leur
+ * décomposition par étape, heures d'arrivée, modalités), les
+ * **performances par radiologue** d'un mois (`?mois=`, et `?radiologue=`
+ * pour en désigner un, depuis sa ligne dans « Comptes »), et l'activité
+ * **par clinique**. La facturation a son écran, à côté. Période, mois et
+ * clinique vivent dans l'adresse : une vue se partage telle quelle.
  */
 export default async function ActivityPage({
   searchParams,
@@ -90,106 +102,171 @@ export default async function ActivityPage({
   );
   const month = parseMonth(params.mois);
   const current = parseMonth(undefined);
+  const tab = parseTab(params.onglet);
+  const radiologistId =
+    typeof params.radiologue === "string" ? params.radiologue : undefined;
+  // Chaque rubrique ne lit que ce qu'elle montre.
   const [data, performance] = await Promise.all([
-    getAnalytics(days, clinicId),
-    getNetworkPerformance(month, clinicId),
+    tab === "radiologues" ? null : getAnalytics(days, clinicId),
+    tab === "radiologues" ? getNetworkPerformance(month, clinicId) : null,
   ]);
   const clinicName = clinics.find((clinic) => clinic.id === clinicId)?.name;
 
-  const periodHref = (period: number) => {
-    const query = new URLSearchParams({ jours: String(period) });
+  /** Adresse de l'écran, rubrique, période, clinique et mois gardés. */
+  const href = (
+    changes: { tab?: Tab; period?: number; everyone?: boolean } = {},
+  ) => {
+    const target = changes.tab ?? tab;
+    const query = new URLSearchParams();
+    if (target !== "ensemble") query.set("onglet", target);
+    query.set("jours", String(changes.period ?? days));
     if (clinicId) query.set("clinique", clinicId);
     if (month !== current) query.set("mois", month);
+    if (target === "radiologues" && radiologistId && !changes.everyone)
+      query.set("radiologue", radiologistId);
     return `/admin/activite?${query}`;
   };
-  // Le mois des performances garde la période et la clinique de l'écran.
-  const monthQuery: Record<string, string> = { jours: String(days) };
+  // Le mois des performances garde la rubrique, la période et la clinique.
+  const monthQuery: Record<string, string> = {
+    onglet: "radiologues",
+    jours: String(days),
+  };
   if (clinicId) monthQuery.clinique = clinicId;
+  if (radiologistId) monthQuery.radiologue = radiologistId;
+  const focused = performance?.radiologists.find(
+    (row) => row.id === radiologistId,
+  );
 
   return (
     <>
       <PageHeader
         title={t.nav.items.analytics}
-        description={text.description(
-          clinicName ?? t.admin.shared.wholeNetwork,
-          days,
-        )}
+        description={
+          tab === "radiologues"
+            ? `${clinicName ?? t.admin.shared.wholeNetwork} · ${formatMonth(month, locale)}`
+            : text.description(clinicName ?? t.admin.shared.wholeNetwork, days)
+        }
         actions={
           <>
-            <Segmented
-              label={text.period}
-              options={ANALYTICS_PERIODS.map((period) => ({
-                label:
-                  period === 365
-                    ? t.common.units.years(1)
-                    : `${period} ${t.common.units.day}`,
-                href: periodHref(period),
-                active: period === days,
-              }))}
-            />
+            {tab === "radiologues" ? (
+              <MonthNav
+                month={month}
+                current={current}
+                path="/admin/activite"
+                query={monthQuery}
+                locale={locale}
+                labels={t.clinic.activity}
+              />
+            ) : (
+              <Segmented
+                label={text.period}
+                options={ANALYTICS_PERIODS.map((period) => ({
+                  label:
+                    period === 365
+                      ? t.common.units.years(1)
+                      : `${period} ${t.common.units.day}`,
+                  href: href({ period }),
+                  active: period === days,
+                }))}
+              />
+            )}
             <ClinicFilter clinics={clinics} />
           </>
         }
       />
 
-      <ControlBody>
-        <Totals data={data} {...lang} />
-
-        <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
-          <Volume data={data} {...lang} />
-          <Turnaround data={data} {...lang} />
-        </div>
-
-        <Stages stages={data.stages} {...lang} />
-
-        <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-3">
-          <Section
-            title={text.arrivals}
-            description={text.arrivalsDescription}
-            className="xl:col-span-2"
-          >
-            <Heatmap
-              cells={data.heatmap}
-              caption={text.arrivalsCaption}
-              locale={locale}
-            />
-          </Section>
-          <Section
-            title={text.modalities}
-            description={text.modalitiesDescription}
-          >
-            <RankedBars
-              locale={locale}
-              items={data.byModality.map((row) => ({
-                label: row.modality,
-                value: row.received,
-                hint: formatMinutes(row.medianMinutes, locale),
-              }))}
-            />
-          </Section>
-        </div>
-
-        {!clinicId && <Clinics data={data} days={days} {...lang} />}
-
-        <Section
-          title={t.clinic.activity.performance.title}
-          description={`${formatMonth(month, locale)} · ${
-            clinicName ?? t.admin.shared.wholeNetwork
-          }`}
-          aside={
-            <MonthNav
-              month={month}
-              current={current}
-              path="/admin/activite"
-              query={monthQuery}
-              locale={locale}
-              labels={t.clinic.activity}
-            />
-          }
-          flush
+      {/* Les rubriques, à un clic : la facturation a son écran. */}
+      <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 px-4 pb-4 sm:px-6">
+        <Segmented
+          label={text.tabs.label}
+          options={TABS.map((key) => ({
+            label: text.tabs[key],
+            href: href({ tab: key }),
+            active: key === tab,
+          }))}
+        />
+        <Link
+          href={`/admin/facturation?mois=${month}`}
+          className="flex min-h-6 items-center gap-1 text-xs text-tertiary transition-colors hover:text-accent"
         >
-          <PerformanceTable performance={performance} />
-        </Section>
+          {text.tabs.billing}
+          <ChevronRight className="size-3.5" aria-hidden />
+        </Link>
+      </div>
+
+      <ControlBody>
+        {data && tab === "ensemble" && (
+          <>
+            <Totals data={data} {...lang} />
+
+            <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
+              <Volume data={data} {...lang} />
+              <Turnaround data={data} {...lang} />
+            </div>
+
+            <Stages stages={data.stages} {...lang} />
+
+            <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-3">
+              <Section
+                title={text.arrivals}
+                description={text.arrivalsDescription}
+                className="xl:col-span-2"
+              >
+                <Heatmap
+                  cells={data.heatmap}
+                  caption={text.arrivalsCaption}
+                  locale={locale}
+                />
+              </Section>
+              <Section
+                title={text.modalities}
+                description={text.modalitiesDescription}
+              >
+                <RankedBars
+                  locale={locale}
+                  items={data.byModality.map((row) => ({
+                    label: row.modality,
+                    value: row.received,
+                    hint: formatMinutes(row.medianMinutes, locale),
+                  }))}
+                />
+              </Section>
+            </div>
+          </>
+        )}
+
+        {data && tab === "cliniques" && (
+          <Clinics data={data} days={days} {...lang} />
+        )}
+
+        {performance && (
+          <Section
+            title={
+              focused
+                ? text.focus(focused.name)
+                : t.clinic.activity.performance.title
+            }
+            description={`${formatMonth(month, locale)} · ${
+              clinicName ?? t.admin.shared.wholeNetwork
+            } · ${t.clinic.activity.performance.description}`}
+            action={
+              radiologistId
+                ? { label: text.seeAll, href: href({ everyone: true }) }
+                : undefined
+            }
+            flush
+          >
+            {radiologistId && !focused && (
+              <p className="border-b border-border-subtle px-4 py-3 text-xs text-secondary">
+                {text.focusNone}
+              </p>
+            )}
+            <PerformanceTable
+              performance={performance}
+              highlight={radiologistId}
+            />
+          </Section>
+        )}
       </ControlBody>
     </>
   );

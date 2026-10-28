@@ -7,14 +7,18 @@ import { ApiError, apiFetch, apiGet } from "@/lib/api/client";
 import { z } from "zod";
 
 import {
+  modalityCountsSchema,
   studyPageSchema,
   studySchema,
   viewerTokenSchema,
   type ApiStudy,
+  type ModalityGroup,
 } from "@/lib/api/contracts";
+import { clinicViewApi } from "@/lib/clinic-view";
 import { isDemoMode } from "@/lib/demo/mode";
 import type { Locale } from "@/lib/i18n/locale";
 import { DEMO_STUDIES, DEMO_USER_ID } from "@/lib/demo/studies";
+import { MODALITY_GROUPS, modalityGroupOf } from "@/lib/modalities";
 import { searchableText } from "@/lib/search/list-search";
 import { isConfiguredViewer } from "@/lib/security/urls";
 import { getSession } from "@/lib/session/server";
@@ -132,6 +136,8 @@ export interface StudyQuery {
   status?: StudyStatus[];
   /** Seulement les examens de cette priorité, filtrés par le service. */
   priority?: "routine" | "urgent";
+  /** Seulement les examens de ce groupe de modalités, filtrés par le service. */
+  modalityGroup?: ModalityGroup;
   /** Recherche libre : nom ou identifiant du patient, modalité. */
   search?: string;
   /** Seulement les examens que l'utilisateur a pris en charge. */
@@ -169,8 +175,11 @@ export interface StudyPage {
  *
  * @param query Filtres facultatifs.
  */
-export async function listStudies(query: StudyQuery = {}): Promise<Study[]> {
-  return (await listStudyPage(query)).studies;
+export async function listStudies(
+  query: StudyQuery = {},
+  clinicId?: string,
+): Promise<Study[]> {
+  return (await listStudyPage(query, clinicId)).studies;
 }
 
 /**
@@ -182,30 +191,102 @@ export async function listStudies(query: StudyQuery = {}): Promise<Study[]> {
  * Tous les filtres, ordre compris, sont appliqués par le service : filtrer
  * ici une page déjà tronquée donnait des listes et des comptes faux.
  *
- * @param query Filtres facultatifs.
+ * **Vue des cliniques.** Avec `clinicId`, l'équipe IMAFRIK lit la liste
+ * du responsable de cette clinique (`/admin/clinics/{id}/view/studies`) :
+ * mêmes filtres, même ordre, même pagination, et ce que le responsable
+ * voit, rien de plus (ni brouillon, ni nom d'un radiologue qu'il ne
+ * connaît pas).
+ *
+ * @param query    Filtres facultatifs.
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK ; absente, le
+ *                 périmètre de l'utilisateur.
  * @throws ApiError 422 si le curseur est illisible ou a été émis pour un
  *         autre ordre de tri.
  */
 export async function listStudyPage(
   query: StudyQuery = {},
+  clinicId?: string,
 ): Promise<StudyPage> {
-  if (isDemoMode()) return demoPage(await demoScope(), query);
+  if (isDemoMode()) {
+    return demoPage(
+      clinicId ? demoClinicStudies(clinicId) : await demoScope(),
+      query,
+    );
+  }
 
   const params = new URLSearchParams();
   for (const status of query.status ?? []) params.append("status", status);
   if (query.priority) params.set("priority", query.priority);
+  if (query.modalityGroup) params.set("modality_group", query.modalityGroup);
   if (query.search) params.set("q", query.search);
-  if (query.mine) params.set("mine", "true");
+  if (query.mine && !clinicId) params.set("mine", "true");
   if (query.order) params.set("order", query.order);
   params.set("limit", String(query.limit ?? STUDY_PAGE_LIMIT));
   if (query.cursor) params.set("cursor", query.cursor);
 
-  const page = await apiGet(`/studies?${params.toString()}`, studyPageSchema);
+  const path = clinicId ? `${clinicViewApi(clinicId)}/studies` : "/studies";
+  const page = await apiGet(`${path}?${params.toString()}`, studyPageSchema);
   return {
     studies: page.items.map(toStudy),
     total: page.total,
     nextCursor: page.next_cursor ?? null,
   };
+}
+
+/** Combien d'examens de chaque groupe de modalités une liste montrerait. */
+export interface ModalityCounts {
+  /** Tous groupes confondus. */
+  total: number;
+  /** Chaque groupe, zéro compris. */
+  byGroup: Record<ModalityGroup, number>;
+}
+
+/**
+ * Le nombre d'examens de chaque groupe de modalités, pour les onglets d'une
+ * liste.
+ *
+ * Compté par le service avec les mêmes filtres que la liste (statut,
+ * priorité, recherche), groupe mis à part, dans le périmètre de
+ * l'utilisateur : le nombre d'un onglet est le total de la liste filtrée
+ * sur ce groupe.
+ *
+ * @param query    Filtres de la liste ; son groupe, son ordre et sa page
+ *                 sont ignorés.
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK, voir
+ *                 {@link listStudyPage}.
+ */
+export async function getModalityCounts(
+  query: Pick<StudyQuery, "status" | "priority" | "search" | "mine">,
+  clinicId?: string,
+): Promise<ModalityCounts> {
+  if (isDemoMode()) {
+    const { studies } = demoPage(
+      clinicId ? demoClinicStudies(clinicId) : await demoScope(),
+      { ...query, limit: STUDY_PAGE_LIMIT * 100 },
+    );
+    const byGroup = Object.fromEntries(
+      MODALITY_GROUPS.map((group) => [group, 0]),
+    ) as Record<ModalityGroup, number>;
+    for (const study of studies) byGroup[modalityGroupOf(study.modality)] += 1;
+    return { total: studies.length, byGroup };
+  }
+  const params = new URLSearchParams();
+  for (const status of query.status ?? []) params.append("status", status);
+  if (query.priority) params.set("priority", query.priority);
+  if (query.search) params.set("q", query.search);
+  if (query.mine && !clinicId) params.set("mine", "true");
+  const path = clinicId
+    ? `${clinicViewApi(clinicId)}/studies/modality-counts`
+    : "/studies/modality-counts";
+  const raw = await apiGet(
+    `${path}?${params.toString()}`,
+    modalityCountsSchema,
+  );
+  const byGroup = Object.fromEntries(
+    MODALITY_GROUPS.map((group) => [group, 0]),
+  ) as Record<ModalityGroup, number>;
+  for (const row of raw.groups) byGroup[row.modality_group] = row.count;
+  return { total: raw.total, byGroup };
 }
 
 /**
@@ -214,15 +295,18 @@ export async function listStudyPage(
  * changement d'ordre, ou modifié à la main) ramène au début de la liste au
  * lieu d'afficher une erreur.
  *
- * @param query   Filtres, curseur compris.
- * @param restart Adresse de la première page, autres paramètres gardés.
+ * @param query    Filtres, curseur compris.
+ * @param restart  Adresse de la première page, autres paramètres gardés.
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK, voir
+ *                 {@link listStudyPage}.
  */
 export async function listStudyPageAt(
   query: StudyQuery,
   restart: string,
+  clinicId?: string,
 ): Promise<StudyPage> {
   try {
-    return await listStudyPage(query);
+    return await listStudyPage(query, clinicId);
   } catch (error) {
     if (query.cursor && error instanceof ApiError && error.status === 422) {
       redirect(restart);
@@ -303,20 +387,36 @@ export const STUDY_LIST_PAGE_SIZE = 50;
 /**
  * Un examen précis.
  *
+ * @param id       Examen.
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK : l'examen tel
+ *                 que le voit son responsable, s'il est de cette clinique.
  * @returns L'examen, ou `null` s'il n'existe pas — ou s'il appartient à
  *          une organisation que l'utilisateur ne sert pas, cas que l'API
  *          rend indiscernable du précédent, à dessein.
  * @throws ApiError pour toute autre erreur : une panne doit s'afficher
  *         comme une panne, pas comme un examen introuvable.
  */
-export async function getStudy(id: string): Promise<Study | null> {
+export async function getStudy(
+  id: string,
+  clinicId?: string,
+): Promise<Study | null> {
   if (isDemoMode()) {
-    return (await demoScope()).find((study) => study.id === id) ?? null;
+    const scope = clinicId ? demoClinicStudies(clinicId) : await demoScope();
+    return scope.find((study) => study.id === id) ?? null;
   }
-  const row = await apiGet(`/studies/${encodeURIComponent(id)}`, studySchema, {
-    notFoundAsNull: true,
-  });
+  const path = clinicId
+    ? `${clinicViewApi(clinicId)}/studies/${encodeURIComponent(id)}`
+    : `/studies/${encodeURIComponent(id)}`;
+  const row = await apiGet(path, studySchema, { notFoundAsNull: true });
   return row ? toStudy(row) : null;
+}
+
+/**
+ * Les examens d'une clinique de démonstration, tels que les voit son
+ * responsable : la même restriction que `demoScope` pour une clinique.
+ */
+export function demoClinicStudies(clinicId: string): Study[] {
+  return DEMO_STUDIES.filter((study) => study.clinicId === clinicId);
 }
 
 /**
@@ -394,6 +494,11 @@ function demoPage(studies: Study[], query: StudyQuery): StudyPage {
   if (query.priority) {
     const urgent = query.priority === "urgent";
     result = result.filter((study) => study.urgent === urgent);
+  }
+  if (query.modalityGroup) {
+    result = result.filter(
+      (study) => modalityGroupOf(study.modality) === query.modalityGroup,
+    );
   }
   if (query.mine) {
     result = result.filter((study) => study.assignedTo === DEMO_USER_ID);

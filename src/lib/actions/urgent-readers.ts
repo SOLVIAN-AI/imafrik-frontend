@@ -10,6 +10,7 @@ import {
   run,
 } from "@/lib/actions/result";
 import { apiGet, apiSend } from "@/lib/api/client";
+import { clinicViewPath } from "@/lib/clinic-view";
 import {
   type ApiUrgentReader,
   type ModalityGroup,
@@ -97,7 +98,11 @@ export async function setUrgentReaders(
       )
     ).map(toReader),
   );
-  if (result.ok) revalidatePath(`/admin/organisations/${clinicId}`);
+  if (result.ok) {
+    revalidatePath(`/admin/organisations/${clinicId}`);
+    // L'équipe de la clinique, dans la vue des cliniques.
+    revalidatePath(clinicViewPath(clinicId, "/equipe"));
+  }
   return result;
 }
 

@@ -167,6 +167,18 @@ const _studyPage: Matches<
   Schemas["StudyPage"]
 > = true;
 
+/** Combien d'examens de chaque groupe de modalités une liste montrerait. */
+export const modalityCountsSchema = z.object({
+  total: z.number().int(),
+  groups: z.array(
+    z.object({ modality_group: modalityGroupSchema, count: z.number().int() }),
+  ),
+});
+const _modalityCounts: Matches<
+  z.input<typeof modalityCountsSchema>,
+  Schemas["StudyModalityCounts"]
+> = true;
+
 export const addendumSchema = z.object({
   id: uuid,
   report_id: uuid,
@@ -634,6 +646,18 @@ export const adminOrganizationSchema = z.object({
 const _adminOrganization: Matches<
   z.input<typeof adminOrganizationSchema>,
   Schemas["AdminOrganization"]
+> = true;
+
+/** La clinique consultée par l'équipe IMAFRIK (vue des cliniques). */
+export const clinicViewSchema = z.object({
+  id: uuid,
+  name: z.string(),
+  city: z.string().nullable(),
+  is_active: z.boolean(),
+});
+const _clinicView: Matches<
+  z.input<typeof clinicViewSchema>,
+  Schemas["ClinicView"]
 > = true;
 
 export const contactRequestSchema = z.object({
@@ -1150,6 +1174,10 @@ export const adminUserSchema = z.object({
   // Images de signature ou de cachet en attente de l’équipe IMAFRIK.
   signing_review_due: count,
   memberships: z.array(userMembershipSchema),
+  // Radiologue : cliniques dont il est sur la liste d'urgence.
+  urgent_lists: z
+    .array(z.object({ clinic_id: uuid, clinic_name: z.string() }))
+    .optional(),
 });
 const _adminUser: Matches<
   z.input<typeof adminUserSchema>,
@@ -1679,6 +1707,7 @@ export const CONTRACT_CHECKS = [
   _priorCandidate,
   _assignment,
   _studyPage,
+  _modalityCounts,
   _report,
   _viewer,
   _viewerRenewed,
@@ -1696,6 +1725,7 @@ export const CONTRACT_CHECKS = [
   _organization,
   _member,
   _adminOrganization,
+  _clinicView,
   _contactRequest,
   _opsRun,
   _alert,
