@@ -229,9 +229,13 @@ async function parseContract<S extends z.ZodTypeAny>(
   const parsed = schema.safeParse(raw);
   if (!parsed.success) {
     // Le détail part dans les journaux du serveur, pas vers l'écran : il
-    // pourrait contenir des valeurs de la réponse.
+    // pourrait contenir des valeurs de la réponse. Le chemin porte des
+    // identifiants reçus du navigateur (validés, mais pas par ce module) :
+    // il est passé en argument, jamais en format, et sans saut de ligne,
+    // pour ne pas pouvoir forger une ligne de journal.
     console.error(
-      `Rupture de contrat sur ${path}`,
+      "Rupture de contrat sur %s",
+      path.replace(/[\r\n]+/g, " "),
       parsed.error.issues.slice(0, 5),
     );
     throw new ApiError(
