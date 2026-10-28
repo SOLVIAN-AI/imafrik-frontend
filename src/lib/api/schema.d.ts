@@ -3546,6 +3546,8 @@ export interface paths {
          *         q: Recherche libre, insensible à la casse. Le nom se cherche tel
          *             qu'il s'affiche (voir :func:`search_text`).
          *         modality_group: Restreint à un groupe de modalités.
+         *         clinic_id: Restreint à une clinique (dans le périmètre de
+         *             l'appelant).
          *         mine: Restreint aux examens que l'appelant a pris en charge.
          *         order: Ordre de tri, voir :data:`StudyOrder`.
          *         limit: Nombre maximal d'examens renvoyés.
@@ -3561,6 +3563,32 @@ export interface paths {
          *         Unprocessable: Curseur illisible, ou émis pour un autre ordre.
          */
         get: operations["list_studies_studies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/studies/clinic-counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Examens visibles par clinique
+         * @description Combien d'examens de chaque clinique la liste montrerait.
+         *
+         *     Les mêmes filtres que ``GET /studies`` (groupe de modalités compris),
+         *     clinique mise à part, dans le même périmètre : chaque clinique que
+         *     l'appelant voit, avec le total de la liste filtrée sur elle. Pour
+         *     l'équipe IMAFRIK, toutes les cliniques ; pour un responsable, la
+         *     sienne.
+         */
+        get: operations["count_by_clinic_studies_clinic_counts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5220,6 +5248,21 @@ export interface components {
             signed: number;
             /** Within Sla */
             within_sla: number | null;
+        };
+        /**
+         * ClinicCount
+         * @description Examens d'une clinique.
+         */
+        ClinicCount: {
+            /**
+             * Clinic Id
+             * Format: uuid
+             */
+            clinic_id: string;
+            /** Clinic Name */
+            clinic_name: string;
+            /** Count */
+            count: number;
         };
         /**
          * ClinicCreate
@@ -8536,6 +8579,25 @@ export interface components {
             study_date: string | null;
             /** Study Instance Uid */
             study_instance_uid: string;
+        };
+        /**
+         * StudyClinicCounts
+         * @description Combien d'examens de chaque clinique une liste montrerait.
+         *
+         *     Comptés par la base, avec les mêmes filtres que la liste (statut,
+         *     priorité, recherche, groupe de modalités) et dans le périmètre de
+         *     l'appelant, clinique mise à part : de quoi nommer chaque choix du
+         *     sélecteur de clinique.
+         *
+         *     Attributes:
+         *         total: Toutes cliniques confondues.
+         *         clinics: Chaque clinique que l'appelant voit, par nom, zéro compris.
+         */
+        StudyClinicCounts: {
+            /** Clinics */
+            clinics: components["schemas"]["ClinicCount"][];
+            /** Total */
+            total: number;
         };
         /**
          * StudyModalityCounts
@@ -14139,6 +14201,8 @@ export interface operations {
                 q?: string | null;
                 /** @description Seulement les examens de ce groupe de modalités */
                 modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+                /** @description Seulement les examens de cette clinique */
+                clinic_id?: string | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
                 /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance */
@@ -14175,6 +14239,48 @@ export interface operations {
             };
         };
     };
+    count_by_clinic_studies_clinic_counts_get: {
+        parameters: {
+            query?: {
+                /** @description Un ou plusieurs statuts ; vide = tous */
+                status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
+                /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
+                q?: string | null;
+                /** @description Seulement les examens de ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+                /** @description Seulement les examens pris en charge par l'appelant */
+                mine?: boolean;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyClinicCounts"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     count_by_modality_studies_modality_counts_get: {
         parameters: {
             query?: {
@@ -14184,6 +14290,8 @@ export interface operations {
                 priority?: ("routine" | "urgent") | null;
                 /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
                 q?: string | null;
+                /** @description Seulement les examens de cette clinique */
+                clinic_id?: string | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
             };

@@ -179,6 +179,22 @@ const _modalityCounts: Matches<
   Schemas["StudyModalityCounts"]
 > = true;
 
+/** Combien d'examens de chaque clinique une liste montrerait. */
+export const clinicCountsSchema = z.object({
+  total: z.number().int(),
+  clinics: z.array(
+    z.object({
+      clinic_id: uuid,
+      clinic_name: z.string(),
+      count: z.number().int(),
+    }),
+  ),
+});
+const _clinicCounts: Matches<
+  z.input<typeof clinicCountsSchema>,
+  Schemas["StudyClinicCounts"]
+> = true;
+
 export const addendumSchema = z.object({
   id: uuid,
   report_id: uuid,
@@ -1708,6 +1724,7 @@ export const CONTRACT_CHECKS = [
   _assignment,
   _studyPage,
   _modalityCounts,
+  _clinicCounts,
   _report,
   _viewer,
   _viewerRenewed,

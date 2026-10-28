@@ -229,7 +229,11 @@ export const admin: AppMessages["admin"] = {
       `${count} urgent examination${count === 1 ? "" : "s"} not yet reported`,
     allDescription: (count: number) =>
       `${count} examination${count === 1 ? "" : "s"} across all organisations`,
+    clinicDescription: (count: number) =>
+      `${count} examination${count === 1 ? "" : "s"}`,
     openUrgent: "Open urgent cases",
+    clinicFilter: "Clinics",
+    allClinics: "All clinics",
     openImages: (patient: string) => `Open the images of ${patient}`,
     stuck: (count: number) =>
       `${count} urgent examination${count === 1 ? " is" : "s are"} waiting to be claimed.`,
@@ -289,6 +293,7 @@ export const admin: AppMessages["admin"] = {
     backToOrganisations: "Organisations",
     detailedActivity: "Detailed activity",
     radiologistPerformance: "Radiologist performance",
+    clinicStudies: "Clinic examinations",
     onboarding: "Onboarding",
     stepsDone: (done: number, total: number) =>
       `${done} of ${total} step${total === 1 ? "" : "s"} completed`,

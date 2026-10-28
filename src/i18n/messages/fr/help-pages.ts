@@ -443,7 +443,7 @@ export const pages = {
       purpose:
         "Liste les examens de toute la plateforme, toutes organisations confondues, pour répondre vite à une clinique. Le nom du patient ouvre les images et le compte-rendu en consultation seule, et chaque ouverture est tracée.",
       steps: [
-        "Choisissez un groupe de modalités dans les onglets (Radiographie, Scanner, IRM…) : chacun dit combien d’examens il compte.",
+        "Choisissez une clinique et un groupe de modalités en tête de liste : chaque choix dit combien d’examens il compte, et les deux se combinent.",
         "Cherchez un examen par patient, identifiant ou modalité, ou cliquez sur « Urgences en cours », les plus en retard en tête.",
         "Cliquez sur le nom du patient pour ouvrir les images et le compte-rendu, sans pouvoir rédiger ni signer.",
         "Pour un examen non signé, cliquez sur le bouton d’attribution, choisissez un radiologue qui lit sa modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",

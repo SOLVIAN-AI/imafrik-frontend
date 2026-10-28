@@ -438,7 +438,7 @@ export const pages: typeof fr = {
       purpose:
         "Lists the examinations of the whole platform, across all organisations, to answer a clinic quickly. The patient’s name opens the images and the report in view-only mode, and every opening is logged.",
       steps: [
-        "Choose a modality group in the tabs (Radiography, CT, MRI…): each one shows how many examinations it holds.",
+        "Choose a clinic and a modality group at the top of the list: each choice shows how many examinations it holds, and the two combine.",
         "Search for an examination by patient, ID or modality, or click “Open urgent cases”, the most overdue first.",
         "Click the patient’s name to open the images and the report, without being able to write or sign.",
         "For an unsigned examination, click the assign button, choose a radiologist who reads its modality, tick the useful prior examinations, then click “Assign”.",

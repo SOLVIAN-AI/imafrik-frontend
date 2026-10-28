@@ -7,6 +7,7 @@ import { ApiError, apiFetch, apiGet } from "@/lib/api/client";
 import { z } from "zod";
 
 import {
+  clinicCountsSchema,
   modalityCountsSchema,
   studyPageSchema,
   studySchema,
@@ -17,6 +18,7 @@ import {
 import { clinicViewApi } from "@/lib/clinic-view";
 import { isDemoMode } from "@/lib/demo/mode";
 import type { Locale } from "@/lib/i18n/locale";
+import { DEMO_NETWORK } from "@/lib/demo/control";
 import { DEMO_STUDIES, DEMO_USER_ID } from "@/lib/demo/studies";
 import { MODALITY_GROUPS, modalityGroupOf } from "@/lib/modalities";
 import { searchableText } from "@/lib/search/list-search";
@@ -138,6 +140,11 @@ export interface StudyQuery {
   priority?: "routine" | "urgent";
   /** Seulement les examens de ce groupe de modalités, filtrés par le service. */
   modalityGroup?: ModalityGroup;
+  /**
+   * Seulement les examens de cette clinique, filtrés par le service : un
+   * classement pour l'équipe IMAFRIK, pas un accès (RLS borne chacun).
+   */
+  clinic?: string;
   /** Recherche libre : nom ou identifiant du patient, modalité. */
   search?: string;
   /** Seulement les examens que l'utilisateur a pris en charge. */
@@ -218,6 +225,7 @@ export async function listStudyPage(
   for (const status of query.status ?? []) params.append("status", status);
   if (query.priority) params.set("priority", query.priority);
   if (query.modalityGroup) params.set("modality_group", query.modalityGroup);
+  if (query.clinic && !clinicId) params.set("clinic_id", query.clinic);
   if (query.search) params.set("q", query.search);
   if (query.mine && !clinicId) params.set("mine", "true");
   if (query.order) params.set("order", query.order);
@@ -256,7 +264,7 @@ export interface ModalityCounts {
  *                 {@link listStudyPage}.
  */
 export async function getModalityCounts(
-  query: Pick<StudyQuery, "status" | "priority" | "search" | "mine">,
+  query: Pick<StudyQuery, "status" | "priority" | "search" | "mine" | "clinic">,
   clinicId?: string,
 ): Promise<ModalityCounts> {
   if (isDemoMode()) {
@@ -275,6 +283,7 @@ export async function getModalityCounts(
   if (query.priority) params.set("priority", query.priority);
   if (query.search) params.set("q", query.search);
   if (query.mine && !clinicId) params.set("mine", "true");
+  if (query.clinic && !clinicId) params.set("clinic_id", query.clinic);
   const path = clinicId
     ? `${clinicViewApi(clinicId)}/studies/modality-counts`
     : "/studies/modality-counts";
@@ -287,6 +296,63 @@ export async function getModalityCounts(
   ) as Record<ModalityGroup, number>;
   for (const row of raw.groups) byGroup[row.modality_group] = row.count;
   return { total: raw.total, byGroup };
+}
+
+/** Combien d'examens de chaque clinique une liste montrerait. */
+export interface ClinicCounts {
+  /** Toutes cliniques confondues. */
+  total: number;
+  /** Chaque clinique que l'utilisateur voit, par nom, zéro compris. */
+  clinics: { id: string; name: string; count: number }[];
+}
+
+/**
+ * Le nombre d'examens de chaque clinique, pour le sélecteur de clinique de
+ * la liste de l'équipe IMAFRIK.
+ *
+ * Compté par le service avec les mêmes filtres que la liste (statut,
+ * priorité, recherche, groupe de modalités), clinique mise à part, dans le
+ * périmètre de l'utilisateur.
+ *
+ * @param query Filtres de la liste ; sa clinique, son ordre et sa page
+ *              sont ignorés.
+ */
+export async function getClinicCounts(
+  query: Pick<
+    StudyQuery,
+    "status" | "priority" | "search" | "mine" | "modalityGroup"
+  >,
+): Promise<ClinicCounts> {
+  if (isDemoMode()) {
+    const { studies } = demoPage(await demoScope(), {
+      ...query,
+      limit: STUDY_PAGE_LIMIT * 100,
+    });
+    const clinics = DEMO_NETWORK.map((clinic) => ({
+      id: clinic.id,
+      name: clinic.name,
+      count: studies.filter((study) => study.clinicId === clinic.id).length,
+    })).sort((a, b) => a.name.localeCompare(b.name, "fr"));
+    return { total: studies.length, clinics };
+  }
+  const params = new URLSearchParams();
+  for (const status of query.status ?? []) params.append("status", status);
+  if (query.priority) params.set("priority", query.priority);
+  if (query.search) params.set("q", query.search);
+  if (query.mine) params.set("mine", "true");
+  if (query.modalityGroup) params.set("modality_group", query.modalityGroup);
+  const raw = await apiGet(
+    `/studies/clinic-counts?${params.toString()}`,
+    clinicCountsSchema,
+  );
+  return {
+    total: raw.total,
+    clinics: raw.clinics.map((row) => ({
+      id: row.clinic_id,
+      name: row.clinic_name,
+      count: row.count,
+    })),
+  };
 }
 
 /**
@@ -499,6 +565,9 @@ function demoPage(studies: Study[], query: StudyQuery): StudyPage {
     result = result.filter(
       (study) => modalityGroupOf(study.modality) === query.modalityGroup,
     );
+  }
+  if (query.clinic) {
+    result = result.filter((study) => study.clinicId === query.clinic);
   }
   if (query.mine) {
     result = result.filter((study) => study.assignedTo === DEMO_USER_ID);
