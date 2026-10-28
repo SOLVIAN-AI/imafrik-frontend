@@ -10,6 +10,7 @@ import {
 import { GrantDialog } from "@/components/admin/grant-dialog";
 import { SigningReviewDialog } from "@/components/admin/signing-review-dialog";
 import { MfaResetButton } from "@/components/admin/mfa-reset-button";
+import { ModalitiesDialog } from "@/components/admin/modalities-dialog";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { SearchBox } from "@/components/admin/search-box";
 import { CredentialChip } from "@/components/domain/credential-chip";
@@ -26,6 +27,7 @@ import {
   type TraineeProgress,
 } from "@/lib/data/training";
 import { formatPersonName } from "@/lib/format";
+import { describeModalities } from "@/lib/modalities";
 import { roleRequiresMfa } from "@/lib/session/mfa";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
@@ -304,16 +306,34 @@ function UserRow({
           user.memberships.map((membership) => (
             <li
               key={membership.membershipId}
-              className="max-w-full truncate rounded-full border border-border-subtle bg-surface-sunken/60 px-2 py-0.5 text-2xs"
-              title={`${membership.organizationName} (${t.common.roles[membership.role]})`}
+              className="flex max-w-full items-center gap-1 truncate rounded-full border border-border-subtle bg-surface-sunken/60 px-2 py-0.5 text-2xs"
+              title={[
+                `${membership.organizationName} (${t.common.roles[membership.role]})`,
+                membership.role === "radiologist"
+                  ? describeModalities(
+                      membership.readModalities,
+                      t.assignment.modalities,
+                    )
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             >
-              <span className="text-secondary">
+              <span className="truncate text-secondary">
                 {membership.organizationName}
               </span>
               <span className="text-tertiary">
                 {" · "}
                 {t.common.roles[membership.role]}
               </span>
+              {membership.role === "radiologist" && (
+                <ModalitiesDialog
+                  membershipId={membership.membershipId}
+                  name={formatPersonName(user.title, user.fullName)}
+                  organization={membership.organizationName}
+                  readModalities={membership.readModalities}
+                />
+              )}
             </li>
           ))
         )}

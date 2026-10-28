@@ -9,6 +9,12 @@ export const clinic = {
     title: "Tableau de bord",
     send: "Envoyer un examen",
     metrics: {
+      toAssign: "À attribuer",
+      toAssignHint: "aucun radiologue ne les voit encore",
+      urgentWaiting: (count: number) =>
+        count > 1
+          ? `dont ${count} urgences, ouvertes à votre liste d’urgence`
+          : "dont 1 urgence, ouverte à votre liste d’urgence",
       sent: "Envoyés sur 30 jours",
       inReading: "En cours de lecture",
       reportsReady: "Comptes-rendus prêts",
@@ -40,7 +46,6 @@ export const clinic = {
       patient: "Patient",
       study: "Examen",
       status: "Statut",
-      slices: "Coupes",
       sent: "Envoyé",
       report: "Compte-rendu",
     },
@@ -48,7 +53,6 @@ export const clinic = {
   },
   /** Fiche d'un examen. */
   study: {
-    readAndWrite: "Lire et rédiger",
     report: "Compte-rendu",
     signedBy: "Signé par",
     fullDocument: "Document complet",

@@ -6,8 +6,9 @@ import { expect, test } from "./support/fixtures";
  * La démonstration ne réserve rien : attribuer aboutit au message
  * « indisponible en démonstration ». Le test vérifie ce que l'écran
  * garantit seul : le titulaire, les radiologues du jeu les moins chargés
- * d'abord, le titulaire impossible à rechoisir, et la confirmation exigée
- * avant d'effacer un brouillon commencé. L'attribution elle-même est
+ * d'abord, le titulaire impossible à rechoisir, les antériorités du
+ * patient, et la confirmation exigée avant d'effacer un brouillon
+ * commencé. L'attribution elle-même est
  * éprouvée de bout en bout par `e2e/reel/attribution.spec.ts`, et côté
  * service par `tests/test_attribution.py`.
  */
@@ -24,12 +25,14 @@ for (const theme of ["dark", "light"] as const) {
     }) => {
       await page.goto("/admin/examens");
       await page
-        .getByRole("button", { name: "Attribuer l’examen de MENSAH Kodjo" })
+        .getByRole("button", { name: "Réattribuer l’examen de MENSAH Kodjo" })
         .click();
       const dialogue = page.getByRole("dialog", { name: "Attribuer l’examen" });
       await expect(dialogue).toBeVisible();
+      await expect(dialogue.getByText(/attribué le/)).toBeVisible();
+      // Les antériorités du patient sont cherchées dans la clinique.
       await expect(
-        dialogue.getByText("pris en charge par le radiologue"),
+        dialogue.getByText("Antériorités du patient", { exact: true }),
       ).toBeVisible();
 
       const radiologues = dialogue.getByRole("radio");
@@ -63,7 +66,7 @@ test("un examen signé ne propose pas d'attribution", async ({ page }) => {
   await page.goto("/admin/examens");
   const signe = page.getByRole("row").filter({ hasText: "Signé" }).first();
   await expect(signe).toBeVisible();
-  await expect(signe.getByRole("button", { name: /^Attribuer/ })).toHaveCount(
-    0,
-  );
+  await expect(
+    signe.getByRole("button", { name: /ttribuer l’examen/ }),
+  ).toHaveCount(0);
 });

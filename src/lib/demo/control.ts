@@ -1,6 +1,8 @@
 import type {
   ApiAdminUser,
   ApiAssignmentState,
+  ApiPriorCandidate,
+  ApiUrgentReader,
   ApiCredentialDocument,
   ApiContactRequest,
   ApiAuditEntry,
@@ -1391,6 +1393,55 @@ export function demoContactRequests(now = Date.now()): ApiContactRequest[] {
 }
 
 /**
+ * Liste d'urgence de démonstration d'une clinique : les radiologues du
+ * groupe, le premier sur la liste.
+ *
+ * @param clinicId Clinique de démonstration.
+ */
+export function demoUrgentReaders(clinicId: string): ApiUrgentReader[] {
+  void clinicId;
+  return READERS.map((reader, index) => ({
+    profile_id: reader.id,
+    name: `${reader.title} ${reader.name}`,
+    organization_name: DEMO_GROUP.name,
+    via_pool: true,
+    read_modalities: null,
+    urgent_reader: index === 0,
+  }));
+}
+
+/**
+ * Antériorités de démonstration d'un examen : les autres examens du même
+ * patient dans la même clinique, comme les propose le service. Le jeu de
+ * démonstration n'a que des correspondances certaines (même identifiant).
+ *
+ * @param studyId Examen de démonstration.
+ */
+export function demoPriorCandidates(studyId: string): ApiPriorCandidate[] {
+  const study = DEMO_STUDIES.find((candidate) => candidate.id === studyId);
+  if (!study?.patientId) return [];
+  return DEMO_STUDIES.filter(
+    (other) =>
+      other.id !== study.id &&
+      other.clinicId === study.clinicId &&
+      other.patientId === study.patientId,
+  )
+    .sort((a, b) => b.receivedAt.getTime() - a.receivedAt.getTime())
+    .map((other) => ({
+      study_id: other.id,
+      match: "certain" as const,
+      study_date: other.receivedAt.toISOString(),
+      modality: other.modality,
+      body_part: other.bodyPart,
+      patient_name: other.patientName,
+      patient_id_local: other.patientId,
+      patient_birthdate: other.patientBirthDate,
+      has_signed_report: other.reportId !== null,
+      shared: false,
+    }));
+}
+
+/**
  * Attribution d'un examen de démonstration : son titulaire, et les
  * radiologues du groupe, les moins chargés d'abord.
  *
@@ -1413,9 +1464,14 @@ export function demoAssignment(studyId: string): ApiAssignmentState | null {
   return {
     study_id: study.id,
     status: study.status,
+    priority: study.urgent ? "urgent" : "routine",
+    modality: study.modality || null,
     assigned_to: study.assignedTo,
     assigned_to_name: holder ? `${holder.title} ${holder.name}` : null,
-    assigned_at: null,
+    // Toute attribution porte son instant : cinq minutes après réception.
+    assigned_at: holder
+      ? new Date(study.receivedAt.getTime() + 5 * 60_000).toISOString()
+      : null,
     draft_in_progress: study.status === "in_progress",
     candidates: READERS.map((reader) => ({
       profile_id: reader.id,
@@ -1426,6 +1482,7 @@ export function demoAssignment(studyId: string): ApiAssignmentState | null {
     })).sort(
       (a, b) => a.open_studies - b.open_studies || a.name.localeCompare(b.name),
     ),
+    prior_shares: [],
     notified: null,
   };
 }

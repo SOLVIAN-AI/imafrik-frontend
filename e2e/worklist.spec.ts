@@ -5,7 +5,8 @@ import { expect, test } from "./support/fixtures";
 /**
  * File de lecture du radiologue.
  *
- * - les trois sections (pris en charge, à prendre, chez un confrère) ;
+ * - les deux sections (attribués à vous, urgences à prendre), sans les
+ *   examens des confrères, que le radiologue ne voit plus ;
  * - la navigation au clavier `j` / `k` et l'ouverture par `Entrée` ;
  * - les filtres, portés par l'adresse et conservés au rechargement ;
  * - la relecture automatique, au plus une toutes les trente secondes,
@@ -44,19 +45,15 @@ test("les sections de la file sont affichées", async ({ page }) => {
   ).toBeVisible();
   const table = page.locator("table");
   await expect(
-    table.getByText("Pris en charge par vous", { exact: true }),
+    table.getByText("Attribués à vous", { exact: true }),
   ).toBeVisible();
-  await expect(table.getByText("À prendre", { exact: true })).toBeVisible();
-  const confreres = table.getByRole("button", { name: /Chez un confrère/ });
-  await expect(confreres).toHaveAttribute("aria-expanded", "false");
-
-  // La section des confrères est repliée : l'ouvrir ajoute ses lignes.
-  const avant = await rowLinks(page).count();
-  expect(avant).toBeGreaterThan(0);
-  await waitForHydration(page);
-  await confreres.click();
-  await expect(confreres).toHaveAttribute("aria-expanded", "true");
-  await expect.poll(() => rowLinks(page).count()).toBeGreaterThan(avant);
+  await expect(
+    table.getByText("Urgences à prendre", { exact: true }),
+  ).toBeVisible();
+  // Le radiologue ne voit que ce qu'on lui confie : plus de section des
+  // confrères, ni d'examens libres hors urgence.
+  await expect(table.getByText(/Chez un confrère/)).toHaveCount(0);
+  await expect(rowLinks(page).first()).toBeVisible();
 });
 
 test("j et k parcourent la file, Entrée ouvre l'examen", async ({ page }) => {

@@ -22,6 +22,12 @@ export interface Metrics {
   urgentOpen: number;
   /** Examens en cours de lecture par l'utilisateur. */
   assignedToMe: number;
+  /** Examens attribués à l'utilisateur, pas encore commencés. */
+  assignedNew: number;
+  /** Examens qui attendent une attribution. */
+  toAssign: number;
+  /** Urgences sans titulaire : pour un radiologue, celles de sa liste. */
+  urgentToTake: number;
   receivedLast30Days: number;
   /** Délai médian réception → signature sur trente jours, en minutes. */
   medianTurnaroundMinutes: number | null;
@@ -53,6 +59,9 @@ export const getMetrics = cache(async (): Promise<Metrics> => {
     ) as Record<StudyStatus, number>,
     urgentOpen: raw.urgent_open,
     assignedToMe: raw.assigned_to_me,
+    assignedNew: raw.assigned_new,
+    toAssign: raw.to_assign,
+    urgentToTake: raw.urgent_to_take,
     receivedLast30Days: raw.received_last_30_days,
     medianTurnaroundMinutes: raw.median_turnaround_minutes,
     reportsToDownload: raw.reports_to_download,
@@ -62,12 +71,22 @@ export const getMetrics = cache(async (): Promise<Metrics> => {
 /** Indicateurs calculés sur le jeu de démonstration, avec le même périmètre. */
 async function demoMetrics(): Promise<Metrics> {
   const session = await getSession();
+  // Le périmètre de `demoScope` (lib/data/studies.ts) : la clinique, ses
+  // examens ; le radiologue, sa liste de travail.
   const studies =
     session?.active?.organizationKind === "clinic"
       ? DEMO_STUDIES.filter(
           (study) => study.clinic === session.active?.organizationName,
         )
-      : DEMO_STUDIES;
+      : session?.active?.role === "radiologist"
+        ? DEMO_STUDIES.filter(
+            (study) =>
+              study.assignedTo === DEMO_USER_ID ||
+              (study.assignedTo === null &&
+                study.urgent &&
+                study.status === "received"),
+          )
+        : DEMO_STUDIES;
 
   const byStatus = Object.fromEntries(
     STATUSES.map((status) => [
@@ -92,6 +111,15 @@ async function demoMetrics(): Promise<Metrics> {
     ).length,
     assignedToMe: studies.filter(
       (s) => s.assignedTo === DEMO_USER_ID && s.status === "in_progress",
+    ).length,
+    assignedNew: studies.filter(
+      (s) => s.assignedTo === DEMO_USER_ID && s.status === "assigned",
+    ).length,
+    toAssign: studies.filter(
+      (s) => s.assignedTo === null && s.status === "received",
+    ).length,
+    urgentToTake: studies.filter(
+      (s) => s.urgent && s.assignedTo === null && s.status === "received",
     ).length,
     receivedLast30Days: studies.length,
     medianTurnaroundMinutes: turnarounds.length

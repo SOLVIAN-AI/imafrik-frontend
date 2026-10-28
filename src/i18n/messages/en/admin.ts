@@ -590,48 +590,16 @@ export const admin: AppMessages["admin"] = {
       trigger: "Withdraw approval",
       title: (name: string) => `Withdraw ${name}’s approval`,
       description:
-        "This person immediately loses access to examinations. Those they have claimed but not yet signed return to the pool, and their drafts for these examinations are deleted. Reports already signed are not affected.",
+        "This person immediately loses access to examinations. Those they held but had not yet signed are to assign again, and their drafts for these examinations are deleted. Reports already signed are not affected.",
       submit: "Withdraw approval",
       done: (name: string, released: number) =>
         released === 0
           ? `${name}’s approval withdrawn.`
-          : `${name}’s approval withdrawn: ${released} examination${released === 1 ? "" : "s"} returned to the pool.`,
+          : `${name}’s approval withdrawn: ${released} examination${released === 1 ? " is" : "s are"} to assign again.`,
     },
   },
 
   /** Assignment of an examination to a radiologist by the team. */
-  assign: {
-    trigger: "Assign",
-    triggerLabel: (patient: string) => `Assign ${patient}’s examination`,
-    title: "Assign the examination",
-    description:
-      "The chosen radiologist finds it in “My examinations”; only they can take it on, and they are notified by email.",
-    current: "Current holder",
-    currentSince: "assigned on",
-    claimedByRadiologist: "taken on by the radiologist",
-    nobody: "Nobody: the examination is in the shared queue.",
-    candidates: "Radiologists who would see this examination",
-    noCandidates:
-      "No approved radiologist reads this clinic’s examinations: check the affiliations and the service contract.",
-    pool: "Freelance",
-    clinicRadiologist: "Clinic radiologist",
-    load: (count: number) =>
-      count === 0
-        ? "No examination in progress"
-        : `${count} examination${count > 1 ? "s" : ""} in progress`,
-    draftWarning: (name: string) =>
-      `${name} has started writing this report. Their draft will be discarded.`,
-    confirmDraft: "Understood: discard the draft",
-    submit: "Assign",
-    reassign: "Reassign",
-    release: "Return to the queue",
-    assigned: (name: string) => `Examination assigned to ${name}.`,
-    assignedNotNotified: (name: string) =>
-      `Examination assigned to ${name}. The email was not sent: let them know directly.`,
-    released: "Examination returned to the shared queue.",
-    signed: "Report signed: the examination can no longer be assigned.",
-    loading: "Loading radiologists…",
-  },
 
   grant: {
     trigger: "Attach",
@@ -659,7 +627,7 @@ export const admin: AppMessages["admin"] = {
       "The action that fulfils a request for erasure. It is permanent and recorded in the audit log. It will:",
     consequences: [
       "delete the login account: email address, password, two-factor authentication and sessions; the person can no longer sign in;",
-      "return their examinations in progress to the pool, and delete their drafts on those examinations;",
+      "make their examinations in progress to assign again, and delete their drafts on those examinations;",
       "if they signed a report, wrote an addendum or appear in the audit log, keep their name, title and registration number attached to those records; their signature and preferences are deleted;",
       "otherwise, delete their profile entirely.",
     ],
@@ -801,9 +769,12 @@ export const admin: AppMessages["admin"] = {
     actions: {
       "study.viewed": "Examination viewed",
       "study.claimed": "Examination claimed",
-      "study.released": "Examination returned to the pool",
+      "study.urgent_claimed": "Urgent examination taken from the urgent list",
+      "study.released": "Examination returned by the radiologist",
       "study.assigned": "Examination assigned to a radiologist",
-      "study.unassigned": "Examination returned to the queue",
+      "study.unassigned": "Assignment withdrawn",
+      "prior.shared": "Prior examination shared",
+      "prior.unshared": "Prior examination withdrawn",
       "study.updated": "Urgency or clinical information changed",
       "study.images_purged": "Images purged from the PACS",
       "report.signed": "Report signed",
@@ -814,8 +785,11 @@ export const admin: AppMessages["admin"] = {
       "report.ai_reviewed": "Draft reviewed by AI",
       "membership.created": "Member added",
       "membership.removed": "Member removed",
+      "membership.reading_changed":
+        "Radiologist’s modalities or urgent list changed",
       "organization.state_changed": "Organisation activated or suspended",
       "organization.pool_changed": "Pool access changed",
+      "organization.urgent_readers_changed": "Urgent list changed",
       "organization.retention_changed": "Retention period changed",
       "organization.report_language_changed": "Report language changed",
       "organization.logo_changed": "Report logo changed",

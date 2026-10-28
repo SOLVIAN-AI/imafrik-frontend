@@ -37,10 +37,15 @@ export const glossary = {
     definition:
       "Compte-rendu signé retiré pour une erreur qu’un addendum ne répare pas, comme un texte rédigé sur le mauvais examen. Il est archivé tel quel, la vérification publique le dit annulé, et l’examen revient dans la file pour une vraie lecture.",
   },
+  anteriorite: {
+    term: "Antériorité",
+    definition:
+      "Examen précédent du même patient, dans la même clinique. Le responsable de la clinique, ou l’équipe IMAFRIK, peut la partager avec le radiologue qui lit un examen : images et compte-rendu signé, en lecture seule. Rien n’est partagé d’office, et chaque partage est tracé.",
+  },
   attribution: {
     term: "Attribution",
     definition:
-      "Réservation d’un examen à un radiologue précis par l’équipe IMAFRIK. Lui seul peut le prendre en charge, et il en est prévenu par courriel, sans aucune donnée du patient.",
+      "Réservation d’un examen à un radiologue précis, par le responsable de la clinique ou, pour les radiologues du réseau, par l’équipe IMAFRIK. Lui seul le voit et peut le prendre en charge ; il en est prévenu par courriel, sans aucune donnée du patient.",
   },
   brouillon: {
     term: "Brouillon",
@@ -167,10 +172,20 @@ export const glossary = {
     definition:
       "Document déposé par le radiologue pour prouver son droit d’exercer. L’équipe IMAFRIK l’examine, l’accepte ou le refuse, et fixe sa fin de validité.",
   },
+  listeUrgence: {
+    term: "Liste d’urgence",
+    definition:
+      "Radiologues qu’une clinique, ou l’équipe IMAFRIK, autorise à prendre une urgence sans attendre qu’on la leur attribue, dans les modalités qu’ils lisent. Ils sont prévenus par courriel ; le premier qui la prend l’obtient, et elle disparaît chez les autres.",
+  },
   modele: {
     term: "Modèle",
     definition:
       "Trame de compte-rendu réutilisable (plan, phrases types) qu’un radiologue applique dans l’éditeur au lieu de tout réécrire.",
+  },
+  modalitesLues: {
+    term: "Modalités lues",
+    definition:
+      "Ce qu’un radiologue lit : radiographie (HSG comprise), mammographie, échographie, scanner, IRM, autres. Réglées par la clinique pour ses radiologues, ou par l’équipe IMAFRIK, elles bornent ce qu’on peut lui attribuer et les urgences qu’il voit.",
   },
   organisation: {
     term: "Organisation",
@@ -188,14 +203,14 @@ export const glossary = {
       "Logiciel installé sur un poste de la clinique. Il reçoit les images des appareils et les envoie, chiffrées, au PACS d’IMAFRIK. Il s’installe avec le kit d’installation et un code d’enrôlement.",
   },
   pool: {
-    term: "Pool (file commune)",
+    term: "Réseau IMAFRIK (pool)",
     definition:
-      "Ensemble des examens qui attendent un lecteur, visibles par tous les radiologues autorisés à les lire. « Rendre au pool » remet un examen pris en charge à la disposition des autres.",
+      "Radiologues des groupes sous contrat avec une clinique ouverte au réseau. L’équipe IMAFRIK leur attribue les examens de cette clinique ; chacun ne voit que ce qui lui est confié.",
   },
   priseEnCharge: {
     term: "Prise en charge",
     definition:
-      "Geste par lequel un radiologue réserve un examen pour le lire : il disparaît alors de la file des autres. Tant qu’il n’a pas signé, il peut le rendre au pool.",
+      "Geste par lequel un radiologue commence la lecture d’un examen qui lui est attribué, ou prend une urgence de sa liste d’urgence. Tant qu’il n’a pas signé, il peut le rendre : l’examen redevient « à attribuer ».",
   },
   renseignementClinique: {
     term: "Renseignement clinique",

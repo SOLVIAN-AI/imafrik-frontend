@@ -12,6 +12,7 @@ import { GatewayList } from "@/components/admin/gateways/gateway-list";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { ReportLanguageForm } from "@/components/admin/report-language-form";
 import { RetentionForm } from "@/components/admin/retention-form";
+import { UrgentReadersForm } from "@/components/admin/urgent-readers-form";
 import { Legend, Ring, StackedBars } from "@/components/charts/charts";
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader } from "@/components/layout/app-shell";
@@ -31,6 +32,7 @@ import {
   formatMinutes,
   formatRate,
 } from "@/lib/format";
+import { getUrgentReaders } from "@/lib/actions/urgent-readers";
 import { getClinicGateways, getEnrollmentCodes } from "@/lib/data/gateways";
 import { LOCALE_NAMES } from "@/lib/i18n/locale";
 import { requireSession } from "@/lib/session/server";
@@ -75,13 +77,15 @@ export default async function ClinicPage({
   const clinic = await getClinic(id);
   if (!clinic) notFound();
 
-  const [analytics, recent, logo, gateways, codes] = await Promise.all([
-    getAnalytics(30, clinic.id),
-    getPipeline(15, clinic.id),
-    getClinicLogo(clinic.id),
-    getClinicGateways(clinic.id),
-    getEnrollmentCodes(clinic.id),
-  ]);
+  const [analytics, recent, logo, gateways, codes, urgentReaders] =
+    await Promise.all([
+      getAnalytics(30, clinic.id),
+      getPipeline(15, clinic.id),
+      getClinicLogo(clinic.id),
+      getClinicGateways(clinic.id),
+      getEnrollmentCodes(clinic.id),
+      getUrgentReaders(clinic.id),
+    ]);
   const activity = analytics.byClinic[0];
   const done = clinic.onboarding.filter((step) => step.done).length;
   const ended = clinic.contractEndedAt !== null;
@@ -270,6 +274,23 @@ export default async function ClinicPage({
             )}
           </Section>
         </div>
+
+        <Section
+          title={t.assignment.urgentReaders.title}
+          description={t.assignment.urgentReaders.description}
+        >
+          {urgentReaders.ok ? (
+            <UrgentReadersForm
+              clinicId={clinic.id}
+              readers={urgentReaders.data}
+              readOnly={ended}
+            />
+          ) : (
+            <p role="alert" className="text-xs text-urgent">
+              {urgentReaders.error}
+            </p>
+          )}
+        </Section>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Section

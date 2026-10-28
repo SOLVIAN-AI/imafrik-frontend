@@ -15,10 +15,10 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Les examens pris en charge par le radiologue.
  *
- * Distinct de la file commune : ici il n'y a rien à choisir, seulement à
+ * Distinct de la file « À lire » : ici il n’y a rien à choisir, seulement à
  * finir. Ce sont les examens sur lesquels le radiologue s'est engagé en
  * les prenant en charge, et qui restent réservés tant qu'ils ne sont ni
- * signés ni rendus au pool. Un examen pris puis oublié dans un onglet
+ * signés ni rendus. Un examen pris puis oublié dans un onglet
  * fermé serait invisible partout ailleurs : ils sont donc tous listés,
  * dans l'ordre des échéances, page par page. La prise en charge les fait
  * passer à « en cours » ; « attribué » est demandé aussi, par prudence,

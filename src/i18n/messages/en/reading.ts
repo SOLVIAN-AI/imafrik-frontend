@@ -9,6 +9,10 @@ export const reading: AppMessages["reading"] = {
     loading: "Opening the examination",
     claimedBy: (name: string) => `Examination claimed by ${name}.`,
     claimedByOther: "Examination claimed by another radiologist.",
+    priorReadonly:
+      "Prior examination shared with you: read-only, images and signed report.",
+    notAuthor:
+      "Report signed by a colleague: only its author can add an addendum to it.",
     /** IMAFRIK team: the draft being written, read-only. */
     adminDraft: (author: string, savedAt: string) =>
       `Unsigned draft by ${author}, saved on ${savedAt}. The clinic cannot see it yet; this screen follows the writing.`,
@@ -48,15 +52,26 @@ export const reading: AppMessages["reading"] = {
     signedToast: "Report signed and sent to the clinic.",
     nextStudy: "Next examination",
     releaseConfirm:
-      "Return this examination to the pool? The draft you started will be deleted.",
-    release: "Return to pool",
+      "Return this examination? It will be to assign again, the draft you started will be deleted and the clinic notified.",
+    release: "Return the examination",
     sign: "Sign",
-    claim: "Claim",
+    claim: "Take on",
     signedBanner:
       "Report signed and sent: it can no longer be edited. Corrections are made with a dated, signed addendum.",
     correct: "Correct with an addendum",
     claimBanner:
-      "Claim the examination to start the report. It will be reserved for you until you sign it or return it to the pool.",
+      "Take the examination on to start the report. It is reserved for you until you sign it or return it.",
+    urgentClaimBanner:
+      "Urgent examination from your urgent list: take it on to start the report. The first to take it gets it.",
+    priors: {
+      title: (count: number) =>
+        count > 1
+          ? `${count} shared prior examinations`
+          : "1 shared prior examination",
+      signedReport: "Signed report",
+      noReport: "No signed report",
+      open: "Open the prior examination in a new tab",
+    },
     clinicalInfo: "Clinical information",
     copyToIndication: "Copy into the clinical indication",
     indication: "Indication",
@@ -446,7 +461,7 @@ export const reading: AppMessages["reading"] = {
     submit: "Sign the addendum",
   },
   actions: {
-    releaseDemoAction: "Returning an examination to the pool",
+    releaseDemoAction: "Returning an examination",
     signDemoAction: "Signing",
     pdfDemoAction: "Downloading the PDF",
     addendumDemoAction: "Adding an addendum",

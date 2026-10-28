@@ -12,54 +12,27 @@ test.describe("radiologue", () => {
   test.use({ membership: "m-radio" });
 
   /**
-   * « Examen suivant » suit l'ordre de la file, par échéance. La routine
-   * reçue il y a plus de cinq heures (délai de deux heures dépassé) passe
-   * devant les urgences arrivées depuis : l'écran proposait auparavant
-   * l'urgence la plus ancienne, quelle que soit son échéance.
+   * « Examen suivant » suit l'ordre de la file, par échéance, parmi ce qui
+   * est confié au radiologue : l'urgence de Kara, à neuf minutes de son
+   * terme, passe devant l'urgence arrivée depuis et devant l'examen qui
+   * lui est attribué. La routine de Kara, en retard mais attribuée à
+   * personne, ne lui est pas proposée : il ne la voit pas.
    */
-  test("l'examen suivant est la tête de la file, retards en tête", async ({
+  test("l'examen suivant est la tête de la file, par échéance", async ({
     page,
   }) => {
     await page.goto("/lecture/10");
     const suivant = page.getByRole("link", { name: "Examen suivant" });
-    await expect(suivant).toHaveAttribute("href", "/lecture/3");
+    await expect(suivant).toHaveAttribute("href", "/lecture/7");
   });
 
-  test("l'en-tête donne le total exact, le pied mène à la suite", async ({
+  test("la liste des examens de la clinique ne lui est pas ouverte", async ({
     page,
   }) => {
     await page.goto("/examens");
-    await expect(
-      page.getByText("15 examens · IMAFRIK Radiologie"),
-    ).toBeVisible();
-    // Tout tient en une page : pas de pied de pagination.
-    await expect(
-      page.getByRole("navigation", { name: "Pages de la liste" }),
-    ).toHaveCount(0);
-
-    await page.goto("/examens?apres=demo-recent-10");
-    await expect(
-      page.getByText("15 examens · IMAFRIK Radiologie"),
-    ).toBeVisible();
-    const pied = page.getByRole("navigation", { name: "Pages de la liste" });
-    await expect(pied.getByText("5 affichés sur 15")).toBeVisible();
-    await expect(pied.getByRole("link", { name: "Page suivante" })).toHaveCount(
-      0,
-    );
-    const debut = pied.getByRole("link", { name: "Revenir au début" });
-    await expect(debut).toHaveAttribute("href", "/examens");
-    await debut.click();
-    await expect(page).toHaveURL(/\/examens$/);
-  });
-
-  test("un curseur d'un autre ordre ramène au début de la liste", async ({
-    page,
-  }) => {
-    await page.goto("/examens?apres=demo-deadline-3");
-    await expect(page).toHaveURL(/\/examens$/);
-    await expect(
-      page.getByText("15 examens · IMAFRIK Radiologie"),
-    ).toBeVisible();
+    await expect(page).toHaveURL(/\/worklist$/);
+    await page.goto("/examens/8");
+    await expect(page).toHaveURL(/\/lecture\/8$/);
   });
 
   /**
@@ -80,6 +53,69 @@ test.describe("radiologue", () => {
     await expect(page.getByText("ADJOVI Mawuli")).toHaveCount(0);
     // Rien dans l'adresse : la recherche porte un nom de patient.
     expect(page.url()).not.toContain("kpodar");
+  });
+});
+
+test.describe("clinique", () => {
+  test.use({ membership: "m-clinic" });
+
+  test("l'en-tête donne le total exact, le pied mène à la suite", async ({
+    page,
+  }) => {
+    await page.goto("/examens");
+    await expect(
+      page.getByText("9 examens · Clinique Saint-Joseph"),
+    ).toBeVisible();
+    // Tout tient en une page : pas de pied de pagination.
+    await expect(
+      page.getByRole("navigation", { name: "Pages de la liste" }),
+    ).toHaveCount(0);
+
+    await page.goto("/examens?apres=demo-recent-5");
+    await expect(
+      page.getByText("9 examens · Clinique Saint-Joseph"),
+    ).toBeVisible();
+    const pied = page.getByRole("navigation", { name: "Pages de la liste" });
+    await expect(pied.getByText("4 affichés sur 9")).toBeVisible();
+    await expect(pied.getByRole("link", { name: "Page suivante" })).toHaveCount(
+      0,
+    );
+    const debut = pied.getByRole("link", { name: "Revenir au début" });
+    await expect(debut).toHaveAttribute("href", "/examens");
+    await debut.click();
+    await expect(page).toHaveURL(/\/examens$/);
+  });
+
+  test("un curseur d'un autre ordre ramène au début de la liste", async ({
+    page,
+  }) => {
+    await page.goto("/examens?apres=demo-deadline-3");
+    await expect(page).toHaveURL(/\/examens$/);
+    await expect(
+      page.getByText("9 examens · Clinique Saint-Joseph"),
+    ).toBeVisible();
+  });
+
+  /**
+   * La vue « À attribuer » ne garde que ce qu'aucun radiologue ne voit
+   * encore : l'urgence de Saint-Joseph, sans titulaire.
+   */
+  test("la vue « À attribuer » ne garde que ce qui attend un radiologue", async ({
+    page,
+  }) => {
+    await page.goto("/examens");
+    const vues = page.getByRole("navigation", { name: "Afficher" });
+    await vues.getByRole("link", { name: "À attribuer" }).click();
+    await expect(page).toHaveURL(/[?&]vue=a-attribuer(&|$)/);
+    await expect(
+      vues.getByRole("link", { name: "À attribuer" }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(
+      page.getByText("1 examen · Clinique Saint-Joseph"),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /^Attribuer l’examen de / }),
+    ).toHaveCount(1);
   });
 });
 

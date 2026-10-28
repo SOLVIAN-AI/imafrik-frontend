@@ -45,10 +45,22 @@ function buildMetrics(
   const inReading = metrics.byStatus.assigned + metrics.byStatus.in_progress;
   return [
     {
-      label: messages.sent,
-      value: String(metrics.receivedLast30Days),
-      icon: METRIC_ICONS.sent,
-      tone: "neutral",
+      // Ce qu'aucun radiologue ne voit encore : le premier geste du jour.
+      label: messages.toAssign,
+      value: String(metrics.toAssign),
+      hint:
+        metrics.urgentToTake > 0
+          ? messages.urgentWaiting(metrics.urgentToTake)
+          : metrics.toAssign > 0
+            ? messages.toAssignHint
+            : undefined,
+      icon: METRIC_ICONS.inbox,
+      tone:
+        metrics.urgentToTake > 0
+          ? "urgent"
+          : metrics.toAssign > 0
+            ? "progress"
+            : "neutral",
     },
     {
       label: messages.inReading,

@@ -39,8 +39,9 @@ const MAX_ARRIVAL_TOASTS = 2;
 
 /**
  * Mesures d'en-tête, tirées de ce que le radiologue a à faire : ce qui
- * est libre, ce qui est urgent, ce qui est en retard, et l'échéance la
- * plus proche. Les examens d'un confrère n'y comptent pas.
+ * lui est attribué, les urgences à prendre de sa liste, ce qui est en
+ * retard, et l'échéance la plus proche. En consultation, l'équipe IMAFRIK
+ * voit ce qui attend une attribution.
  */
 function buildMetrics(
   sections: WorklistSections,
@@ -50,15 +51,18 @@ function buildMetrics(
   supervising: boolean,
 ): Metric[] {
   const labels = t.worklist.metrics;
-  // En consultation, rien n'est « chez vous » : la précision compte ce
-  // que les radiologues ont en cours.
+  // En consultation, rien n'est « à vous » : la précision compte ce que
+  // les radiologues détiennent.
   const reading = sections.mine.length + sections.colleagues.length;
+  const started = sections.mine.filter(
+    (study) => study.status === "in_progress",
+  ).length;
   const hint = supervising
     ? reading > 0
       ? t.worklist.supervision.readingHint(reading)
       : undefined
-    : sections.mine.length > 0
-      ? labels.mineHint(sections.mine.length)
+    : started > 0
+      ? labels.mineHint(started)
       : undefined;
   const actionable = [...sections.mine, ...sections.open];
   const urgent = sections.open.filter((study) => study.urgent);
@@ -73,8 +77,8 @@ function buildMetrics(
 
   return [
     {
-      label: labels.toTake,
-      value: String(sections.open.length),
+      label: supervising ? t.worklist.supervision.toAssign : labels.toTake,
+      value: String(supervising ? sections.open.length : sections.mine.length),
       hint,
       icon: METRIC_ICONS.inbox,
       tone: "accent",
@@ -126,7 +130,7 @@ function describeScope(
 }
 
 /**
- * Alerte à l'arrivée d'une urgence libre.
+ * Alerte à l'arrivée d'une urgence à prendre (liste d'urgence).
  *
  * Le compte des urgences libres dans le titre de l'onglet est calculé par
  * la page, dans ses métadonnées (`app/(app)/worklist/page.tsx`) : écrit ici
@@ -259,7 +263,7 @@ export function WorklistView({
                     },
                     {
                       key: "open",
-                      ...labels.groups.open,
+                      ...labels.supervision.open,
                       studies: sections.open,
                       follow: "none",
                     },
@@ -276,14 +280,6 @@ export function WorklistView({
                       ...labels.groups.open,
                       studies: sections.open,
                       follow: "none",
-                    },
-                    {
-                      key: "colleagues",
-                      ...labels.groups.colleagues,
-                      studies: sections.colleagues,
-                      collapsible: true,
-                      muted: true,
-                      follow: "reader",
                     },
                   ]
             }

@@ -1,6 +1,7 @@
 import type { AppMessages } from "@/i18n/messages/fr";
 import { admin } from "@/i18n/messages/en/admin";
 import { agreements } from "@/i18n/messages/en/agreements";
+import { assignment } from "@/i18n/messages/en/assignment";
 import { clinic } from "@/i18n/messages/en/clinic";
 import { common } from "@/i18n/messages/en/common";
 import { credentials } from "@/i18n/messages/en/credentials";
@@ -28,6 +29,8 @@ import { worklist } from "@/i18n/messages/en/worklist";
  *   erreurs), verrouillage, mot de passe ;
  * - `worklist`, `reading` : portail radiologue, file et écran de lecture ;
  * - `clinic`, `onboarding` : portail clinique, mise en service ;
+ * - `assignment` : attribution des examens, antériorités, modalités et
+ *   liste d'urgence, pour la clinique et l'équipe IMAFRIK ;
  * - `credentials` : habilitation des radiologues, partout où elle se dit ;
  * - `agreements` : contrat du radiologue, convention de l'établissement ;
  * - `settings` : paramètres ;
@@ -43,6 +46,7 @@ export const en: AppMessages = {
   worklist,
   reading,
   clinic,
+  assignment,
   onboarding,
   credentials,
   agreements,

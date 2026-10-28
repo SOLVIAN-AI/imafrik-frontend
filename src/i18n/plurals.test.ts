@@ -35,7 +35,7 @@ describe("accords en nombre", () => {
 
   it("accorde le nombre d’établissements de la file", () => {
     expect(worklistFr.scope.count(1)).toBe(
-      "File de travail du groupe : 1 établissement",
+      "Les examens qu’on vous confie : 1 établissement",
     );
     expect(worklistFr.supervision.scope.count(3)).toBe(
       "Toute la plateforme, en consultation : 3 établissements",

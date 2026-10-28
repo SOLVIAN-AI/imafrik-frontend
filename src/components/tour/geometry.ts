@@ -173,6 +173,36 @@ export function isUsableBox(box: Box | null): box is Box {
 }
 
 /**
+ * Vrai si la bulle ne trouve de place d'aucun côté de l'élément, alors
+ * qu'en le faisant défiler en haut de la fenêtre elle tiendrait dessous.
+ *
+ * Un élément visible en entier n'était jamais déplacé : au milieu d'un
+ * téléphone, une file de cinq examens ne laissait la place à la bulle ni
+ * au-dessus ni au-dessous, et la bulle se posait sur ses dernières lignes.
+ *
+ * @param box      Élément mis en lumière.
+ * @param bubble   Taille de la bulle.
+ * @param viewport Taille de la fenêtre.
+ */
+export function isCrowded(
+  box: Box,
+  bubble: { width: number; height: number },
+  viewport: { width: number; height: number },
+): boolean {
+  const vertical = bubble.height + GAP + EDGE;
+  const horizontal = bubble.width + GAP + EDGE;
+  const fitsBelowOnceScrolled =
+    box.height + vertical + SPOTLIGHT_PADDING * 2 <= viewport.height;
+  const roomAbove = box.top - SPOTLIGHT_PADDING >= vertical;
+  const roomBelow =
+    viewport.height - (box.top + box.height + SPOTLIGHT_PADDING) >= vertical;
+  const roomBeside =
+    box.left - SPOTLIGHT_PADDING >= horizontal ||
+    viewport.width - (box.left + box.width + SPOTLIGHT_PADDING) >= horizontal;
+  return fitsBelowOnceScrolled && !roomAbove && !roomBelow && !roomBeside;
+}
+
+/**
  * Vrai si l'élément est entièrement dans la fenêtre : sinon, il faut le
  * faire défiler jusqu'à lui avant de le montrer.
  */

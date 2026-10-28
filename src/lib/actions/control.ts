@@ -272,7 +272,7 @@ export type AnonymizationOutcome = "kept" | "deleted";
  * l'effacement).
  *
  * Le service supprime le compte de connexion (adresse, mot de passe,
- * double authentification, sessions), rend au pool les examens en cours,
+ * double authentification, sessions), rend « à attribuer » les examens en cours,
  * retire les appartenances, puis réduit le profil au nom, au titre et au
  * numéro d'ordre s'il est référencé, ou le supprime. Le geste est tracé
  * (`user.anonymization_requested`, puis `user.anonymized`). Il refuse :
@@ -363,11 +363,11 @@ const decisionSchema = z.discriminatedUnion("kind", [
  * sur le justificatif consulté ; ce geste en enregistre le résultat. Le
  * service le trace dans le journal d'audit, refuse une décision sur un
  * justificatif remplacé ou un numéro changé depuis l'affichage, et, au
- * retrait, rend au pool les examens que le radiologue avait pris en charge.
+ * retrait, rend « à attribuer » les examens que le radiologue tenait.
  *
  * @param profileId Compte du radiologue.
  * @param decision  La décision, avec ce qui a été examiné.
- * @returns Le nombre d'examens rendus au pool (0 hors retrait).
+ * @returns Le nombre d'examens redevenus « à attribuer » (0 hors retrait).
  */
 export async function decideCredentials(
   profileId: string,

@@ -2,7 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { AssignDialog } from "@/components/admin/assign-dialog";
+import { AssignDialog } from "@/components/domain/assign-dialog";
 import { Segmented } from "@/components/admin/control-ui";
 import { StudyAge } from "@/components/domain/study-age";
 import {
@@ -167,8 +167,10 @@ export default async function AdminStudiesPage({
                   <StudyStatusChip status={study.status} />
                   {isAssignable(study.status) && (
                     <AssignDialog
+                      portal="team"
                       studyId={study.id}
                       patient={formatPatientName(study.patientName)}
+                      assigned={study.assignedTo !== null}
                       compact
                     />
                   )}
@@ -267,8 +269,10 @@ export default async function AdminStudiesPage({
                         </span>
                         {isAssignable(study.status) && (
                           <AssignDialog
+                            portal="team"
                             studyId={study.id}
                             patient={formatPatientName(study.patientName)}
+                            assigned={study.assignedTo !== null}
                             compact
                           />
                         )}

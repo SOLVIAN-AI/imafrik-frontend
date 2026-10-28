@@ -4,6 +4,7 @@ import {
   EDGE,
   GAP,
   SPOTLIGHT_PADDING,
+  isCrowded,
   isInView,
   isUsableBox,
   placeBubble,
@@ -98,6 +99,34 @@ describe("repères", () => {
     ).toBe(true);
     expect(
       isInView({ top: 850, left: 10, width: 100, height: 100 }, DESKTOP),
+    ).toBe(false);
+  });
+});
+
+describe("isCrowded", () => {
+  it("dit qu'un élément au milieu d'un téléphone ne laisse aucune place à la bulle", () => {
+    // Une file de cinq examens, visible en entier, au milieu de l'écran.
+    const file = { top: 140, left: 12, width: 351, height: 480 };
+    expect(isInView(file, PHONE)).toBe(true);
+    expect(isCrowded(file, BUBBLE, PHONE)).toBe(true);
+  });
+
+  it("laisse en place un élément qui a la bulle au-dessous ou à côté", () => {
+    expect(
+      isCrowded({ top: 20, left: 12, width: 351, height: 400 }, BUBBLE, PHONE),
+    ).toBe(false);
+    expect(
+      isCrowded(
+        { top: 300, left: 40, width: 400, height: 500 },
+        BUBBLE,
+        DESKTOP,
+      ),
+    ).toBe(false);
+  });
+
+  it("laisse en place un élément trop haut pour tenir avec la bulle", () => {
+    expect(
+      isCrowded({ top: 0, left: 0, width: 375, height: 700 }, BUBBLE, PHONE),
     ).toBe(false);
   });
 });

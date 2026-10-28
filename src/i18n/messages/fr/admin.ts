@@ -627,49 +627,16 @@ export const admin = {
       trigger: "Retirer l’habilitation",
       title: (name: string) => `Retirer l’habilitation de ${name}`,
       description:
-        "Cette personne perd aussitôt l’accès aux examens. Ceux qu’elle a pris en charge et pas encore signés retournent au pool, et ses brouillons sur ces examens sont effacés. Les comptes-rendus déjà signés ne changent pas.",
+        "Cette personne perd aussitôt l’accès aux examens. Ceux qu’elle tenait et pas encore signés redeviennent « à attribuer », et ses brouillons sur ces examens sont effacés. Les comptes-rendus déjà signés ne changent pas.",
       submit: "Retirer l’habilitation",
       done: (name: string, released: number) =>
         released === 0
           ? `Habilitation de ${name} retirée.`
-          : `Habilitation de ${name} retirée : ${released} examen${released > 1 ? "s rendus" : " rendu"} au pool.`,
+          : `Habilitation de ${name} retirée : ${released} examen${released > 1 ? "s redeviennent" : " redevient"} « à attribuer ».`,
     },
   },
 
   /** Rattachement d'un compte à une organisation. */
-  /** Attribution d'un examen à un radiologue par l'équipe. */
-  assign: {
-    trigger: "Attribuer",
-    triggerLabel: (patient: string) => `Attribuer l’examen de ${patient}`,
-    title: "Attribuer l’examen",
-    description:
-      "Le radiologue choisi le trouve dans « Mes examens » ; lui seul peut le prendre en charge, et il est prévenu par courriel.",
-    current: "Titulaire actuel",
-    currentSince: "attribué le",
-    claimedByRadiologist: "pris en charge par le radiologue",
-    nobody: "Personne : l’examen est dans la file commune.",
-    candidates: "Radiologues qui verraient cet examen",
-    noCandidates:
-      "Aucun radiologue habilité ne lit les examens de cette clinique : vérifiez les rattachements et le contrat de service.",
-    pool: "Libéral",
-    clinicRadiologist: "Radiologue de la clinique",
-    load: (count: number) =>
-      count === 0
-        ? "Aucun examen en cours"
-        : `${count} examen${count > 1 ? "s" : ""} en cours`,
-    draftWarning: (name: string) =>
-      `${name} a commencé à rédiger ce compte-rendu. Son brouillon sera effacé.`,
-    confirmDraft: "J’ai compris : effacer le brouillon",
-    submit: "Attribuer",
-    reassign: "Réattribuer",
-    release: "Remettre dans la file",
-    assigned: (name: string) => `Examen attribué à ${name}.`,
-    assignedNotNotified: (name: string) =>
-      `Examen attribué à ${name}. Le courriel n’est pas parti : prévenez-le directement.`,
-    released: "Examen remis dans la file commune.",
-    signed: "Compte-rendu signé : l’examen ne s’attribue plus.",
-    loading: "Chargement des radiologues…",
-  },
 
   grant: {
     trigger: "Rattacher",
@@ -697,7 +664,7 @@ export const admin = {
       "Le geste qui répond à une demande d’effacement. Il est définitif et tracé dans le journal d’audit. Il enclenche :",
     consequences: [
       "le compte de connexion est supprimé : adresse électronique, mot de passe, double authentification et sessions ; la personne ne peut plus se connecter ;",
-      "ses examens en cours retournent au pool, et ses brouillons sur ces examens sont effacés ;",
+      "ses examens en cours redeviennent « à attribuer », et ses brouillons sur ces examens sont effacés ;",
       "si elle a signé un compte-rendu, rédigé un addendum ou laissé une trace au journal d’audit, son nom, son titre et son numéro d’ordre restent attachés à ces documents ; sa signature et ses préférences sont effacées ;",
       "sinon, son profil est supprimé entièrement.",
     ],
@@ -853,9 +820,12 @@ export const admin = {
     actions: {
       "study.viewed": "Examen consulté",
       "study.claimed": "Examen pris en charge",
-      "study.released": "Examen rendu au pool",
+      "study.urgent_claimed": "Urgence prise sur la liste d’urgence",
+      "study.released": "Examen rendu par le radiologue",
       "study.assigned": "Examen attribué à un radiologue",
-      "study.unassigned": "Examen remis dans la file",
+      "study.unassigned": "Attribution retirée",
+      "prior.shared": "Antériorité partagée",
+      "prior.unshared": "Antériorité retirée",
       "study.updated": "Urgence ou renseignement clinique modifié",
       "study.images_purged": "Images purgées du PACS",
       "report.signed": "Compte-rendu signé",
@@ -866,8 +836,11 @@ export const admin = {
       "report.ai_reviewed": "Brouillon relu par l’IA",
       "membership.created": "Membre ajouté",
       "membership.removed": "Membre retiré",
+      "membership.reading_changed":
+        "Modalités ou liste d’urgence d’un radiologue modifiées",
       "organization.state_changed": "Organisation activée ou suspendue",
       "organization.pool_changed": "Ouverture au pool modifiée",
+      "organization.urgent_readers_changed": "Liste d’urgence modifiée",
       "organization.retention_changed": "Durée de conservation modifiée",
       "organization.report_language_changed":
         "Langue des comptes-rendus modifiée",

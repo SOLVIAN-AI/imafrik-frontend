@@ -32,10 +32,15 @@ export const glossary: typeof fr = {
     definition:
       "A signed report withdrawn for an error an addendum cannot fix, such as text written on the wrong examination. It is archived as is, public verification shows it as voided, and the examination returns to the worklist for a real reading.",
   },
+  anteriorite: {
+    term: "Prior examination",
+    definition:
+      "An earlier examination of the same patient, at the same clinic. The clinic’s manager, or the IMAFRIK team, can share it with the radiologist reading an examination: images and signed report, read-only. Nothing is shared by default, and every share is logged.",
+  },
   attribution: {
     term: "Assignment",
     definition:
-      "The IMAFRIK team reserving an examination for a specific radiologist. Only they can claim it, and they are notified by email, without any patient data.",
+      "Reserving an examination for a specific radiologist, by the clinic’s manager or, for network radiologists, by the IMAFRIK team. Only they can see it and take it on; they are notified by email, without any patient data.",
   },
   brouillon: {
     term: "Draft",
@@ -162,10 +167,20 @@ export const glossary: typeof fr = {
     definition:
       "A document uploaded by the radiologist to prove their right to practise. The IMAFRIK team reviews it, accepts or rejects it, and sets the date it expires.",
   },
+  listeUrgence: {
+    term: "Urgent list",
+    definition:
+      "The radiologists a clinic, or the IMAFRIK team, allows to take an urgent examination without waiting for it to be assigned, in the modalities they read. They are emailed; the first to take it gets it, and it disappears for the others.",
+  },
   modele: {
     term: "Template",
     definition:
       "A reusable report outline (structure, standard sentences) that a radiologist applies in the editor instead of rewriting everything.",
+  },
+  modalitesLues: {
+    term: "Modalities read",
+    definition:
+      "What a radiologist reads: radiography (HSG included), mammography, ultrasound, CT, MRI, other. Set by the clinic for its radiologists, or by the IMAFRIK team, they limit what can be assigned to them and the urgent examinations they see.",
   },
   organisation: {
     term: "Organisation",
@@ -183,14 +198,14 @@ export const glossary: typeof fr = {
       "Software installed on a clinic workstation. It receives the images from the devices and sends them, encrypted, to the IMAFRIK PACS. It is installed with the installation kit and an enrolment code.",
   },
   pool: {
-    term: "Pool (shared worklist)",
+    term: "IMAFRIK network (pool)",
     definition:
-      "The examinations waiting for a reader, visible to every radiologist allowed to read them. “Return to the pool” makes a claimed examination available to the others again.",
+      "The radiologists of the groups under contract with a clinic open to the network. The IMAFRIK team assigns them that clinic’s examinations; each one only sees what is entrusted to them.",
   },
   priseEnCharge: {
-    term: "Claim",
+    term: "Taking on",
     definition:
-      "The action by which a radiologist reserves an examination to read it: it then disappears from the others’ worklist. Until they sign, they can return it to the pool.",
+      "The action by which a radiologist starts reading an examination assigned to them, or takes an urgent examination from their urgent list. Until they sign, they can return it: the examination is to assign again.",
   },
   renseignementClinique: {
     term: "Clinical information",

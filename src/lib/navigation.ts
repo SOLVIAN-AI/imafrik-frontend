@@ -18,13 +18,13 @@ export type NavGroupKey = keyof AppMessages["nav"]["groups"];
  * s'afficherait à tout le monde, quel que soit le contenu réel.
  */
 export interface NavCounts {
-  /** Examens du pool en attente de lecture. */
+  /** Radiologue : examens attribués pas encore commencés, et urgences à prendre. */
   toRead: number;
-  /** Dont urgences. */
+  /** Dont urgences à prendre (liste d'urgence). */
   urgentToRead: number;
   /** Examens en cours de lecture par l'utilisateur. */
   mine: number;
-  /** Examens de la clinique pas encore rendus. */
+  /** Clinique : examens qui attendent une attribution. */
   clinicOpen: number;
   /** Comptes-rendus signés que la clinique n'a pas encore téléchargés. */
   reportsToDownload: number;
@@ -313,6 +313,8 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
     "/worklist",
     "/mes-examens",
     "/lecture",
+    // Ses adresses mènent à la file ou au poste de lecture : un lien
+    // d'examen reçu s'ouvre, au lieu de renvoyer à l'accueil.
     "/examens",
     "/comptes-rendus",
     "/modeles",

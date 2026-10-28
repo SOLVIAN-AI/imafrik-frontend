@@ -30,10 +30,12 @@ test("la navigation ouvre les portails en consultation", async ({ page }) => {
     page.getByText(/Toute la plateforme, en consultation/),
   ).toBeVisible();
   await expect(
-    page.getByRole("table").getByText("En cours de lecture", { exact: true }),
+    page.getByRole("table").getByText("Chez un radiologue", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("Pris en charge par vous")).toHaveCount(0);
-  await expect(page.getByText("Chez un confrère")).toHaveCount(0);
+  await expect(
+    page.getByRole("table").getByText("À attribuer", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Attribués à vous")).toHaveCount(0);
 
   await nav.getByRole("link", { name: /Comptes-rendus/ }).click();
   await expect(page).toHaveURL(/\/comptes-rendus/);

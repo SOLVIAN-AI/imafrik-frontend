@@ -22,14 +22,13 @@ async function navCounts(): Promise<NavCounts | null> {
   try {
     const metrics = await getMetrics();
     return {
-      // Même définition que l'indicateur « En attente de lecture » de la file.
-      toRead: metrics.byStatus.received,
-      urgentToRead: metrics.urgentOpen,
+      // La file « À lire » : ce qui est attribué au radiologue et pas
+      // encore commencé, plus les urgences de sa liste d'urgence.
+      toRead: metrics.assignedNew + metrics.urgentToTake,
+      urgentToRead: metrics.urgentToTake,
       mine: metrics.assignedToMe,
-      clinicOpen:
-        metrics.byStatus.received +
-        metrics.byStatus.assigned +
-        metrics.byStatus.in_progress,
+      // La clinique : ce qu'aucun radiologue ne voit encore.
+      clinicOpen: metrics.toAssign,
       reportsToDownload: metrics.reportsToDownload,
     };
   } catch {

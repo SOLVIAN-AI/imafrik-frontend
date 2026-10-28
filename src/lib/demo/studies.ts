@@ -260,11 +260,14 @@ export const DEMO_STUDIES: DemoStudy[] = [
     modality: "CT",
     bodyPart: "Crâne",
     clinic: STJ,
-    status: "received",
+    // Attribué à l'utilisateur, pas encore commencé : la section
+    // « Attribués à vous » de la file.
+    status: "assigned",
     clinicalInfo: "Chute à domicile, sous anticoagulant. Céphalées.",
     seriesCount: 2,
     instanceCount: 212,
     receivedMinutesAgo: 34,
+    reader: "me",
   }),
   study({
     id: "9",

@@ -134,7 +134,8 @@ describe("findNextStudyId", () => {
     };
     expect(await findNextStudyId(B)).toBe(A);
     const query = new URLSearchParams(api.paths[0].split("?")[1]);
-    expect(query.getAll("status")).toEqual(["received"]);
+    // Pour un radiologue : ses examens attribués, et les urgences de sa liste.
+    expect(query.getAll("status")).toEqual(["received", "assigned"]);
     expect(query.get("order")).toBe("deadline");
     expect(query.get("limit")).toBe("2");
   });

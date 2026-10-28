@@ -7,6 +7,7 @@ import {
   memberSchema,
   organizationSchema,
   type ApiMember,
+  type ModalityGroup,
 } from "@/lib/api/contracts";
 import { isDemoMode } from "@/lib/demo/mode";
 import { getSession } from "@/lib/session/server";
@@ -33,6 +34,10 @@ export interface Member {
   role: UserRole;
   joinedAt: Date;
   isMe: boolean;
+  /** Radiologue : groupes de modalités qu'il lit ; `null` pour toutes. */
+  readModalities: ModalityGroup[] | null;
+  /** Radiologue : sur la liste d'urgence de la clinique. */
+  urgentReader: boolean;
 }
 
 /** Traduit un membre depuis la forme de l'API. */
@@ -46,6 +51,8 @@ export function toMember(row: ApiMember): Member {
     role: row.role,
     joinedAt: new Date(row.joined_at),
     isMe: row.is_me,
+    readModalities: row.read_modalities ?? null,
+    urgentReader: row.urgent_reader,
   };
 }
 
@@ -57,6 +64,10 @@ function colleague(
   email: string,
   role: UserRole,
   joined: string,
+  reading: Pick<Member, "readModalities" | "urgentReader"> = {
+    readModalities: null,
+    urgentReader: false,
+  },
 ): Member {
   return {
     membershipId: `m-${id}`,
@@ -67,6 +78,7 @@ function colleague(
     role,
     joinedAt: new Date(joined),
     isMe: false,
+    ...reading,
   };
 }
 
@@ -101,6 +113,17 @@ const DEMO_COLLEAGUES: Record<string, Member[]> = {
       "secretariat@cliniquesaintjoseph.tg",
       "clinic_staff",
       "2026-08-20T09:00:00Z",
+    ),
+    // Radiologue de la clinique : ses modalités et la liste d'urgence se
+    // règlent depuis l'écran « Équipe ».
+    colleague(
+      "amensah",
+      "Afi Mensah",
+      "Dr",
+      "a.mensah@cliniquesaintjoseph.tg",
+      "radiologist",
+      "2026-07-01T09:00:00Z",
+      { readModalities: ["radiography", "ultrasound"], urgentReader: true },
     ),
   ],
   "m-radio": [
@@ -171,6 +194,8 @@ export async function listMembers(): Promise<Member[]> {
       role: session!.active.role,
       joinedAt: new Date("2026-06-02T09:00:00Z"),
       isMe: true,
+      readModalities: null,
+      urgentReader: false,
     };
     return [me, ...(DEMO_COLLEAGUES[session!.active.id] ?? [])].sort((a, b) =>
       a.fullName.localeCompare(b.fullName, "fr"),

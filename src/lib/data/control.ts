@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getLocale } from "@/i18n/server";
 import { apiGet } from "@/lib/api/client";
 import {
+  type ModalityGroup,
   type ApiAlert,
   type ApiClinicDetail,
   type ApiControlAnalytics,
@@ -529,6 +530,8 @@ export interface UserMembership {
   organizationName: string;
   organizationKind: OrgKind;
   role: UserRole;
+  /** Radiologue : groupes de modalités lus par cette appartenance ; `null` pour tous. */
+  readModalities: ModalityGroup[] | null;
 }
 
 /** Un compte, vu de l'administration. */
@@ -622,6 +625,7 @@ export async function listUsers(
       organizationName: membership.organization_name,
       organizationKind: membership.organization_kind,
       role: membership.role,
+      readModalities: membership.read_modalities ?? null,
     })),
   }));
 }

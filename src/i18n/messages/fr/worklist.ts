@@ -6,10 +6,10 @@
 export const worklist = {
   /** Périmètre de la file, sous le titre. */
   scope: {
-    empty: "File de travail du groupe",
-    clinics: (list: string) => `File de travail du groupe : ${list}`,
+    empty: "Les examens qu’on vous confie",
+    clinics: (list: string) => `Les examens qu’on vous confie : ${list}`,
     count: (count: number) =>
-      `File de travail du groupe : ${count} établissement${count > 1 ? "s" : ""}`,
+      `Les examens qu’on vous confie : ${count} établissement${count > 1 ? "s" : ""}`,
   },
   /** La file vue par l'équipe IMAFRIK, en consultation. */
   supervision: {
@@ -20,32 +20,33 @@ export const worklist = {
       count: (count: number) =>
         `Toute la plateforme, en consultation : ${count} établissement${count > 1 ? "s" : ""}`,
     },
-    readingHint: (count: number) => `et ${count} en cours de lecture`,
-    reading: { title: "En cours de lecture", hint: "chez un radiologue" },
+    readingHint: (count: number) => `et ${count} chez un radiologue`,
+    reading: { title: "Chez un radiologue", hint: "attribués ou en lecture" },
+    open: { title: "À attribuer", hint: "en attente d’un radiologue" },
+    toAssign: "À attribuer",
   },
   metrics: {
-    toTake: "À prendre",
-    mineHint: (count: number) => `et ${count} chez vous`,
-    urgentOpen: "Urgences libres",
-    urgentHint: "à prendre d’abord",
+    toTake: "Attribués à vous",
+    mineHint: (count: number) => `dont ${count} en cours`,
+    urgentOpen: "Urgences à prendre",
+    urgentHint: "la première prise vous revient",
     overdue: "En retard",
     overdueHint: "délai dépassé",
     nextDeadline: "Prochaine échéance",
   },
   /** Alertes à l'arrivée d'une urgence libre. */
   arrivals: {
-    many: (count: number) => `${count} nouvelles urgences dans la file`,
-    one: (study: string) => `Nouvelle urgence : ${study}`,
+    many: (count: number) => `${count} nouvelles urgences à prendre`,
+    one: (study: string) => `Nouvelle urgence à prendre : ${study}`,
   },
   truncated:
     "La file compte plus d’examens que l’écran n’en affiche : seuls les plus proches de leur échéance sont listés. Affinez avec la recherche ou les filtres.",
   /** Sections de la file. */
   groups: {
-    mine: { title: "Pris en charge par vous", hint: "à terminer" },
-    open: { title: "À prendre", hint: "par ordre d’échéance" },
-    colleagues: {
-      title: "Chez un confrère",
-      hint: "consultation seulement",
+    mine: { title: "Attribués à vous", hint: "par ordre d’échéance" },
+    open: {
+      title: "Urgences à prendre",
+      hint: "liste d’urgence : la première prise vous revient",
     },
   },
   refreshNote: (seconds: number) =>
@@ -88,14 +89,15 @@ export const worklist = {
     empty: {
       title: "File à jour",
       detail:
-        "Aucun examen n’attend de lecture. Les nouveaux examens apparaissent ici dès leur réception.",
+        "Aucun examen ne vous attend. Un examen apparaît ici dès qu’on vous l’attribue, et une urgence de votre liste d’urgence dès sa réception.",
     },
   },
   myStudies: {
-    description: "Examens que vous avez pris en charge et qui restent à signer",
+    description: "Examens que vous lisez et qui restent à signer",
     empty: {
       title: "Aucun examen en cours",
-      detail: "Prenez un examen en charge depuis la file « À lire ».",
+      detail:
+        "Ouvrez un examen qui vous est attribué, depuis la file « À lire », pour le prendre en charge.",
     },
   },
   filters: {

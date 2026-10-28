@@ -12,6 +12,7 @@ import {
   findNextStudyId,
   getStudy,
   getViewerUrl,
+  listPriors,
   type Study,
 } from "@/lib/data/studies";
 import { listTemplatesOrNone } from "@/lib/data/templates";
@@ -63,8 +64,12 @@ function workspaceMode(
     };
   }
   if (report?.status === "signed") {
-    // Signé : la correction passe par un addendum, que seul un radiologue
-    // habilité peut signer.
+    // Signé : la correction passe par un addendum, que seul son auteur,
+    // habilité, peut signer. Un radiologue voit le compte-rendu signé d'un
+    // confrère sur une antériorité partagée avec lui, sans pouvoir y toucher.
+    if (report.authorId !== session.user.id) {
+      return { kind: "readonly", notice: t.reading.page.notAuthor };
+    }
     return {
       kind: "readonly",
       addendumReportId: credentialBlock(session) ? undefined : report.id,
@@ -89,23 +94,23 @@ function workspaceMode(
       backupKey: reportBackupKey(session.user.id),
     };
   }
-  // Pris en charge sans brouillon ouvert, ou libre : un même geste — la
-  // prise en charge est idempotente et ouvre le brouillon.
-  if (mine || (study.assignedTo === null && study.status === "received")) {
-    return { kind: "claimable" };
+  // Attribué sans brouillon ouvert : la prise en charge est idempotente
+  // et ouvre le brouillon. Un radiologue ne voit un examen sans titulaire
+  // que s'il est une urgence de sa liste d'urgence : la première prise
+  // l'obtient.
+  if (mine) return { kind: "claimable" };
+  if (study.assignedTo === null && study.status === "received") {
+    return { kind: "claimable", urgent: true };
   }
-  return {
-    kind: "readonly",
-    notice: study.assignedToName
-      ? t.reading.page.claimedBy(study.assignedToName)
-      : t.reading.page.claimedByOther,
-  };
+  // Ni attribué à lui ni à prendre : une antériorité partagée avec lui.
+  return { kind: "readonly", notice: t.reading.page.priorReadonly };
 }
 
 /**
  * Prochain examen à lire, dans l'ordre de la file « À lire » : celui dont
- * l'échéance est la plus proche, retards en tête. L'ordre est celui du
- * service (`findNextStudyId`), sur toute la file.
+ * l'échéance est la plus proche, retards en tête, parmi ceux attribués au
+ * radiologue et les urgences de sa liste. L'ordre est celui du service
+ * (`findNextStudyId`), sur toute la file.
  *
  * Un échec n'empêche pas d'ouvrir l'examen courant : le bouton « Examen
  * suivant » n'est qu'un raccourci.
@@ -139,13 +144,15 @@ export default async function ReadingPage({
   const { studyId } = await params;
 
   const radiologist = session.active.role === "radiologist";
-  const [{ t, locale }, study, report, viewerUrl, nextStudyId] =
+  const [{ t, locale }, study, report, viewerUrl, nextStudyId, priors] =
     await Promise.all([
       getMessages(),
       getStudy(studyId),
       getReportForStudy(studyId),
       getViewerUrl(studyId),
       radiologist ? findNextStudy(studyId) : null,
+      // Facultatives : leur échec n'empêche pas d'ouvrir l'examen.
+      radiologist ? listPriors(studyId).catch(() => []) : [],
     ]);
   if (!study) notFound();
 
@@ -181,6 +188,7 @@ export default async function ReadingPage({
       signerName={formatPersonName(session.user.title, session.user.fullName)}
       templates={templates}
       nextStudyId={nextStudyId}
+      priors={priors}
       aiReview={aiReview}
       signing={signing}
     />

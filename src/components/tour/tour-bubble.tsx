@@ -5,6 +5,7 @@ import * as React from "react";
 
 import {
   GAP,
+  isCrowded,
   isInView,
   isUsableBox,
   placeBubble,
@@ -12,7 +13,12 @@ import {
   type Box,
   type BubblePosition,
 } from "@/components/tour/geometry";
-import { boxOf, findTarget, resolveStep } from "@/components/tour/targets";
+import {
+  boxOf,
+  findTarget,
+  makeRoomBelow,
+  resolveStep,
+} from "@/components/tour/targets";
 import type { TourId, TourStep } from "@/components/tour/tours";
 import { Button } from "@/components/ui/button";
 import { useMessages } from "@/i18n/client";
@@ -47,6 +53,9 @@ const HOLE_RADIUS = 10;
 
 /** Hauteur supposée de la bulle avant sa première mesure. */
 const BUBBLE_HEIGHT = 200;
+
+/** Largeur de la bulle avant sa première mesure : `22rem`, voir son style. */
+const BUBBLE_WIDTH = 352;
 
 function viewport() {
   return { width: window.innerWidth, height: window.innerHeight };
@@ -106,22 +115,36 @@ export function TourBubble({
   // Amène l'élément à l'écran, puis le suit à chaque image.
   React.useLayoutEffect(() => {
     let element = resolveStep(step);
+    let restoreRoom = () => {};
     if (element) {
       const box = boxOf(element);
       const view = viewport();
+      const size = {
+        width: bubbleRef.current?.offsetWidth ?? BUBBLE_WIDTH,
+        height: bubbleRef.current?.offsetHeight ?? BUBBLE_HEIGHT,
+      };
       if (!isInView(box, view)) {
         // Défilement immédiat : un défilement doux s'interrompt au premier
         // autre appel de défilement, et laissait la bulle sur l'élément.
         // La bulle, elle, glisse jusqu'à sa nouvelle place.
-        const room =
-          view.height -
-          (bubbleRef.current?.offsetHeight ?? BUBBLE_HEIGHT) -
-          2 * GAP;
+        const room = view.height - size.height - 2 * GAP;
         element.scrollIntoView({
           // Un élément trop haut pour tenir avec la bulle est montré par
           // son début (l'en-tête d'un tableau), la bulle au bas de la
           // fenêtre.
           block: box.height > room ? "start" : "center",
+          inline: "nearest",
+          behavior: "instant",
+        });
+      }
+      // Visible, mais sans place pour la bulle d'aucun côté (une file
+      // courte au milieu d'un téléphone, en fin de page) : il remonte en
+      // haut de la fenêtre, la bulle dessous. Son conteneur doit pouvoir
+      // défiler jusque-là : la place est ménagée le temps de l'étape.
+      if (isCrowded(boxOf(element), size, view)) {
+        restoreRoom = makeRoomBelow(element, size.height + 2 * GAP);
+        element.scrollIntoView({
+          block: "start",
           inline: "nearest",
           behavior: "instant",
         });
@@ -157,7 +180,10 @@ export function TourBubble({
       frame = window.requestAnimationFrame(measure);
     };
     measure();
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      restoreRoom();
+    };
   }, [step]);
 
   // À chaque étape, le focus revient sur l'action principale : Entrée

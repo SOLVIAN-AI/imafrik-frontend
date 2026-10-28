@@ -88,9 +88,53 @@ export const studySchema = z.object({
 });
 const _study: Matches<z.input<typeof studySchema>, Schemas["Study"]> = true;
 
+/** Groupe de modalités qu'un radiologue lit (`ModalityGroup` du service). */
+export const modalityGroupSchema = z.enum([
+  "radiography",
+  "mammography",
+  "ultrasound",
+  "ct",
+  "mri",
+  "other",
+]);
+
+export const priorShareSchema = z.object({
+  id: uuid,
+  prior_study_id: uuid,
+  profile_id: uuid,
+  study_date: isoDate,
+  modality: z.string().nullable(),
+  body_part: z.string().nullable(),
+  has_signed_report: z.boolean(),
+  shared_at: isoDate,
+});
+const _priorShare: Matches<
+  z.input<typeof priorShareSchema>,
+  Schemas["PriorShareOut"]
+> = true;
+
+export const priorCandidateSchema = z.object({
+  study_id: uuid,
+  match: z.enum(["certain", "probable"]),
+  study_date: isoDate,
+  modality: z.string().nullable(),
+  body_part: z.string().nullable(),
+  patient_name: z.string().nullable(),
+  patient_id_local: z.string().nullable(),
+  patient_birthdate: isoDate.nullable(),
+  has_signed_report: z.boolean(),
+  shared: z.boolean(),
+});
+const _priorCandidate: Matches<
+  z.input<typeof priorCandidateSchema>,
+  Schemas["PriorCandidateOut"]
+> = true;
+
 export const assignmentStateSchema = z.object({
   study_id: uuid,
   status: studyStatusSchema,
+  priority: z.enum(["routine", "urgent"]),
+  modality: z.string().nullable(),
   assigned_to: uuid.nullable(),
   assigned_to_name: z.string().nullable(),
   assigned_at: isoDate.nullable(),
@@ -104,6 +148,7 @@ export const assignmentStateSchema = z.object({
       open_studies: z.number().int(),
     }),
   ),
+  prior_shares: z.array(priorShareSchema),
   notified: z.boolean().nullable().optional(),
 });
 const _assignment: Matches<
@@ -313,6 +358,9 @@ export const metricsSchema = z.object({
   by_status: z.record(z.string(), z.number().int()),
   urgent_open: z.number().int(),
   assigned_to_me: z.number().int(),
+  assigned_new: z.number().int(),
+  to_assign: z.number().int(),
+  urgent_to_take: z.number().int(),
   received_last_30_days: z.number().int(),
   median_turnaround_minutes: z.number().nullable(),
   reports_to_download: z.number().int(),
@@ -562,6 +610,9 @@ export const memberSchema = z.object({
   role: roleSchema,
   joined_at: isoDate,
   is_me: z.boolean(),
+  // Radiologue : modalités lues (nul = toutes) et liste d'urgence.
+  read_modalities: z.array(modalityGroupSchema).nullable().optional(),
+  urgent_reader: z.boolean(),
 });
 const _member: Matches<z.input<typeof memberSchema>, Schemas["Member"]> = true;
 
@@ -846,16 +897,30 @@ const _auditEntry: Matches<
   Schemas["AuditEntry"]
 > = true;
 
-const userMembershipSchema = z.object({
+export const userMembershipSchema = z.object({
   membership_id: uuid,
   organization_id: uuid,
   organization_name: z.string(),
   organization_kind: kindSchema,
   role: roleSchema,
+  read_modalities: z.array(modalityGroupSchema).nullable().optional(),
 });
 const _userMembership: Matches<
   z.input<typeof userMembershipSchema>,
   Schemas["UserMembership"]
+> = true;
+
+export const urgentReaderSchema = z.object({
+  profile_id: uuid,
+  name: z.string(),
+  organization_name: z.string(),
+  via_pool: z.boolean(),
+  read_modalities: z.array(modalityGroupSchema).nullable(),
+  urgent_reader: z.boolean(),
+});
+const _urgentReader: Matches<
+  z.input<typeof urgentReaderSchema>,
+  Schemas["UrgentReader"]
 > = true;
 
 export const adminUserSchema = z.object({
@@ -1384,6 +1449,8 @@ export const CONTRACT_CHECKS = [
   _aiReview,
   _aiFeatures,
   _study,
+  _priorShare,
+  _priorCandidate,
   _assignment,
   _studyPage,
   _report,
@@ -1417,6 +1484,7 @@ export const CONTRACT_CHECKS = [
   _platformSettings,
   _auditEntry,
   _userMembership,
+  _urgentReader,
   _adminUser,
   _clinicDetail,
   _clinicLogo,
@@ -1433,6 +1501,11 @@ export const CONTRACT_CHECKS = [
 
 export type ApiStudy = z.output<typeof studySchema>;
 export type ApiAssignmentState = z.output<typeof assignmentStateSchema>;
+export type ApiPriorCandidate = z.output<typeof priorCandidateSchema>;
+export type ApiPriorShare = z.output<typeof priorShareSchema>;
+export type ApiUrgentReader = z.output<typeof urgentReaderSchema>;
+export type ApiUserMembership = z.output<typeof userMembershipSchema>;
+export type ModalityGroup = z.output<typeof modalityGroupSchema>;
 export type ApiReport = z.output<typeof reportSchema>;
 export type ApiAddendum = z.output<typeof addendumSchema>;
 export type ApiTrainingCase = z.output<typeof trainingCaseSchema>;
