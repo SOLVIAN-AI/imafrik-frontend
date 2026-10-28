@@ -62,6 +62,11 @@ export const glossary: typeof fr = {
     definition:
       "The link between an account and an organisation, with a role. An account with no membership sees no examination.",
   },
+  responsable: {
+    term: "Manager",
+    definition:
+      "A member of a clinic: they send its examinations, assign them to its radiologists, share priors and manage the team, inviting and removing managers and radiologists. A clinic always keeps one: the last one cannot be removed.",
+  },
   cachet: {
     term: "Stamp",
     definition:

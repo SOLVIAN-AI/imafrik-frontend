@@ -39,6 +39,10 @@ function initials(name: string): string {
  * La liste vient du service, qui revérifie en base que l'utilisateur est
  * toujours membre avant de la lui montrer.
  *
+ * Chaque responsable invite et retire responsables et radiologues ; le
+ * dernier responsable ne se retire pas (le service le refuse, et un
+ * responsable seul en est averti ici).
+ *
  * Pour chaque radiologue de la clinique, le responsable règle les
  * modalités qu'il lit (elles bornent ce qu'on peut lui attribuer) et sa
  * place sur la liste d'urgence (il peut alors prendre une urgence sans
@@ -49,6 +53,10 @@ export default async function TeamPage() {
   const members = await listMembers();
   const { t, locale } = await getMessages();
   const messages = t.clinic.team;
+  // Seul responsable : la clinique ne peut pas le perdre (le service
+  // refuse son retrait), mais elle resterait sans relais en son absence.
+  const soleManager =
+    members.filter((member) => member.role === "clinic_staff").length === 1;
 
   return (
     <>
@@ -63,6 +71,11 @@ export default async function TeamPage() {
       />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
+        {soleManager && (
+          <p className="mb-3 rounded-lg bg-progress-muted px-3 py-2.5 text-xs leading-relaxed text-progress">
+            {messages.soleManager}
+          </p>
+        )}
         <Panel className="flex min-h-0 flex-col overflow-hidden">
           <ul className="divide-y divide-border-subtle overflow-auto">
             {members.map((member) => (

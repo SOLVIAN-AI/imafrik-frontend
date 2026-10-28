@@ -290,7 +290,7 @@ export const fr: MarketingCopy = {
       {
         title: "Double authentification pour tous",
         detail:
-          "Radiologues, personnel des établissements, équipe IMAFRIK : chaque compte confirme sa connexion par un code à usage unique. Un mot de passe dérobé ne suffit pas.",
+          "Radiologues, responsables des établissements, équipe IMAFRIK : chaque compte confirme sa connexion par un code à usage unique. Un mot de passe dérobé ne suffit pas.",
       },
       {
         title: "Signature par code personnel",
@@ -391,7 +391,7 @@ export const fr: MarketingCopy = {
         question:
           "Qui crée les comptes, et comment un radiologue est-il admis ?",
         answer:
-          "Votre établissement crée lui-même les comptes de son personnel, depuis son portail. Un radiologue qui souhaite lire pour le réseau en fait la demande par le formulaire de contact, puis dépose ses justificatifs d’exercice. L’équipe IMAFRIK les examine : tant que ce n’est pas fait, aucun examen ne lui est accessible, y compris s’il a été invité par une clinique.",
+          "Les responsables de votre établissement créent eux-mêmes les comptes de son équipe, depuis leur portail. Un radiologue qui souhaite lire pour le réseau en fait la demande par le formulaire de contact, puis dépose ses justificatifs d’exercice. L’équipe IMAFRIK les examine : tant que ce n’est pas fait, aucun examen ne lui est accessible, y compris s’il a été invité par une clinique.",
       },
       {
         question: "Où sont stockées les images de nos patients ?",

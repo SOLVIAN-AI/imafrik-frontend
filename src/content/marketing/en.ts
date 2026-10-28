@@ -290,7 +290,7 @@ export const en: MarketingCopy = {
       {
         title: "Two-factor authentication for everyone",
         detail:
-          "Radiologists, facility staff, the IMAFRIK team: every account confirms its sign-in with a one-time code. A stolen password is not enough.",
+          "Radiologists, facility managers, the IMAFRIK team: every account confirms its sign-in with a one-time code. A stolen password is not enough.",
       },
       {
         title: "Signed with a personal code",
@@ -390,7 +390,7 @@ export const en: MarketingCopy = {
       {
         question: "Who creates accounts, and how are radiologists admitted?",
         answer:
-          "Your facility creates the accounts for its own staff from its portal. A radiologist who wishes to read for the network applies through the contact form, then uploads their proof of practice. The IMAFRIK team reviews it: until this is done, no examinations are accessible to them, even if a clinic has invited them.",
+          "Your facility’s managers create the accounts for its team from their portal. A radiologist who wishes to read for the network applies through the contact form, then uploads their proof of practice. The IMAFRIK team reviews it: until this is done, no examinations are accessible to them, even if a clinic has invited them.",
       },
       {
         question: "Where are our patients’ images stored?",

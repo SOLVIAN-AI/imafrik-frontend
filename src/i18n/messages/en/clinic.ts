@@ -159,6 +159,8 @@ export const clinic: AppMessages["clinic"] = {
       `Remove ${name} from the team? Their access ends immediately.`,
     removed: (name: string) => `${name} has been removed from the team.`,
     actionsFor: (name: string) => `Actions for ${name}`,
+    soleManager:
+      "You are the clinic’s only manager: invite a second one, who will take over in your absence. The last manager cannot be removed.",
     invalidEmail: "Invalid email address",
     nameRequired: "A name is required",
     nameTooLong: "The name is too long",
@@ -177,6 +179,8 @@ export const clinic: AppMessages["clinic"] = {
     submit: "Send invitation",
     radiologistNote:
       "A radiologist can only access examinations once the IMAFRIK team has verified their registration number. They enter it themselves when they first sign in.",
+    managerNote:
+      "A manager sends the examinations, entrusts them to the clinic’s radiologists and manages the team: they invite and remove managers and radiologists.",
     added: (name: string, organization: string) =>
       `${name} has been added to ${organization}.`,
   },

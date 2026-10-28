@@ -186,6 +186,8 @@ export const clinic = {
       `Retirer ${name} de l’équipe ? Son accès est coupé immédiatement.`,
     removed: (name: string) => `${name} a été retiré(e) de l’équipe.`,
     actionsFor: (name: string) => `Actions pour ${name}`,
+    soleManager:
+      "Vous êtes le seul responsable de la clinique : invitez-en un second, qui prendra le relais en votre absence. Le dernier responsable ne peut pas être retiré.",
     invalidEmail: "Adresse invalide",
     nameRequired: "Le nom est requis",
     nameTooLong: "Le nom est trop long",
@@ -206,6 +208,9 @@ export const clinic = {
     /** Rappel quand le rôle choisi est celui de radiologue. */
     radiologistNote:
       "Un radiologue n’accède aux examens qu’après la vérification de son numéro d’ordre par l’équipe IMAFRIK. Il le renseigne lui-même à sa première connexion.",
+    /** Rappel quand le rôle choisi est celui de responsable. */
+    managerNote:
+      "Un responsable envoie les examens, les confie aux radiologues de la clinique et gère l’équipe : il invite et retire responsables et radiologues.",
     added: (name: string, organization: string) =>
       `${name} a été ajouté(e) à ${organization}.`,
   },

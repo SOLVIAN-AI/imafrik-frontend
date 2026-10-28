@@ -226,15 +226,21 @@ export const pages = {
     team: {
       title: "Équipe",
       purpose:
-        "Les membres de votre établissement qui ont accès à IMAFRIK, avec leur rôle. Chacun a son propre compte, et c’est ici que vous invitez ou retirez vos collègues, et réglez ce que lit chacun de vos radiologues.",
+        "Les membres de votre établissement qui ont accès à IMAFRIK : ses responsables, qui envoient les examens et gèrent l’équipe, et ses radiologues. C’est ici que vous invitez ou retirez vos collègues, et réglez ce que lit chacun de vos radiologues.",
       steps: [
-        "Pour un radiologue, cliquez sur « Modalités et urgences » : cochez les modalités qu’il lit, et mettez-le sur la liste d’urgence s’il peut prendre une urgence sans attribution.",
-        "Cliquez sur « Inviter », puis saisissez le nom complet et l’adresse électronique de la personne.",
-        "Choisissez son rôle : « Clinique » pour le personnel, ou « Radiologue ». Un radiologue n’accède aux examens qu’après vérification de son numéro d’ordre.",
+        "Cliquez sur « Inviter », saisissez le nom complet et l’adresse électronique de la personne, puis choisissez son rôle.",
+        "« Responsable » a les mêmes droits que vous. « Radiologue » n’accède aux examens qu’après vérification de son numéro d’ordre.",
         "Cliquez sur « Envoyer l’invitation » : la personne reçoit un lien par courriel et choisit elle-même son mot de passe.",
-        "Pour retirer un membre, ouvrez le menu au bout de sa ligne, puis choisissez « Retirer de l’équipe ». Son accès est coupé immédiatement.",
+        "Pour un radiologue, cliquez sur « Modalités et urgences » : cochez les modalités qu’il lit, et mettez-le sur la liste d’urgence s’il peut prendre une urgence sans attribution.",
+        "Pour retirer un membre, ouvrez le menu au bout de sa ligne, puis « Retirer de l’équipe » : son accès est coupé aussitôt. Le dernier responsable ne se retire pas.",
       ],
-      terms: ["organisation", "habilitation", "modalitesLues", "listeUrgence"],
+      terms: [
+        "responsable",
+        "organisation",
+        "habilitation",
+        "modalitesLues",
+        "listeUrgence",
+      ],
     },
     settings: {
       title: "Paramètres",
@@ -293,15 +299,15 @@ export const pages = {
     organisations: {
       title: "Organisations",
       purpose:
-        "Liste les cliniques et les groupes de radiologie de la plateforme : membres, examens reçus sur 30 jours, dernier envoi, raccordement du PACS et état. C’est ici que vous créez une clinique.",
+        "Liste les cliniques et les groupes de radiologie de la plateforme : membres, examens reçus sur 30 jours, dernier envoi, raccordement du PACS et état. C’est ici que vous créez une clinique et invitez son équipe.",
       steps: [
-        "Cliquez sur « Nouvelle clinique », puis saisissez le nom de l’établissement, la ville et la langue des comptes-rendus.",
-        "Cochez « Examens ouverts aux radiologues de la plateforme » si besoin, puis cliquez sur « Créer la clinique » : sa fiche s’ouvre.",
-        "Cliquez ensuite sur le nom d’une clinique pour ouvrir sa fiche et raccorder sa passerelle.",
+        "Cliquez sur « Nouvelle clinique », puis saisissez le nom de l’établissement, la ville et la langue des comptes-rendus et des invitations.",
+        "Indiquez ses responsables, un au moins, puis qui lit ses examens : ses propres radiologues, à inviter aussi, ou les « Radiologues du réseau IMAFRIK ».",
+        "Cliquez sur « Créer et inviter l’équipe » : chacun reçoit son invitation, et la fiche s’ouvre pour raccorder la passerelle.",
         "Repérez « PACS non raccordé » et tout « Dernier envoi » en couleur, plus ancien que 24 heures : la passerelle est peut-être à l’arrêt.",
         "Sur une ligne, invitez une personne ou réglez les fonctions d’IA par les icônes, ou cliquez sur « Suspendre » pour couper l’accès de ses membres.",
       ],
-      terms: ["organisation", "groupe", "pool", "contratService", "pacs"],
+      terms: ["responsable", "groupe", "pool", "contratService", "pacs"],
       guides: ["onboardClinic"],
     },
     organisation: {

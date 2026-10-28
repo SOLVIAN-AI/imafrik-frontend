@@ -75,14 +75,14 @@ export const session = {
     sentOn: "Envoyée le",
     /** Le rôle en clair, tel que l'invité le comprend. */
     roleNames: {
-      clinic_staff: "Personnel de l’établissement",
+      clinic_staff: "Responsable de l’établissement",
       radiologist: "Radiologue",
       platform_admin: "Équipe IMAFRIK",
     },
     /** Ce que le rôle permet, en une phrase. */
     roleDetails: {
       clinic_staff:
-        "Vous envoyez les examens de l’établissement et récupérez les comptes-rendus signés.",
+        "Vous envoyez les examens de l’établissement, suivez leur lecture, gérez l’équipe et récupérez les comptes-rendus signés.",
       radiologist:
         "Vous lisez et signez les examens confiés au groupe, sous votre nom et votre numéro d’ordre.",
       platform_admin:

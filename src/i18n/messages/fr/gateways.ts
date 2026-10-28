@@ -326,31 +326,63 @@ export const gateways = {
       "L’archive servie ne correspond pas à son manifeste : redéposez le kit et son manifeste ensemble (tools/deploy.sh <serveur> --push-kit).",
   },
 
-  /** Création d'une clinique depuis la console. */
+  /** Création d'une clinique depuis la console, avec son équipe. */
   createClinic: {
     open: "Nouvelle clinique",
     title: "Créer une clinique",
     description:
-      "La clinique est créée tout de suite. Sa passerelle se raccorde ensuite, depuis sa fiche, par un code.",
+      "La clinique est créée tout de suite, et son équipe reçoit ses invitations. Sa passerelle se raccorde ensuite, depuis sa fiche, par un code.",
     name: "Nom de l’établissement",
     nameHint: "Tel qu’il s’imprime sur les comptes-rendus.",
     city: "Ville",
     language: "Langue des comptes-rendus",
-    pool: "Examens ouverts aux radiologues de la plateforme",
-    poolHint:
-      "Sinon, seuls les radiologues de la clinique les lisent. Réglable ensuite par la clinique.",
-    group: "Groupe de radiologie qui lit pour le pool",
+    languageHint: "Les invitations de son équipe partent dans cette langue.",
+    managers: "Responsables",
+    managersHint:
+      "Ils envoient les examens, les attribuent aux radiologues et gèrent l’équipe. Un au moins.",
+    readers: "Qui lit ses examens ?",
+    ownRadiologists: "Ses propres radiologues",
+    ownRadiologistsHint:
+      "Ses responsables leur attribuent les examens. Chacun fait vérifier son numéro d’ordre par l’équipe IMAFRIK avant sa première lecture.",
+    network: "Radiologues du réseau IMAFRIK",
+    networkHint:
+      "Ouverte au réseau, avec un contrat de service : l’équipe IMAFRIK attribue ses examens aux radiologues du réseau.",
+    radiologists: "Radiologues de la clinique",
+    personName: "Nom complet",
+    personEmail: "Adresse électronique",
+    addManager: "Ajouter un responsable",
+    addRadiologist: "Ajouter un radiologue",
+    removePerson: (position: number) => `Retirer la personne n° ${position}`,
+    group: "Groupe de radiologie qui lit pour le réseau",
     groupHint: "Le contrat de service est créé avec ce groupe.",
     noGroup:
-      "Aucun groupe de radiologie actif : ouvrez au pool après en avoir créé un.",
-    submit: "Créer la clinique",
-    done: (name: string) =>
-      `${name} créée. Raccordez maintenant sa passerelle.`,
+      "Aucun groupe de radiologie actif : créez-en un avant de confier une clinique au réseau.",
+    submit: "Créer et inviter l’équipe",
+    done: (name: string, invited: number) =>
+      `${name} créée, ${invited > 1 ? `${invited} invitations envoyées` : "1 invitation envoyée"}. Raccordez maintenant sa passerelle.`,
     nameRequired:
       "Le nom de l’établissement est requis (2 caractères au moins).",
     nameTooLong: "Nom : 200 caractères au plus.",
     cityTooLong: "Ville : 100 caractères au plus.",
     groupRequired: "Choisissez le groupe qui lira ses examens.",
+    managerRequired: "Indiquez au moins un responsable.",
+    radiologistRequired:
+      "Indiquez au moins un radiologue, ou confiez la lecture aux radiologues du réseau IMAFRIK.",
+    personNameRequired: "Indiquez le nom complet de chaque personne.",
+    personNameTooLong: "Nom d’une personne : 200 caractères au plus.",
+    personEmailInvalid:
+      "Une adresse électronique est invalide : vérifiez chaque personne.",
+    duplicateEmail: (email: string) =>
+      `${email} figure deux fois : chaque personne n’est invitée qu’une fois.`,
+    partialTitle: "Clinique créée, invitations à reprendre",
+    partialDescription: (name: string, failed: number) =>
+      failed > 1
+        ? `${name} est créée, mais ${failed} invitations ne sont pas parties. Réessayez, ou invitez ces personnes plus tard depuis la liste des organisations.`
+        : `${name} est créée, mais une invitation n’est pas partie. Réessayez, ou invitez cette personne plus tard depuis la liste des organisations.`,
+    retry: "Réessayer",
+    retryFor: (name: string) => `Réessayer l’invitation de ${name}`,
+    retried: (name: string) => `Invitation envoyée à ${name}.`,
+    openClinic: "Ouvrir la fiche de la clinique",
   },
 
   /** Connexion Tailscale de la plateforme. */

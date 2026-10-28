@@ -107,7 +107,7 @@ export const assignment: AppMessages["assignment"] = {
     description:
       "The modalities they read limit what can be assigned to them; the urgent list lets them take an urgent examination without waiting for it to be assigned.",
     trigger: "Modalities and urgent list",
-    triggerLabel: (name: string) => `Set ${name}’s reading`,
+    triggerLabel: (name: string) => `Modalities and urgent list for ${name}`,
     modalities: "Modalities read",
     modalitiesHint: "At least one. All ticked: they read everything.",
     urgent: "Urgent list",

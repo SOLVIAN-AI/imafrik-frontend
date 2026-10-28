@@ -78,7 +78,12 @@ export interface paths {
         put?: never;
         /**
          * Créer une clinique
-         * @description Crée une clinique, et la rattache au groupe qui lit pour le pool.
+         * @description Crée une clinique et invite son équipe.
+         *
+         *     Ses responsables, puis ses radiologues, reçoivent leur invitation dans
+         *     le même geste. Une clinique lue par le réseau IMAFRIK est ouverte au
+         *     pool et liée par contrat de service au groupe de radiologie qui lit
+         *     pour lui ; une clinique qui a ses radiologues ne l'est pas.
          *
          *     Aucun AE Title n'est attribué à la clinique : chaque passerelle reçoit
          *     le sien à l'enrôlement, lié à sa seule adresse, et la tâche d'hôte le
@@ -86,7 +91,8 @@ export interface paths {
          *
          *     Raises:
          *         Conflict: Une clinique porte déjà ce nom.
-         *         Unprocessable: Pool demandé sans groupe de radiologie déterminé.
+         *         Unprocessable: Équipe incomplète ou en double, ou réseau demandé
+         *             sans groupe de radiologie déterminé.
          */
         post: operations["create_clinic_admin_clinics_post"];
         delete?: never;
@@ -782,7 +788,7 @@ export interface paths {
          *     Le rôle doit convenir à la nature de l'organisation, selon la règle
          *     commune à tous les chemins d'ajout
          *     (:data:`~app.models.ROLES_BY_ORGANIZATION_KIND`) : pas d'administrateur
-         *     IMAFRIK dans une clinique, pas de personnel de clinique dans un groupe.
+         *     IMAFRIK dans une clinique, pas de responsable de clinique dans un groupe.
          *
          *     C'est le chemin pour inviter une personne sans compte dans un groupe
          *     du pool ; un compte existant peut aussi être rattaché d'ici (avec son
@@ -1216,9 +1222,11 @@ export interface paths {
          *     supprimé sinon. Voir :mod:`app.services.anonymization`.
          *
          *     Règles, de la plus sûre : nul n'anonymise son propre compte ; le nom
-         *     du compte est saisi pour confirmer ; un compte encore membre d'une
-         *     organisation active n'est anonymisé que si le retrait de ses
-         *     appartenances est explicitement confirmé (``remove_memberships``).
+         *     du compte est saisi pour confirmer ; le dernier responsable d'une
+         *     clinique active ne l'est pas (la clinique resterait sans personne pour
+         *     attribuer ses examens) ; un compte encore membre d'une organisation
+         *     active n'est anonymisé que si le retrait de ses appartenances est
+         *     explicitement confirmé (``remove_memberships``).
          *     Ses examens en cours redeviennent alors « à attribuer », et ses jetons sont
          *     révoqués.
          *
@@ -1232,8 +1240,9 @@ export interface paths {
          *     Raises:
          *         Forbidden: Anonymisation de son propre compte.
          *         NotFound: Compte introuvable.
-         *         Conflict: Compte déjà anonymisé, ou encore membre d'une
-         *             organisation active sans confirmation du retrait.
+         *         Conflict: Compte déjà anonymisé, dernier responsable d'une
+         *             clinique active, ou encore membre d'une organisation active
+         *             sans confirmation du retrait.
          *         Unprocessable: Le nom saisi ne correspond pas au compte.
          *         AuthServiceUnavailable: Service d'authentification injoignable ou
          *             en refus ; rien n'a été modifié, le geste peut être refait.
@@ -2626,8 +2635,8 @@ export interface paths {
          * @description Invite une personne dans la clinique active.
          *
          *     Args:
-         *         body: Personne et rôle — personnel ou radiologue employé.
-         *         principal: Membre du personnel de la clinique.
+         *         body: Personne et rôle : responsable ou radiologue employé.
+         *         principal: Responsable de la clinique.
          *
          *     Returns:
          *         Le nouveau membre.
@@ -2692,14 +2701,20 @@ export interface paths {
          *     ses brouillons effacés (déclencheur ``release_unreachable_assignments``),
          *     et il quitte la liste d'urgence de la clinique.
          *
+         *     Le dernier responsable ne part pas : la clinique resterait sans
+         *     personne pour attribuer ses examens ni inviter qui que ce soit. La
+         *     base le refuse aussi (``trg_keep_a_clinic_manager``), y compris quand
+         *     deux responsables se retirent l'un l'autre au même instant.
+         *
          *     Args:
          *         membership_id: Appartenance à retirer.
-         *         principal: Membre du personnel de la clinique.
+         *         principal: Responsable de la clinique.
          *
          *     Raises:
          *         Forbidden: Tentative de se retirer soi-même — on ne ferme pas la
          *             porte derrière soi par mégarde.
          *         NotFound: Appartenance absente de cette clinique.
+         *         Conflict: Dernier responsable de la clinique.
          */
         delete: operations["remove_member_organization_members__membership_id__delete"];
         options?: never;
@@ -4580,26 +4595,37 @@ export interface components {
         };
         /**
          * ClinicCreate
-         * @description Nouvelle clinique.
+         * @description Nouvelle clinique, avec son équipe.
+         *
+         *     Une clinique naît avec au moins un responsable : sans lui, personne
+         *     n'attribuerait ses examens ni n'inviterait qui que ce soit. Ses examens
+         *     sont lus soit par ses propres radiologues, soit par les radiologues du
+         *     réseau IMAFRIK (ouverture au pool, contrat de service avec un groupe de
+         *     radiologie), jamais aucun des deux.
          *
          *     Attributes:
          *         name: Nom de l'établissement.
          *         city: Ville.
-         *         report_language: Langue de ses comptes-rendus.
-         *         open_to_pool: Examens ouverts aux radiologues de la plateforme.
-         *         radiology_group_id: Groupe de radiologie qui lit pour le pool ;
+         *         report_language: Langue de ses comptes-rendus, et des courriels
+         *             d'invitation de son équipe.
+         *         managers: Ses responsables (rôle ``clinic_staff``), un au moins.
+         *         radiologists: Ses propres radiologues ; vide si elle est lue par
+         *             le réseau IMAFRIK.
+         *         open_to_pool: Lue par les radiologues du réseau IMAFRIK.
+         *         radiology_group_id: Groupe de radiologie qui lit pour le réseau ;
          *             facultatif s'il n'y en a qu'un actif.
          */
         ClinicCreate: {
             /** City */
             city?: string | null;
+            /** Managers */
+            managers: components["schemas"]["ClinicPerson"][];
             /** Name */
             name: string;
-            /**
-             * Open To Pool
-             * @default true
-             */
+            /** Open To Pool */
             open_to_pool: boolean;
+            /** Radiologists */
+            radiologists?: components["schemas"]["ClinicPerson"][];
             /** Radiology Group Id */
             radiology_group_id?: string | null;
             /**
@@ -4616,6 +4642,8 @@ export interface components {
          *     Attributes:
          *         id: Identifiant.
          *         slug: Identifiant lisible.
+         *         invitations: Une issue par personne, responsables d'abord. Une
+         *             invitation en échec se refait depuis la fiche de la clinique.
          */
         ClinicCreated: {
             /**
@@ -4623,6 +4651,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Invitations */
+            invitations: components["schemas"]["ClinicInvitation"][];
             /** Slug */
             slug: string;
         };
@@ -4678,6 +4708,39 @@ export interface components {
             report_language: "fr" | "en";
         };
         /**
+         * ClinicInvitation
+         * @description Issue de l'invitation d'une personne à la création d'une clinique.
+         *
+         *     Attributes:
+         *         email: Adresse de la personne.
+         *         full_name: Son nom.
+         *         role: Responsable ou radiologue.
+         *         status: ``invited`` (courriel envoyé), ``attached`` (compte
+         *             existant rattaché, sans courriel) ou ``failed``.
+         *         error: Raison de l'échec, dans la langue de la requête.
+         *         membership_id: Appartenance créée, sauf échec.
+         */
+        ClinicInvitation: {
+            /** Email */
+            email: string;
+            /** Error */
+            error?: string | null;
+            /** Full Name */
+            full_name: string;
+            /** Membership Id */
+            membership_id?: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "clinic_staff" | "radiologist";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "invited" | "attached" | "failed";
+        };
+        /**
          * ClinicLogo
          * @description Logo enregistré d'une clinique, tel qu'il sera imprimé.
          */
@@ -4696,6 +4759,23 @@ export interface components {
             updated_at: string;
             /** Width */
             width: number;
+        };
+        /**
+         * ClinicPerson
+         * @description Personne invitée à la création d'une clinique.
+         *
+         *     Attributes:
+         *         email: Adresse de la personne.
+         *         full_name: Son nom, tel qu'il apparaîtra.
+         */
+        ClinicPerson: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Full Name */
+            full_name: string;
         };
         /**
          * ClinicalInfo
@@ -5741,7 +5821,7 @@ export interface components {
         };
         /**
          * Invitation
-         * @description Invitation d'une personne dans l'organisation active.
+         * @description Invitation d'une personne dans une organisation.
          *
          *     Attributes:
          *         email: Adresse de la personne.

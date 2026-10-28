@@ -5,8 +5,8 @@ import { expect, test } from "./support/fixtures";
  * Accueil d'une personne invitée (`/invitation`).
  *
  * Le lien du courriel d'invitation y conduit après `/auth/callback`. La
- * démonstration sert une invitation fixe : personnel de l'accueil de la
- * Clinique Saint-Joseph, invité par la gestionnaire de la clinique.
+ * démonstration sert une invitation fixe : responsable de la Clinique
+ * Saint-Joseph, invitée par une autre responsable de la clinique.
  * L'enregistrement du mot de passe aboutit au message « indisponible en
  * démonstration », ce qui prouve que le formulaire a franchi ses
  * contrôles et atteint l'action serveur.
@@ -30,7 +30,7 @@ test.describe("en français", () => {
 
     const carte = page.getByRole("region", { name: "Votre invitation" });
     await expect(carte).toContainText("Établissement de santé");
-    await expect(carte).toContainText("Personnel de l’établissement");
+    await expect(carte).toContainText("Responsable de l’établissement");
     await expect(carte).toContainText("Lomé");
     await expect(carte).toContainText("Invitation de");
     await expect(carte).toContainText("Akouvi Mensah");
@@ -94,7 +94,7 @@ test.describe("en anglais", () => {
     ).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     const carte = page.getByRole("region", { name: "Your invitation" });
-    await expect(carte).toContainText("Facility staff");
+    await expect(carte).toContainText("Facility manager");
     await expect(carte).toContainText("Invited by");
     await expect(
       page.getByRole("heading", { name: "Choose your password" }),

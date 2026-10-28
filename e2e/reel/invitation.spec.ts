@@ -68,7 +68,7 @@ test("l’invité suit le lien du courriel, choisit son mot de passe et arrive s
     page.getByRole("heading", { name: "Bienvenue chez Clinique Saint-Joseph" }),
   ).toBeVisible();
   const carte = page.getByRole("region", { name: "Votre invitation" });
-  await expect(carte).toContainText("Personnel de l’établissement");
+  await expect(carte).toContainText("Responsable de l’établissement");
   await expect(carte).toContainText("Akouvi Mensah");
 
   await page.getByLabel("Nouveau mot de passe").fill(MOT_DE_PASSE);

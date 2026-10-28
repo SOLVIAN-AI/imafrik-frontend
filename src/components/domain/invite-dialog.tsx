@@ -61,7 +61,7 @@ export function InviteDialog({
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
   // Rôle choisi : un radiologue appelle un rappel sur la validation de son
-  // numéro d'ordre.
+  // numéro d'ordre, un responsable un rappel de ce qu'il pourra faire.
   const [role, setRole] = React.useState<UserRole>(roles[0]);
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -149,6 +149,11 @@ export function InviteDialog({
             {role === "radiologist" && (
               <p className="rounded-lg bg-progress-muted px-3 py-2.5 text-2xs leading-relaxed text-progress">
                 {messages.radiologistNote}
+              </p>
+            )}
+            {role === "clinic_staff" && (
+              <p className="rounded-lg bg-progress-muted px-3 py-2.5 text-2xs leading-relaxed text-progress">
+                {messages.managerNote}
               </p>
             )}
             {error && (

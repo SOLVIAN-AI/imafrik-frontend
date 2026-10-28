@@ -221,15 +221,21 @@ export const pages: typeof fr = {
     team: {
       title: "Team",
       purpose:
-        "The members of your facility who have access to IMAFRIK, with their role. Everyone has their own account, and this is where you invite or remove colleagues, and set what each of your radiologists reads.",
+        "The members of your facility who have access to IMAFRIK: its managers, who send the examinations and manage the team, and its radiologists. This is where you invite or remove colleagues, and set what each of your radiologists reads.",
       steps: [
-        "For a radiologist, click “Modalities and urgent list”: tick the modalities they read, and put them on the urgent list if they may take an urgent examination without an assignment.",
-        "Click “Invite”, then enter the person’s full name and email address.",
-        "Choose their role: “Clinic” for staff, or “Radiologist”. A radiologist can only access examinations once their registration number has been verified.",
+        "Click “Invite”, enter the person’s full name and email address, then choose their role.",
+        "“Manager” has the same rights as you. “Radiologist” can only access examinations once their registration number has been verified.",
         "Click “Send invitation”: the person receives a link by email and chooses their own password.",
-        "To remove a member, open the menu at the end of their row and choose “Remove from team”. Their access ends immediately.",
+        "For a radiologist, click “Modalities and urgent list”: tick the modalities they read, and put them on the urgent list if they may take an urgent examination without an assignment.",
+        "To remove a member, open the menu at the end of their row and choose “Remove from team”: their access ends at once. The last manager cannot be removed.",
       ],
-      terms: ["organisation", "habilitation", "modalitesLues", "listeUrgence"],
+      terms: [
+        "responsable",
+        "organisation",
+        "habilitation",
+        "modalitesLues",
+        "listeUrgence",
+      ],
     },
     settings: {
       title: "Settings",
@@ -288,15 +294,15 @@ export const pages: typeof fr = {
     organisations: {
       title: "Organisations",
       purpose:
-        "Lists the platform’s clinics and radiology groups: members, examinations received over 30 days, last sent, PACS connection and status. This is where you create a clinic.",
+        "Lists the platform’s clinics and radiology groups: members, examinations received over 30 days, last sent, PACS connection and status. This is where you create a clinic and invite its team.",
       steps: [
-        "Click “New clinic”, then enter the facility name, the city and the report language.",
-        "Tick “Examinations open to the platform’s radiologists” if needed, then click “Create the clinic”: its page opens.",
-        "Then click a clinic’s name to open its page and connect its gateway.",
+        "Click “New clinic”, then enter the facility name, the city and the language of its reports and invitations.",
+        "Enter its managers, at least one, then who reads its examinations: its own radiologists, to be invited too, or the “IMAFRIK network radiologists”.",
+        "Click “Create and invite the team”: everyone receives their invitation, and the page opens to connect the gateway.",
         "Look for “PACS not connected” and any “Last sent” shown in colour, older than 24 hours: the gateway may have stopped.",
         "On a row, use the icons to invite someone or set the AI features, or click “Suspend” to cut off access for its members.",
       ],
-      terms: ["organisation", "groupe", "pool", "contratService", "pacs"],
+      terms: ["responsable", "groupe", "pool", "contratService", "pacs"],
       guides: ["onboardClinic"],
     },
     organisation: {
