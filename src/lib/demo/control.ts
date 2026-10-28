@@ -2,6 +2,7 @@ import type {
   ApiAdminUser,
   ApiAssignmentState,
   ApiPriorCandidate,
+  ApiAssignmentRules,
   ApiUrgentReader,
   ApiCredentialDocument,
   ApiContactRequest,
@@ -14,6 +15,7 @@ import type {
   ApiPipelineStudy,
   ApiPlatformSettings,
   ApiSystemStatus,
+  ModalityGroup,
 } from "@/lib/api/contracts";
 import { quantile } from "@/lib/charts";
 import {
@@ -481,7 +483,23 @@ export function demoOverview(
   const silent = DEMO_NETWORK.find((clinic) => clinic.silentHours);
   const urgentOverdue = overdue(true);
   const routineOverdue = overdue(false);
+  // Urgence qu'aucun radiologue n'a ouverte, plus de 10 minutes après
+  // son signalement (app.services.urgent_alerts) : la file de démonstration
+  // ne date pas le signalement, la réception en tient lieu.
+  const urgentUnclaimed = open.filter(
+    (study) =>
+      study.urgent &&
+      (study.status === "received" || study.status === "assigned") &&
+      study.receivedAt.getTime() < now - URGENT_UNCLAIMED_MINUTES * 60_000,
+  ).length;
   const alerts: ApiControlOverview["alerts"] = [];
+  if (urgentUnclaimed)
+    alerts.push({
+      code: "urgent_unclaimed",
+      severity: "critical",
+      message: text.urgentUnclaimed(urgentUnclaimed, URGENT_UNCLAIMED_MINUTES),
+      href: "/admin/examens?urgent=1",
+    });
   if (urgentOverdue)
     alerts.push({
       code: "urgent_overdue",
@@ -1260,6 +1278,16 @@ export function demoAudit(now = Date.now()): ApiAuditEntry[] {
           sla_urgent_minutes: 30,
         },
       );
+    if (index === 4)
+      // Sans auteur humain : le journal nomme la règle.
+      push(
+        minutes,
+        "study.auto_assigned",
+        { actor_id: null, actor_name: null },
+        stj,
+        ["study", `demo-flow-${index}`],
+        { radiologist: READERS[0].id, rule: "schedule" },
+      );
     if (index === 20)
       push(
         minutes,
@@ -1408,6 +1436,90 @@ export function demoUrgentReaders(clinicId: string): ApiUrgentReader[] {
     read_modalities: null,
     urgent_reader: index === 0,
   }));
+}
+
+/** Délai au-delà duquel une urgence non prise donne l'alerte. */
+const URGENT_UNCLAIMED_MINUTES = 10;
+
+/** Clinique de démonstration qui a ses propres règles d'attribution. */
+const DEMO_RULES_CLINIC = "org-stj";
+
+/**
+ * Règles d'attribution de démonstration.
+ *
+ * La Clinique Saint-Joseph confie l'échographie à sa radiologue, Afi
+ * Mensah, qui tient aussi la journée en semaine ; l'équipe IMAFRIK a placé
+ * deux radiologues du réseau, l'un pour les nuits, l'autre pour la
+ * journée du week-end : toute la semaine est couverte, sans
+ * chevauchement. Le
+ * responsable les voit sans pouvoir en ajouter ; l'équipe IMAFRIK choisit
+ * parmi tous les radiologues du groupe.
+ *
+ * @param clinicId      Clinique ; `null` pour la clinique active du
+ *                      responsable (Saint-Joseph).
+ * @param ownClinicOnly Vrai pour le responsable.
+ */
+export function demoAssignmentRules(
+  clinicId: string | null,
+  ownClinicOnly: boolean,
+): ApiAssignmentRules {
+  const id = clinicId ?? DEMO_RULES_CLINIC;
+  const own = {
+    profile_id: "p-amensah",
+    name: "Dr Afi Mensah",
+    organization_name: "Clinique Saint-Joseph",
+    via_pool: false,
+    read_modalities: ["radiography", "ultrasound"] as ModalityGroup[],
+    can_receive: true,
+  };
+  const network = (reader: (typeof READERS)[number]) => ({
+    profile_id: reader.id,
+    name: `${reader.title} ${reader.name}`,
+    organization_name: DEMO_GROUP.name,
+    via_pool: true,
+    read_modalities: null,
+    can_receive: true,
+  });
+  const [, , agbeko, diallo] = READERS;
+  if (id !== DEMO_RULES_CLINIC) {
+    return {
+      clinic_id: id,
+      time_zone: "Africa/Lome",
+      version: "demo-0",
+      slots: [],
+      modalities: [],
+      radiologists: READERS.map(network),
+    };
+  }
+  return {
+    clinic_id: id,
+    time_zone: "Africa/Lome",
+    version: "demo-1",
+    slots: [
+      {
+        radiologist_id: own.profile_id,
+        weekdays: [1, 2, 3, 4, 5],
+        starts_at: "08:00",
+        ends_at: "18:00",
+      },
+      {
+        radiologist_id: diallo.id,
+        weekdays: [1, 2, 3, 4, 5, 6, 7],
+        starts_at: "18:00",
+        ends_at: "08:00",
+      },
+      {
+        radiologist_id: agbeko.id,
+        weekdays: [6, 7],
+        starts_at: "08:00",
+        ends_at: "18:00",
+      },
+    ],
+    modalities: [{ group: "ultrasound", radiologist_id: own.profile_id }],
+    radiologists: ownClinicOnly
+      ? [own, network(agbeko), network(diallo)]
+      : [own, ...READERS.map(network)],
+  };
 }
 
 /**

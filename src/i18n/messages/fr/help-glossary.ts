@@ -45,7 +45,7 @@ export const glossary = {
   attribution: {
     term: "Attribution",
     definition:
-      "Réservation d’un examen à un radiologue précis, par le responsable de la clinique ou, pour les radiologues du réseau, par l’équipe IMAFRIK. Lui seul le voit et peut le prendre en charge ; il en est prévenu par courriel, sans aucune donnée du patient.",
+      "Réservation d’un examen à un radiologue précis, par le responsable de la clinique ou, pour les radiologues du réseau, par l’équipe IMAFRIK, ou d’office à son arrivée par une règle d’attribution. Lui seul le voit et peut le prendre en charge ; il en est prévenu par courriel, sans aucune donnée du patient.",
   },
   brouillon: {
     term: "Brouillon",
@@ -207,6 +207,11 @@ export const glossary = {
     definition:
       "Logiciel installé sur un poste de la clinique. Il reçoit les images des appareils et les envoie, chiffrées, au PACS d’IMAFRIK. Il s’installe avec le kit d’installation et un code d’enrôlement.",
   },
+  planning: {
+    term: "Planning de la semaine",
+    definition:
+      "Créneaux de garde fixés par le responsable de la clinique, ou l’équipe IMAFRIK : quel radiologue, quels jours, à quelles heures, nuit comprise. Un examen qui arrive va au seul radiologue de garde qui peut le lire ; s’ils sont plusieurs, le responsable choisit.",
+  },
   pool: {
     term: "Réseau IMAFRIK (pool)",
     definition:
@@ -221,6 +226,11 @@ export const glossary = {
     term: "Renseignement clinique",
     definition:
       "Motif de l’examen et informations utiles transmises par la clinique au radiologue : symptômes, antécédents, question posée.",
+  },
+  regleAttribution: {
+    term: "Règle d’attribution",
+    definition:
+      "Consigne fixée à l’avance par le responsable de la clinique, ou l’équipe IMAFRIK : un radiologue par modalité, puis le planning de la semaine. À l’arrivée d’un examen, elle le confie au radiologue prévu s’il peut le lire. Elle ne reprend jamais un examen déjà attribué.",
   },
   reseauPrive: {
     term: "Réseau privé",
@@ -251,6 +261,11 @@ export const glossary = {
     term: "Urgence",
     definition:
       "Examen signalé urgent par la clinique. Son échéance est plus proche que celle d’un examen de routine, ce qui le fait remonter dans la file, et son compte-rendu doit être signé dans le délai promis pour les urgences.",
+  },
+  urgenceNonPrise: {
+    term: "Urgence non prise",
+    definition:
+      "Urgence qu’aucun radiologue n’a commencé à lire 10 minutes après son signalement, attribuée ou non. Les responsables de la clinique et l’équipe IMAFRIK sont prévenus par courriel, une seule fois, et la tour de contrôle l’affiche en rouge.",
   },
   viewer: {
     term: "Viewer (visionneuse)",

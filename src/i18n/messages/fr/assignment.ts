@@ -140,5 +140,85 @@ export const assignment = {
     submit: "Enregistrer",
     loading: "Chargement des radiologues…",
   },
+  /**
+   * Règles d'attribution d'une clinique : le radiologue de chaque
+   * modalité, puis le planning de la semaine.
+   */
+  rules: {
+    title: "Règles d’attribution",
+    trigger: "Règles d’attribution",
+    description:
+      "Qui reçoit d’office les examens de la clinique, à leur arrivée.",
+    adminDescription:
+      "Qui reçoit d’office les examens de cette clinique à leur arrivée, radiologues du réseau compris.",
+    howItWorks:
+      "À l’arrivée d’un examen, le radiologue de sa modalité le reçoit ; sinon, le seul radiologue de garde qui peut le lire. Sinon il reste à attribuer. Une règle ne reprend jamais un examen déjà attribué : vous pouvez toujours réattribuer.",
+    modalitiesTitle: "Radiologue par modalité",
+    modalitiesHint:
+      "Il reçoit tous les examens de cette modalité, à toute heure, s’il peut les lire.",
+    nobody: "Personne",
+    notReading: (name: string) => `${name} ne lit pas cette modalité`,
+    scheduleTitle: "Planning de la semaine",
+    scheduleHint: (zone: string) =>
+      `Les examens qu’aucun radiologue de modalité ne reçoit vont au radiologue de garde. Heures de la clinique (${zone}).`,
+    noSlots:
+      "Aucun créneau : en dehors des modalités désignées, les examens restent à attribuer.",
+    addSlot: "Ajouter un créneau",
+    slotLabel: (index: number) => `Créneau ${index}`,
+    radiologist: "Radiologue",
+    chooseRadiologist: "Choisir un radiologue",
+    days: "Jours",
+    dayShort: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+    dayNames: [
+      "lundi",
+      "mardi",
+      "mercredi",
+      "jeudi",
+      "vendredi",
+      "samedi",
+      "dimanche",
+    ],
+    allDay: "Toute la journée",
+    from: "De",
+    to: "à",
+    overnight: "jusqu’au lendemain matin",
+    removeSlot: "Retirer",
+    removeSlotLabel: (index: number) => `Retirer le créneau ${index}`,
+    problems: {
+      radiologist: "Choisissez un radiologue.",
+      days: "Cochez au moins un jour.",
+      hours: "Indiquez une heure de début et une heure de fin.",
+      sameHours: "Le début et la fin ne peuvent pas être à la même heure.",
+    },
+    overlap: (first: string, second: string, days: string) =>
+      `${first} et ${second} sont de garde en même temps (${days}) : un examen que les deux peuvent lire restera à attribuer.`,
+    cannotReceive: (name: string) =>
+      `${name} ne peut pas encore recevoir d’examen (habilitation ou rattachement) : la règle le passe.`,
+    network: "Réseau IMAFRIK",
+    submit: "Enregistrer les règles",
+    saved: "Règles d’attribution enregistrées.",
+    invalid: "Complétez ou retirez les créneaux signalés avant d’enregistrer.",
+    noRadiologists:
+      "Aucun radiologue dans votre équipe : invitez-en un depuis « Équipe » pour fixer des règles.",
+    noRadiologistsAdmin:
+      "Aucun radiologue ne peut lire cette clinique : rattachez-en un, ou ouvrez-la au réseau.",
+    back: "Équipe",
+    summary: (slots: number, modalities: number) =>
+      slots === 0 && modalities === 0
+        ? "Aucune règle : les examens arrivent à attribuer."
+        : [
+            modalities > 0 &&
+              `${modalities} modalité${modalities > 1 ? "s" : ""} désignée${modalities > 1 ? "s" : ""}`,
+            slots > 0 && `${slots} créneau${slots > 1 ? "x" : ""} de garde`,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+    /** Règle qui a confié un examen, nommée sur sa fiche. */
+    byRule: {
+      modality: "radiologue de la modalité",
+      schedule: "planning de la semaine",
+    },
+    assignedBy: (rule: string) => `Attribué par la règle : ${rule}`,
+  },
   demoAction: "L’attribution des examens",
 };

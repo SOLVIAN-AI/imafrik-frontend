@@ -13,6 +13,7 @@ import { RelativeTime } from "@/components/admin/relative-time";
 import { ReportLanguageForm } from "@/components/admin/report-language-form";
 import { RetentionForm } from "@/components/admin/retention-form";
 import { UrgentReadersForm } from "@/components/admin/urgent-readers-form";
+import { AssignmentRulesForm } from "@/components/domain/assignment-rules-form";
 import { Legend, Ring, StackedBars } from "@/components/charts/charts";
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader } from "@/components/layout/app-shell";
@@ -32,6 +33,7 @@ import {
   formatMinutes,
   formatRate,
 } from "@/lib/format";
+import { getAssignmentRules } from "@/lib/actions/assignment-rules";
 import { getUrgentReaders } from "@/lib/actions/urgent-readers";
 import { getClinicGateways, getEnrollmentCodes } from "@/lib/data/gateways";
 import { LOCALE_NAMES } from "@/lib/i18n/locale";
@@ -77,7 +79,7 @@ export default async function ClinicPage({
   const clinic = await getClinic(id);
   if (!clinic) notFound();
 
-  const [analytics, recent, logo, gateways, codes, urgentReaders] =
+  const [analytics, recent, logo, gateways, codes, urgentReaders, rules] =
     await Promise.all([
       getAnalytics(30, clinic.id),
       getPipeline(15, clinic.id),
@@ -85,6 +87,7 @@ export default async function ClinicPage({
       getClinicGateways(clinic.id),
       getEnrollmentCodes(clinic.id),
       getUrgentReaders(clinic.id),
+      getAssignmentRules(clinic.id),
     ]);
   const activity = analytics.byClinic[0];
   const done = clinic.onboarding.filter((step) => step.done).length;
@@ -288,6 +291,24 @@ export default async function ClinicPage({
           ) : (
             <p role="alert" className="text-xs text-urgent">
               {urgentReaders.error}
+            </p>
+          )}
+        </Section>
+
+        <Section
+          title={t.assignment.rules.title}
+          description={t.assignment.rules.adminDescription}
+        >
+          {rules.ok ? (
+            <AssignmentRulesForm
+              key={rules.data.version}
+              clinicId={clinic.id}
+              rules={rules.data}
+              readOnly={ended}
+            />
+          ) : (
+            <p role="alert" className="text-xs text-urgent">
+              {rules.error}
             </p>
           )}
         </Section>

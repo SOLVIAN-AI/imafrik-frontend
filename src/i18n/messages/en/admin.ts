@@ -766,13 +766,16 @@ export const admin: AppMessages["admin"] = {
     emptyForAction: "No entries for this action.",
     emptyDetail: "The log fills up as the platform is used.",
     system: "System",
+    rule: "Assignment rule",
     actions: {
       "study.viewed": "Examination viewed",
       "study.claimed": "Examination claimed",
       "study.urgent_claimed": "Urgent examination taken from the urgent list",
       "study.released": "Examination returned by the radiologist",
       "study.assigned": "Examination assigned to a radiologist",
+      "study.auto_assigned": "Examination assigned by a rule",
       "study.unassigned": "Assignment withdrawn",
+      "study.urgent_alerted": "Alert: urgent examination not taken in 10 min",
       "prior.shared": "Prior examination shared",
       "prior.unshared": "Prior examination withdrawn",
       "study.updated": "Urgency or clinical information changed",
@@ -790,6 +793,7 @@ export const admin: AppMessages["admin"] = {
       "organization.state_changed": "Organisation activated or suspended",
       "organization.pool_changed": "Pool access changed",
       "organization.urgent_readers_changed": "Urgent list changed",
+      "organization.assignment_rules_changed": "Assignment rules changed",
       "organization.retention_changed": "Retention period changed",
       "organization.report_language_changed": "Report language changed",
       "organization.logo_changed": "Report logo changed",
@@ -923,6 +927,10 @@ export const admin: AppMessages["admin"] = {
 
   demo: {
     alerts: {
+      urgentUnclaimed: (count: number, minutes: number) =>
+        count > 1
+          ? `${count} urgent examinations have not been taken by any radiologist for more than ${minutes} min`
+          : `${count} urgent examination has not been taken by any radiologist for more than ${minutes} min`,
       urgentOverdue: (count: number, minutes: number) =>
         `${count} urgent examination${count === 1 ? " has" : "s have"} been waiting for more than ${minutes} min`,
       routineOverdue: (count: number, hours: number) =>

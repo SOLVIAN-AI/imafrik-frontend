@@ -312,11 +312,12 @@ attend des comptes-rendus.
 | `/envoyer` | Envoi manuel de fichiers DICOM depuis le navigateur, et rappel des paramètres d'envoi automatique. Voir la décision n° 2. | V1 |
 | `/comptes-rendus` | Comptes-rendus reçus, recherche par patient, identifiant ou modalité (faite par le service), liste paginée. | V1 |
 | `/equipe` | Membres, rôles, invitations. | V2 |
+| `/equipe/regles` | Règles d'attribution : radiologue par modalité, puis planning de la semaine (gardes de nuit comprises) ; les chevauchements de garde sont signalés. | Fait |
 | `/facturation` | Consommation, factures, contrat de service. | V2 |
 | `/patients` | Vue par patient : tous ses examens, tous ses comptes-rendus. | V3 |
 | `/parametres` | Établissement, paramètres DICOM, notifications, sécurité. | V1 |
 
-**9 écrans.**
+**10 écrans.**
 
 ---
 
@@ -349,7 +350,7 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | `/admin/activite` | Volumes, délais (médiane, 9 sur 10), étapes du parcours, heures d'arrivée, par clinique (débit), modalité, radiologue. Période et clinique dans l'adresse. | Fait |
 | `/admin/flux` | Flux d'images examen par examen : débit de réception, frise acquisition → remise. | Fait |
 | `/admin/organisations` | Volumes sur 30 jours, dernier envoi, suspension, invitation. | Fait |
-| `/admin/organisations/[id]` | Mise en service d'une clinique, activité, **durée de conservation des images**, état du contrat et **fin de contrat**. | Fait |
+| `/admin/organisations/[id]` | Mise en service d'une clinique, activité, liste d'urgence, **règles d'attribution**, **durée de conservation des images**, état du contrat et **fin de contrat**. | Fait |
 | `/admin/utilisateurs` | Comptes : rattachement, **validation des numéros d'ordre** (filtre « À valider », `?validation=attente`), double authentification, réinitialisation, **anonymisation** (droit à l'effacement : nom saisi, retrait des appartenances confirmé pour un membre actif). | Fait |
 | `/admin/examens` | Recherche globale, urgences en cours. | Fait |
 | `/admin/demandes` | Demandes reçues par le site (établissement ou radiologue, numéro d'ordre déclaré), suivi et notes. | Fait |
