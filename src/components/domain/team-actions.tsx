@@ -19,8 +19,9 @@ import { ROLES_BY_KIND } from "@/lib/roles";
 /**
  * Bouton d'invitation de l'écran « Équipe ».
  *
- * Une clinique invite son personnel et, si elle en emploie, ses propres
- * radiologues — qui liront ses examens qu'elle les ouvre au pool ou non.
+ * Les responsables d'une clinique invitent d'autres responsables et, si
+ * elle en emploie, ses propres radiologues, qui liront ses examens
+ * qu'elle les ouvre au pool ou non.
  */
 export function InviteMemberButton({
   organizationName,

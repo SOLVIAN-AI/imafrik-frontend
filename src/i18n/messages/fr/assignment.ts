@@ -113,7 +113,7 @@ export const assignment = {
     description:
       "Les modalités qu’il lit bornent ce qu’on peut lui attribuer ; la liste d’urgence lui permet de prendre une urgence sans attendre qu’on la lui confie.",
     trigger: "Modalités et urgences",
-    triggerLabel: (name: string) => `Régler la lecture de ${name}`,
+    triggerLabel: (name: string) => `Modalités et urgences de ${name}`,
     modalities: "Modalités lues",
     modalitiesHint: "Au moins une. Toutes cochées : il lit tout.",
     urgent: "Liste d’urgence",

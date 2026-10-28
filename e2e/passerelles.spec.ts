@@ -156,19 +156,76 @@ test("un code d'enrôlement s'affiche une fois, avec son compte à rebours", asy
   );
 });
 
-test("une clinique se crée depuis la liste des organisations", async ({
+test("une clinique se crée avec ses responsables et ses lecteurs", async ({
   page,
+  checkA11y,
 }) => {
   await page.goto("/admin/organisations");
   await page.getByRole("button", { name: "Nouvelle clinique" }).click();
   const dialog = page.getByRole("dialog", { name: "Créer une clinique" });
-  await dialog.getByRole("button", { name: "Créer la clinique" }).click();
+  const create = dialog.getByRole("button", {
+    name: "Créer et inviter l’équipe",
+  });
+  await create.click();
   await expect(dialog.getByRole("alert")).toHaveText(
     "Le nom de l’établissement est requis (2 caractères au moins).",
   );
   await dialog.getByLabel("Nom de l’établissement").fill("Clinique du Plateau");
   await dialog.getByLabel("Ville").fill("Atakpamé");
-  await dialog.getByRole("button", { name: "Créer la clinique" }).click();
+
+  // Un responsable au moins.
+  await create.click();
+  await expect(dialog.getByRole("alert")).toHaveText(
+    "Indiquez au moins un responsable.",
+  );
+  const managers = dialog.getByRole("group", { name: "Responsables" });
+  await managers.getByLabel("Nom complet").fill("Yawa Direction");
+  await managers
+    .getByLabel("Adresse électronique")
+    .fill("direction@plateau.tg");
+
+  // Ses propres radiologues : un au moins, chacun invité une seule fois.
+  await dialog.getByLabel(/Ses propres radiologues/).check();
+  await create.click();
+  await expect(dialog.getByRole("alert")).toHaveText(
+    "Indiquez au moins un radiologue, ou confiez la lecture aux radiologues du réseau IMAFRIK.",
+  );
+  const radiologists = dialog.getByRole("group", {
+    name: "Radiologues de la clinique",
+  });
+  await radiologists.getByLabel("Nom complet").fill("Dr Kodjo");
+  await radiologists
+    .getByLabel("Adresse électronique")
+    .fill("Direction@Plateau.tg");
+  await create.click();
+  await expect(dialog.getByRole("alert")).toHaveText(
+    "direction@plateau.tg figure deux fois : chaque personne n’est invitée qu’une fois.",
+  );
+  await radiologists
+    .getByLabel("Adresse électronique")
+    .fill("kodjo@plateau.tg");
+
+  // Un second responsable, puis retiré : la première ligne reste.
+  await managers
+    .getByRole("button", { name: "Ajouter un responsable" })
+    .click();
+  await expect(managers.getByLabel("Nom complet")).toHaveCount(2);
+  await expect(managers.getByLabel("Nom complet").nth(1)).toBeFocused();
+  await managers
+    .getByRole("button", { name: "Retirer la personne n° 2" })
+    .click();
+  await expect(managers.getByLabel("Nom complet")).toHaveCount(1);
+  await checkA11y();
+
+  await create.click();
+  await expect(dialog.getByRole("alert")).toHaveText(
+    /La création d’une clinique n’est pas disponible en démonstration/,
+  );
+
+  // Le réseau IMAFRIK, à la place : ses radiologues ne se saisissent plus.
+  await dialog.getByLabel(/Radiologues du réseau IMAFRIK/).check();
+  await expect(radiologists).toBeHidden();
+  await create.click();
   await expect(dialog.getByRole("alert")).toHaveText(
     /La création d’une clinique n’est pas disponible en démonstration/,
   );

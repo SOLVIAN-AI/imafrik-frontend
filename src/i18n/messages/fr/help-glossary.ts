@@ -67,6 +67,11 @@ export const glossary = {
     definition:
       "Lien entre un compte et une organisation, avec un rôle. Un compte rattaché à aucune organisation ne voit aucun examen.",
   },
+  responsable: {
+    term: "Responsable",
+    definition:
+      "Membre d’une clinique : il envoie ses examens, les attribue à ses radiologues, partage les antériorités et gère l’équipe, dont il invite et retire responsables et radiologues. Une clinique en garde toujours un : le dernier ne peut pas être retiré.",
+  },
   cachet: {
     term: "Cachet",
     definition:

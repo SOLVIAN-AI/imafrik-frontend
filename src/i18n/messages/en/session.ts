@@ -65,13 +65,13 @@ export const session: AppMessages["session"] = {
     invitedBy: "Invited by",
     sentOn: "Sent on",
     roleNames: {
-      clinic_staff: "Facility staff",
+      clinic_staff: "Facility manager",
       radiologist: "Radiologist",
       platform_admin: "IMAFRIK team",
     },
     roleDetails: {
       clinic_staff:
-        "You send your facility’s examinations and collect the signed reports.",
+        "You send your facility’s examinations, follow their reporting, manage the team and collect the signed reports.",
       radiologist:
         "You read and sign the examinations entrusted to the group, under your name and registration number.",
       platform_admin:

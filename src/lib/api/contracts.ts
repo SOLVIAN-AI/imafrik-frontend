@@ -1154,8 +1154,26 @@ export const gatewayStatusSchema = z.enum([
   "revoked",
 ]);
 
-/** Une clinique créée depuis la console. */
-export const clinicCreatedSchema = z.object({ id: uuid, slug: z.string() });
+/** Issue de l'invitation d'une personne à la création d'une clinique. */
+export const clinicInvitationSchema = z.object({
+  email: z.string(),
+  full_name: z.string(),
+  role: z.enum(["clinic_staff", "radiologist"]),
+  status: z.enum(["invited", "attached", "failed"]),
+  error: z.string().nullable().optional(),
+  membership_id: uuid.nullable().optional(),
+});
+const _clinicInvitation: Matches<
+  z.input<typeof clinicInvitationSchema>,
+  Schemas["ClinicInvitation"]
+> = true;
+
+/** Une clinique créée depuis la console, et l'issue des invitations de son équipe. */
+export const clinicCreatedSchema = z.object({
+  id: uuid,
+  slug: z.string(),
+  invitations: z.array(clinicInvitationSchema),
+});
 const _clinicCreated: Matches<
   z.input<typeof clinicCreatedSchema>,
   Schemas["ClinicCreated"]
@@ -1417,6 +1435,7 @@ export type ApiPolicyComparison = z.output<typeof policyComparisonSchema>;
  * cette référence évite seulement qu'un outil les signale comme mortes.
  */
 export const CONTRACT_CHECKS = [
+  _clinicInvitation,
   _clinicCreated,
   _enrollmentCodeIssued,
   _enrollmentCodeInfo,

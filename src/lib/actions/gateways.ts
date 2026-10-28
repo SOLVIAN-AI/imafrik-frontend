@@ -27,6 +27,11 @@ import {
   demoEnrollmentCode,
   reasonProblem,
 } from "@/lib/gateways";
+import {
+  MAX_CLINIC_MANAGERS,
+  MAX_CLINIC_RADIOLOGISTS,
+  duplicateEmail,
+} from "@/lib/clinic-team";
 import { isLocale } from "@/lib/i18n/locale";
 import { getMessages } from "@/i18n/server";
 
@@ -191,41 +196,100 @@ export async function applyGatewayAction(
   return result;
 }
 
+type CreateClinicMessages = Awaited<
+  ReturnType<typeof getMessages>
+>["t"]["gateways"]["createClinic"];
+
 /**
- * Schéma d'une nouvelle clinique : mêmes bornes que le service.
+ * Une personne de l'équipe, telle que le service la reçoit.
  *
  * @param m Textes de la création, dans la langue de l'utilisateur.
  */
-const clinicSchema = (
-  m: Awaited<ReturnType<typeof getMessages>>["t"]["gateways"]["createClinic"],
-) =>
+const personSchema = (m: CreateClinicMessages) =>
+  z.object({
+    fullName: z
+      .string()
+      .trim()
+      .min(1, m.personNameRequired)
+      .max(200, m.personNameTooLong),
+    email: z.string().trim().email(m.personEmailInvalid),
+  });
+
+/**
+ * Schéma d'une nouvelle clinique : mêmes règles que le service.
+ *
+ * Un responsable au moins ; ses propres radiologues, ou les radiologues
+ * du réseau IMAFRIK avec le groupe qui lit pour lui ; chaque adresse une
+ * seule fois.
+ *
+ * @param m Textes de la création, dans la langue de l'utilisateur.
+ */
+const clinicSchema = (m: CreateClinicMessages) =>
   z
     .object({
       name: z.string().trim().min(2, m.nameRequired).max(200, m.nameTooLong),
       city: z.string().trim().max(100, m.cityTooLong),
       reportLanguage: z.string().refine(isLocale),
-      openToPool: z.boolean(),
+      managers: z
+        .array(personSchema(m))
+        .min(1, m.managerRequired)
+        .max(MAX_CLINIC_MANAGERS),
+      readers: z.enum(["own", "network"]),
+      radiologists: z.array(personSchema(m)).max(MAX_CLINIC_RADIOLOGISTS),
       radiologyGroupId: z.string().nullable(),
     })
-    .refine((value) => !value.openToPool || value.radiologyGroupId, {
-      message: m.groupRequired,
+    .superRefine((value, context) => {
+      if (value.readers === "own" && value.radiologists.length === 0) {
+        context.addIssue({ code: "custom", message: m.radiologistRequired });
+      }
+      if (value.readers === "network" && !value.radiologyGroupId) {
+        context.addIssue({ code: "custom", message: m.groupRequired });
+      }
+      const twice = duplicateEmail([
+        ...value.managers,
+        ...(value.readers === "own" ? value.radiologists : []),
+      ]);
+      if (twice) {
+        context.addIssue({ code: "custom", message: m.duplicateEmail(twice) });
+      }
     });
 
 /** Nouvelle clinique, telle que l'écran la saisit. */
 export type ClinicInput = z.input<ReturnType<typeof clinicSchema>>;
 
+/** Issue de l'invitation d'une personne de l'équipe. */
+export interface ClinicInvitationOutcome {
+  email: string;
+  fullName: string;
+  role: "clinic_staff" | "radiologist";
+  /** `invited` : courriel envoyé ; `attached` : compte existant rattaché. */
+  status: "invited" | "attached" | "failed";
+  /** Raison de l'échec, dans la langue de l'utilisateur. */
+  error: string | null;
+}
+
+/** Clinique créée, et l'issue de chaque invitation. */
+export interface ClinicCreation {
+  id: string;
+  invitations: ClinicInvitationOutcome[];
+}
+
 /**
- * Crée une clinique, et la rattache au groupe qui lit pour le pool.
+ * Crée une clinique et invite son équipe : ses responsables, puis ses
+ * radiologues ou, à leur place, le contrat de service avec le groupe qui
+ * lit pour le réseau IMAFRIK.
  *
  * Aucun AE Title n'est saisi ni montré : chaque passerelle reçoit le sien
- * à son enrôlement. Le geste est tracé (`organization.created`).
+ * à son enrôlement. Le geste est tracé (`organization.created`), chaque
+ * invitation aussi (`membership.created`). Une invitation en échec
+ * n'empêche ni la création ni les autres : son issue le dit.
  *
- * @param input Nom, ville, langue, ouverture au pool et groupe.
- * @returns L'identifiant de la clinique, pour ouvrir sa fiche.
+ * @param input Nom, ville, langue, équipe et lecture.
+ * @returns La clinique, pour ouvrir sa fiche, et l'issue des invitations.
  */
 export async function createClinic(
   input: ClinicInput,
-): Promise<ActionResult<{ id: string }>> {
+): Promise<ActionResult<ClinicCreation>> {
   const { t } = await getMessages();
   const parsed = clinicSchema(t.gateways.createClinic).safeParse(input);
   if (!parsed.success) {
@@ -233,18 +297,31 @@ export async function createClinic(
   }
   if (isDemoMode())
     return await demoUnavailable(t.gateways.demoActions.createClinic);
-  const { radiologyGroupId } = parsed.data;
-  if (parsed.data.openToPool && radiologyGroupId) {
+  const { readers, radiologyGroupId } = parsed.data;
+  const network = readers === "network";
+  if (network && radiologyGroupId) {
     const invalid = await rejectInvalidIds(radiologyGroupId);
     if (invalid) return invalid;
   }
+  const person = ({
+    fullName,
+    email,
+  }: {
+    fullName: string;
+    email: string;
+  }) => ({
+    full_name: fullName,
+    email,
+  });
   const body: ApiClinicCreate = {
     name: parsed.data.name,
     city: parsed.data.city || null,
     report_language: parsed.data
       .reportLanguage as ApiClinicCreate["report_language"],
-    open_to_pool: parsed.data.openToPool,
-    radiology_group_id: parsed.data.openToPool ? radiologyGroupId : null,
+    managers: parsed.data.managers.map(person),
+    radiologists: network ? [] : parsed.data.radiologists.map(person),
+    open_to_pool: network,
+    radiology_group_id: network ? radiologyGroupId : null,
   };
   const result = await run(async () => {
     const created = await apiSend(
@@ -253,7 +330,16 @@ export async function createClinic(
       body,
       clinicCreatedSchema,
     );
-    return { id: created.id };
+    return {
+      id: created.id,
+      invitations: created.invitations.map((invitation) => ({
+        email: invitation.email,
+        fullName: invitation.full_name,
+        role: invitation.role,
+        status: invitation.status,
+        error: invitation.error ?? null,
+      })),
+    };
   });
   if (result.ok) revalidatePath("/admin/organisations");
   return result;

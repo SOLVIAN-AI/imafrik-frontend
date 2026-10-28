@@ -10,9 +10,9 @@ export const guides: typeof fr = {
       {
         title: "Create the clinic, in the control tower",
         steps: [
-          "Organisations, “New clinic”: enter the facility name, the city and the report language, then click “Create the clinic”. Its page opens.",
-          "Decide who will read its examinations: attach its own radiologists from “Accounts”, or open it to the pool with a service contract with a radiology group.",
-          "Invite its staff with the invitation icon on the clinic’s row in “Organisations”: each person receives a link by email and chooses their password.",
+          "Organisations, “New clinic”: enter the facility name, the city and the report language, which is also the language of the invitations.",
+          "Enter its managers, at least one: they will send the examinations and manage the team. Choose who reads its examinations: its own radiologists, to be invited too, or the “IMAFRIK network radiologists”.",
+          "Click “Create and invite the team”: each person receives a link by email and chooses their password, then the page opens. An invitation that was not sent can be retried at once.",
         ],
       },
       {

@@ -16,9 +16,9 @@ export const guides = {
       {
         title: "Créer la clinique, dans la tour de contrôle",
         steps: [
-          "Organisations, « Nouvelle clinique » : saisissez le nom de l’établissement, la ville et la langue des comptes-rendus, puis cliquez sur « Créer la clinique ». Sa fiche s’ouvre.",
-          "Décidez qui lira ses examens : rattachez ses propres radiologues depuis « Comptes », ou ouvrez-la au pool avec un contrat de service vers un groupe de radiologie.",
-          "Invitez son personnel avec l’icône d’invitation, sur la ligne de la clinique dans « Organisations » : chacun reçoit un lien par courriel et choisit son mot de passe.",
+          "Organisations, « Nouvelle clinique » : saisissez le nom de l’établissement, la ville et la langue des comptes-rendus, qui sera aussi celle des invitations.",
+          "Indiquez ses responsables, un au moins : ils enverront les examens et géreront l’équipe. Choisissez qui lit ses examens : ses propres radiologues, à inviter aussi, ou les « Radiologues du réseau IMAFRIK ».",
+          "Cliquez sur « Créer et inviter l’équipe » : chacun reçoit un lien par courriel et choisit son mot de passe, puis la fiche s’ouvre. Une invitation qui n’est pas partie se refait aussitôt.",
         ],
       },
       {

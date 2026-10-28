@@ -34,7 +34,7 @@ export const common = {
   roles: {
     platform_admin: "Administrateur IMAFRIK",
     radiologist: "Radiologue",
-    clinic_staff: "Clinique",
+    clinic_staff: "Responsable",
   },
   /**
    * États d'un examen, côté radiologue et équipe IMAFRIK. « Signé » et

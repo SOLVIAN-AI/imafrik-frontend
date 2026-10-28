@@ -314,24 +314,56 @@ export const gateways: AppMessages["gateways"] = {
     open: "New clinic",
     title: "Create a clinic",
     description:
-      "The clinic is created at once. Its gateway is then connected from its page, with a code.",
+      "The clinic is created at once, and its team receives their invitations. Its gateway is then connected from its page, with a code.",
     name: "Facility name",
     nameHint: "As it is printed on reports.",
     city: "City",
     language: "Report language",
-    pool: "Examinations open to the platform’s radiologists",
-    poolHint:
-      "Otherwise only the clinic’s own radiologists read them. The clinic can change this later.",
-    group: "Radiology group that reads for the pool",
+    languageHint: "Its team’s invitations are sent in this language.",
+    managers: "Managers",
+    managersHint:
+      "They send the examinations, assign them to the radiologists and manage the team. At least one.",
+    readers: "Who reads its examinations?",
+    ownRadiologists: "Its own radiologists",
+    ownRadiologistsHint:
+      "Its managers assign the examinations to them. Each one has their registration number verified by the IMAFRIK team before their first reading.",
+    network: "IMAFRIK network radiologists",
+    networkHint:
+      "Open to the network, with a service contract: the IMAFRIK team assigns its examinations to the network’s radiologists.",
+    radiologists: "The clinic’s radiologists",
+    personName: "Full name",
+    personEmail: "Email address",
+    addManager: "Add a manager",
+    addRadiologist: "Add a radiologist",
+    removePerson: (position: number) => `Remove person no. ${position}`,
+    group: "Radiology group that reads for the network",
     groupHint: "The service contract is created with this group.",
     noGroup:
-      "No active radiology group: open to the pool once one has been created.",
-    submit: "Create the clinic",
-    done: (name: string) => `${name} created. Now connect its gateway.`,
+      "No active radiology group: create one before entrusting a clinic to the network.",
+    submit: "Create and invite the team",
+    done: (name: string, invited: number) =>
+      `${name} created, ${invited === 1 ? "1 invitation sent" : `${invited} invitations sent`}. Now connect its gateway.`,
     nameRequired: "The facility name is required (at least 2 characters).",
     nameTooLong: "Name: 200 characters at most.",
     cityTooLong: "City: 100 characters at most.",
     groupRequired: "Choose the group that will read its examinations.",
+    managerRequired: "Enter at least one manager.",
+    radiologistRequired:
+      "Enter at least one radiologist, or entrust the reporting to the IMAFRIK network radiologists.",
+    personNameRequired: "Enter each person’s full name.",
+    personNameTooLong: "A person’s name: 200 characters at most.",
+    personEmailInvalid: "An email address is invalid: check each person.",
+    duplicateEmail: (email: string) =>
+      `${email} appears twice: each person is invited only once.`,
+    partialTitle: "Clinic created, invitations to retry",
+    partialDescription: (name: string, failed: number) =>
+      failed === 1
+        ? `${name} has been created, but one invitation was not sent. Retry, or invite this person later from the list of organisations.`
+        : `${name} has been created, but ${failed} invitations were not sent. Retry, or invite these people later from the list of organisations.`,
+    retry: "Retry",
+    retryFor: (name: string) => `Retry the invitation of ${name}`,
+    retried: (name: string) => `Invitation sent to ${name}.`,
+    openClinic: "Open the clinic’s page",
   },
 
   tailscale: {

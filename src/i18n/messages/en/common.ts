@@ -27,7 +27,7 @@ export const common: AppMessages["common"] = {
   roles: {
     platform_admin: "IMAFRIK administrator",
     radiologist: "Radiologist",
-    clinic_staff: "Clinic",
+    clinic_staff: "Manager",
   },
   studyStatus: {
     received: "To read",

@@ -11,8 +11,8 @@ import type { OrgKind, UserRole } from "@/lib/session/types";
  * formulaire un rôle que le service refuserait. Trois écrans en gardaient
  * chacun leur copie, et deux d'entre elles divergeaient.
  *
- * - une clinique emploie son personnel et, parfois, ses propres
- *   radiologues ;
+ * - une clinique a ses responsables (`clinic_staff`, affiché
+ *   « Responsable ») et, parfois, ses propres radiologues ;
  * - un groupe de radiologie réunit des radiologues ; l'équipe IMAFRIK est
  *   elle-même un groupe.
  */
