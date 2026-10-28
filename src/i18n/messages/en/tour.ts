@@ -24,11 +24,11 @@ export const tour: AppMessages["tour"] = {
       },
       worklist: {
         title: "The worklist",
-        body: "Examinations sent by clinics arrive here, sorted by deadline. The counter shows how many are waiting for a reader; it turns red while an urgent examination is not reported.",
+        body: "The examinations assigned to you arrive here, sorted by deadline, with the urgent ones from your urgent list. You only see what is entrusted to you.",
       },
       metrics: {
         title: "The essentials at a glance",
-        body: "Examinations to claim, unclaimed urgent ones, overdue ones and the next deadline: these figures refresh with the worklist, every thirty seconds.",
+        body: "Examinations assigned to you, urgent ones to take, overdue ones and the next deadline: these figures refresh with the worklist, every thirty seconds.",
       },
       filters: {
         title: "Filter the worklist",
@@ -88,7 +88,7 @@ export const tour: AppMessages["tour"] = {
     "clinique-accueil": {
       welcome: {
         title: "Welcome to IMAFRIK",
-        body: "In one minute, here is how to send an examination, follow its reading and get its report.",
+        body: "In one minute, here is how to send an examination, assign it to a radiologist, follow its reading and get its report.",
       },
       send: {
         title: "Send an examination",
@@ -96,7 +96,7 @@ export const tour: AppMessages["tour"] = {
       },
       stats: {
         title: "Follow the activity",
-        body: "Examinations sent, being read, reports ready, and the median time from receipt to signature, over thirty days.",
+        body: "Examinations to assign, being read, reports ready, and the median time from receipt to signature, over thirty days. No radiologist sees an examination until it is assigned.",
       },
       ready: {
         title: "Get the reports",
@@ -104,11 +104,11 @@ export const tour: AppMessages["tour"] = {
       },
       studies: {
         title: "Your examinations",
-        body: "Each examination from sending to signature. On its page, you can flag it as urgent and complete the clinical information.",
+        body: "Each examination from sending to signature. Assign it to a radiologist, with the useful prior examinations; on its page, flag it as urgent and complete the clinical information.",
       },
       team: {
         title: "Your team",
-        body: "Invite colleagues from your facility: everyone has their own account.",
+        body: "Invite your managers and your radiologists: everyone has their own account. Set each radiologist’s modalities, the urgent list and the assignment rules here.",
       },
       help: {
         title: "Need help?",

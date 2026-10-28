@@ -182,13 +182,13 @@ test("la file se relit au plus une fois toutes les trente secondes", async ({
 });
 
 /**
- * Le compte des urgences libres reste dans le titre de l'onglet : Next
+ * Le compte des urgences à prendre reste dans le titre de l'onglet : Next
  * réécrit `<title>` après l'hydratation, et un compte posé à la main dans
  * `document.title` disparaissait aussitôt. Il est désormais calculé côté
  * serveur, dans les métadonnées de la page (`generateMetadata`, qui lit la
  * file par `loadQueue`, `app/(app)/worklist/page.tsx`).
  */
-test("le titre de l'onglet compte les urgences libres", async ({ page }) => {
+test("le titre de l’onglet compte les urgences à prendre", async ({ page }) => {
   await page.goto("/worklist");
   await waitForHydration(page);
   await expect(page).toHaveTitle(/^\(2\) À lire/);

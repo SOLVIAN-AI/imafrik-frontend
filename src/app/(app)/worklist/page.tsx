@@ -38,7 +38,7 @@ const loadQueue = cache((search: string | undefined) =>
  * Calculé ici plutôt que dans le navigateur : Next écrit lui-même le titre
  * d'après les métadonnées, après l'hydratation et à chaque actualisation de
  * la file ; un compte posé à la main dans `document.title` disparaissait
- * aussitôt. Même filtre que l'écran : les urgences libres visibles.
+ * aussitôt. Même filtre que l'écran : les urgences à prendre visibles.
  */
 export async function generateMetadata({
   searchParams,
