@@ -3,6 +3,7 @@ import { cache } from "react";
 
 import { getMessages } from "@/i18n/server";
 import { WorklistView } from "@/components/domain/worklist-view";
+import { getEligibility } from "@/lib/data/eligibility";
 import { listStudyPage, STUDY_PAGE_LIMIT } from "@/lib/data/studies";
 import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
@@ -71,6 +72,11 @@ export async function generateMetadata({
  * transmise au service. Les filtres de modalité, de clinique et
  * d'urgence, portés par l'adresse, s'appliquent ici à sa réponse : les
  * options proposées se comptent ainsi sur la file entière.
+ *
+ * **Pour l'équipe IMAFRIK, c'est le poste de répartition** : chaque ligne
+ * à attribuer porte « Attribuer », ou dit qu'aucun radiologue ne peut
+ * recevoir l'examen. Ce dernier point est lu ici, pour toute la file
+ * affichée en un appel (`/admin/studies/eligibility`).
  */
 export default async function WorklistPage({
   searchParams,
@@ -80,10 +86,21 @@ export default async function WorklistPage({
   const search = await readListSearch("worklist", session);
 
   const { studies, total } = await loadQueue(search);
+  const sections = splitWorklist(
+    applyFilters(studies, filters),
+    session.user.id,
+  );
+  // Le radiologue n'attribue rien : seule l'équipe a besoin de savoir qui
+  // peut recevoir chaque examen à attribuer.
+  const eligibility =
+    session.active.role === "platform_admin"
+      ? await getEligibility(sections.open.map((study) => study.id))
+      : {};
 
   return (
     <WorklistView
-      sections={splitWorklist(applyFilters(studies, filters), session.user.id)}
+      sections={sections}
+      eligibility={eligibility}
       all={studies}
       filters={filters}
       options={filterOptions(studies)}

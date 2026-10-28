@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { AssignDialog } from "@/components/domain/assign-dialog";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { CredentialsBanner } from "@/components/domain/credentials-banner";
 import { ListToolbar } from "@/components/domain/list-toolbar";
@@ -19,13 +20,17 @@ import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { AppMessages } from "@/i18n";
 import { useNow } from "@/hooks/use-now";
+import type { AssignmentState } from "@/lib/actions/assignment";
+import type { Eligibility } from "@/lib/data/eligibility";
 import type { Study } from "@/lib/data/studies";
 import { formatPatientName } from "@/lib/format";
 import { INTL_LOCALE, type Locale } from "@/lib/i18n/locale";
 import {
+  type AssignmentChange,
   deadlineOf,
   formatDuration,
   newUrgentArrivals,
+  withAssignments,
   type FilterOption,
   type WorklistFilters,
   type WorklistSections,
@@ -184,14 +189,17 @@ function useUrgentArrivals(open: Study[]) {
  * @param truncated  Vrai si le service avait plus d'examens qu'il n'en a
  *                   renvoyé : l'écran le dit au lieu de laisser croire la
  *                   file complète.
+ * @param eligibility Équipe IMAFRIK : qui peut recevoir chaque examen à
+ *                   attribuer, lu par la page pour toute la file affichée.
  */
 export function WorklistView({
-  sections,
+  sections: served,
   all,
   filters,
   options,
   search,
   truncated,
+  eligibility = {},
 }: {
   sections: WorklistSections;
   all: Study[];
@@ -199,16 +207,42 @@ export function WorklistView({
   options: { modalities: FilterOption[]; clinics: FilterOption[] };
   search?: string;
   truncated: boolean;
+  eligibility?: Record<string, Eligibility>;
 }) {
   const now = useNow();
   const t = useMessages();
   const locale = useLocale();
   const labels = t.worklist;
-  // L'équipe IMAFRIK consulte la file de toute la plateforme : elle n'y
-  // prend rien en charge, et rien n'y est « à elle ».
-  const supervising = useSession().active.role === "platform_admin";
+  const { active, user } = useSession();
+  // L'équipe IMAFRIK voit la file de toute la plateforme : elle n'y prend
+  // rien en charge, rien n'y est « à elle », et elle y répartit.
+  const supervising = active.role === "platform_admin";
+  // Les attributions faites à l'instant depuis la file, appliquées à la
+  // file que le service a lue : la ligne change de section aussitôt. Une
+  // nouvelle lecture du service les remplace, et fait foi.
+  const [changes, setChanges] = React.useState<{
+    base: WorklistSections;
+    byStudy: ReadonlyMap<string, AssignmentChange>;
+  }>({ base: served, byStudy: new Map() });
+  const sections =
+    changes.base === served
+      ? withAssignments(served, changes.byStudy, user.id)
+      : served;
+  const record = (studyId: string, state: AssignmentState) =>
+    setChanges((current) => {
+      const byStudy = new Map(
+        current.base === served ? current.byStudy : undefined,
+      );
+      byStudy.set(studyId, {
+        status: state.status,
+        assignedTo: state.assignedTo,
+        assignedToName: state.assignedToName,
+      });
+      return { base: served, byStudy };
+    });
   useAutoRefresh(REFRESH_MS);
   useUrgentArrivals(sections.open);
+  const assign = labels.supervision.assign;
 
   const filtered =
     Boolean(search) ||
@@ -286,6 +320,45 @@ export function WorklistView({
             hrefFor={(study) => `/lecture/${study.id}`}
             refreshNote={labels.refreshNote(REFRESH_MS / 1000)}
             empty={filtered ? labels.noResults : undefined}
+            action={
+              supervising
+                ? {
+                    label: assign.column,
+                    render: (study, group) => {
+                      const patient = formatPatientName(study.patientName);
+                      const found = eligibility[study.id];
+                      // Personne ne peut le recevoir : la ligne le dit, la
+                      // raison en info-bulle, sans ouvrir la fenêtre.
+                      if (
+                        group.key === "open" &&
+                        found &&
+                        found.candidates === 0 &&
+                        found.reason
+                      ) {
+                        const reason = assign.reasons[found.reason];
+                        return (
+                          <span
+                            title={reason}
+                            className="text-2xs whitespace-nowrap text-tertiary"
+                          >
+                            {assign.noCandidate}
+                            <span className="sr-only"> : {reason}</span>
+                          </span>
+                        );
+                      }
+                      return (
+                        <AssignDialog
+                          portal="team"
+                          studyId={study.id}
+                          patient={patient}
+                          assigned={study.assignedTo !== null}
+                          onChanged={(state) => record(study.id, state)}
+                        />
+                      );
+                    },
+                  }
+                : undefined
+            }
           />
         </Panel>
       </div>

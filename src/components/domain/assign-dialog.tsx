@@ -58,6 +58,9 @@ const ASSIGNABLE = new Set(["received", "assigned", "in_progress"]);
  * @param patient   Nom du patient, pour l'intitulé accessible du bouton.
  * @param assigned  L'examen a déjà un titulaire : le bouton dit « Réattribuer ».
  * @param compact   Bouton réduit à son icône (liste sur téléphone).
+ * @param onChanged Après une attribution ou un retrait réussi, l'état que
+ *                  renvoie le service : la file de répartition déplace la
+ *                  ligne aussitôt, sans attendre sa relecture.
  */
 export function AssignDialog({
   portal,
@@ -65,12 +68,14 @@ export function AssignDialog({
   patient,
   assigned = false,
   compact = false,
+  onChanged,
 }: {
   portal: AssignmentPortal;
   studyId: string;
   patient: string;
   assigned?: boolean;
   compact?: boolean;
+  onChanged?: (state: AssignmentState) => void;
 }) {
   const t = useMessages();
   const text = t.assignment.dialog;
@@ -145,6 +150,7 @@ export function AssignDialog({
         } else {
           toast.success(text.assigned(chosen.name));
         }
+        onChanged?.(result.data);
         setOpen(false);
       });
       return;
@@ -171,6 +177,7 @@ export function AssignDialog({
         return;
       }
       toast.success(text.released);
+      onChanged?.(result.data);
       setOpen(false);
     });
   };

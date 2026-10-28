@@ -1392,6 +1392,32 @@ export interface paths {
         patch: operations["update_settings_admin_settings_patch"];
         trace?: never;
     };
+    "/admin/studies/eligibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Qui peut recevoir ces examens
+         * @description Combien de radiologues peuvent recevoir chaque examen, et sinon pourquoi.
+         *
+         *     Pour la file de répartition (« À lire », dans les lectures) : la page affichée
+         *     en un appel, pour dire sur la ligne d'un examen qu'aucun radiologue ne
+         *     peut le recevoir, sans ouvrir la fenêtre d'attribution. Une lecture,
+         *     malgré le verbe : la liste des examens tient dans le corps, pas dans
+         *     l'adresse.
+         */
+        post: operations["get_eligibility_admin_studies_eligibility_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/studies/{study_id}/assignment": {
         parameters: {
             query?: never;
@@ -6071,6 +6097,14 @@ export interface components {
             url: string;
         };
         /**
+         * EligibilityRequest
+         * @description Les examens d'une page de la file de répartition.
+         */
+        EligibilityRequest: {
+            /** Study Ids */
+            study_ids: string[];
+        };
+        /**
          * EnrollmentCodeInfo
          * @description Code d'enrôlement encore valable, sans le code.
          *
@@ -8598,6 +8632,30 @@ export interface components {
             clinics: components["schemas"]["ClinicCount"][];
             /** Total */
             total: number;
+        };
+        /**
+         * StudyEligibility
+         * @description Qui peut recevoir un examen.
+         *
+         *     Attributes:
+         *         study_id: Examen.
+         *         candidates: Radiologues qui peuvent le recevoir.
+         *         reason: Sans aucun candidat, pourquoi : ``clinic_inactive``
+         *             (clinique suspendue), ``no_reader`` (ni radiologue de la
+         *             clinique, ni contrat avec le réseau), ``not_credentialed``
+         *             (aucun lecteur habilité), ``modality_not_read`` (aucun habilité
+         *             ne lit la modalité).
+         */
+        StudyEligibility: {
+            /** Candidates */
+            candidates: number;
+            /** Reason */
+            reason: ("clinic_inactive" | "no_reader" | "not_credentialed" | "modality_not_read") | null;
+            /**
+             * Study Id
+             * Format: uuid
+             */
+            study_id: string;
         };
         /**
          * StudyModalityCounts
@@ -11537,6 +11595,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlatformSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_eligibility_admin_studies_eligibility_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EligibilityRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyEligibility"][];
                 };
             };
             /** @description Validation Error */

@@ -195,6 +195,24 @@ const _clinicCounts: Matches<
   Schemas["StudyClinicCounts"]
 > = true;
 
+/** Qui peut recevoir un examen de la file de répartition. */
+export const studyEligibilitySchema = z.object({
+  study_id: uuid,
+  candidates: z.number().int(),
+  reason: z
+    .enum([
+      "clinic_inactive",
+      "no_reader",
+      "not_credentialed",
+      "modality_not_read",
+    ])
+    .nullable(),
+});
+const _studyEligibility: Matches<
+  z.input<typeof studyEligibilitySchema>,
+  Schemas["StudyEligibility"]
+> = true;
+
 export const addendumSchema = z.object({
   id: uuid,
   report_id: uuid,
@@ -1725,6 +1743,7 @@ export const CONTRACT_CHECKS = [
   _studyPage,
   _modalityCounts,
   _clinicCounts,
+  _studyEligibility,
   _report,
   _viewer,
   _viewerRenewed,

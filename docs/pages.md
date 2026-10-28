@@ -325,7 +325,7 @@ attend des comptes-rendus.
 
 | Route | Écran | Phase |
 | --- | --- | --- |
-| `/worklist` | File de travail commune. **Fait.** | V1 |
+| `/worklist` | File de travail du radiologue : ce qu'on lui confie et les urgences de sa liste. Pour l'équipe IMAFRIK (« Lectures › À lire »), le **poste de répartition** : « Attribuer » sur chaque examen à attribuer, « Réattribuer » chez un radiologue, « Aucun radiologue » avec sa raison quand personne ne peut le recevoir (`/admin/studies/eligibility`, en un appel) ; badge des examens à attribuer dans la navigation. **Fait.** | V1 |
 | `/lecture/[id]` | Écran de lecture : images et compte-rendu en écran scindé. **Fait.** | V1 |
 | `/mes-examens` | Ce que le radiologue a pris en charge et n'a pas encore rendu. | V1 |
 | `/comptes-rendus` | Ses comptes-rendus signés. | V1 |

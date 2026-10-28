@@ -179,6 +179,15 @@ function useRowNavigation(container: React.RefObject<HTMLElement | null>) {
   }, [container]);
 }
 
+/**
+ * L'action d'une carte, sur téléphone : sous la carte, hors de son lien,
+ * pour qu'un toucher sur le bouton n'ouvre pas l'examen.
+ */
+function RowAction({ children }: { children: React.ReactNode }) {
+  if (!children) return null;
+  return <div className="flex justify-end px-4 pb-3">{children}</div>;
+}
+
 /** En-tête d'une section, repliable ou non. */
 function GroupHeading({
   group,
@@ -238,22 +247,35 @@ function GroupHeading({
  *   s'ouvre dans un nouvel onglet au clic du milieu. Le clic sur le reste
  *   de la ligne reste un raccourci pour la souris.
  *
+ * - **Une colonne d'action**, quand l'écran en donne une : pour l'équipe
+ *   IMAFRIK, « Attribuer » ou « Réattribuer » (la file devient son poste
+ *   de répartition). Un clic sur le bouton, ou dans la fenêtre qu'il
+ *   ouvre, n'ouvre pas l'examen ; la navigation au clavier ne parcourt
+ *   que les liens des lignes.
+ *
  * @param groups  Sections, dans l'ordre d'affichage.
  * @param hrefFor Adresse ouverte pour un examen.
  * @param empty   Message quand aucune section n'a d'examen.
  * @param refreshNote Mention ajoutée à l'aide de bas de tableau.
+ * @param action  Colonne d'action : son intitulé, et son contenu pour une
+ *                ligne d'une section (rien pour une ligne sans action).
  */
 export function ReadingTable({
   groups,
   hrefFor,
   empty,
   refreshNote,
+  action,
 }: {
   groups: ReadingGroup[];
   hrefFor: (study: Study) => string;
   empty?: { title: string; detail: string };
   /** Mention ajoutée à l'aide de bas de tableau, par exemple le rythme d'actualisation. */
   refreshNote?: string;
+  action?: {
+    label: string;
+    render: (study: Study, group: ReadingGroup) => React.ReactNode;
+  };
 }) {
   const router = useRouter();
   const t = useMessages();
@@ -343,6 +365,9 @@ export function ReadingTable({
                         <Follow study={study} follow={group.follow} />
                       </div>
                     </Link>
+                    {action && (
+                      <RowAction>{action.render(study, group)}</RowAction>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -352,7 +377,15 @@ export function ReadingTable({
       </div>
 
       <div className="hidden min-h-0 flex-1 overflow-auto lg:block">
-        <table className="w-full table-fixed border-separate border-spacing-0 text-sm">
+        {/* Avec une colonne d'action, une largeur minimale : sans elle,
+            l'examen, seule colonne sans largeur fixe, s'écrasait sous le
+            suivi à 1024 px. Le tableau défile alors dans son conteneur. */}
+        <table
+          className={cn(
+            "w-full table-fixed border-separate border-spacing-0 text-sm",
+            action && "min-w-[58rem]",
+          )}
+        >
           <thead className="sticky top-0 z-20">
             <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
               <th scope="col" className="w-34">
@@ -375,6 +408,13 @@ export function ReadingTable({
               <th scope="col" className="w-20 !text-right">
                 <span className="label-eyebrow">{labels.columns.received}</span>
               </th>
+              {action && (
+                // Collée à droite : l'action reste visible quand le tableau
+                // défile en largeur.
+                <th scope="col" className="sticky right-0 w-36 !text-right">
+                  <span className="label-eyebrow">{action.label}</span>
+                </th>
+              )}
             </tr>
           </thead>
 
@@ -384,7 +424,7 @@ export function ReadingTable({
                 <tr>
                   <th
                     scope="colgroup"
-                    colSpan={5}
+                    colSpan={action ? 6 : 5}
                     className="h-9 border-b border-border-subtle bg-surface-sunken/60 px-4 text-left font-normal"
                   >
                     <GroupHeading
@@ -400,8 +440,14 @@ export function ReadingTable({
                   <tr
                     key={study.id}
                     onClick={(event) => {
-                      // Le lien gère lui-même son clic et ses modificateurs.
-                      if ((event.target as HTMLElement).closest("a")) return;
+                      // La fenêtre d'attribution est rendue hors de la ligne
+                      // (portail), mais ses clics remontent l'arbre React
+                      // jusqu'ici : ils ne doivent pas ouvrir l'examen.
+                      if (!event.currentTarget.contains(event.target as Node))
+                        return;
+                      // Le lien et le bouton gèrent eux-mêmes leur clic.
+                      if ((event.target as HTMLElement).closest("a, button"))
+                        return;
                       router.push(hrefFor(study));
                     }}
                     className={cn(
@@ -459,6 +505,11 @@ export function ReadingTable({
                     <td className="text-right whitespace-nowrap tabular-nums">
                       <StudyAge date={study.receivedAt} muted />
                     </td>
+                    {action && (
+                      <td className="sticky right-0 bg-surface-raised text-right">
+                        {action.render(study, group)}
+                      </td>
+                    )}
                   </tr>
                 ))}
             </tbody>

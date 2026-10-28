@@ -24,8 +24,13 @@ export interface NavCounts {
   urgentToRead: number;
   /** Examens en cours de lecture par l'utilisateur. */
   mine: number;
-  /** Clinique : examens qui attendent une attribution. */
+  /**
+   * Examens qui attendent une attribution : ceux de la clinique, pour son
+   * responsable ; ceux de toute la plateforme, pour l'équipe IMAFRIK.
+   */
   clinicOpen: number;
+  /** Dont urgences : l'équipe IMAFRIK les voit en rouge sur « À lire ». */
+  urgentToAssign: number;
   /** Comptes-rendus signés que la clinique n'a pas encore téléchargés. */
   reportsToDownload: number;
 }
@@ -287,7 +292,15 @@ const ADMIN_NAV: NavGroup[] = [
     key: "radiologistView",
     collapsible: true,
     items: [
-      { href: "/worklist", key: "worklist", icon: "worklist" },
+      // Le poste de répartition : ce qui attend une attribution, en rouge
+      // s'il y a une urgence parmi.
+      {
+        href: "/worklist",
+        key: "worklist",
+        icon: "worklist",
+        count: "clinicOpen",
+        urgentCount: "urgentToAssign",
+      },
       { href: "/comptes-rendus", key: "reports", icon: "reports" },
       { href: "/modeles", key: "templates", icon: "templates" },
       // L'équipe prévisualise aussi les cas en relecture, pour les faire

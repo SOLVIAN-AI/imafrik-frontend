@@ -25,10 +25,8 @@ test("la navigation ouvre les portails en consultation", async ({ page }) => {
   await nav.getByRole("link", { name: /À lire/ }).click();
   await expect(page).toHaveURL(/\/worklist/);
   await expect(page.getByRole("heading", { name: "À lire" })).toBeVisible();
-  // Rien n'y est « à soi » : la file se lit en consultation.
-  await expect(
-    page.getByText(/Toute la plateforme, en consultation/),
-  ).toBeVisible();
+  // Rien n'y est « à soi » : c'est la file de toute la plateforme, à répartir.
+  await expect(page.getByText(/Toute la plateforme, à répartir/)).toBeVisible();
   await expect(
     page.getByRole("table").getByText("Chez un radiologue", { exact: true }),
   ).toBeVisible();
