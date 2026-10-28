@@ -313,7 +313,7 @@ attend des comptes-rendus.
 | `/comptes-rendus` | Comptes-rendus reçus, recherche par patient, identifiant ou modalité (faite par le service), liste paginée. | V1 |
 | `/equipe` | Membres, rôles, invitations. | V2 |
 | `/equipe/regles` | Règles d'attribution : radiologue par modalité, puis planning de la semaine (gardes de nuit comprises) ; les chevauchements de garde sont signalés. | Fait |
-| `/facturation` | Consommation, factures, contrat de service. | V2 |
+| `/activite` | Activité et facturation, responsables seulement (P1, étape 4) : examens reçus du mois, rendus, délai médian et délais tenus, par modalité et par radiologue ; relevé de facturation du mois (abonnement, forfaits techniques, actes par radiologue), provisoire puis figé à la clôture, le même que celui de l'équipe IMAFRIK ; export CSV. | Fait |
 | `/patients` | Vue par patient : tous ses examens, tous ses comptes-rendus. | V3 |
 | `/parametres` | Établissement, paramètres DICOM, notifications, sécurité. | V1 |
 
@@ -354,7 +354,7 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | `/admin/utilisateurs` | Comptes : rattachement, **validation des numéros d'ordre** (filtre « À valider », `?validation=attente`), double authentification, réinitialisation, **anonymisation** (droit à l'effacement : nom saisi, retrait des appartenances confirmé pour un membre actif). | Fait |
 | `/admin/examens` | Recherche globale, urgences en cours. | Fait |
 | `/admin/demandes` | Demandes reçues par le site (établissement ou radiologue, numéro d'ordre déclaré), suivi et notes. | Fait |
-| `/admin/facturation` | Actes du mois par clinique et modalité, export CSV protégé contre l'injection de formules. | Fait |
+| `/admin/facturation` | Relevé du mois de chaque clinique, le même que celui de son responsable (un seul calcul, dans le service) ; totaux, cliniques sans formule, « Clore le mois » qui fige les relevés ; export CSV protégé contre l'injection de formules. La formule d'abonnement se renseigne sur la fiche de la clinique. | Fait |
 | `/admin/systeme` | Dépendances, PACS, version, filets de sécurité (sauvegardes, exercices, réconciliation, conservation). | Fait |
 | `/admin/audit` | Journal d'audit, filtré par action, paginé par curseur. | Fait |
 | `/admin/reglages` | Délais promis, bandeau de maintenance. | Fait |
@@ -476,7 +476,7 @@ répond « indisponible en démonstration ».
 | `/cliniques`, `/radiologues`, `/tarifs` | V2 | L'accueil couvre les deux publics ; ces pages n'ont d'intérêt qu'avec du contenu commercial propre. |
 | `/rejoindre` (candidature radiologue) | V2 | Dépend du parcours de validation côté back-office. |
 | `/patients` (clinique) | V3 | Confort ; la recherche par patient existe déjà dans les comptes-rendus. |
-| `/facturation`, `/honoraires` | V2 | Décision n° 3 tranchée : abonnement et forfait technique facturés par IMAFRIK, honoraires versés au radiologue par un établissement de paiement agréé. Reste à construire. |
+| `/honoraires`, paiement en ligne | V2 | Décision n° 3 tranchée : abonnement et forfait technique facturés par IMAFRIK, honoraires versés au radiologue par un établissement de paiement agréé. Le relevé existe (`/activite`) ; le paiement et le montant des honoraires (convention, art. 6.4) restent à construire. |
 | `/activite` (radiologue) | V3 | Analyse ; sans valeur avant plusieurs mois d'exploitation. |
 | `/admin/contrats` | V2 | Les contrats de service se créent en SQL ; tenable tant que le réseau compte quelques groupes. |
 

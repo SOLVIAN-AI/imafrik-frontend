@@ -9,6 +9,7 @@ import { ControlBody, Figure, Section } from "@/components/admin/control-ui";
 import { FlowList, SegmentLegend } from "@/components/admin/flow-list";
 import { EnrollmentPanel } from "@/components/admin/gateways/enrollment-panel";
 import { GatewayList } from "@/components/admin/gateways/gateway-list";
+import { PlanForm } from "@/components/admin/plan-form";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { ReportLanguageForm } from "@/components/admin/report-language-form";
 import { RetentionForm } from "@/components/admin/retention-form";
@@ -35,6 +36,7 @@ import {
 } from "@/lib/format";
 import { getAssignmentRules } from "@/lib/actions/assignment-rules";
 import { getUrgentReaders } from "@/lib/actions/urgent-readers";
+import { getClinicPlan } from "@/lib/data/activity";
 import { getClinicGateways, getEnrollmentCodes } from "@/lib/data/gateways";
 import { LOCALE_NAMES } from "@/lib/i18n/locale";
 import { requireSession } from "@/lib/session/server";
@@ -79,7 +81,7 @@ export default async function ClinicPage({
   const clinic = await getClinic(id);
   if (!clinic) notFound();
 
-  const [analytics, recent, logo, gateways, codes, urgentReaders, rules] =
+  const [analytics, recent, logo, gateways, codes, urgentReaders, rules, plan] =
     await Promise.all([
       getAnalytics(30, clinic.id),
       getPipeline(15, clinic.id),
@@ -88,6 +90,7 @@ export default async function ClinicPage({
       getEnrollmentCodes(clinic.id),
       getUrgentReaders(clinic.id),
       getAssignmentRules(clinic.id),
+      getClinicPlan(clinic.id),
     ]);
   const activity = analytics.byClinic[0];
   const done = clinic.onboarding.filter((step) => step.done).length;
@@ -314,6 +317,24 @@ export default async function ClinicPage({
         </Section>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Section
+            title={t.admin.plan.title}
+            description={
+              plan
+                ? t.admin.plan.perMonth(formatCount(plan.monthlyFee, locale))
+                : t.admin.plan.none
+            }
+          >
+            {ended ? (
+              <ReadOnly text={t.admin.contract.readOnly} />
+            ) : (
+              <PlanForm
+                clinicId={clinic.id}
+                plan={plan?.plan ?? null}
+                fee={plan?.monthlyFee ?? null}
+              />
+            )}
+          </Section>
           <Section
             title={text.retention}
             description={

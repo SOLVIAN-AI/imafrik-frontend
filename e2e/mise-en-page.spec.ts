@@ -34,7 +34,10 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
     membership: "m-radio",
     paths: ["/worklist", "/lecture/1", "/comptes-rendus", "/parametres"],
   },
-  { membership: "m-clinic", paths: ["/tableau-de-bord", "/examens/1"] },
+  {
+    membership: "m-clinic",
+    paths: ["/tableau-de-bord", "/examens/1", "/activite"],
+  },
   {
     membership: "m-admin",
     paths: [

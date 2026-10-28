@@ -15,7 +15,7 @@ export const glossary = {
   acte: {
     term: "Acte",
     definition:
-      "Examen reçu, compté pour la facture de la clinique au mois de sa réception, par modalité. Une urgence est facturée au tarif d’urgence.",
+      "Examen reçu dont le compte-rendu est signé, compté pour la facture de la clinique au mois de sa réception. Une urgence est facturée au tarif d’urgence.",
   },
   consultation: {
     term: "Consultation",
@@ -26,6 +26,11 @@ export const glossary = {
     term: "Filet de sécurité",
     definition:
       "Tâche planifiée qui protège la plateforme : sauvegarde chiffrée, exercice de restauration, réconciliation du PACS, conservation des données, surveillance du serveur. L’écran Système montre sa dernière exécution.",
+  },
+  formuleAbonnement: {
+    term: "Formule d’abonnement",
+    definition:
+      "Abonnement mensuel de la clinique : Essentiel, Pro ou Établissement, sur devis. L’équipe IMAFRIK la renseigne d’après la convention ; sans elle, le relevé n’a ni abonnement ni total.",
   },
   aeTitle: {
     term: "AE Title",
@@ -150,7 +155,7 @@ export const glossary = {
   forfaitTechnique: {
     term: "Forfait technique",
     definition:
-      "Somme facturée par IMAFRIK à la clinique pour chaque examen, selon son type. Elle est distincte de l’honoraire du radiologue.",
+      "Somme facturée par IMAFRIK à la clinique pour chaque acte, selon son type d’examen, au tarif normal ou urgent. Elle est distincte de l’honoraire du radiologue.",
   },
   groupe: {
     term: "Groupe de radiologie",
@@ -162,10 +167,15 @@ export const glossary = {
     definition:
       "Vérification, par l’équipe IMAFRIK, du droit d’exercer d’un radiologue, sur la base de son justificatif. Sans habilitation en cours de validité, il ne voit aucun examen.",
   },
+  horsGrille: {
+    term: "Hors grille",
+    definition:
+      "Acte d’une modalité absente de la grille des forfaits techniques, comme l’échographie ou la mammographie : il est compté, sans forfait facturé.",
+  },
   honoraire: {
     term: "Honoraire",
     definition:
-      "Rémunération du radiologue pour la lecture d’un examen. Elle lui revient en totalité : IMAFRIK n’y prélève aucune commission.",
+      "Rémunération du radiologue pour la lecture d’un examen. Son montant se fixe entre la clinique et le radiologue et lui revient en totalité : IMAFRIK n’y prélève aucune commission.",
   },
   journalAudit: {
     term: "Journal d’audit",
@@ -191,6 +201,11 @@ export const glossary = {
     term: "Modalités lues",
     definition:
       "Ce qu’un radiologue lit : radiographie (HSG comprise), mammographie, échographie, scanner, IRM, autres. Réglées par la clinique pour ses radiologues, ou par l’équipe IMAFRIK, elles bornent ce qu’on peut lui attribuer et les urgences qu’il voit.",
+  },
+  moisClos: {
+    term: "Mois clos",
+    definition:
+      "Mois dont l’équipe IMAFRIK a figé la facturation. Son relevé ne change plus, même si une priorité change, si un compte-rendu est annulé ou si une formule est modifiée.",
   },
   organisation: {
     term: "Organisation",

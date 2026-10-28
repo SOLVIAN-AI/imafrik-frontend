@@ -195,6 +195,7 @@ const CLINIC_NAV: NavGroup[] = [
     key: "facility",
     items: [
       { href: "/equipe", key: "team", icon: "team" },
+      { href: "/activite", key: "activity", icon: "analytics" },
       { href: "/parametres", key: "settings", icon: "settings" },
     ],
   },
@@ -330,6 +331,9 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
     "/lecture",
     "/comptes-rendus",
     "/equipe",
+    // Activité et facturation : responsables seulement, un radiologue de
+    // la clinique n'y a pas accès (le service le refuse aussi).
+    "/activite",
     "/parametres",
   ],
   // L'administration consulte aussi les portails, en lecture seule : la

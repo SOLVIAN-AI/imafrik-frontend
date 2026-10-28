@@ -832,17 +832,154 @@ const _pipelineStudy: Matches<
   Schemas["PipelineStudy"]
 > = true;
 
-export const billingLineSchema = z.object({
+// ─── Activité et facturation d'une clinique (P1, étape 4) ────────────
+
+const monthPrioritySchema = z.object({
+  received: count,
+  signed: count,
+  median_minutes: minutes,
+  within_sla: ratio,
+});
+const _monthPriority: Matches<
+  z.input<typeof monthPrioritySchema>,
+  Schemas["PriorityActivity"]
+> = true;
+
+const monthModalitySchema = z.object({
+  modality_group: modalityGroupSchema,
+  routine: count,
+  urgent: count,
+  signed: count,
+  median_minutes: minutes,
+  within_sla: ratio,
+});
+const _monthModality: Matches<
+  z.input<typeof monthModalitySchema>,
+  Schemas["ClinicModalityActivity"]
+> = true;
+
+const monthRadiologistSchema = z.object({
+  profile_id: uuid,
+  full_name: z.string(),
+  title: z.string().nullable(),
+  signed: count,
+  urgent: count,
+  median_minutes: minutes,
+  median_reading_minutes: minutes,
+  within_sla: ratio,
+});
+const _monthRadiologist: Matches<
+  z.input<typeof monthRadiologistSchema>,
+  Schemas["ClinicRadiologistActivity"]
+> = true;
+
+export const clinicMonthActivitySchema = z.object({
+  clinic_id: uuid,
+  month: isoDate,
+  sla_routine_minutes: count,
+  sla_urgent_minutes: count,
+  received: count,
+  signed: count,
+  pending: count,
+  median_minutes: minutes,
+  within_sla: ratio,
+  routine: monthPrioritySchema,
+  urgent: monthPrioritySchema,
+  by_modality: z.array(monthModalitySchema),
+  by_radiologist: z.array(monthRadiologistSchema),
+});
+const _clinicMonthActivity: Matches<
+  z.input<typeof clinicMonthActivitySchema>,
+  Schemas["ClinicMonthActivity"]
+> = true;
+
+/** Type d'examen de la grille des forfaits techniques (`FeeClass` du service). */
+export const feeClassSchema = z.enum([
+  "radiography",
+  "complex_radiography",
+  "hysterosalpingography",
+  "ct",
+  "complex_ct",
+  "mri",
+]);
+
+/** Formule d'abonnement d'une clinique (`Plan` du service). */
+export const planSchema = z.enum(["essential", "pro", "facility"]);
+
+const statementLineSchema = z.object({
+  fee_class: feeClassSchema,
+  routine: count,
+  urgent: count,
+  routine_fee: count,
+  urgent_fee: count,
+  amount: count,
+});
+const _statementLine: Matches<
+  z.input<typeof statementLineSchema>,
+  Schemas["StatementLine"]
+> = true;
+
+const outOfGridSchema = z.object({
+  modality_group: modalityGroupSchema,
+  routine: count,
+  urgent: count,
+});
+const _outOfGrid: Matches<
+  z.input<typeof outOfGridSchema>,
+  Schemas["OutOfGridActs"]
+> = true;
+
+const radiologistActsSchema = z.object({
+  profile_id: uuid,
+  full_name: z.string(),
+  title: z.string().nullable(),
+  routine: count,
+  urgent: count,
+});
+const _radiologistActs: Matches<
+  z.input<typeof radiologistActsSchema>,
+  Schemas["RadiologistActs"]
+> = true;
+
+export const clinicStatementSchema = z.object({
   clinic_id: uuid,
   clinic: z.string(),
-  modality: z.string(),
-  reported: count,
-  urgent: count,
-  routine: count,
+  month: isoDate,
+  closed_at: isoDate.nullable(),
+  plan: planSchema.nullable(),
+  subscription: count.nullable(),
+  lines: z.array(statementLineSchema),
+  out_of_grid: z.array(outOfGridSchema),
+  acts: count,
+  unreported: count,
+  radiologists: z.array(radiologistActsSchema),
+  technical_total: count,
+  total: count.nullable(),
 });
-const _billingLine: Matches<
-  z.input<typeof billingLineSchema>,
-  Schemas["BillingLine"]
+const _clinicStatement: Matches<
+  z.input<typeof clinicStatementSchema>,
+  Schemas["ClinicStatement"]
+> = true;
+
+export const billingMonthSchema = z.object({
+  month: isoDate,
+  closed_at: isoDate.nullable(),
+  closable: z.boolean(),
+  statements: z.array(clinicStatementSchema),
+});
+const _billingMonth: Matches<
+  z.input<typeof billingMonthSchema>,
+  Schemas["BillingMonth"]
+> = true;
+
+export const clinicPlanSchema = z.object({
+  plan: planSchema,
+  monthly_fee: count,
+  set_at: isoDate,
+});
+const _clinicPlan: Matches<
+  z.input<typeof clinicPlanSchema>,
+  Schemas["ClinicPlan"]
 > = true;
 
 const serviceHealthSchema = z.object({
@@ -1536,7 +1673,16 @@ export const CONTRACT_CHECKS = [
   _controlOverview,
   _controlAnalytics,
   _pipelineStudy,
-  _billingLine,
+  _monthPriority,
+  _monthModality,
+  _monthRadiologist,
+  _clinicMonthActivity,
+  _statementLine,
+  _outOfGrid,
+  _radiologistActs,
+  _clinicStatement,
+  _billingMonth,
+  _clinicPlan,
   _serviceHealth,
   _systemStatus,
   _platformSettings,
@@ -1579,7 +1725,12 @@ export type ApiOrganization = z.output<typeof organizationSchema>;
 export type ApiControlOverview = z.output<typeof controlOverviewSchema>;
 export type ApiControlAnalytics = z.output<typeof controlAnalyticsSchema>;
 export type ApiPipelineStudy = z.output<typeof pipelineStudySchema>;
-export type ApiBillingLine = z.output<typeof billingLineSchema>;
+export type ApiClinicMonthActivity = z.output<typeof clinicMonthActivitySchema>;
+export type ApiClinicStatement = z.output<typeof clinicStatementSchema>;
+export type ApiBillingMonth = z.output<typeof billingMonthSchema>;
+export type ApiClinicPlan = z.output<typeof clinicPlanSchema>;
+export type FeeClass = z.output<typeof feeClassSchema>;
+export type Plan = z.output<typeof planSchema>;
 export type ApiSystemStatus = z.output<typeof systemStatusSchema>;
 export type ApiPlatformSettings = z.output<typeof platformSettingsSchema>;
 export type ApiAuditEntry = z.output<typeof auditEntrySchema>;

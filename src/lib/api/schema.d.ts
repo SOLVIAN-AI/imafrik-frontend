@@ -67,6 +67,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/billing/closures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Clore un mois
+         * @description Fige le relevé de chaque clinique pour un mois fini. Irréversible.
+         *
+         *     Raises:
+         *         Unprocessable: Le mois n'est pas fini.
+         *         Conflict: Le mois est déjà clos.
+         */
+        post: operations["close_month_admin_billing_closures_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/billing/statements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Relevés de facturation d'un mois
+         * @description Le relevé de chaque clinique : provisoire, ou figé si le mois est clos.
+         *
+         *     Raises:
+         *         Unprocessable: Mois à venir.
+         */
+        get: operations["get_statements_admin_billing_statements_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/clinics": {
         parameters: {
             query?: never;
@@ -284,6 +331,40 @@ export interface paths {
          *         NotFound: Clinique introuvable, ou sans logo.
          */
         delete: operations["remove_clinic_logo_admin_clinics__clinic_id__logo_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Formule d'abonnement d'une clinique
+         * @description La formule renseignée, ou ``null`` tant qu'elle ne l'est pas.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["get_plan_admin_clinics__clinic_id__plan_get"];
+        /**
+         * Renseigner la formule d'une clinique
+         * @description Pose la formule d'abonnement d'une clinique.
+         *
+         *     Elle vaut pour les mois encore ouverts ; un mois clos garde la formule
+         *     figée dans son relevé.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         *         Unprocessable: Formule Établissement sans montant, ou sous 100 000.
+         */
+        put: operations["set_plan_admin_clinics__clinic_id__plan_put"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2654,6 +2735,29 @@ export interface paths {
         patch: operations["update_organization_organization_patch"];
         trace?: never;
     };
+    "/organization/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Activité de la clinique sur un mois
+         * @description Examens reçus ce mois-là par la clinique active : volumes, délais, radiologues.
+         *
+         *     Raises:
+         *         Unprocessable: Mois à venir.
+         */
+        get: operations["get_activity_organization_activity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organization/assignment-rules": {
         parameters: {
             query?: never;
@@ -2676,6 +2780,32 @@ export interface paths {
          *             pas la modalité pour laquelle il est désigné.
          */
         put: operations["update_rules_organization_assignment_rules_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organization/billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Relevé de facturation de la clinique pour un mois
+         * @description Abonnement, forfaits techniques et actes par radiologue, pour la clinique active.
+         *
+         *     Un mois clos se lit tel qu'il a été figé à sa clôture.
+         *
+         *     Raises:
+         *         Unprocessable: Mois à venir.
+         *         NotFound: Mois clos avant l'arrivée de la clinique.
+         */
+        get: operations["get_statement_organization_billing_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -4666,6 +4796,28 @@ export interface components {
             urgent: number;
         };
         /**
+         * BillingMonth
+         * @description Les relevés d'un mois, toutes cliniques.
+         *
+         *     Attributes:
+         *         month: Premier jour du mois.
+         *         closed_at: Clôture ; nulle pour un mois ouvert.
+         *         closable: Vrai si l'équipe peut clore ce mois maintenant.
+         */
+        BillingMonth: {
+            /** Closable */
+            closable: boolean;
+            /** Closed At */
+            closed_at: string | null;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Statements */
+            statements: components["schemas"]["ClinicStatement"][];
+        };
+        /**
          * CertificateProof
          * @description Désignation d'une passerelle par un de ses certificats.
          *
@@ -4900,6 +5052,76 @@ export interface components {
             width: number;
         };
         /**
+         * ClinicModalityActivity
+         * @description Examens d'un groupe de modalités reçus dans le mois.
+         */
+        ClinicModalityActivity: {
+            /**
+             * Median Minutes
+             * @description Réception → signature.
+             */
+            median_minutes: number | null;
+            /**
+             * Modality Group
+             * @enum {string}
+             */
+            modality_group: "radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other";
+            /** Routine */
+            routine: number;
+            /** Signed */
+            signed: number;
+            /** Urgent */
+            urgent: number;
+            /** Within Sla */
+            within_sla: number | null;
+        };
+        /**
+         * ClinicMonthActivity
+         * @description L'activité d'une clinique sur un mois : examens reçus ce mois-là.
+         *
+         *     Attributes:
+         *         month: Premier jour du mois.
+         *         sla_routine_minutes: Délai promis en routine.
+         *         sla_urgent_minutes: Délai promis en urgence.
+         *         received: Examens reçus.
+         *         signed: Dont le compte-rendu est signé.
+         *         pending: Dont le compte-rendu n'est pas encore signé.
+         *         median_minutes: Délai médian réception → signature.
+         *         within_sla: Part signée dans le délai promis, de 0 à 1.
+         */
+        ClinicMonthActivity: {
+            /** By Modality */
+            by_modality: components["schemas"]["ClinicModalityActivity"][];
+            /** By Radiologist */
+            by_radiologist: components["schemas"]["ClinicRadiologistActivity"][];
+            /**
+             * Clinic Id
+             * Format: uuid
+             */
+            clinic_id: string;
+            /** Median Minutes */
+            median_minutes: number | null;
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Pending */
+            pending: number;
+            /** Received */
+            received: number;
+            routine: components["schemas"]["PriorityActivity"];
+            /** Signed */
+            signed: number;
+            /** Sla Routine Minutes */
+            sla_routine_minutes: number;
+            /** Sla Urgent Minutes */
+            sla_urgent_minutes: number;
+            urgent: components["schemas"]["PriorityActivity"];
+            /** Within Sla */
+            within_sla: number | null;
+        };
+        /**
          * ClinicPerson
          * @description Personne invitée à la création d'une clinique.
          *
@@ -4915,6 +5137,133 @@ export interface components {
             email: string;
             /** Full Name */
             full_name: string;
+        };
+        /**
+         * ClinicPlan
+         * @description La formule d'abonnement d'une clinique.
+         *
+         *     Attributes:
+         *         plan: Formule.
+         *         monthly_fee: Prix mensuel HT, FCFA.
+         *         set_at: Dernière modification.
+         */
+        ClinicPlan: {
+            /** Monthly Fee */
+            monthly_fee: number;
+            /**
+             * Plan
+             * @enum {string}
+             */
+            plan: "essential" | "pro" | "facility";
+            /**
+             * Set At
+             * Format: date-time
+             */
+            set_at: string;
+        };
+        /**
+         * ClinicPlanUpdate
+         * @description La formule d'une clinique.
+         *
+         *     Attributes:
+         *         plan: Formule.
+         *         monthly_fee: Prix mensuel de la formule Établissement, sur devis (au
+         *             moins 100 000 FCFA HT) ; ignoré pour les autres formules, dont le
+         *             prix est celui de la grille.
+         */
+        ClinicPlanUpdate: {
+            /** Monthly Fee */
+            monthly_fee?: number | null;
+            /**
+             * Plan
+             * @enum {string}
+             */
+            plan: "essential" | "pro" | "facility";
+        };
+        /**
+         * ClinicRadiologistActivity
+         * @description Comptes-rendus signés par un radiologue, pour les examens reçus dans le mois.
+         */
+        ClinicRadiologistActivity: {
+            /** Full Name */
+            full_name: string;
+            /**
+             * Median Minutes
+             * @description Réception → signature.
+             */
+            median_minutes: number | null;
+            /**
+             * Median Reading Minutes
+             * @description Prise en charge → signature.
+             */
+            median_reading_minutes: number | null;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /** Signed */
+            signed: number;
+            /** Title */
+            title: string | null;
+            /** Urgent */
+            urgent: number;
+            /** Within Sla */
+            within_sla: number | null;
+        };
+        /**
+         * ClinicStatement
+         * @description Le relevé de facturation d'une clinique pour un mois.
+         *
+         *     Attributes:
+         *         month: Premier jour du mois.
+         *         closed_at: Clôture du mois ; nul tant qu'il est ouvert (relevé
+         *             provisoire, recalculé à chaque lecture).
+         *         plan: Formule d'abonnement ; nulle tant que l'équipe IMAFRIK ne l'a
+         *             pas renseignée.
+         *         subscription: Abonnement du mois, FCFA HT ; nul sans formule.
+         *         lines: Forfaits techniques par type d'examen.
+         *         out_of_grid: Actes hors grille, sans forfait.
+         *         acts: Actes facturés (examens reçus dans le mois, compte-rendu signé).
+         *         unreported: Examens reçus dans le mois sans compte-rendu signé : non
+         *             facturés.
+         *         radiologists: Actes signés par radiologue, base des honoraires.
+         *         technical_total: Total des forfaits techniques, FCFA HT.
+         *         total: Abonnement et forfaits, FCFA HT ; nul sans formule.
+         */
+        ClinicStatement: {
+            /** Acts */
+            acts: number;
+            /** Clinic */
+            clinic: string;
+            /**
+             * Clinic Id
+             * Format: uuid
+             */
+            clinic_id: string;
+            /** Closed At */
+            closed_at: string | null;
+            /** Lines */
+            lines: components["schemas"]["StatementLine"][];
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Out Of Grid */
+            out_of_grid: components["schemas"]["OutOfGridActs"][];
+            /** Plan */
+            plan: ("essential" | "pro" | "facility") | null;
+            /** Radiologists */
+            radiologists: components["schemas"]["RadiologistActs"][];
+            /** Subscription */
+            subscription: number | null;
+            /** Technical Total */
+            technical_total: number;
+            /** Total */
+            total: number | null;
+            /** Unreported */
+            unreported: number;
         };
         /**
          * ClinicalInfo
@@ -6299,6 +6648,17 @@ export interface components {
             radiologist_id: string;
         };
         /**
+         * MonthClosure
+         * @description Le mois à clore.
+         */
+        MonthClosure: {
+            /**
+             * Month
+             * @description Mois, AAAA-MM.
+             */
+            month: string;
+        };
+        /**
          * NetworkCounts
          * @description Le réseau : cliniques et radiologues.
          */
@@ -6432,6 +6792,21 @@ export interface components {
         OrganizationUpdate: {
             /** Open To Pool */
             open_to_pool: boolean;
+        };
+        /**
+         * OutOfGridActs
+         * @description Actes d'un groupe de modalités absent de la grille : sans forfait.
+         */
+        OutOfGridActs: {
+            /**
+             * Modality Group
+             * @enum {string}
+             */
+            modality_group: "radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other";
+            /** Routine */
+            routine: number;
+            /** Urgent */
+            urgent: number;
         };
         /**
          * PdfLink
@@ -6787,6 +7162,26 @@ export interface components {
             prior_ids: string[];
         };
         /**
+         * PriorityActivity
+         * @description Examens d'une priorité reçus dans le mois.
+         *
+         *     Attributes:
+         *         received: Examens reçus.
+         *         signed: Dont le compte-rendu est signé.
+         *         median_minutes: Délai médian réception → signature.
+         *         within_sla: Part signée dans le délai promis, de 0 à 1.
+         */
+        PriorityActivity: {
+            /** Median Minutes */
+            median_minutes: number | null;
+            /** Received */
+            received: number;
+            /** Signed */
+            signed: number;
+            /** Within Sla */
+            within_sla: number | null;
+        };
+        /**
          * PrioritySla
          * @description Délais d'une priorité sur une période.
          */
@@ -6917,6 +7312,25 @@ export interface components {
             signed: number;
             /** Title */
             title: string | null;
+        };
+        /**
+         * RadiologistActs
+         * @description Actes signés par un radiologue : la base de ses honoraires.
+         */
+        RadiologistActs: {
+            /** Full Name */
+            full_name: string;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /** Routine */
+            routine: number;
+            /** Title */
+            title: string | null;
+            /** Urgent */
+            urgent: number;
         };
         /**
          * Readiness
@@ -7532,6 +7946,35 @@ export interface components {
              * @description Première → dernière image reçue.
              */
             transfer: number | null;
+        };
+        /**
+         * StatementLine
+         * @description Forfaits techniques d'un type d'examen.
+         *
+         *     Attributes:
+         *         fee_class: Type d'examen de la grille.
+         *         routine: Actes en délai normal.
+         *         urgent: Actes en urgence.
+         *         routine_fee: Forfait d'un acte en délai normal, FCFA HT.
+         *         urgent_fee: Forfait d'un acte en urgence, FCFA HT.
+         *         amount: Montant de la ligne, FCFA HT.
+         */
+        StatementLine: {
+            /** Amount */
+            amount: number;
+            /**
+             * Fee Class
+             * @enum {string}
+             */
+            fee_class: "radiography" | "complex_radiography" | "hysterosalpingography" | "ct" | "complex_ct" | "mri";
+            /** Routine */
+            routine: number;
+            /** Routine Fee */
+            routine_fee: number;
+            /** Urgent */
+            urgent: number;
+            /** Urgent Fee */
+            urgent_fee: number;
         };
         /**
          * Study
@@ -8430,7 +8873,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.auto_assigned" | "study.unassigned" | "study.urgent_alerted" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.assignment_rules_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.auto_assigned" | "study.unassigned" | "study.urgent_alerted" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.assignment_rules_changed" | "organization.plan_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "billing.month_closed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -8484,6 +8927,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BillingLine"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_month_admin_billing_closures_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MonthClosure"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingMonth"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_statements_admin_billing_statements_get: {
+        parameters: {
+            query: {
+                /** @description Mois, AAAA-MM. */
+                month: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingMonth"];
                 };
             };
             /** @description Validation Error */
@@ -8860,6 +9372,76 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_plan_admin_clinics__clinic_id__plan_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicPlan"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_plan_admin_clinics__clinic_id__plan_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClinicPlanUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicPlan"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -12098,6 +12680,40 @@ export interface operations {
             };
         };
     };
+    get_activity_organization_activity_get: {
+        parameters: {
+            query: {
+                /** @description Mois, AAAA-MM. */
+                month: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicMonthActivity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_rules_organization_assignment_rules_get: {
         parameters: {
             query?: never;
@@ -12151,6 +12767,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssignmentRules"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_statement_organization_billing_get: {
+        parameters: {
+            query: {
+                /** @description Mois, AAAA-MM. */
+                month: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicStatement"];
                 };
             };
             /** @description Validation Error */

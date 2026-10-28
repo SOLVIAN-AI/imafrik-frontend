@@ -7,7 +7,6 @@ import type {
   ApiCredentialDocument,
   ApiContactRequest,
   ApiAuditEntry,
-  ApiBillingLine,
   ApiClinicDetail,
   ApiControlAnalytics,
   ApiControlOverview,
@@ -770,34 +769,6 @@ export function demoPipeline(
       delivered_at: isoOrNull(flow.deliveredAt),
       transfer_bytes: flow.bytes,
     }));
-}
-
-/** Actes d'un mois `AAAA-MM`, par clinique, modalité et priorité. */
-export function demoBilling(month: string, now = Date.now()): ApiBillingLine[] {
-  const [year, number] = month.split("-").map(Number);
-  const start = Date.UTC(year, number - 1, 1);
-  const end = Math.min(Date.UTC(year, number, 1), now);
-  if (end <= start) return [];
-  const lines = new Map<string, ApiBillingLine>();
-  for (const flow of demoFlows(start, end)) {
-    const key = `${flow.clinic.id}|${flow.modality.code}`;
-    const line = lines.get(key) ?? {
-      clinic_id: flow.clinic.id,
-      clinic: flow.clinic.name,
-      modality: flow.modality.code,
-      reported: 0,
-      urgent: 0,
-      routine: 0,
-    };
-    if (flow.urgent) line.urgent += 1;
-    else line.routine += 1;
-    if (flow.signedAt !== null) line.reported += 1;
-    lines.set(key, line);
-  }
-  return [...lines.values()].sort(
-    (a, b) =>
-      a.clinic.localeCompare(b.clinic) || a.modality.localeCompare(b.modality),
-  );
 }
 
 /**

@@ -389,6 +389,20 @@ export const admin = {
     badType: "Déposez un PNG, un JPEG ou un WebP.",
     unreadable: "Ce fichier n’a pas pu être lu.",
   },
+  /** Formule d'abonnement d'une clinique, sur sa fiche. */
+  plan: {
+    title: "Abonnement",
+    none: "Formule non renseignée",
+    explanation:
+      "La formule souscrite par la clinique, d’après sa convention. Elle vaut pour les mois encore ouverts ; un mois clos garde la formule de son relevé.",
+    label: "Formule",
+    monthlyFee: "Prix mensuel (FCFA HT)",
+    monthlyFeeHint: "Sur devis, au moins 100 000 FCFA HT.",
+    perMonth: (amount: string) => `${amount} FCFA HT par mois`,
+    since: "Renseignée le",
+    saved: "Formule d’abonnement enregistrée.",
+  },
+
   reportLanguage: {
     title: "Langue des comptes-rendus",
     explanation:
@@ -741,39 +755,50 @@ export const admin = {
 
   billing: {
     description: (month: string) =>
-      `${month} : actes reçus, par clinique et par modalité`,
+      `${month} : le relevé de chaque clinique, celui que voit son responsable`,
     month: "Mois",
     previousMonth: "Mois précédent",
     nextMonth: "Mois suivant",
-    csvFilename: (month: string) => `imafrik-actes-${month}.csv`,
+    csvFilename: (month: string) => `imafrik-facturation-${month}.csv`,
     csvHeaders: [
       "Mois",
       "Clinique",
-      "Modalité",
-      "Routine",
-      "Urgence",
-      "Total",
-      "Comptes-rendus signés",
+      "Poste",
+      "Détail",
+      "Actes",
+      "Dont urgences",
+      "Tarif normal (FCFA HT)",
+      "Tarif urgent (FCFA HT)",
+      "Montant (FCFA HT)",
     ],
     totals: "Totaux du mois",
-    received: "Actes reçus",
-    urgentRate: "facturées au tarif d’urgence",
+    invoiced: "Total HT",
+    invoicedHint: (missing: number) =>
+      missing === 0
+        ? "abonnements et forfaits techniques"
+        : missing > 1
+          ? `hors ${missing} cliniques sans formule`
+          : "hors 1 clinique sans formule",
+    acts: "Actes facturés",
+    actsHint: "compte-rendu signé",
     unreported: "Sans compte-rendu signé",
-    monthInProgress: "le mois est en cours",
-    checkBeforeInvoice: "à vérifier avant facture",
-    procedures: "Actes",
-    emptyTitle: "Aucun acte ce mois-ci",
-    emptyDetail: "Les examens reçus apparaissent ici, regroupés par clinique.",
-    clinicSummary: (received: string, urgent: string, reported: string) =>
-      `${received} actes · ${urgent} urgences · ${reported} comptes-rendus signés`,
-    columns: {
-      modality: "Modalité",
-      routine: "Routine",
-      urgent: "Urgence",
-      total: "Total",
-      signed: "Signés",
-    },
-    total: "Total",
+    unreportedHint: "non facturés",
+    missingPlans: "Sans formule",
+    missingPlansHint: "à renseigner sur la fiche de la clinique",
+    current: "Mois en cours : les relevés sont provisoires.",
+    toClose:
+      "Mois fini, pas encore clos : vérifiez les relevés, puis clôturez-le pour les figer.",
+    closedBefore: "Mois clos le ",
+    closedAfter: " : les relevés ne changent plus.",
+    close: "Clore le mois",
+    closeTitle: (month: string) => `Clore ${month} ?`,
+    closeDetail:
+      "Le relevé de chaque clinique est figé tel qu’il est affiché. Il ne changera plus, même si une priorité change, si un compte-rendu est annulé ou si une formule est modifiée. Ce geste est définitif.",
+    closeConfirm: "Clore définitivement",
+    closed: (month: string) => `${month} est clos.`,
+    clinicSheet: "Fiche de la clinique",
+    emptyTitle: "Aucune clinique ce mois-ci",
+    emptyDetail: "Le relevé de chaque clinique apparaît ici, mois par mois.",
   },
 
   system: {
@@ -846,6 +871,7 @@ export const admin = {
       "organization.pool_changed": "Ouverture au pool modifiée",
       "organization.urgent_readers_changed": "Liste d’urgence modifiée",
       "organization.assignment_rules_changed": "Règles d’attribution modifiées",
+      "organization.plan_changed": "Formule d’abonnement modifiée",
       "organization.retention_changed": "Durée de conservation modifiée",
       "organization.report_language_changed":
         "Langue des comptes-rendus modifiée",
@@ -866,6 +892,7 @@ export const admin = {
       "user.anonymization_requested": "Anonymisation d’un compte demandée",
       "user.anonymized": "Compte anonymisé",
       "platform.settings_changed": "Réglages modifiés",
+      "billing.month_closed": "Mois de facturation clos",
       "contact_request.tracked": "Demande reçue suivie",
       "agreement.accepted": "Engagement accepté",
       "signing.asset_changed": "Signature ou cachet déposé",
@@ -965,6 +992,8 @@ export const admin = {
     confirmAccountNameRequired: "Saisissez le nom du compte pour confirmer",
   },
   demoActions: {
+    plan: "La formule d’abonnement",
+    closeMonth: "La clôture du mois",
     assignment: "L’attribution des examens",
     clinicLogo: "Le logo des comptes-rendus",
     settings: "La modification des réglages",

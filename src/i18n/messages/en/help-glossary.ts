@@ -10,7 +10,7 @@ export const glossary: typeof fr = {
   acte: {
     term: "Procedure",
     definition:
-      "An examination received, counted towards the clinic’s invoice for the month it arrived, by modality. Urgent examinations are billed at the urgent rate.",
+      "An examination received whose report is signed, counted towards the clinic’s invoice for the month it arrived. Urgent examinations are billed at the urgent rate.",
   },
   consultation: {
     term: "Read-only view",
@@ -21,6 +21,11 @@ export const glossary: typeof fr = {
     term: "Safety net",
     definition:
       "A scheduled task that protects the platform: encrypted backup, restore drill, PACS reconciliation, data retention and server monitoring. The System screen shows its latest run.",
+  },
+  formuleAbonnement: {
+    term: "Subscription plan",
+    definition:
+      "The clinic’s monthly subscription: Essentiel, Pro or Établissement, on quotation. The IMAFRIK team sets it according to the agreement; without it, the statement has neither subscription nor total.",
   },
   aeTitle: {
     term: "AE Title",
@@ -145,7 +150,7 @@ export const glossary: typeof fr = {
   forfaitTechnique: {
     term: "Technical fee",
     definition:
-      "The amount IMAFRIK charges the clinic for each examination, depending on its type. It is separate from the radiologist’s fee.",
+      "The amount IMAFRIK charges the clinic for each procedure, depending on its examination type, at the normal or urgent rate. It is separate from the radiologist’s fee.",
   },
   groupe: {
     term: "Radiology group",
@@ -157,10 +162,15 @@ export const glossary: typeof fr = {
     definition:
       "The IMAFRIK team’s check of a radiologist’s right to practise, based on their supporting document. Without a valid approval, they see no examination.",
   },
+  horsGrille: {
+    term: "Outside the fee schedule",
+    definition:
+      "A procedure in a modality missing from the technical fee schedule, such as ultrasound or mammography: it is counted, with no fee billed.",
+  },
   honoraire: {
     term: "Fee",
     definition:
-      "The radiologist’s pay for reading an examination. It goes to them in full: IMAFRIK takes no commission on it.",
+      "The radiologist’s pay for reading an examination. Its amount is agreed between the clinic and the radiologist and goes to them in full: IMAFRIK takes no commission on it.",
   },
   journalAudit: {
     term: "Audit log",
@@ -186,6 +196,11 @@ export const glossary: typeof fr = {
     term: "Modalities read",
     definition:
       "What a radiologist reads: radiography (HSG included), mammography, ultrasound, CT, MRI, other. Set by the clinic for its radiologists, or by the IMAFRIK team, they limit what can be assigned to them and the urgent examinations they see.",
+  },
+  moisClos: {
+    term: "Closed month",
+    definition:
+      "A month whose billing the IMAFRIK team has frozen. Its statement no longer changes, even if a priority changes, a report is voided or a plan is modified.",
   },
   organisation: {
     term: "Organisation",

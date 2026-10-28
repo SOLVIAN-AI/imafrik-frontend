@@ -12,6 +12,7 @@ export const nav = {
     send: "Envoyer un examen",
     studies: "Examens",
     team: "Équipe",
+    activity: "Activité et facturation",
     cockpit: "Cockpit",
     analytics: "Activité",
     flow: "Flux d’images",

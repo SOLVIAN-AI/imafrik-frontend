@@ -245,4 +245,124 @@ export const clinic = {
     publicVerification: "Vérification publique",
     downloadPdf: "Télécharger le PDF",
   },
+  /** Activité et facturation de la clinique, pour son responsable (`/activite`). */
+  activity: {
+    title: "Activité et facturation",
+    month: "Mois",
+    previousMonth: "Mois précédent",
+    nextMonth: "Mois suivant",
+    activity: {
+      title: "Activité",
+      description:
+        "Les examens reçus dans le mois, et ce qu’ils sont devenus, même signés après la fin du mois",
+      received: "Examens reçus",
+      ofWhichUrgent: (count: number) =>
+        count > 1 ? `dont ${count} urgences` : `dont ${count} urgence`,
+      signed: "Rendus",
+      pending: (count: number) =>
+        count > 1
+          ? `${count} attendent leur compte-rendu`
+          : `${count} attend son compte-rendu`,
+      median: "Délai médian",
+      medianHint: "de la réception au compte-rendu signé",
+      withinSla: "Dans les délais promis",
+      slaHint: (routine: string, urgent: string) =>
+        `${routine} en routine, ${urgent} en urgence`,
+      byModality: "Par modalité",
+      byRadiologist: "Par radiologue",
+      byRadiologistDescription:
+        "Comptes-rendus signés pour les examens reçus dans le mois",
+      columns: {
+        modality: "Modalité",
+        routine: "Routine",
+        urgent: "Urgence",
+        signed: "Rendus",
+        median: "Délai médian",
+        withinSla: "Dans les délais",
+        radiologist: "Radiologue",
+        reading: "Lecture",
+      },
+      readingHint: "de la prise en charge à la signature",
+      noRadiologist: "Aucun compte-rendu signé pour les examens de ce mois.",
+      emptyTitle: "Aucun examen reçu ce mois-ci",
+      emptyDetail:
+        "Les examens que la clinique envoie apparaissent ici, mois par mois.",
+    },
+    billing: {
+      title: "Facturation",
+      provisional:
+        "Relevé provisoire : il suit l’activité du mois jusqu’à sa clôture par l’équipe IMAFRIK.",
+      closedBefore: "Mois clos le ",
+      closedAfter: " : ce relevé ne change plus.",
+      none: "Aucun relevé pour ce mois : la clinique n’était pas encore en service.",
+      noPlan: "Formule non renseignée",
+      noPlanDetail:
+        "L’équipe IMAFRIK renseigne votre formule d’abonnement. En attendant, ni l’abonnement ni le total ne sont chiffrés.",
+      plans: {
+        essential: "Formule Essentiel",
+        pro: "Formule Pro",
+        facility: "Formule Établissement",
+      },
+      subscription: "Abonnement",
+      perMonth: "par mois",
+      technicalFees: "Forfaits techniques",
+      technicalFeesDetail:
+        "Un forfait par examen reçu dans le mois dont le compte-rendu est signé, au tarif normal ou urgent.",
+      baseTariff:
+        "Chaque acte est compté au tarif de base de sa modalité (radiographie, scanner, IRM) : le classement des examens complexes reste à définir.",
+      feeClasses: {
+        radiography: "Radiographie",
+        complex_radiography: "Radiographie complexe",
+        hysterosalpingography: "Hystérosalpingographie",
+        ct: "Scanner",
+        complex_ct: "Scanner complexe",
+        mri: "IRM",
+      },
+      columns: {
+        type: "Type d’examen",
+        routine: "Normal",
+        urgent: "Urgent",
+        amount: "Montant",
+      },
+      acts: (count: number) => (count > 1 ? `${count} actes` : `${count} acte`),
+      unitPrice: (amount: string) => `à ${amount}`,
+      urgentActs: (count: number) => `dont ${count} en urgence`,
+      noActs: "Aucun acte facturé ce mois-ci.",
+      outOfGrid: (list: string) => `Hors grille : ${list}`,
+      outOfGridDetail:
+        "Modalités absentes de la grille des forfaits : aucun forfait facturé.",
+      unreported: (count: number) =>
+        count > 1
+          ? `${count} examens reçus sans compte-rendu signé : non facturés`
+          : `${count} examen reçu sans compte-rendu signé : non facturé`,
+      fees: "Honoraires des radiologues",
+      feesDetail:
+        "Actes signés par chaque radiologue. Le montant de l’honoraire se fixe entre la clinique et le radiologue et lui revient à 100 % : IMAFRIK ne l’encaisse pas.",
+      noFees: "Aucun acte signé ce mois-ci.",
+      total: "Total HT",
+      totalHint: "abonnement et forfaits techniques",
+      totalMissing: "non chiffré sans formule",
+      amount: (amount: string) => `${amount} FCFA`,
+      csvFilename: (month: string) => `imafrik-releve-${month}.csv`,
+      csvHeaders: [
+        "Mois",
+        "Poste",
+        "Détail",
+        "Actes",
+        "Dont urgences",
+        "Tarif normal (FCFA HT)",
+        "Tarif urgent (FCFA HT)",
+        "Montant (FCFA HT)",
+      ],
+      csv: {
+        subscription: "Abonnement",
+        technicalFee: "Forfait technique",
+        outOfGrid: "Hors grille",
+        unreported: "Non facturé",
+        unreportedDetail: "Sans compte-rendu signé",
+        fees: "Honoraires",
+        total: "Total",
+      },
+    },
+  },
 };

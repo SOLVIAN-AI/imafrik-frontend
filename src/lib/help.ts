@@ -96,6 +96,7 @@ const SCREENS: Record<
     ["/comptes-rendus", "reports"],
     ["/equipe/regles", "teamRules"],
     ["/equipe", "team"],
+    ["/activite", "activity"],
     ["/parametres", "settings"],
   ],
   admin: [

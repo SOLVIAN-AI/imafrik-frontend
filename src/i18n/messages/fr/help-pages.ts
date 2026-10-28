@@ -261,6 +261,25 @@ export const pages = {
         "listeUrgence",
       ],
     },
+    activity: {
+      title: "Activité et facturation",
+      purpose:
+        "Le bilan de chaque mois : les examens reçus, combien sont rendus, en combien de temps et dans les délais promis, puis le relevé de facturation, le même que celui de l’équipe IMAFRIK. Réservé aux responsables de la clinique.",
+      steps: [
+        "Changez de mois avec les flèches placées de part et d’autre du mois affiché.",
+        "Lisez l’activité : examens reçus, rendus, délai médian et part rendue dans les délais promis, puis le détail par modalité et par radiologue.",
+        "Dans « Facturation », lisez l’abonnement, les forfaits techniques par type d’examen, au tarif normal ou urgent, et le total HT.",
+        "« Relevé provisoire » : le mois peut encore changer. « Mois clos » : l’équipe IMAFRIK l’a figé, il ne change plus.",
+        "Cliquez sur « Exporter en CSV » pour télécharger le relevé du mois.",
+      ],
+      terms: [
+        "acte",
+        "forfaitTechnique",
+        "formuleAbonnement",
+        "moisClos",
+        "honoraire",
+      ],
+    },
     settings: {
       title: "Paramètres",
       purpose:
@@ -338,13 +357,13 @@ export const pages = {
     organisation: {
       title: "Fiche de la clinique",
       purpose:
-        "Suit la mise en service d’une clinique et son activité sur trente jours. Vous y raccordez ses passerelles par un code, réglez la conservation des images, la langue et le logo des comptes-rendus, et pouvez mettre fin au contrat.",
+        "Suit la mise en service d’une clinique et son activité sur trente jours. Vous y raccordez ses passerelles par un code, renseignez sa formule d’abonnement, réglez la conservation des images, la langue et le logo des comptes-rendus, et pouvez mettre fin au contrat.",
       steps: [
         "Suivez la « Mise en service » : la première étape non franchie est celle qui appelle une action.",
         "Dans « Raccorder une passerelle », cliquez sur « Émettre un code » (15 minutes, une seule fois) et dictez-le à l’installateur, qui le saisit dans le kit.",
         "Quand le poste apparaît « En attente d’approbation » dans « Passerelles », vérifiez-le avec la clinique, puis cliquez sur « Approuver ».",
         "Dans « Liste d’urgence » et « Règles d’attribution », choisissez les radiologues, de la clinique ou du réseau, qui prennent ses urgences ou reçoivent d’office ses examens.",
-        "Réglez au besoin la conservation des images, la langue des comptes-rendus et le logo en filigrane.",
+        "Renseignez son « Abonnement », puis au besoin la conservation des images, la langue des comptes-rendus et le logo en filigrane.",
       ],
       terms: [
         "passerelle",
@@ -442,15 +461,21 @@ export const pages = {
     billing: {
       title: "Facturation",
       purpose:
-        "Les actes d’un mois, par clinique et par modalité : examens reçus en routine et en urgence, et comptes-rendus signés. C’est la base de la facture de chaque clinique ; un examen sans compte-rendu signé s’y repère avant d’être facturé à tort.",
+        "Le relevé de chaque clinique pour un mois, celui que voit son responsable : abonnement, forfaits techniques des actes et actes par radiologue. Un mois fini se vérifie, puis se clôt : ses relevés ne changent plus.",
       steps: [
         "Changez de mois avec les flèches placées de part et d’autre du mois affiché.",
-        "Lisez les totaux du mois : « Actes reçus », « Dont urgences » et « Comptes-rendus signés ».",
-        "Contrôlez le chiffre « Sans compte-rendu signé » : une fois le mois clos, il est « à vérifier avant facture ».",
-        "Parcourez le tableau de chaque clinique : par modalité, « Routine », « Urgence », « Total » et « Signés ».",
-        "Cliquez sur « Exporter en CSV » pour télécharger les lignes du mois.",
+        "Lisez les totaux : « Total HT », « Actes facturés », « Sans compte-rendu signé » et « Sans formule ».",
+        "Une clinique « Sans formule » n’a ni abonnement ni total : ouvrez sa fiche et renseignez son « Abonnement ».",
+        "Le mois fini, vérifiez les relevés puis cliquez sur « Clore le mois » : ce geste est définitif.",
+        "Cliquez sur « Exporter en CSV » pour télécharger les relevés du mois.",
       ],
-      terms: ["acte", "urgence", "compteRendu", "signature"],
+      terms: [
+        "acte",
+        "forfaitTechnique",
+        "formuleAbonnement",
+        "moisClos",
+        "horsGrille",
+      ],
     },
     system: {
       title: "Système",

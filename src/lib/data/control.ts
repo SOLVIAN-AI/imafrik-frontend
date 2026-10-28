@@ -13,7 +13,6 @@ import {
   type ApiOpsRun,
   adminUserSchema,
   auditEntrySchema,
-  billingLineSchema,
   clinicDetailSchema,
   clinicLogoSchema,
   controlAnalyticsSchema,
@@ -25,7 +24,6 @@ import {
 import {
   demoAnalytics,
   demoAudit,
-  demoBilling,
   demoClinic,
   demoOverview,
   demoPipeline,
@@ -408,41 +406,6 @@ export async function getPipeline(
     signedAt: toDate(row.signed_at),
     deliveredAt: toDate(row.delivered_at),
     transferBytes: row.transfer_bytes,
-  }));
-}
-
-// ─── Facturation ─────────────────────────────────────────────────────
-
-/** Actes d'une clinique, pour une modalité, sur un mois. */
-export interface BillingLine {
-  clinicId: string;
-  clinic: string;
-  modality: string;
-  routine: number;
-  urgent: number;
-  /** Examens dont le compte-rendu est signé. */
-  reported: number;
-}
-
-/**
- * Actes d'un mois.
- *
- * @param month Mois `AAAA-MM`.
- */
-export async function getBilling(month: string): Promise<BillingLine[]> {
-  const rows = isDemoMode()
-    ? demoBilling(month)
-    : await apiGet(
-        `/admin/billing?month=${encodeURIComponent(month)}`,
-        z.array(billingLineSchema),
-      );
-  return rows.map((row) => ({
-    clinicId: row.clinic_id,
-    clinic: row.clinic,
-    modality: row.modality,
-    routine: row.routine,
-    urgent: row.urgent,
-    reported: row.reported,
   }));
 }
 

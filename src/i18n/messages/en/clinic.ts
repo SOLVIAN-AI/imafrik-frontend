@@ -214,4 +214,123 @@ export const clinic: AppMessages["clinic"] = {
     publicVerification: "Public verification",
     downloadPdf: "Download PDF",
   },
+  activity: {
+    title: "Activity and billing",
+    month: "Month",
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
+    activity: {
+      title: "Activity",
+      description:
+        "Examinations received during the month, and what became of them, even if signed after the month ended",
+      received: "Examinations received",
+      ofWhichUrgent: (count: number) => `${count} of them urgent`,
+      signed: "Reported",
+      pending: (count: number) =>
+        count === 1
+          ? `${count} is awaiting its report`
+          : `${count} are awaiting their report`,
+      median: "Median turnaround",
+      medianHint: "from receipt to signed report",
+      withinSla: "Within promised times",
+      slaHint: (routine: string, urgent: string) =>
+        `${routine} routine, ${urgent} urgent`,
+      byModality: "By modality",
+      byRadiologist: "By radiologist",
+      byRadiologistDescription:
+        "Reports signed for the examinations received during the month",
+      columns: {
+        modality: "Modality",
+        routine: "Routine",
+        urgent: "Urgent",
+        signed: "Reported",
+        median: "Median turnaround",
+        withinSla: "Within time",
+        radiologist: "Radiologist",
+        reading: "Reading",
+      },
+      readingHint: "from taking charge to signing",
+      noRadiologist: "No report signed yet for this month’s examinations.",
+      emptyTitle: "No examination received this month",
+      emptyDetail:
+        "The examinations your clinic sends appear here, month by month.",
+    },
+    billing: {
+      title: "Billing",
+      provisional:
+        "Provisional statement: it follows the month’s activity until the IMAFRIK team closes the month.",
+      closedBefore: "Month closed on ",
+      closedAfter: ": this statement no longer changes.",
+      none: "No statement for this month: the clinic was not yet in service.",
+      noPlan: "Plan not set",
+      noPlanDetail:
+        "The IMAFRIK team sets your subscription plan. Until then, neither the subscription nor the total is priced.",
+      plans: {
+        essential: "Essentiel plan",
+        pro: "Pro plan",
+        facility: "Établissement plan",
+      },
+      subscription: "Subscription",
+      perMonth: "per month",
+      technicalFees: "Technical fees",
+      technicalFeesDetail:
+        "One fee per examination received during the month whose report is signed, at the normal or urgent rate.",
+      baseTariff:
+        "Each procedure is counted at the base rate of its modality (radiography, CT, MRI): how complex examinations are classified is still to be defined.",
+      feeClasses: {
+        radiography: "Radiography",
+        complex_radiography: "Complex radiography",
+        hysterosalpingography: "Hysterosalpingography",
+        ct: "CT",
+        complex_ct: "Complex CT",
+        mri: "MRI",
+      },
+      columns: {
+        type: "Examination type",
+        routine: "Normal",
+        urgent: "Urgent",
+        amount: "Amount",
+      },
+      acts: (count: number) =>
+        count === 1 ? `${count} procedure` : `${count} procedures`,
+      unitPrice: (amount: string) => `at ${amount}`,
+      urgentActs: (count: number) => `${count} urgent`,
+      noActs: "No procedure billed this month.",
+      outOfGrid: (list: string) => `Outside the fee schedule: ${list}`,
+      outOfGridDetail:
+        "Modalities missing from the fee schedule: no fee is billed.",
+      unreported: (count: number) =>
+        count === 1
+          ? `${count} examination received without a signed report: not billed`
+          : `${count} examinations received without a signed report: not billed`,
+      fees: "Radiologists’ fees",
+      feesDetail:
+        "Procedures signed by each radiologist. The fee amount is agreed between the clinic and the radiologist and goes to them in full: IMAFRIK never collects it.",
+      noFees: "No procedure signed this month.",
+      total: "Total excl. tax",
+      totalHint: "subscription and technical fees",
+      totalMissing: "not priced without a plan",
+      amount: (amount: string) => `${amount} FCFA`,
+      csvFilename: (month: string) => `imafrik-statement-${month}.csv`,
+      csvHeaders: [
+        "Month",
+        "Item",
+        "Detail",
+        "Procedures",
+        "Of which urgent",
+        "Normal rate (FCFA excl. tax)",
+        "Urgent rate (FCFA excl. tax)",
+        "Amount (FCFA excl. tax)",
+      ],
+      csv: {
+        subscription: "Subscription",
+        technicalFee: "Technical fee",
+        outOfGrid: "Outside the fee schedule",
+        unreported: "Not billed",
+        unreportedDetail: "No signed report",
+        fees: "Fees",
+        total: "Total",
+      },
+    },
+  },
 };
