@@ -133,5 +133,80 @@ export const assignment: AppMessages["assignment"] = {
     submit: "Save",
     loading: "Loading radiologists…",
   },
+  rules: {
+    title: "Assignment rules",
+    trigger: "Assignment rules",
+    description:
+      "Who receives the clinic’s examinations automatically, on arrival.",
+    adminDescription:
+      "Who receives this clinic’s examinations automatically on arrival, network radiologists included.",
+    howItWorks:
+      "When an examination arrives, the radiologist for its modality receives it; otherwise, the only on-duty radiologist who can read it. Otherwise it stays to assign. A rule never takes back an examination already assigned: you can always reassign.",
+    modalitiesTitle: "Radiologist for each modality",
+    modalitiesHint:
+      "They receive every examination of this modality, at any hour, if they can read it.",
+    nobody: "Nobody",
+    notReading: (name: string) => `${name} does not read this modality`,
+    scheduleTitle: "Weekly schedule",
+    scheduleHint: (zone: string) =>
+      `Examinations that no modality radiologist receives go to the on-duty radiologist. Clinic hours (${zone}).`,
+    noSlots:
+      "No slot: apart from the designated modalities, examinations stay to assign.",
+    addSlot: "Add a slot",
+    slotLabel: (index: number) => `Slot ${index}`,
+    radiologist: "Radiologist",
+    chooseRadiologist: "Choose a radiologist",
+    days: "Days",
+    dayShort: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    dayNames: [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ],
+    allDay: "All day",
+    from: "From",
+    to: "to",
+    overnight: "until the next morning",
+    removeSlot: "Remove",
+    removeSlotLabel: (index: number) => `Remove slot ${index}`,
+    problems: {
+      radiologist: "Choose a radiologist.",
+      days: "Tick at least one day.",
+      hours: "Enter a start time and an end time.",
+      sameHours: "The start and the end cannot be at the same time.",
+    },
+    overlap: (first: string, second: string, days: string) =>
+      `${first} and ${second} are on duty at the same time (${days}): an examination both can read will stay to assign.`,
+    cannotReceive: (name: string) =>
+      `${name} cannot receive examinations yet (credentials or affiliation): the rule skips them.`,
+    network: "IMAFRIK network",
+    submit: "Save the rules",
+    saved: "Assignment rules saved.",
+    invalid: "Complete or remove the flagged slots before saving.",
+    noRadiologists:
+      "No radiologist in your team: invite one from “Team” to set rules.",
+    noRadiologistsAdmin:
+      "No radiologist can read this clinic: affiliate one, or open it to the network.",
+    back: "Team",
+    summary: (slots: number, modalities: number) =>
+      slots === 0 && modalities === 0
+        ? "No rule: examinations arrive to assign."
+        : [
+            modalities > 0 &&
+              `${modalities} designated modalit${modalities > 1 ? "ies" : "y"}`,
+            slots > 0 && `${slots} duty slot${slots > 1 ? "s" : ""}`,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+    byRule: {
+      modality: "radiologist for the modality",
+      schedule: "weekly schedule",
+    },
+    assignedBy: (rule: string) => `Assigned by the rule: ${rule}`,
+  },
   demoAction: "Assigning examinations",
 };

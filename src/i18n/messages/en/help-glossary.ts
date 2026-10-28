@@ -40,7 +40,7 @@ export const glossary: typeof fr = {
   attribution: {
     term: "Assignment",
     definition:
-      "Reserving an examination for a specific radiologist, by the clinic’s manager or, for network radiologists, by the IMAFRIK team. Only they can see it and take it on; they are notified by email, without any patient data.",
+      "Reserving an examination for a specific radiologist, by the clinic’s manager or, for network radiologists, by the IMAFRIK team, or automatically on arrival by an assignment rule. Only they can see it and take it on; they are notified by email, without any patient data.",
   },
   brouillon: {
     term: "Draft",
@@ -202,6 +202,11 @@ export const glossary: typeof fr = {
     definition:
       "Software installed on a clinic workstation. It receives the images from the devices and sends them, encrypted, to the IMAFRIK PACS. It is installed with the installation kit and an enrolment code.",
   },
+  planning: {
+    term: "Weekly schedule",
+    definition:
+      "Duty slots set by the clinic’s manager, or the IMAFRIK team: which radiologist, which days, which hours, nights included. An arriving examination goes to the only on-duty radiologist who can read it; if there are several, the manager chooses.",
+  },
   pool: {
     term: "IMAFRIK network (pool)",
     definition:
@@ -216,6 +221,11 @@ export const glossary: typeof fr = {
     term: "Clinical information",
     definition:
       "The reason for the examination and useful information passed on by the clinic to the radiologist: symptoms, history, the question asked.",
+  },
+  regleAttribution: {
+    term: "Assignment rule",
+    definition:
+      "Instruction set in advance by the clinic’s manager, or the IMAFRIK team: a radiologist for each modality, then the weekly schedule. When an examination arrives, it gives it to the planned radiologist if they can read it. It never takes back an examination already assigned.",
   },
   reseauPrive: {
     term: "Private network",
@@ -246,6 +256,11 @@ export const glossary: typeof fr = {
     term: "Urgent",
     definition:
       "An examination flagged as urgent by the clinic. Its deadline is closer than a routine one, which moves it up the worklist, and its report must be signed within the promised turnaround for urgent examinations.",
+  },
+  urgenceNonPrise: {
+    term: "Unclaimed urgent examination",
+    definition:
+      "An urgent examination that no radiologist has started reading 10 minutes after it was flagged, assigned or not. The clinic’s managers and the IMAFRIK team are emailed, once, and the control tower shows it in red.",
   },
   viewer: {
     term: "Viewer",

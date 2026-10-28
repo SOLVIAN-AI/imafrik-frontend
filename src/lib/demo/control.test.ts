@@ -10,7 +10,9 @@ import {
   demoSystem,
   demoUsers,
   credentialReviewDue,
+  demoAssignmentRules,
 } from "@/lib/demo/control";
+import { overlaps, toAssignmentRules } from "@/lib/assignment-rules";
 import { DEMO_STUDIES } from "@/lib/demo/studies";
 
 /** Instant fixe : les tests ne dépendent pas de l'heure de leur exécution. */
@@ -181,5 +183,26 @@ describe("dossiers à examiner en démonstration", () => {
       demoContactRequests(NOW).filter((request) => request.status === "new")
         .length,
     );
+  });
+
+  it("alerte d'une urgence que personne n'a prise depuis plus de 10 minutes", () => {
+    const codes = demoOverview().alerts.map((alert) => alert.code);
+    expect(codes).toContain("urgent_unclaimed");
+    expect(codes.indexOf("urgent_unclaimed")).toBe(0);
+  });
+
+  it("couvre la semaine de Saint-Joseph sans chevauchement de garde", () => {
+    const clinic = toAssignmentRules(demoAssignmentRules(null, true));
+    expect(overlaps(clinic.slots)).toEqual([]);
+    const known = new Set(clinic.radiologists.map((r) => r.profileId));
+    for (const slot of clinic.slots)
+      expect(known).toContain(slot.radiologistId);
+    // L'équipe IMAFRIK choisit parmi tout le groupe ; le responsable voit
+    // les siens et ceux qu'elle a placés.
+    const team = demoAssignmentRules("org-stj", false);
+    expect(team.radiologists.length).toBeGreaterThan(
+      clinic.radiologists.length,
+    );
+    expect(demoAssignmentRules("org-kara", false).slots).toEqual([]);
   });
 });

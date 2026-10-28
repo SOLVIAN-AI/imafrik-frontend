@@ -73,6 +73,13 @@ export function AssignmentPanel({
                 {text.since} <DateTime date={new Date(state.assignedAt)} />
               </span>
             )}
+            {state.assignedByRule && (
+              <span className="basis-full pl-5 text-tertiary">
+                {messages.rules.assignedBy(
+                  messages.rules.byRule[state.assignedByRule],
+                )}
+              </span>
+            )}
           </p>
         ) : state ? (
           <div className="flex flex-col gap-1">

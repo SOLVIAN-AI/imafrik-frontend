@@ -121,6 +121,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics/{clinic_id}/assignment-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Règles d'attribution d'une clinique
+         * @description Planning et radiologue par modalité d'une clinique, radiologues du réseau compris.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["get_clinic_rules_admin_clinics__clinic_id__assignment_rules_get"];
+        /**
+         * Régler les règles d'attribution d'une clinique
+         * @description Remplace le planning et les radiologues par modalité d'une clinique.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         *         Conflict: Les règles ont changé depuis la lecture.
+         *         Unprocessable: Un radiologue ne lit pas la clinique, ou pas la
+         *             modalité pour laquelle il est désigné.
+         */
+        put: operations["update_clinic_rules_admin_clinics__clinic_id__assignment_rules_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/clinics/{clinic_id}/end-contract": {
         parameters: {
             query?: never;
@@ -2621,6 +2654,35 @@ export interface paths {
         patch: operations["update_organization_organization_patch"];
         trace?: never;
     };
+    "/organization/assignment-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Règles d'attribution de la clinique
+         * @description Planning de la semaine et radiologue par modalité de la clinique active.
+         */
+        get: operations["get_rules_organization_assignment_rules_get"];
+        /**
+         * Régler les règles d'attribution de la clinique
+         * @description Remplace le planning et les radiologues par modalité de la clinique active.
+         *
+         *     Raises:
+         *         Conflict: Les règles ont changé depuis la lecture.
+         *         Unprocessable: Un radiologue n'est pas de la clinique, ou ne lit
+         *             pas la modalité pour laquelle il est désigné.
+         */
+        put: operations["update_rules_organization_assignment_rules_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organization/invitations": {
         parameters: {
             query?: never;
@@ -4374,6 +4436,78 @@ export interface components {
             share_prior_ids?: string[];
         };
         /**
+         * AssignmentRules
+         * @description Les règles d'attribution d'une clinique.
+         *
+         *     Attributes:
+         *         clinic_id: Clinique.
+         *         time_zone: Fuseau dans lequel se lit le planning (IANA).
+         *         version: À rendre au remplacement : il est refusé si les règles
+         *             ont changé entre-temps.
+         *         slots: Planning de la semaine, dans l'ordre de l'écran.
+         *         modalities: Radiologue désigné par groupe de modalités.
+         *         radiologists: Radiologues à choisir, et ceux déjà dans les règles.
+         */
+        AssignmentRules: {
+            /**
+             * Clinic Id
+             * Format: uuid
+             */
+            clinic_id: string;
+            /** Modalities */
+            modalities: components["schemas"]["ModalityAssignee"][];
+            /** Radiologists */
+            radiologists: components["schemas"]["RuleRadiologist"][];
+            /** Slots */
+            slots: components["schemas"]["AssignmentSlot"][];
+            /** Time Zone */
+            time_zone: string;
+            /** Version */
+            version: string;
+        };
+        /**
+         * AssignmentRulesUpdate
+         * @description Les règles d'attribution, en entier.
+         *
+         *     Attributes:
+         *         version: Version lue avant la modification.
+         *         slots: Planning complet ; vide pour aucun.
+         *         modalities: Radiologues par modalité ; une modalité absente n'en a
+         *             plus. Une seule entrée par groupe.
+         */
+        AssignmentRulesUpdate: {
+            /** Modalities */
+            modalities: components["schemas"]["ModalityAssignee"][];
+            /** Slots */
+            slots: components["schemas"]["AssignmentSlot"][];
+            /** Version */
+            version: string;
+        };
+        /**
+         * AssignmentSlot
+         * @description Un créneau du planning.
+         *
+         *     Attributes:
+         *         radiologist_id: Radiologue de garde.
+         *         weekdays: Jours, de 1 (lundi) à 7 (dimanche).
+         *         starts_at: Début, ``HH:MM`` ; absent pour toute la journée.
+         *         ends_at: Fin, ``HH:MM`` ; avant le début pour une garde de nuit,
+         *             qui finit le lendemain.
+         */
+        AssignmentSlot: {
+            /** Ends At */
+            ends_at?: string | null;
+            /**
+             * Radiologist Id
+             * Format: uuid
+             */
+            radiologist_id: string;
+            /** Starts At */
+            starts_at?: string | null;
+            /** Weekdays */
+            weekdays: number[];
+        };
+        /**
          * AssignmentState
          * @description Attribution d'un examen, telle qu'elle est.
          *
@@ -4386,6 +4520,9 @@ export interface components {
          *         assigned_to_name: Son nom.
          *         assigned_at: Instant de l'attribution ; nul quand le radiologue a
          *             pris une urgence lui-même sans attribution préalable.
+         *         assigned_by_rule: Règle d'attribution de la clinique qui l'a confié
+         *             (``modality``, ``schedule``) ; nul pour une attribution faite
+         *             par une personne.
          *         draft_in_progress: Vrai si le titulaire a commencé à rédiger : une
          *             réattribution effacerait son texte.
          *         candidates: Radiologues éligibles, les moins chargés d'abord.
@@ -4396,6 +4533,8 @@ export interface components {
         AssignmentState: {
             /** Assigned At */
             assigned_at: string | null;
+            /** Assigned By Rule */
+            assigned_by_rule?: ("modality" | "schedule") | null;
             /** Assigned To */
             assigned_to: string | null;
             /** Assigned To Name */
@@ -6144,6 +6283,22 @@ export interface components {
             received: number;
         };
         /**
+         * ModalityAssignee
+         * @description Le radiologue désigné pour un groupe de modalités.
+         */
+        ModalityAssignee: {
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other";
+            /**
+             * Radiologist Id
+             * Format: uuid
+             */
+            radiologist_id: string;
+        };
+        /**
          * NetworkCounts
          * @description Le réseau : cliniques et radiologues.
          */
@@ -7053,6 +7208,36 @@ export interface components {
              * @description Exécution relevée, à rappeler avec chaque décision ; None si rien n'a été appelé.
              */
             run_id: string | null;
+        };
+        /**
+         * RuleRadiologist
+         * @description Un radiologue qui peut figurer dans les règles.
+         *
+         *     Attributes:
+         *         profile_id: Profil.
+         *         name: Titre et nom.
+         *         organization_name: Clinique ou groupe par lequel il la lit.
+         *         via_pool: Vrai pour un radiologue du réseau.
+         *         read_modalities: Groupes de modalités lus ; ``None`` pour tous.
+         *         can_receive: Faux s'il ne peut pas recevoir d'examen de la clinique
+         *             aujourd'hui (habilitation, rattachement) : la règle l'ignore.
+         */
+        RuleRadiologist: {
+            /** Can Receive */
+            can_receive: boolean;
+            /** Name */
+            name: string;
+            /** Organization Name */
+            organization_name: string;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /** Read Modalities */
+            read_modalities: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other")[] | null;
+            /** Via Pool */
+            via_pool: boolean;
         };
         /**
          * SectionsPatch
@@ -8245,7 +8430,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.unassigned" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.auto_assigned" | "study.unassigned" | "study.urgent_alerted" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.assignment_rules_changed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 before_id?: number | null;
@@ -8367,6 +8552,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClinicDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_clinic_rules_admin_clinics__clinic_id__assignment_rules_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentRules"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_clinic_rules_admin_clinics__clinic_id__assignment_rules_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignmentRulesUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentRules"];
                 };
             };
             /** @description Validation Error */
@@ -11830,6 +12085,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Organization"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_rules_organization_assignment_rules_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentRules"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_rules_organization_assignment_rules_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignmentRulesUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentRules"];
                 };
             };
             /** @description Validation Error */

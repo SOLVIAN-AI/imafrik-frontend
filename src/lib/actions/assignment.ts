@@ -72,6 +72,8 @@ export interface AssignmentState {
   assignedToName: string | null;
   /** Instant de l'attribution ; `null` sans titulaire. */
   assignedAt: string | null;
+  /** Règle d'attribution qui l'a confié ; `null` pour une personne. */
+  assignedByRule: "modality" | "schedule" | null;
   /** Le titulaire a commencé à rédiger : le réattribuer efface son texte. */
   draftInProgress: boolean;
   candidates: AssignmentCandidate[];
@@ -104,6 +106,7 @@ function toState(row: ApiAssignmentState): AssignmentState {
     assignedTo: row.assigned_to,
     assignedToName: row.assigned_to_name,
     assignedAt: row.assigned_at,
+    assignedByRule: row.assigned_by_rule ?? null,
     draftInProgress: row.draft_in_progress,
     candidates: row.candidates.map((candidate) => ({
       profileId: candidate.profile_id,

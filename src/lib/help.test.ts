@@ -25,7 +25,7 @@ const SUBPAGES: Record<UserRole, string[]> = {
     "/formation/scanner-thorax",
     "/comptes-rendus/r1",
   ],
-  clinic_staff: ["/examens/e1", "/comptes-rendus/r1"],
+  clinic_staff: ["/examens/e1", "/comptes-rendus/r1", "/equipe/regles"],
   platform_admin: [
     "/admin/organisations/org-1",
     "/admin/passerelles/gw-1",

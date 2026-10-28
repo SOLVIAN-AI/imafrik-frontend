@@ -123,7 +123,10 @@ function AuditRow({ entry, t }: { entry: AuditEntry; t: AppMessages }) {
       </p>
       <p className="order-3 col-span-2 min-w-0 truncate text-2xs text-tertiary md:col-span-1 md:text-xs">
         <span className="text-secondary">
-          {entry.actorName ?? t.admin.audit.system}
+          {entry.actorName ??
+            (entry.action === "study.auto_assigned"
+              ? t.admin.audit.rule
+              : t.admin.audit.system)}
         </span>
         {entry.organizationName && ` · ${entry.organizationName}`}
         {entry.resourceType && (

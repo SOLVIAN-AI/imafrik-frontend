@@ -138,6 +138,7 @@ export const assignmentStateSchema = z.object({
   assigned_to: uuid.nullable(),
   assigned_to_name: z.string().nullable(),
   assigned_at: isoDate.nullable(),
+  assigned_by_rule: z.enum(["modality", "schedule"]).nullable().optional(),
   draft_in_progress: z.boolean(),
   candidates: z.array(
     z.object({
@@ -923,6 +924,44 @@ const _urgentReader: Matches<
   Schemas["UrgentReader"]
 > = true;
 
+/** Heure d'un créneau du planning, `HH:MM`. */
+const clockTime = z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/);
+
+export const assignmentSlotSchema = z.object({
+  radiologist_id: uuid,
+  weekdays: z.array(z.number().int().min(1).max(7)),
+  starts_at: clockTime.nullable().optional(),
+  ends_at: clockTime.nullable().optional(),
+});
+const _assignmentSlot: Matches<
+  z.input<typeof assignmentSlotSchema>,
+  Schemas["AssignmentSlot"]
+> = true;
+
+export const assignmentRulesSchema = z.object({
+  clinic_id: uuid,
+  time_zone: z.string(),
+  version: z.string(),
+  slots: z.array(assignmentSlotSchema),
+  modalities: z.array(
+    z.object({ group: modalityGroupSchema, radiologist_id: uuid }),
+  ),
+  radiologists: z.array(
+    z.object({
+      profile_id: uuid,
+      name: z.string(),
+      organization_name: z.string(),
+      via_pool: z.boolean(),
+      read_modalities: z.array(modalityGroupSchema).nullable(),
+      can_receive: z.boolean(),
+    }),
+  ),
+});
+const _assignmentRules: Matches<
+  z.input<typeof assignmentRulesSchema>,
+  Schemas["AssignmentRules"]
+> = true;
+
 export const adminUserSchema = z.object({
   id: uuid,
   full_name: z.string(),
@@ -1504,6 +1543,8 @@ export const CONTRACT_CHECKS = [
   _auditEntry,
   _userMembership,
   _urgentReader,
+  _assignmentSlot,
+  _assignmentRules,
   _adminUser,
   _clinicDetail,
   _clinicLogo,
@@ -1523,6 +1564,7 @@ export type ApiAssignmentState = z.output<typeof assignmentStateSchema>;
 export type ApiPriorCandidate = z.output<typeof priorCandidateSchema>;
 export type ApiPriorShare = z.output<typeof priorShareSchema>;
 export type ApiUrgentReader = z.output<typeof urgentReaderSchema>;
+export type ApiAssignmentRules = z.output<typeof assignmentRulesSchema>;
 export type ApiUserMembership = z.output<typeof userMembershipSchema>;
 export type ModalityGroup = z.output<typeof modalityGroupSchema>;
 export type ApiReport = z.output<typeof reportSchema>;

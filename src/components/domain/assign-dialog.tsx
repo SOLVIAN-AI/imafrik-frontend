@@ -254,6 +254,13 @@ export function AssignDialog({
                             <DateTime date={new Date(state.assignedAt)} />
                           </span>
                         )}
+                        {state.assignedByRule && (
+                          <span className="block text-xs text-tertiary">
+                            {t.assignment.rules.assignedBy(
+                              t.assignment.rules.byRule[state.assignedByRule],
+                            )}
+                          </span>
+                        )}
                       </>
                     ) : (
                       <span className="text-secondary">{text.nobody}</span>

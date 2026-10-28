@@ -94,6 +94,7 @@ const SCREENS: Record<
     ["/examens", "studies"],
     ["/comptes-rendus/*", "report"],
     ["/comptes-rendus", "reports"],
+    ["/equipe/regles", "teamRules"],
     ["/equipe", "team"],
     ["/parametres", "settings"],
   ],

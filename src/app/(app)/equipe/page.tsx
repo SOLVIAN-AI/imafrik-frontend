@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Siren } from "lucide-react";
+import Link from "next/link";
+import { CalendarClock, Siren } from "lucide-react";
 
 import { ReadingDialog } from "@/components/domain/reading-dialog";
 import {
@@ -7,6 +8,7 @@ import {
   MemberActions,
 } from "@/components/domain/team-actions";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import { Button } from "@/components/ui/button";
 import { listMembers } from "@/lib/data/organization";
 import { describeModalities } from "@/lib/modalities";
 import { formatDate, formatPersonName } from "@/lib/format";
@@ -46,7 +48,9 @@ function initials(name: string): string {
  * Pour chaque radiologue de la clinique, le responsable règle les
  * modalités qu'il lit (elles bornent ce qu'on peut lui attribuer) et sa
  * place sur la liste d'urgence (il peut alors prendre une urgence sans
- * attribution).
+ * attribution). Les règles d'attribution (radiologue par modalité,
+ * planning de la semaine) ont leur écran, « Équipe › Règles
+ * d'attribution ».
  */
 export default async function TeamPage() {
   const session = await requireSession(["clinic_staff"]);
@@ -64,9 +68,17 @@ export default async function TeamPage() {
         title={messages.title}
         description={`${messages.count(members.length)} · ${session.active.organizationName}`}
         actions={
-          <InviteMemberButton
-            organizationName={session.active.organizationName}
-          />
+          <>
+            <Button asChild variant="secondary" size="sm">
+              <Link href="/equipe/regles">
+                <CalendarClock aria-hidden />
+                {t.assignment.rules.trigger}
+              </Link>
+            </Button>
+            <InviteMemberButton
+              organizationName={session.active.organizationName}
+            />
+          </>
         }
       />
 

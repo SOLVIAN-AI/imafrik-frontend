@@ -812,6 +812,8 @@ export const admin = {
     emptyDetail:
       "Le journal se remplit à mesure que la plateforme est utilisée.",
     system: "Système",
+    /** Auteur d'un examen confié par une règle d'attribution. */
+    rule: "Règle d’attribution",
     /**
      * Actions du journal, par code. La liste reprend les actions écrites
      * par le service et par les fonctions de la base ; une action
@@ -823,7 +825,9 @@ export const admin = {
       "study.urgent_claimed": "Urgence prise sur la liste d’urgence",
       "study.released": "Examen rendu par le radiologue",
       "study.assigned": "Examen attribué à un radiologue",
+      "study.auto_assigned": "Examen attribué par une règle",
       "study.unassigned": "Attribution retirée",
+      "study.urgent_alerted": "Alerte : urgence non prise en 10 min",
       "prior.shared": "Antériorité partagée",
       "prior.unshared": "Antériorité retirée",
       "study.updated": "Urgence ou renseignement clinique modifié",
@@ -841,6 +845,7 @@ export const admin = {
       "organization.state_changed": "Organisation activée ou suspendue",
       "organization.pool_changed": "Ouverture au pool modifiée",
       "organization.urgent_readers_changed": "Liste d’urgence modifiée",
+      "organization.assignment_rules_changed": "Règles d’attribution modifiées",
       "organization.retention_changed": "Durée de conservation modifiée",
       "organization.report_language_changed":
         "Langue des comptes-rendus modifiée",
@@ -982,6 +987,10 @@ export const admin = {
    */
   demo: {
     alerts: {
+      urgentUnclaimed: (count: number, minutes: number) =>
+        count > 1
+          ? `${count} urgences ne sont prises par aucun radiologue depuis plus de ${minutes} min`
+          : `${count} urgence n’est prise par aucun radiologue depuis plus de ${minutes} min`,
       urgentOverdue: (count: number, minutes: number) =>
         `${count} urgence${count > 1 ? "s attendent" : " attend"} depuis plus de ${minutes} min`,
       routineOverdue: (count: number, hours: number) =>
