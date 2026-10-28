@@ -285,3 +285,32 @@ export function formatDayShort(date: Date, locale: Locale = "fr"): string {
     locale,
   );
 }
+
+/**
+ * Mois en toutes lettres : « octobre 2026 », « October 2026 ».
+ *
+ * @param month  Mois `AAAA-MM`.
+ * @param locale Langue, français par défaut.
+ */
+export function formatMonth(month: string, locale: Locale = "fr"): string {
+  const [year, number] = month.split("-").map(Number);
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, number - 1, 1)));
+}
+
+/**
+ * Montant en francs CFA, avec séparateur de milliers.
+ *
+ * Le franc CFA n'a pas de subdivision : un montant est un entier.
+ *
+ * @param amount Montant, FCFA.
+ * @returns Par exemple « 12 500 FCFA », ou « 12,500 FCFA ».
+ */
+export function formatFcfa(amount: number, locale: Locale = "fr"): string {
+  return messagesFor(locale).clinic.activity.billing.amount(
+    formatCount(amount, locale),
+  );
+}

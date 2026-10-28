@@ -17,13 +17,17 @@ import {
   RankedBars,
   StackedBars,
 } from "@/components/charts/charts";
+import { MonthNav } from "@/components/domain/month-nav";
+import { PerformanceTable } from "@/components/domain/performance-table";
 import { PageHeader } from "@/components/layout/app-shell";
 import {
   ANALYTICS_PERIODS,
   parseClinic,
+  parseMonth,
   parsePeriod,
 } from "@/lib/admin-params";
 import { chunk, weightedMean } from "@/lib/charts";
+import { getNetworkPerformance } from "@/lib/data/activity";
 import { listOrganizations } from "@/lib/data/admin";
 import {
   type ControlAnalytics,
@@ -37,8 +41,8 @@ import {
   formatDayShort,
   formatDuration,
   formatMinutes,
+  formatMonth,
   formatPercent,
-  formatPersonName,
   formatRate,
 } from "@/lib/format";
 import type { Locale } from "@/lib/i18n/locale";
@@ -84,14 +88,23 @@ export default async function ActivityPage({
     params.clinique,
     clinics.map((clinic) => clinic.id),
   );
-  const data = await getAnalytics(days, clinicId);
+  const month = parseMonth(params.mois);
+  const current = parseMonth(undefined);
+  const [data, performance] = await Promise.all([
+    getAnalytics(days, clinicId),
+    getNetworkPerformance(month, clinicId),
+  ]);
   const clinicName = clinics.find((clinic) => clinic.id === clinicId)?.name;
 
   const periodHref = (period: number) => {
     const query = new URLSearchParams({ jours: String(period) });
     if (clinicId) query.set("clinique", clinicId);
+    if (month !== current) query.set("mois", month);
     return `/admin/activite?${query}`;
   };
+  // Le mois des performances garde la période et la clinique de l'écran.
+  const monthQuery: Record<string, string> = { jours: String(days) };
+  if (clinicId) monthQuery.clinique = clinicId;
 
   return (
     <>
@@ -158,7 +171,25 @@ export default async function ActivityPage({
 
         {!clinicId && <Clinics data={data} days={days} {...lang} />}
 
-        <Radiologists data={data} {...lang} />
+        <Section
+          title={t.clinic.activity.performance.title}
+          description={`${formatMonth(month, locale)} · ${
+            clinicName ?? t.admin.shared.wholeNetwork
+          }`}
+          aside={
+            <MonthNav
+              month={month}
+              current={current}
+              path="/admin/activite"
+              query={monthQuery}
+              locale={locale}
+              labels={t.clinic.activity}
+            />
+          }
+          flush
+        >
+          <PerformanceTable performance={performance} />
+        </Section>
       </ControlBody>
     </>
   );
@@ -355,7 +386,14 @@ function Stages({ stages, t, locale }: { stages: StageMedians } & Lang) {
                   : "border-border-subtle bg-surface-sunken/50",
               )}
             >
-              <p className="flex items-center gap-1 text-2xs text-tertiary">
+              {/* Sur le fond de l'étape la plus longue, le gris tertiaire
+                  manque de contraste en thème sombre : texte secondaire. */}
+              <p
+                className={cn(
+                  "flex items-center gap-1 text-2xs",
+                  isSlowest ? "text-secondary" : "text-tertiary",
+                )}
+              >
                 <span className="tabular-nums">{index + 1}.</span>
                 <span className="truncate">{labels.labels[key]}</span>
               </p>
@@ -368,7 +406,10 @@ function Stages({ stages, t, locale }: { stages: StageMedians } & Lang) {
                 {formatMinutes(value, locale)}
               </p>
               <p
-                className="truncate text-2xs text-tertiary"
+                className={cn(
+                  "truncate text-2xs",
+                  isSlowest ? "text-secondary" : "text-tertiary",
+                )}
                 title={labels.details[key]}
               >
                 {labels.details[key]}
@@ -555,60 +596,5 @@ function Cell({
         {value}
       </dd>
     </div>
-  );
-}
-
-/** Production des radiologues. */
-function Radiologists({ data, t, locale }: { data: ControlAnalytics } & Lang) {
-  const text = t.admin.activity;
-  return (
-    <Section
-      title={text.byRadiologist}
-      description={text.byRadiologistDescription}
-      flush
-    >
-      {data.byRadiologist.length === 0 ? (
-        <p className="px-4 py-6 text-center text-xs text-tertiary">
-          {text.noReport}
-        </p>
-      ) : (
-        <ul className="divide-y divide-border-subtle">
-          {data.byRadiologist.map((reader) => {
-            const max = Math.max(
-              1,
-              ...data.byRadiologist.map((row) => row.signed),
-            );
-            return (
-              <li
-                key={reader.id}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 px-4 py-3 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)_auto_auto]"
-              >
-                <span className="truncate text-sm font-medium">
-                  {formatPersonName(reader.title, reader.fullName)}
-                </span>
-                <span className="order-last col-span-2 h-1.5 overflow-hidden rounded-full bg-surface-active sm:order-none sm:col-span-1">
-                  <span
-                    className="block h-full rounded-full bg-accent"
-                    style={{ width: `${(reader.signed / max) * 100}%` }}
-                  />
-                </span>
-                <span className="text-right text-sm font-semibold tabular-nums">
-                  {formatCount(reader.signed, locale)}
-                  <span className="ml-1 text-2xs font-normal text-tertiary">
-                    {text.signed}
-                  </span>
-                </span>
-                <span className="col-span-2 text-2xs text-tertiary tabular-nums sm:col-span-1 sm:w-44 sm:text-right">
-                  {text.radiologistTimes(
-                    formatMinutes(reader.medianMinutes, locale),
-                    formatMinutes(reader.medianReadingMinutes, locale),
-                  )}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </Section>
   );
 }

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   demoAnalytics,
-  demoBilling,
   demoClinic,
   demoContactRequests,
   demoOverview,
@@ -122,18 +121,6 @@ describe("réseau de démonstration", () => {
       open.filter((s) => !s.urgent && s.dueAt.getTime() < now).length,
     );
     expect(live.routine_overdue).toBeGreaterThan(0);
-  });
-
-  it("facture le mois en cours jusqu'à maintenant, et pas au-delà", () => {
-    const lines = demoBilling("2026-10", NOW);
-    const month = demoAnalytics(7, null, NOW);
-    expect(sum(lines.map((l) => l.urgent + l.routine))).toBeGreaterThanOrEqual(
-      sum(month.daily.map((d) => d.urgent + d.routine)),
-    );
-    expect(demoBilling("2026-11", NOW)).toEqual([]);
-    for (const line of lines) {
-      expect(line.reported).toBeLessThanOrEqual(line.urgent + line.routine);
-    }
   });
 
   it("rédige ses textes dans la langue demandée, sans toucher aux données", () => {

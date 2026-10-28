@@ -79,17 +79,31 @@ export function Section({
   );
 }
 
-/** Corps des écrans : défilement, marges, pile de panneaux. */
+/**
+ * Corps des écrans : défilement, marges, pile de panneaux.
+ *
+ * @param label Nom de la zone, pour un écran sans lien ni bouton dans son
+ *              corps : la zone défilante devient alors atteignable au
+ *              clavier, sinon on ne pourrait pas la faire défiler sans
+ *              souris.
+ */
 export function ControlBody({
   className,
+  label,
   children,
 }: {
   className?: string;
+  label?: string;
   children: React.ReactNode;
 }) {
   return (
     <div
+      {...(label
+        ? { role: "region", "aria-label": label, tabIndex: 0 }
+        : undefined)}
       className={cn(
+        label &&
+          "outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset",
         "flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-4 pb-8 sm:px-6",
         // Les panneaux gardent leur hauteur : c'est le corps qui défile.
         // Sans cela, un panneau à `overflow-hidden` se laisse écraser

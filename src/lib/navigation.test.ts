@@ -62,6 +62,12 @@ describe("isRouteAllowed", () => {
     expect(isRouteAllowed("clinic_staff", "/admin/organisations")).toBe(false);
   });
 
+  it("réserve l'activité et la facturation de la clinique à ses responsables", () => {
+    expect(isRouteAllowed("clinic_staff", "/activite")).toBe(true);
+    expect(isRouteAllowed("radiologist", "/activite")).toBe(false);
+    expect(isRouteAllowed("platform_admin", "/activite")).toBe(false);
+  });
+
   it("ouvre la consultation des images à l'administration", () => {
     expect(isRouteAllowed("platform_admin", "/lecture/1")).toBe(true);
   });

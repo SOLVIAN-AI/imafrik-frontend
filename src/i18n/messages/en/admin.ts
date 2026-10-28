@@ -196,13 +196,6 @@ export const admin: AppMessages["admin"] = {
       volume: "Volume",
       lastSent: "Last sent",
     },
-    byRadiologist: "By radiologist",
-    byRadiologistDescription:
-      "Total turnaround (receipt → signature) and reading time (claim → signature)",
-    noReport: "No reports signed in this period.",
-    signed: "signed",
-    radiologistTimes: (total: string, reading: string) =>
-      `turnaround ${total} · reading ${reading}`,
   },
 
   flow: {
@@ -366,6 +359,19 @@ export const admin: AppMessages["admin"] = {
     badType: "Upload a PNG, JPEG or WebP file.",
     unreadable: "This file could not be read.",
   },
+  plan: {
+    title: "Subscription",
+    none: "Plan not set",
+    explanation:
+      "The plan the clinic signed up for, per its agreement. It applies to months still open; a closed month keeps the plan in its statement.",
+    label: "Plan",
+    monthlyFee: "Monthly price (FCFA excl. tax)",
+    monthlyFeeHint: "On quotation, at least 100,000 FCFA excl. tax.",
+    perMonth: (amount: string) => `${amount} FCFA excl. tax per month`,
+    since: "Set on",
+    saved: "Subscription plan saved.",
+  },
+
   reportLanguage: {
     title: "Report language",
     explanation:
@@ -698,39 +704,50 @@ export const admin: AppMessages["admin"] = {
 
   billing: {
     description: (month: string) =>
-      `${month}: procedures received, by clinic and modality`,
+      `${month}: each clinic’s statement, as its manager sees it`,
     month: "Month",
     previousMonth: "Previous month",
     nextMonth: "Next month",
-    csvFilename: (month: string) => `imafrik-procedures-${month}.csv`,
+    csvFilename: (month: string) => `imafrik-billing-${month}.csv`,
     csvHeaders: [
       "Month",
       "Clinic",
-      "Modality",
-      "Routine",
-      "Urgent",
-      "Total",
-      "Reports signed",
+      "Item",
+      "Detail",
+      "Procedures",
+      "Of which urgent",
+      "Normal rate (FCFA excl. tax)",
+      "Urgent rate (FCFA excl. tax)",
+      "Amount (FCFA excl. tax)",
     ],
     totals: "Monthly totals",
-    received: "Procedures received",
-    urgentRate: "billed at the urgent rate",
+    invoiced: "Total excl. tax",
+    invoicedHint: (missing: number) =>
+      missing === 0
+        ? "subscriptions and technical fees"
+        : missing === 1
+          ? "excluding 1 clinic without a plan"
+          : `excluding ${missing} clinics without a plan`,
+    acts: "Procedures billed",
+    actsHint: "signed report",
     unreported: "Without a signed report",
-    monthInProgress: "the month is still in progress",
-    checkBeforeInvoice: "to check before invoicing",
-    procedures: "Procedures",
-    emptyTitle: "No procedures this month",
-    emptyDetail: "Examinations received appear here, grouped by clinic.",
-    clinicSummary: (received: string, urgent: string, reported: string) =>
-      `${received} procedures · ${urgent} urgent · ${reported} reports signed`,
-    columns: {
-      modality: "Modality",
-      routine: "Routine",
-      urgent: "Urgent",
-      total: "Total",
-      signed: "Signed",
-    },
-    total: "Total",
+    unreportedHint: "not billed",
+    missingPlans: "Without a plan",
+    missingPlansHint: "to set on the clinic’s page",
+    current: "Current month: statements are provisional.",
+    toClose:
+      "Month over, not yet closed: check the statements, then close it to freeze them.",
+    closedBefore: "Month closed on ",
+    closedAfter: ": the statements no longer change.",
+    close: "Close the month",
+    closeTitle: (month: string) => `Close ${month}?`,
+    closeDetail:
+      "Each clinic’s statement is frozen as displayed. It will no longer change, even if a priority changes, a report is voided or a plan is modified. This cannot be undone.",
+    closeConfirm: "Close for good",
+    closed: (month: string) => `${month} is closed.`,
+    clinicSheet: "Clinic page",
+    emptyTitle: "No clinic this month",
+    emptyDetail: "Each clinic’s statement appears here, month by month.",
   },
 
   system: {
@@ -794,6 +811,7 @@ export const admin: AppMessages["admin"] = {
       "organization.pool_changed": "Pool access changed",
       "organization.urgent_readers_changed": "Urgent list changed",
       "organization.assignment_rules_changed": "Assignment rules changed",
+      "organization.plan_changed": "Subscription plan changed",
       "organization.retention_changed": "Retention period changed",
       "organization.report_language_changed": "Report language changed",
       "organization.logo_changed": "Report logo changed",
@@ -812,6 +830,7 @@ export const admin: AppMessages["admin"] = {
       "user.anonymization_requested": "Account anonymisation requested",
       "user.anonymized": "Account anonymised",
       "platform.settings_changed": "Settings changed",
+      "billing.month_closed": "Billing month closed",
       "contact_request.tracked": "Contact request followed up",
       "agreement.accepted": "Agreement accepted",
       "signing.asset_changed": "Signature or stamp uploaded",
@@ -909,6 +928,8 @@ export const admin: AppMessages["admin"] = {
     confirmAccountNameRequired: "Type the account name to confirm",
   },
   demoActions: {
+    plan: "Setting the subscription plan",
+    closeMonth: "Closing the month",
     assignment: "Assigning examinations",
     clinicLogo: "The report logo",
     settings: "Changing the settings",

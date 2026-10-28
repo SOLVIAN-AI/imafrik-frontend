@@ -13,6 +13,7 @@ export const nav: AppMessages["nav"] = {
     send: "Send an examination",
     studies: "Examinations",
     team: "Team",
+    activity: "Activity and billing",
     cockpit: "Cockpit",
     analytics: "Activity",
     flow: "Image flow",

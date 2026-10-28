@@ -261,6 +261,25 @@ export const pages = {
         "listeUrgence",
       ],
     },
+    activity: {
+      title: "Activité et facturation",
+      purpose:
+        "Le bilan de chaque mois : les examens reçus, combien sont rendus et dans quels délais, les performances de chaque radiologue, puis le relevé de facturation, le même que celui de l’équipe IMAFRIK. Réservé aux responsables de la clinique.",
+      steps: [
+        "Changez de mois avec les flèches placées de part et d’autre du mois affiché.",
+        "Lisez l’activité, puis « Performances par radiologue » : délais médian, moyen et 90e centile, délais tenus et tendance ; cliquez sur un intitulé pour trier.",
+        "Dans « Facturation », lisez l’abonnement, les forfaits techniques par type d’examen, au tarif normal ou urgent, et le total HT.",
+        "« Relevé provisoire » : le mois peut encore changer. « Mois clos » : l’équipe IMAFRIK l’a figé, il ne change plus.",
+        "Cliquez sur « Exporter en CSV » pour télécharger le relevé du mois.",
+      ],
+      terms: [
+        "delaiMedian",
+        "centile90",
+        "acte",
+        "forfaitTechnique",
+        "moisClos",
+      ],
+    },
     settings: {
       title: "Paramètres",
       purpose:
@@ -298,15 +317,21 @@ export const pages = {
     analytics: {
       title: "Activité",
       purpose:
-        "Analyse l’activité sur une période : volumes reçus, délais de lecture, durée de chaque étape du parcours d’un examen, heures d’arrivée et modalités, puis les mêmes chiffres par clinique et par radiologue.",
+        "Analyse l’activité sur une période : volumes reçus, délais de lecture, durée de chaque étape du parcours d’un examen, heures d’arrivée et modalités, puis les mêmes chiffres par clinique, et les performances de chaque radiologue sur un mois.",
       steps: [
         "Choisissez la période en haut de page : 7 j, 30 j, 90 j ou 1 an.",
         "Gardez « Tout le réseau » ou choisissez une clinique dans la liste pour ne voir que son activité.",
         "Lisez les totaux de la période, puis comparez le « Délai de lecture » à la ligne du délai promis en routine.",
         "Dans « Parcours d’un examen », repérez l’étape mise en évidence : c’est la plus longue.",
-        "Dans « Par clinique », cliquez sur un nom pour n’afficher que cette clinique, et repérez les débits signalés en couleur.",
+        "Dans « Performances par radiologue », choisissez le mois et triez les colonnes : délais médian, moyen et 90e centile, délais tenus, examens rendus et en cours.",
       ],
-      terms: ["delaiPromis", "urgence", "priseEnCharge", "passerelle", "pacs"],
+      terms: [
+        "delaiPromis",
+        "delaiMedian",
+        "centile90",
+        "priseEnCharge",
+        "urgence",
+      ],
     },
     flow: {
       title: "Flux d’images",
@@ -338,13 +363,13 @@ export const pages = {
     organisation: {
       title: "Fiche de la clinique",
       purpose:
-        "Suit la mise en service d’une clinique et son activité sur trente jours. Vous y raccordez ses passerelles par un code, réglez la conservation des images, la langue et le logo des comptes-rendus, et pouvez mettre fin au contrat.",
+        "Suit la mise en service d’une clinique et son activité sur trente jours. Vous y raccordez ses passerelles par un code, renseignez sa formule d’abonnement, réglez la conservation des images, la langue et le logo des comptes-rendus, et pouvez mettre fin au contrat.",
       steps: [
         "Suivez la « Mise en service » : la première étape non franchie est celle qui appelle une action.",
         "Dans « Raccorder une passerelle », cliquez sur « Émettre un code » (15 minutes, une seule fois) et dictez-le à l’installateur, qui le saisit dans le kit.",
         "Quand le poste apparaît « En attente d’approbation » dans « Passerelles », vérifiez-le avec la clinique, puis cliquez sur « Approuver ».",
         "Dans « Liste d’urgence » et « Règles d’attribution », choisissez les radiologues, de la clinique ou du réseau, qui prennent ses urgences ou reçoivent d’office ses examens.",
-        "Réglez au besoin la conservation des images, la langue des comptes-rendus et le logo en filigrane.",
+        "Renseignez son « Abonnement », puis au besoin la conservation des images, la langue des comptes-rendus et le logo en filigrane.",
       ],
       terms: [
         "passerelle",
@@ -442,15 +467,21 @@ export const pages = {
     billing: {
       title: "Facturation",
       purpose:
-        "Les actes d’un mois, par clinique et par modalité : examens reçus en routine et en urgence, et comptes-rendus signés. C’est la base de la facture de chaque clinique ; un examen sans compte-rendu signé s’y repère avant d’être facturé à tort.",
+        "Le relevé de chaque clinique pour un mois, celui que voit son responsable : abonnement, forfaits techniques des actes et actes par radiologue. Un mois fini se vérifie, puis se clôt : ses relevés ne changent plus.",
       steps: [
         "Changez de mois avec les flèches placées de part et d’autre du mois affiché.",
-        "Lisez les totaux du mois : « Actes reçus », « Dont urgences » et « Comptes-rendus signés ».",
-        "Contrôlez le chiffre « Sans compte-rendu signé » : une fois le mois clos, il est « à vérifier avant facture ».",
-        "Parcourez le tableau de chaque clinique : par modalité, « Routine », « Urgence », « Total » et « Signés ».",
-        "Cliquez sur « Exporter en CSV » pour télécharger les lignes du mois.",
+        "Lisez les totaux : « Total HT », « Actes facturés », « Sans compte-rendu signé » et « Sans formule ».",
+        "Une clinique « Sans formule » n’a ni abonnement ni total : ouvrez sa fiche et renseignez son « Abonnement ».",
+        "Le mois fini, vérifiez les relevés puis cliquez sur « Clore le mois » : ce geste est définitif.",
+        "Cliquez sur « Exporter en CSV » pour télécharger les relevés du mois.",
       ],
-      terms: ["acte", "urgence", "compteRendu", "signature"],
+      terms: [
+        "acte",
+        "forfaitTechnique",
+        "formuleAbonnement",
+        "moisClos",
+        "horsGrille",
+      ],
     },
     system: {
       title: "Système",

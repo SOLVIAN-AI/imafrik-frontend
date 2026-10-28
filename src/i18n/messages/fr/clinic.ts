@@ -245,4 +245,169 @@ export const clinic = {
     publicVerification: "Vérification publique",
     downloadPdf: "Télécharger le PDF",
   },
+  /** Activité et facturation de la clinique, pour son responsable (`/activite`). */
+  activity: {
+    title: "Activité et facturation",
+    month: "Mois",
+    previousMonth: "Mois précédent",
+    nextMonth: "Mois suivant",
+    activity: {
+      title: "Activité",
+      description:
+        "Les examens reçus dans le mois, et ce qu’ils sont devenus, même signés après la fin du mois",
+      received: "Examens reçus",
+      ofWhichUrgent: (count: number) =>
+        count > 1 ? `dont ${count} urgences` : `dont ${count} urgence`,
+      signed: "Rendus",
+      pending: (count: number) =>
+        count > 1
+          ? `${count} attendent leur compte-rendu`
+          : `${count} attend son compte-rendu`,
+      median: "Délai médian",
+      medianHint: "de la réception au compte-rendu signé",
+      withinSla: "Dans les délais promis",
+      slaHint: (routine: string, urgent: string) =>
+        `${routine} en routine, ${urgent} en urgence`,
+      byModality: "Par modalité",
+      columns: {
+        modality: "Modalité",
+        routine: "Routine",
+        urgent: "Urgence",
+        signed: "Rendus",
+        median: "Délai médian",
+        withinSla: "Dans les délais",
+      },
+      emptyTitle: "Aucun examen reçu ce mois-ci",
+      emptyDetail:
+        "Les examens que la clinique envoie apparaissent ici, mois par mois.",
+    },
+    performance: {
+      title: "Performances par radiologue",
+      description:
+        "Examens reçus dans le mois : délais, délais promis tenus, tendance par rapport au mois précédent. Cliquez sur un intitulé pour trier.",
+      note: "Délai médian : la moitié des examens est rendue plus vite ; contrairement à la moyenne, un examen exceptionnellement long ne le déforme pas. 90e centile : neuf examens sur dix sont rendus plus vite.",
+      empty: "Aucun radiologue n’a d’activité ce mois-ci.",
+      groups: {
+        overall: "Toutes priorités",
+        routine: "Routine",
+        urgent: "Urgence",
+        workflow: "Médianes",
+        month: "Dans le mois",
+      },
+      columns: {
+        name: "Radiologue",
+        signed: "Actes signés",
+        median: "Délai médian",
+        withinSla: "Dans les délais",
+        routineMedian: "Médian",
+        routineMean: "Moyen",
+        routineP90: "90e centile",
+        routineWithinSla: "Dans les délais",
+        urgentMedian: "Médian",
+        urgentMean: "Moyen",
+        urgentP90: "90e centile",
+        urgentWithinSla: "Dans les délais",
+        pickup: "Prise en charge",
+        reading: "Lecture",
+        released: "Rendus sans signature",
+        urgentClaimed: "Urgences prises",
+        open: "En cours",
+      },
+      hints: {
+        pickup: "de l’attribution au début de la lecture",
+        reading: "du début de la lecture à la signature",
+        released: "« Rendre l’examen », avant signature",
+        urgentClaimed: "sur la liste d’urgence",
+        open: "à l’instant : attribués non commencés, en lecture",
+      },
+      sortBy: (column: string) => `Trier par ${column}`,
+      urgentShare: (count: number) =>
+        count > 1 ? `dont ${count} urgences` : `dont ${count} urgence`,
+      open: (waiting: number, reading: number) =>
+        `${waiting} attribué${waiting > 1 ? "s" : ""} non commencé${waiting > 1 ? "s" : ""}, ${reading} en lecture`,
+      points: (value: string) => `${value} pt`,
+      trend: {
+        better: (value: string) =>
+          `en amélioration de ${value} sur le mois précédent`,
+        worse: (value: string) => `en recul de ${value} sur le mois précédent`,
+        same: "stable sur le mois précédent",
+      },
+    },
+    billing: {
+      title: "Facturation",
+      provisional:
+        "Relevé provisoire : il suit l’activité du mois jusqu’à sa clôture par l’équipe IMAFRIK.",
+      closedBefore: "Mois clos le ",
+      closedAfter: " : ce relevé ne change plus.",
+      none: "Aucun relevé pour ce mois : la clinique n’était pas encore en service.",
+      noPlan: "Formule non renseignée",
+      noPlanDetail:
+        "L’équipe IMAFRIK renseigne votre formule d’abonnement. En attendant, ni l’abonnement ni le total ne sont chiffrés.",
+      plans: {
+        essential: "Formule Essentiel",
+        pro: "Formule Pro",
+        facility: "Formule Établissement",
+      },
+      subscription: "Abonnement",
+      perMonth: "par mois",
+      technicalFees: "Forfaits techniques",
+      technicalFeesDetail:
+        "Un forfait par examen reçu dans le mois dont le compte-rendu est signé, au tarif normal ou urgent.",
+      baseTariff:
+        "Chaque acte est compté au tarif de base de sa modalité (radiographie, scanner, IRM) : le classement des examens complexes reste à définir.",
+      feeClasses: {
+        radiography: "Radiographie",
+        complex_radiography: "Radiographie complexe",
+        hysterosalpingography: "Hystérosalpingographie",
+        ct: "Scanner",
+        complex_ct: "Scanner complexe",
+        mri: "IRM",
+      },
+      columns: {
+        type: "Type d’examen",
+        routine: "Normal",
+        urgent: "Urgent",
+        amount: "Montant",
+      },
+      acts: (count: number) => (count > 1 ? `${count} actes` : `${count} acte`),
+      unitPrice: (amount: string) => `à ${amount}`,
+      urgentActs: (count: number) => `dont ${count} en urgence`,
+      noActs: "Aucun acte facturé ce mois-ci.",
+      outOfGrid: (list: string) => `Hors grille : ${list}`,
+      outOfGridDetail:
+        "Modalités absentes de la grille des forfaits : aucun forfait facturé.",
+      unreported: (count: number) =>
+        count > 1
+          ? `${count} examens reçus sans compte-rendu signé : non facturés`
+          : `${count} examen reçu sans compte-rendu signé : non facturé`,
+      fees: "Honoraires des radiologues",
+      feesDetail:
+        "Actes signés par chaque radiologue. Le montant de l’honoraire se fixe entre la clinique et le radiologue et lui revient à 100 % : IMAFRIK ne l’encaisse pas.",
+      noFees: "Aucun acte signé ce mois-ci.",
+      total: "Total HT",
+      totalHint: "abonnement et forfaits techniques",
+      totalMissing: "non chiffré sans formule",
+      amount: (amount: string) => `${amount} FCFA`,
+      csvFilename: (month: string) => `imafrik-releve-${month}.csv`,
+      csvHeaders: [
+        "Mois",
+        "Poste",
+        "Détail",
+        "Actes",
+        "Dont urgences",
+        "Tarif normal (FCFA HT)",
+        "Tarif urgent (FCFA HT)",
+        "Montant (FCFA HT)",
+      ],
+      csv: {
+        subscription: "Abonnement",
+        technicalFee: "Forfait technique",
+        outOfGrid: "Hors grille",
+        unreported: "Non facturé",
+        unreportedDetail: "Sans compte-rendu signé",
+        fees: "Honoraires",
+        total: "Total",
+      },
+    },
+  },
 };
