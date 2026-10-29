@@ -44,8 +44,12 @@ import { cn } from "@/lib/utils";
  * exécuter ses scripts, appeler son propre serveur, passer en plein
  * écran, copier dans le presse-papiers (le détail d'une erreur, à
  * transmettre au support : sans cette permission, le bouton « Copier »
- * du viewer échouait à son tour). Il ne peut ni naviguer la page parente
- * ni ouvrir de fenêtres.
+ * du viewer échouait à son tour). Il ne peut ni naviguer la page parente,
+ * ni ouvrir de fenêtres, ni **télécharger un fichier** : aucune image
+ * d'un examen ne sort d'IMAFRIK (demandé le 29 octobre 2026). Sans
+ * `allow-downloads`, le navigateur refuse lui-même tout téléchargement
+ * lancé depuis le viewer. Le presse-papiers reste ouvert au texte ; une
+ * image y est refusée par la configuration d'OHIF, côté backend.
  *
  * @param study     Examen affiché, pour la légende sous l'image.
  * @param viewerUrl URL signée du viewer, ou `null` s'il n'est pas encore
@@ -94,7 +98,7 @@ export function ViewerPane({
             title={labels.frameTitle(study.studyInstanceUid)}
             className="size-full border-0"
             allow="fullscreen; clipboard-write"
-            sandbox="allow-scripts allow-same-origin allow-downloads"
+            sandbox="allow-scripts allow-same-origin"
             referrerPolicy="no-referrer"
           />
         ) : demo ? (
