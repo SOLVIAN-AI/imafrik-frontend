@@ -249,7 +249,12 @@ export const admin = {
       `${count} urgence${count > 1 ? "s" : ""} pas encore rendue${count > 1 ? "s" : ""}`,
     allDescription: (count: number) =>
       `${count} examen${count > 1 ? "s" : ""}, toutes organisations confondues`,
+    clinicDescription: (count: number) =>
+      `${count} examen${count > 1 ? "s" : ""}`,
     openUrgent: "Urgences en cours",
+    /** Choix de la clinique, en tête de la liste. */
+    clinicFilter: "Cliniques",
+    allClinics: "Toutes les cliniques",
     openImages: (patient: string) => `Ouvrir les images de ${patient}`,
     stuck: (count: number) =>
       `${count} examen${count > 1 ? "s" : ""} urgent${count > 1 ? "s" : ""} en attente de prise en charge.`,
@@ -309,6 +314,7 @@ export const admin = {
     backToOrganisations: "Organisations",
     detailedActivity: "Activité détaillée",
     radiologistPerformance: "Performances des radiologues",
+    clinicStudies: "Examens de la clinique",
     onboarding: "Mise en service",
     stepsDone: (done: number, total: number) =>
       `${done} étape${done > 1 ? "s" : ""} sur ${total}`,

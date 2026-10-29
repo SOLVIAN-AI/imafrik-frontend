@@ -10,10 +10,24 @@ export const worklist: AppMessages["worklist"] = {
   },
   supervision: {
     scope: {
-      empty: "The whole platform, read-only",
-      clinics: (list: string) => `The whole platform, read-only: ${list}`,
+      empty: "The whole platform, to dispatch",
+      clinics: (list: string) => `The whole platform, to dispatch: ${list}`,
       count: (count: number) =>
-        `The whole platform, read-only: ${count} ${count === 1 ? "facility" : "facilities"}`,
+        `The whole platform, to dispatch: ${count} ${count === 1 ? "facility" : "facilities"}`,
+    },
+    assign: {
+      column: "Assignment",
+      noCandidate: "No radiologist",
+      reasons: {
+        clinic_inactive:
+          "The clinic is suspended: its examinations can no longer be assigned.",
+        no_reader:
+          "No radiologist reads for this clinic: none of its own, and no contract with the network.",
+        not_credentialed:
+          "None of the radiologists who read for this clinic is credentialed yet.",
+        modality_not_read:
+          "No credentialed radiologist reads this modality for this clinic.",
+      },
     },
     readingHint: (count: number) => `and ${count} with a radiologist`,
     reading: { title: "With a radiologist", hint: "assigned or being read" },

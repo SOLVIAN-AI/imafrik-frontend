@@ -4,6 +4,7 @@ import { SessionProvider } from "@/components/providers/session-provider";
 import { HelpProvider } from "@/components/help/help-panel";
 import { TourProvider } from "@/components/tour/tour-provider";
 import { InactivityLock } from "@/components/session/inactivity-lock";
+import { SwipeBackGuard } from "@/components/layout/swipe-back-guard";
 import { getPlatformSettings } from "@/lib/data/control";
 import { requireSession } from "@/lib/session/server";
 
@@ -44,7 +45,13 @@ export default async function ReadingLayout({
         <HelpProvider>
           {/* `relative` : le cadre rogne aussi les éléments positionnés qu'il
           contient, qui sinon agrandiraient le document (voir AppShell). */}
-          <div className="relative flex h-dvh flex-col overflow-hidden bg-surface-base">
+          <div
+            data-reading-screen
+            className="relative flex h-dvh flex-col overflow-hidden bg-surface-base"
+          >
+            {/* Un glissé horizontal du pavé tactile ne fait pas revenir en
+            arrière, au risque de quitter un compte-rendu en cours. */}
+            <SwipeBackGuard />
             {/* Écran de lecture compris : c'est là qu'on laisse un examen
             ouvert en partant. */}
             {!session.isDemo && <InactivityLock />}

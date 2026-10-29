@@ -28,8 +28,10 @@ async function navCounts(): Promise<NavCounts | null> {
       toRead: metrics.assignedNew + metrics.urgentToTake,
       urgentToRead: metrics.urgentToTake,
       mine: metrics.assignedToMe,
-      // La clinique : ce qu'aucun radiologue ne voit encore.
+      // La clinique, et l'équipe IMAFRIK : ce qu'aucun radiologue ne voit
+      // encore, dont les urgences.
       clinicOpen: metrics.toAssign,
+      urgentToAssign: metrics.urgentToTake,
       reportsToDownload: metrics.reportsToDownload,
     };
   } catch {

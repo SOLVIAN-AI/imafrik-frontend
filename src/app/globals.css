@@ -353,6 +353,16 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Écran de lecture : un glissé horizontal du pavé tactile ne fait pas
+     revenir à la page précédente, au risque de quitter un compte-rendu en
+     cours (signalé le 28 octobre 2026). Chrome et Firefox lisent la
+     valeur de la racine ; Safari l'ignore, voir SwipeBackGuard. Ailleurs,
+     le geste du navigateur reste. */
+  html:has([data-reading-screen]),
+  html:has([data-reading-screen]) body {
+    overscroll-behavior-x: none;
+  }
+
   body {
     background-color: var(--surface-base);
     color: var(--text-primary);

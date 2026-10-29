@@ -11,14 +11,29 @@ export const worklist = {
     count: (count: number) =>
       `Les examens qu’on vous confie : ${count} établissement${count > 1 ? "s" : ""}`,
   },
-  /** La file vue par l'équipe IMAFRIK, en consultation. */
+  /** La file vue par l'équipe IMAFRIK : son poste de répartition. */
   supervision: {
     scope: {
-      empty: "Toute la plateforme, en consultation",
-      clinics: (list: string) =>
-        `Toute la plateforme, en consultation : ${list}`,
+      empty: "Toute la plateforme, à répartir",
+      clinics: (list: string) => `Toute la plateforme, à répartir : ${list}`,
       count: (count: number) =>
-        `Toute la plateforme, en consultation : ${count} établissement${count > 1 ? "s" : ""}`,
+        `Toute la plateforme, à répartir : ${count} établissement${count > 1 ? "s" : ""}`,
+    },
+    /** Attribution depuis la file. */
+    assign: {
+      column: "Attribution",
+      noCandidate: "Aucun radiologue",
+      /** Pourquoi aucun radiologue ne peut recevoir l'examen (info-bulle). */
+      reasons: {
+        clinic_inactive:
+          "La clinique est suspendue : ses examens ne s’attribuent plus.",
+        no_reader:
+          "Aucun radiologue ne lit cette clinique : ni radiologue à elle, ni contrat avec le réseau.",
+        not_credentialed:
+          "Aucun des radiologues qui lisent cette clinique n’est encore habilité.",
+        modality_not_read:
+          "Aucun radiologue habilité ne lit cette modalité pour cette clinique.",
+      },
     },
     readingHint: (count: number) => `et ${count} chez un radiologue`,
     reading: { title: "Chez un radiologue", hint: "attribués ou en lecture" },

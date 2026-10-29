@@ -130,6 +130,11 @@ export default async function ClinicPage({
               </Link>
             </Button>
             <Button asChild variant="secondary" size="sm">
+              <Link href={`/admin/examens?clinique=${clinic.id}`}>
+                {text.clinicStudies}
+              </Link>
+            </Button>
+            <Button asChild variant="secondary" size="sm">
               <Link
                 href={`/admin/activite?onglet=radiologues&clinique=${clinic.id}`}
               >

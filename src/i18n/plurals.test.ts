@@ -38,13 +38,13 @@ describe("accords en nombre", () => {
       "Les examens qu’on vous confie : 1 établissement",
     );
     expect(worklistFr.supervision.scope.count(3)).toBe(
-      "Toute la plateforme, en consultation : 3 établissements",
+      "Toute la plateforme, à répartir : 3 établissements",
     );
     expect(worklistEn.supervision.scope.count(1)).toBe(
-      "The whole platform, read-only: 1 facility",
+      "The whole platform, to dispatch: 1 facility",
     );
     expect(worklistEn.supervision.scope.count(0)).toBe(
-      "The whole platform, read-only: 0 facilities",
+      "The whole platform, to dispatch: 0 facilities",
     );
   });
 

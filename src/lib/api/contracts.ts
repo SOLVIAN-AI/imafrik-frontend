@@ -179,6 +179,40 @@ const _modalityCounts: Matches<
   Schemas["StudyModalityCounts"]
 > = true;
 
+/** Combien d'examens de chaque clinique une liste montrerait. */
+export const clinicCountsSchema = z.object({
+  total: z.number().int(),
+  clinics: z.array(
+    z.object({
+      clinic_id: uuid,
+      clinic_name: z.string(),
+      count: z.number().int(),
+    }),
+  ),
+});
+const _clinicCounts: Matches<
+  z.input<typeof clinicCountsSchema>,
+  Schemas["StudyClinicCounts"]
+> = true;
+
+/** Qui peut recevoir un examen de la file de répartition. */
+export const studyEligibilitySchema = z.object({
+  study_id: uuid,
+  candidates: z.number().int(),
+  reason: z
+    .enum([
+      "clinic_inactive",
+      "no_reader",
+      "not_credentialed",
+      "modality_not_read",
+    ])
+    .nullable(),
+});
+const _studyEligibility: Matches<
+  z.input<typeof studyEligibilitySchema>,
+  Schemas["StudyEligibility"]
+> = true;
+
 export const addendumSchema = z.object({
   id: uuid,
   report_id: uuid,
@@ -1718,6 +1752,8 @@ export const CONTRACT_CHECKS = [
   _assignment,
   _studyPage,
   _modalityCounts,
+  _clinicCounts,
+  _studyEligibility,
   _report,
   _viewer,
   _viewerRenewed,

@@ -155,6 +155,8 @@ function revalidateScreens(studyId: string) {
   revalidatePath(`/examens/${studyId}`);
   revalidatePath(`/lecture/${studyId}`);
   revalidatePath("/tableau-de-bord");
+  // La file de répartition de l'équipe (« Lectures › À lire »).
+  revalidatePath("/worklist");
   // La vue des cliniques, où l'équipe IMAFRIK attribue aussi : tous ses
   // écrans, quelle que soit la clinique.
   revalidatePath(`${CLINIC_VIEW_ROOT}/[clinicId]`, "layout");

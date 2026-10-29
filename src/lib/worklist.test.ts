@@ -14,6 +14,7 @@ import {
   parseFilters,
   shortDemographics,
   splitWorklist,
+  withAssignments,
 } from "@/lib/worklist";
 
 const MINUTE = 60_000;
@@ -222,5 +223,73 @@ describe("newUrgentArrivals", () => {
     ]);
     expect(second.arrivals.map((s) => s.id)).toEqual(["u2"]);
     expect([...second.seen].sort()).toEqual(["u1", "u2"]);
+  });
+});
+
+describe("répartition depuis la file", () => {
+  const file = () =>
+    splitWorklist(
+      [
+        study("libre", { ago: 10 }),
+        study("autre-libre", { ago: 20 }),
+        study("chez-b", { assignedTo: "b", assignedToName: "Dr B" }),
+      ],
+      "equipe",
+    );
+
+  it("fait passer une ligne attribuée chez le radiologue, aussitôt", () => {
+    const sections = file();
+    const apres = withAssignments(
+      sections,
+      new Map([
+        [
+          "libre",
+          { status: "assigned", assignedTo: "c", assignedToName: "Dr C" },
+        ],
+      ]),
+      "equipe",
+    );
+    expect(apres.open.map((s) => s.id)).toEqual(["autre-libre"]);
+    expect(apres.colleagues.map((s) => [s.id, s.assignedToName])).toEqual(
+      expect.arrayContaining([
+        ["libre", "Dr C"],
+        ["chez-b", "Dr B"],
+      ]),
+    );
+    // La file lue par le service n'est pas modifiée.
+    expect(sections.open.map((s) => s.id)).toContain("libre");
+  });
+
+  it("rend une ligne à attribuer quand l’attribution est retirée", () => {
+    const apres = withAssignments(
+      file(),
+      new Map([
+        [
+          "chez-b",
+          { status: "received", assignedTo: null, assignedToName: null },
+        ],
+      ]),
+      "equipe",
+    );
+    expect(apres.open.map((s) => s.id)).toContain("chez-b");
+    expect(apres.colleagues).toEqual([]);
+  });
+
+  it("ne change rien sans attribution, ni pour un examen absent", () => {
+    const sections = file();
+    expect(withAssignments(sections, new Map(), "equipe")).toBe(sections);
+    const absent = withAssignments(
+      sections,
+      new Map([
+        [
+          "inconnu",
+          { status: "assigned", assignedTo: "c", assignedToName: "Dr C" },
+        ],
+      ]),
+      "equipe",
+    );
+    expect(absent.open.map((s) => s.id)).toEqual(
+      sections.open.map((s) => s.id),
+    );
   });
 });
