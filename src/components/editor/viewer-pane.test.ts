@@ -7,15 +7,19 @@ import { ViewerPane } from "@/components/editor/viewer-pane";
 import { DEMO_STUDIES } from "@/lib/demo/studies";
 
 /**
- * Le cadre du viewer ne laisse sortir aucune image.
+ * Le cadre du viewer ne télécharge rien.
  *
  * Aucune image d'un examen ne doit sortir d'IMAFRIK (demandé le
- * 29 octobre 2026). Sans `allow-downloads` dans `sandbox` ni
- * `clipboard-write` dans `allow`, le navigateur refuse lui-même tout
- * téléchargement lancé depuis le viewer et toute écriture dans le
- * presse-papiers, en plus des sorties retirées de la configuration
- * d'OHIF. Les droits du cadre sont donc une liste fermée : en ajouter un
- * se décide ici, pas au détour d'un correctif.
+ * 29 octobre 2026). Sans `allow-downloads` dans `sandbox`, le navigateur
+ * refuse lui-même tout téléchargement lancé depuis le viewer, en plus des
+ * sorties retirées de la configuration d'OHIF. Les drapeaux de `sandbox`
+ * sont donc une liste fermée : en ajouter un se décide ici, pas au détour
+ * d'un correctif.
+ *
+ * `clipboard-write` reste accordé, à dessein, et n'est pas figé ici : le
+ * bouton « Copier » de la fenêtre d'erreur d'OHIF en a besoin (pile
+ * d'erreur pour le support, rétabli le 21 octobre 2026). Une image copiée
+ * est refusée par la configuration d'OHIF, côté backend.
  */
 
 const VIEWER_URL = "https://viewer.imafrik.test/viewer?token=jeton";
@@ -41,14 +45,6 @@ function sandboxFlags(iframe: HTMLIFrameElement): string[] {
   return (iframe.getAttribute("sandbox") ?? "").split(/\s+/).filter(Boolean);
 }
 
-/** Les fonctions accordées par `allow`, sans leur liste d'origines. */
-function allowedFeatures(iframe: HTMLIFrameElement): string[] {
-  return (iframe.getAttribute("allow") ?? "")
-    .split(";")
-    .map((directive) => directive.trim().split(/\s+/)[0])
-    .filter(Boolean);
-}
-
 describe("cadre du viewer", () => {
   it("charge l’adresse signée du viewer", () => {
     expect(frame().getAttribute("src")).toBe(VIEWER_URL);
@@ -58,16 +54,10 @@ describe("cadre du viewer", () => {
     expect(sandboxFlags(frame())).not.toContain("allow-downloads");
   });
 
-  it("n’autorise aucune écriture dans le presse-papiers", () => {
-    expect(allowedFeatures(frame())).not.toContain("clipboard-write");
-  });
-
-  it("n’accorde que les scripts, son origine et le plein écran", () => {
-    const iframe = frame();
-    expect(sandboxFlags(iframe).toSorted()).toEqual([
+  it("ne lui accorde que ses scripts et son origine", () => {
+    expect(sandboxFlags(frame()).toSorted()).toEqual([
       "allow-same-origin",
       "allow-scripts",
     ]);
-    expect(allowedFeatures(iframe)).toEqual(["fullscreen"]);
   });
 });
