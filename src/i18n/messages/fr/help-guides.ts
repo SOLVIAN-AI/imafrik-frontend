@@ -70,6 +70,7 @@ export const guides = {
           "Acceptez la demande du navigateur d’ouvrir Weasis ; vous pouvez l’autoriser pour toujours sur ce site.",
           "Weasis s’ouvre dans un profil IMAFRIK, à part de votre Weasis habituel : il ferme l’examen qu’il affichait, ouvre celui-ci et télécharge ses images. Le lien vaut cinq minutes et ne sert qu’une fois.",
           "Weasis ouvert depuis IMAFRIK n’importe rien, ni fichier, ni CD, ni autre image : n’y déposez aucun fichier ni dossier, pour ne jamais mêler les images d’un autre patient à l’examen lu.",
+          "Weasis ne reçoit que les images : le son, les documents (PDF), la vidéo et les comptes rendus structurés se consultent dans le visualiseur d’IMAFRIK, et un examen sans image ne s’ouvre pas dans Weasis.",
           "Si rien ne s’ouvre, l’aide s’affiche : Weasis n’est sans doute pas installé sur cet ordinateur.",
         ],
       },

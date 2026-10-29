@@ -4032,7 +4032,9 @@ export interface paths {
          *
          *     Raises:
          *         NotFound: Examen inexistant ou hors du périmètre de l'appelant.
-         *         Conflict: Images archivées au terme de la conservation.
+         *         Conflict: Images archivées au terme de la conservation, ou examen
+         *             sans aucune image (documents, son, comptes rendus structurés).
+         *         ServiceUnavailable: Le PACS ne répond pas.
          */
         post: operations["weasis_launch_studies__study_id__weasis_launch_post"];
         delete?: never;
@@ -15150,6 +15152,15 @@ export interface operations {
             };
             /** @description Code inconnu, expiré ou utilisé */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": unknown;
+                };
+            };
+            /** @description Aucune image dans l'examen */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -64,6 +64,7 @@ export const guides: typeof fr = {
           "Accept the browser’s request to open Weasis; you can allow it permanently for this site.",
           "Weasis opens in an IMAFRIK profile, separate from your usual Weasis: it closes the examination it was showing, opens this one and downloads its images. The link is valid for five minutes and works once.",
           "Weasis opened from IMAFRIK imports nothing, no files, CDs or other images: drop no files or folders into it, so that another patient’s images are never mixed with the examination you read.",
+          "Weasis only receives images: sound, documents (PDF), video and structured reports are viewed in the IMAFRIK viewer, and an examination without images does not open in Weasis.",
           "If nothing opens, the help appears: Weasis is probably not installed on this computer.",
         ],
       },

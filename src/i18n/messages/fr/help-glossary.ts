@@ -315,7 +315,7 @@ export const glossary = {
   weasis: {
     term: "Weasis",
     definition:
-      "Visualiseur DICOM libre (Hôpitaux universitaires de Genève), installé sur l’ordinateur, proposé à côté du viewer pour ses reconstructions (MPR, MIP, MinIP). Il s’ouvre depuis l’écran de lecture, dans un profil IMAFRIK sans import, export, envoi ni enregistrement d’image, avec le même accès que le viewer : cet examen seul, ouverture tracée. Il garde les images sur le poste jusqu’à sa fermeture : le contrat d’exercice demande de le fermer après chaque lecture, sur un poste à session personnelle et disque chiffré.",
+      "Visualiseur DICOM libre (Hôpitaux universitaires de Genève), installé sur l’ordinateur, proposé à côté du viewer pour ses reconstructions (MPR, MIP, MinIP). Il s’ouvre depuis l’écran de lecture, dans un profil IMAFRIK sans import, export, envoi ni enregistrement d’image, avec le même accès que le viewer : les seules images de cet examen, ouverture tracée. Il garde les images sur le poste jusqu’à sa fermeture : le contrat d’exercice demande de le fermer après chaque lecture, sur un poste à session personnelle et disque chiffré.",
   },
   mpr: {
     term: "MPR, MIP, MinIP",
