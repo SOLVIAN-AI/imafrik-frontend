@@ -42,10 +42,13 @@ import { cn } from "@/lib/utils";
  *
  * Le cadre est restreint (`sandbox`) à ce dont le viewer a besoin :
  * exécuter ses scripts, appeler son propre serveur, passer en plein
- * écran, copier dans le presse-papiers (le détail d'une erreur, à
- * transmettre au support : sans cette permission, le bouton « Copier »
- * du viewer échouait à son tour). Il ne peut ni naviguer la page parente
- * ni ouvrir de fenêtres.
+ * écran. Il ne peut ni naviguer la page parente, ni ouvrir de fenêtres,
+ * ni **télécharger un fichier ou écrire dans le presse-papiers** : aucune
+ * image d'un examen ne sort d'IMAFRIK (demandé le 29 octobre 2026). La
+ * configuration d'OHIF, côté backend, en retire déjà toutes les sorties ;
+ * sans `allow-downloads` ni `clipboard-write`, le navigateur refuse
+ * lui-même celles qui resteraient. Le bouton « Copier » de la fenêtre
+ * d'erreur du viewer échoue donc de nouveau : le détail reste affiché.
  *
  * @param study     Examen affiché, pour la légende sous l'image.
  * @param viewerUrl URL signée du viewer, ou `null` s'il n'est pas encore
@@ -93,8 +96,8 @@ export function ViewerPane({
             src={url}
             title={labels.frameTitle(study.studyInstanceUid)}
             className="size-full border-0"
-            allow="fullscreen; clipboard-write"
-            sandbox="allow-scripts allow-same-origin allow-downloads"
+            allow="fullscreen"
+            sandbox="allow-scripts allow-same-origin"
             referrerPolicy="no-referrer"
           />
         ) : demo ? (
