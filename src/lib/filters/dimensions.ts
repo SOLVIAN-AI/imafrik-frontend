@@ -26,7 +26,11 @@
 
 import type { AppMessages } from "@/i18n";
 import type { ModalityGroup } from "@/lib/api/contracts";
-import { MODALITY_GROUPS, MODALITY_SLUGS } from "@/lib/modalities";
+import {
+  MODALITY_GROUPS,
+  MODALITY_SLUGS,
+  modalityGroupOf,
+} from "@/lib/modalities";
 
 /**
  * Présentation d'une dimension : `chips`, une puce par valeur fixe, plus
@@ -68,6 +72,32 @@ export interface FilterDimension {
 }
 
 /**
+ * Codes DICOM que l'ancienne file « À lire » écrivait dans l'adresse
+ * (`?modalite=CT,MR`), avant que toutes les listes ne filtrent par groupe.
+ * Un favori ou un lien partagé ouvre ainsi le groupe de son premier code.
+ */
+const LEGACY_MODALITY_CODES = new Set([
+  "CR",
+  "DX",
+  "RF",
+  "XA",
+  "MG",
+  "US",
+  "CT",
+  "MR",
+]);
+
+/**
+ * Le groupe d'un ancien filtre de modalité, ou `null`.
+ *
+ * @param raw Valeur d'adresse (`CT`, `CT,MR`).
+ */
+function legacyModality(raw: string): ModalityGroup | null {
+  const code = raw.split(",")[0].trim();
+  return LEGACY_MODALITY_CODES.has(code) ? modalityGroupOf(code) : null;
+}
+
+/**
  * Forme d'un identifiant venu de l'adresse : celui du service (UUID) ou de
  * la démonstration (`org-stj`). Rien d'autre n'est transmis au service.
  */
@@ -92,7 +122,8 @@ export const DIMENSIONS = {
     presentation: "chips",
     values: MODALITY_GROUPS,
     read: (raw) =>
-      MODALITY_GROUPS.find((group) => MODALITY_SLUGS[group] === raw) ?? null,
+      MODALITY_GROUPS.find((group) => MODALITY_SLUGS[group] === raw) ??
+      legacyModality(raw),
     write: (value) => MODALITY_SLUGS[value as ModalityGroup] ?? value,
     text: (t) => ({ name: t.filters.modality, all: t.filters.allModalities }),
     valueLabel: (t, value) =>
@@ -125,4 +156,27 @@ export type ActiveFilters = Partial<Record<DimensionKey, string>>;
  */
 export function dimension(key: DimensionKey): FilterDimension {
   return DIMENSIONS[key];
+}
+
+/** Une valeur proposée, avec le nombre de lignes qu'elle retient. */
+export interface FilterOption {
+  value: string;
+  /** Nom affiché ; celui du registre pour une valeur fixe. */
+  label?: string;
+  /** Lignes retenues ; absent quand l'écran ne compte pas. */
+  count?: number;
+}
+
+/**
+ * Une dimension de la barre de filtres, telle que la page la décrit : ses
+ * options et leurs nombres, tirés du service ou de la liste.
+ */
+export interface BarDimension {
+  key: DimensionKey;
+  /** Valeurs proposées : toutes pour des puces, celles des données sinon. */
+  options?: readonly FilterOption[];
+  /** Lignes de toutes les valeurs, pour l'option par défaut. */
+  total?: number;
+  /** Nom propre à l'écran d'une bascule (« Urgences en cours »). */
+  label?: string;
 }
