@@ -44,4 +44,37 @@ export const guides: typeof fr = {
       },
     ],
   },
+  weasis: {
+    title: "Read an examination in Weasis",
+    intro:
+      "Weasis, the free DICOM viewer from Geneva University Hospitals, installs on the computer and opens from the reading screen, alongside the viewer. It receives this examination only, with the same access as the viewer, without export or sending, and keeps its images on the computer until it is closed.",
+    sections: [
+      {
+        title: "Install Weasis, once per computer",
+        steps: [
+          "Open the official download page, weasis.org/en/getting-started/download-dicom-viewer, or click “Download Weasis (official site)” in the reading screen help.",
+          "Choose your system’s installer: Windows 10 or 11 (.msi), macOS (.pkg, Apple silicon or Intel) or Linux (.deb, .rpm). Weasis exists for neither tablets nor phones.",
+          "Install it with the default options; on a managed computer, your IT department may need to do it. No other software is needed.",
+        ],
+      },
+      {
+        title: "Open an examination",
+        steps: [
+          "On the reading screen, below the images, click “Open in Weasis” (the screen icon, on a narrow screen).",
+          "Accept the browser’s request to open Weasis; you can allow it permanently for this site.",
+          "Weasis opens in an IMAFRIK profile, separate from your usual Weasis: it closes the examination it was showing, opens this one and downloads its images. The link is valid for five minutes and works once.",
+          "If nothing opens, the help appears: Weasis is probably not installed on this computer.",
+        ],
+      },
+      {
+        title: "After reading",
+        steps: [
+          "Write and sign the report in IMAFRIK: Weasis only displays the images.",
+          "Close Weasis: it then deletes the downloaded images. After a crash, it deletes them when it next starts.",
+          "Weasis opened from IMAFRIK offers no export, no sending and no saving of images. Make no copies (screenshot, printing), and only use it on a computer with your own user session and an encrypted disk.",
+          "You lose access to the examination, or you sign out: Weasis can no longer download any of its images within seconds.",
+        ],
+      },
+    ],
+  },
 };

@@ -125,7 +125,7 @@ export const pages = {
       purpose:
         "L’écran où vous lisez un examen et rédigez son compte-rendu : les images dans le viewer à gauche, le compte-rendu à droite. Une fois signé, le compte-rendu part à la clinique et n’est plus modifiable.",
       steps: [
-        "Lisez le « Renseignement clinique » et parcourez les images ; une antériorité partagée s’ouvre en lecture seule, dans un nouvel onglet.",
+        "Lisez le « Renseignement clinique » et parcourez les images, ou, sur ordinateur, « Ouvrir dans Weasis » ; une antériorité s’ouvre en lecture seule.",
         "Cliquez sur « Prendre en charge » : l’examen vous est réservé jusqu’à la signature, ou jusqu’à « Rendre l’examen », qui efface le brouillon et prévient la clinique.",
         "Rédigez les sections, avec « Modèle » pour remplir celles encore vides ; le texte s’enregistre automatiquement.",
         "Cliquez sur « Signer », vérifiez les points signalés, saisissez votre code personnel, puis cliquez sur « Signer et transmettre ».",
@@ -138,6 +138,7 @@ export const pages = {
         "anteriorite",
         "codePersonnel",
       ],
+      guides: ["weasis"],
     },
   },
   clinic: {
@@ -754,7 +755,7 @@ export const pages = {
       purpose:
         "La consultation d’un examen : images, renseignement clinique et compte-rendu tel qu’il est, brouillon compris. L’équipe ne peut ni prendre en charge, ni rédiger, ni signer ; chaque ouverture est tracée à son nom dans le journal d’audit.",
       steps: [
-        "Consultez les images dans le viewer, à gauche ; « Plein écran » les agrandit.",
+        "Consultez les images dans le viewer, à gauche, ou, sur ordinateur, avec « Ouvrir dans Weasis » ; « Plein écran » les agrandit.",
         "Lisez le « Renseignement clinique » transmis par la clinique, au-dessus du compte-rendu.",
         "Face à un brouillon, lisez le bandeau « Brouillon non signé » : l’écran suit la rédaction et se met à jour tout seul.",
         "Si le volet affiche « Compte-rendu en préparation », attendez la signature du radiologue : rien ne se rédige ici.",
@@ -767,6 +768,7 @@ export const pages = {
         "renseignementClinique",
         "annulation",
       ],
+      guides: ["weasis"],
     },
     settings: {
       title: "Paramètres",

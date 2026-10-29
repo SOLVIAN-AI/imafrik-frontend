@@ -3948,6 +3948,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/studies/{study_id}/weasis-launch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ouvrir dans Weasis
+         * @description Prépare l'ouverture d'une étude dans Weasis.
+         *
+         *     Le droit de voir l'étude est vérifié sous RLS et l'ouverture tracée,
+         *     comme pour OHIF. Le jeton émis est propre à Weasis (deux heures, sans
+         *     prolongation) ; il n'est remis qu'avec le manifeste.
+         *
+         *     Args:
+         *         study_id: Examen à ouvrir.
+         *         principal: Radiologue, ou membre de l'équipe IMAFRIK.
+         *
+         *     Returns:
+         *         L'adresse ``weasis://`` et la durée de validité de son code.
+         *
+         *     Raises:
+         *         NotFound: Examen inexistant ou hors du périmètre de l'appelant.
+         *         Conflict: Images archivées au terme de la conservation.
+         */
+        post: operations["weasis_launch_studies__study_id__weasis_launch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/studies/{study_id}/weasis-manifest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Manifeste Weasis
+         * @description Manifeste de l'étude, remis une fois à Weasis contre son code.
+         *
+         *     Le code est consommé à la première lecture. Il ne mène qu'à l'étude
+         *     pour laquelle il a été émis, et seulement tant que le jeton de Weasis
+         *     n'a pas été révoqué. Tout refus a la même réponse : rien n'y distingue
+         *     un code inconnu d'un code d'une autre étude.
+         *
+         *     La remise est inscrite au journal d'audit (``study.viewed``,
+         *     ``{"viewer": "weasis"}``) au nom du titulaire du jeton : qui, quel
+         *     examen, quand l'examen est parti vers Weasis. Sans trace, pas de
+         *     manifeste.
+         *
+         *     Args:
+         *         study_id: Étude demandée.
+         *         code: Code d'ouverture lu dans l'adresse ``weasis://``.
+         *
+         *     Returns:
+         *         Le manifeste XML, ou un refus en texte brut que Weasis affiche.
+         */
+        get: operations["weasis_manifest_studies__study_id__weasis_manifest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/templates": {
         parameters: {
             query?: never;
@@ -4436,6 +4508,33 @@ export interface paths {
          *             ce jeton.
          */
         get: operations["verify_report_verify__verify_token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weasis/configuration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Configuration de Weasis
+         * @description Configuration que Weasis lit à son démarrage, quand IMAFRIK l'ouvre.
+         *
+         *     Le profil d'IMAFRIK et les sorties coupées (:data:`LOCKDOWN`). Elle est
+         *     publique : elle ne contient aucune donnée, et Weasis la lit avant
+         *     toute authentification. Voir l'en-tête du module.
+         *
+         *     Returns:
+         *         La configuration, au format de ``conf/base.json``.
+         */
+        get: operations["weasis_configuration_weasis_configuration_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -9421,6 +9520,58 @@ export interface components {
         ViewerTokenRenewed: {
             /** Expires In */
             expires_in: number;
+        };
+        /**
+         * WeasisConfiguration
+         * @description Configuration étendue de Weasis ouvert depuis IMAFRIK.
+         *
+         *     Attributes:
+         *         weasis_preferences: Propriétés, sous le nom qu'attend Weasis
+         *             (``weasisPreferences``).
+         */
+        WeasisConfiguration: {
+            /** Weasispreferences */
+            weasisPreferences: components["schemas"]["WeasisPreference"][];
+        };
+        /**
+         * WeasisLaunch
+         * @description Adresse d'ouverture d'une étude dans Weasis.
+         *
+         *     Attributes:
+         *         launch_url: Adresse ``weasis://`` à ouvrir depuis le navigateur.
+         *             Elle ne porte que l'identifiant IMAFRIK de l'étude et un code à
+         *             usage unique, jamais le jeton ni une donnée du patient.
+         *         expires_in: Durée de validité du code, en secondes.
+         */
+        WeasisLaunch: {
+            /** Expires In */
+            expires_in: number;
+            /** Launch Url */
+            launch_url: string;
+        };
+        /**
+         * WeasisPreference
+         * @description Une propriété de la configuration de Weasis (format de ``conf/base.json``).
+         *
+         *     Attributes:
+         *         code: Nom de la propriété.
+         *         value: Valeur, en texte.
+         *         type: ``A`` : relue à chaque démarrage ; ``AP`` : relue à chaque
+         *             démarrage, et seulement depuis un fichier de configuration.
+         *         category: Rubrique de la documentation de Weasis.
+         *         description: Ce que la valeur change.
+         */
+        WeasisPreference: {
+            /** Category */
+            category: string;
+            /** Code */
+            code: string;
+            /** Description */
+            description: string;
+            /** Type */
+            type: string;
+            /** Value */
+            value: string;
         };
     };
     responses: never;
@@ -14721,6 +14872,90 @@ export interface operations {
             };
         };
     };
+    weasis_launch_studies__study_id__weasis_launch_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeasisLaunch"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    weasis_manifest_studies__study_id__weasis_manifest_get: {
+        parameters: {
+            query?: {
+                code?: string;
+            };
+            header?: never;
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Manifeste Weasis 2.5 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/xml": unknown;
+                };
+            };
+            /** @description Code inconnu, expiré ou utilisé */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description PACS injoignable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": unknown;
+                };
+            };
+        };
+    };
     list_templates_templates_get: {
         parameters: {
             query?: {
@@ -15261,6 +15496,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    weasis_configuration_weasis_configuration_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeasisConfiguration"];
                 };
             };
         };

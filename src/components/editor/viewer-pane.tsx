@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { DateTime } from "@/components/domain/date-time";
 import { SimulatedScan } from "@/components/editor/simulated-scan";
+import { WeasisButton } from "@/components/editor/weasis-button";
 import { Button } from "@/components/ui/button";
 import {
   type ViewerSession,
@@ -51,22 +52,29 @@ import { cn } from "@/lib/utils";
  * lancé depuis le viewer. Le presse-papiers reste ouvert au texte ; une
  * image y est refusée par la configuration d'OHIF, côté backend.
  *
+ * Sur ordinateur, le radiologue et l'équipe IMAFRIK peuvent aussi ouvrir
+ * l'examen dans Weasis, installé sur le poste (voir {@link WeasisButton}) ;
+ * le viewer reste celui de l'écran.
+ *
  * @param study     Examen affiché, pour la légende sous l'image.
  * @param viewerUrl URL signée du viewer, ou `null` s'il n'est pas encore
  *                  disponible.
  * @param session   Prolongation et réouverture du jeton.
+ * @param weasis    Propose l'ouverture dans Weasis.
  */
 export function ViewerPane({
   study,
   viewerUrl,
   demo = false,
   session,
+  weasis = false,
 }: {
   study: Study;
   viewerUrl: string | null;
   /** Démonstration : aucun PACS n'existe, l'absence d'images est normale. */
   demo?: boolean;
   session?: ViewerSession;
+  weasis?: boolean;
 }) {
   const labels = useMessages().reading.viewer;
   const { url, reopened } = useViewerSession(viewerUrl, session);
@@ -133,24 +141,31 @@ export function ViewerPane({
             {labels.simulated}
           </span>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn("shrink-0", !demo && "ml-auto")}
-          // Le volet entier passe en plein écran : la coupe simulée de la
-          // démonstration aussi.
-          disabled={!url && !demo}
-          aria-label={
-            fullscreen ? labels.closeFullscreen : labels.openFullscreen
-          }
-          aria-pressed={fullscreen}
-          onClick={toggleFullscreen}
+        <div
+          className={cn("flex shrink-0 items-center gap-1", !demo && "ml-auto")}
         >
-          {fullscreen ? <Minimize2 /> : <Maximize2 />}
-          <span className="hidden sm:inline">
-            {fullscreen ? labels.exitFullscreen : labels.fullscreen}
-          </span>
-        </Button>
+          {weasis && !study.imagesPurgedAt && (
+            <WeasisButton studyId={study.id} />
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="shrink-0"
+            // Le volet entier passe en plein écran : la coupe simulée de la
+            // démonstration aussi.
+            disabled={!url && !demo}
+            aria-label={
+              fullscreen ? labels.closeFullscreen : labels.openFullscreen
+            }
+            aria-pressed={fullscreen}
+            onClick={toggleFullscreen}
+          >
+            {fullscreen ? <Minimize2 /> : <Maximize2 />}
+            <span className="hidden sm:inline">
+              {fullscreen ? labels.exitFullscreen : labels.fullscreen}
+            </span>
+          </Button>
+        </div>
       </div>
     </div>
   );
