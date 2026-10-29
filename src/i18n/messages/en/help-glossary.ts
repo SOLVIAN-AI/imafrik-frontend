@@ -310,7 +310,7 @@ export const glossary: typeof fr = {
   weasis: {
     term: "Weasis",
     definition:
-      "Free DICOM viewer (Geneva University Hospitals), installed on the computer, offered alongside the viewer for its reconstructions (MPR, MIP, MinIP). It opens from the reading screen, in an IMAFRIK profile with no export, sending or saving of images, with the same access as the viewer: this examination only, opening logged. It keeps the images on the computer until it is closed: the practice agreement requires closing it after each read, on a computer with your own user session and an encrypted disk.",
+      "Free DICOM viewer (Geneva University Hospitals), installed on the computer, offered alongside the viewer for its reconstructions (MPR, MIP, MinIP). It opens from the reading screen, in an IMAFRIK profile with no import, export, sending or saving of images, with the same access as the viewer: only this examination’s images, opening logged. It keeps the images on the computer until it is closed: the practice agreement requires closing it after each read, on a computer with your own user session and an encrypted disk.",
   },
   mpr: {
     term: "MPR, MIP, MinIP",
