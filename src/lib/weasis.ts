@@ -48,8 +48,33 @@ export function isDesktopComputer(hints: DeviceHints): boolean {
   return !(mac && hints.maxTouchPoints > 1);
 }
 
-/** Commandes attendues dans l'adresse, autour de l'adresse du manifeste. */
-const LAUNCH_COMMANDS = /^\$dicom:close --all \$dicom:get -w "([^"\s]+)"$/;
+/** Profil Weasis d'IMAFRIK : préférences et instance distinctes. */
+export const WEASIS_PROFILE = "imafrik";
+
+/**
+ * Sorties de Weasis que chaque ouverture depuis IMAFRIK doit couper
+ * (`LOCKDOWN` du service, `app/routers/weasis.py`) : export DICOM, CD et
+ * images, envoi, récupération sur un autre PACS, annotations, capture,
+ * barre de menus. Une adresse qui en omet une n'est pas ouverte.
+ */
+export const WEASIS_LOCKDOWN = [
+  "weasis.export.dicom",
+  "weasis.export.dicom.send",
+  "weasis.import.dicom.qr",
+  "weasis.export.annotations",
+  "weasis.all.screenshottoolbar.enable",
+  "weasis.menu.menubar",
+] as const;
+
+/**
+ * Commandes attendues dans l'adresse : la configuration de Weasis, puis
+ * la fermeture de ce qu'il affiche et le manifeste.
+ */
+const LAUNCH_COMMANDS =
+  /^\$weasis:config ((?:pro="[^"]+" )+)\$dicom:close --all \$dicom:get -w "([^"\s]+)"$/;
+
+/** Une propriété qui coupe une fonction de Weasis. */
+const DISABLED_PROPERTY = /^([a-z][\w.-]*) false$/;
 
 /** Code d'ouverture : celui qu'émet le service, sans autre caractère. */
 const LAUNCH_CODE = /^[A-Za-z0-9_-]{16,128}$/;
@@ -59,9 +84,12 @@ const LAUNCH_CODE = /^[A-Za-z0-9_-]{16,128}$/;
  *
  * L'adresse est ouverte telle quelle par le système : un service
  * compromis, ou un intermédiaire, pourrait y glisser d'autres commandes
- * Weasis ou faire charger un manifeste ailleurs. Elle n'est acceptée que
- * si elle ferme ce que Weasis affiche puis charge le manifeste de cet
- * examen, sur l'API configurée, avec un code et rien d'autre.
+ * Weasis, rouvrir un export ou faire charger un manifeste ailleurs. Elle
+ * n'est acceptée que si elle lance Weasis dans le profil d'IMAFRIK, avec
+ * la configuration de l'API configurée et chacune des sorties de
+ * {@link WEASIS_LOCKDOWN} coupée (d'autres propriétés ne peuvent que
+ * couper davantage), puis ferme ce que Weasis affiche et charge le
+ * manifeste de cet examen, sur cette API, avec un code et rien d'autre.
  *
  * @param value      Adresse renvoyée par le service.
  * @param apiUrl     Adresse de l'API configurée (`NEXT_PUBLIC_API_URL`).
@@ -83,16 +111,17 @@ export function isWeasisLaunchUrl(
   }
   const found = LAUNCH_COMMANDS.exec(commands);
   // En https, sauf sur la machine locale : le manifeste porte le jeton.
-  if (!found || !isSafeBrowserUrl(found[1])) return false;
+  if (!found || !isSafeBrowserUrl(found[2])) return false;
   let manifest: URL;
   let api: URL;
   try {
-    manifest = new URL(found[1]);
+    manifest = new URL(found[2]);
     api = new URL(apiUrl);
   } catch {
     return false;
   }
   const base = api.pathname.replace(/\/$/, "");
+  if (!isLockedConfig(found[1], `${api.origin}${base}`)) return false;
   const params = [...manifest.searchParams.keys()];
   return (
     manifest.origin === api.origin &&
@@ -104,4 +133,30 @@ export function isWeasisLaunchUrl(
     !manifest.username &&
     !manifest.password
   );
+}
+
+/**
+ * Vrai si les propriétés de lancement verrouillent Weasis : profil
+ * d'IMAFRIK, configuration servie par l'API, chaque sortie coupée.
+ *
+ * @param config Suite des `pro="…"` de `$weasis:config`.
+ * @param api    Origine et chemin de base de l'API configurée.
+ */
+function isLockedConfig(config: string, api: string): boolean {
+  const properties = [...config.matchAll(/pro="([^"]+)"/g)].map(
+    (match) => match[1],
+  );
+  const [profile, extended, ...rest] = properties;
+  if (profile !== `weasis.profile ${WEASIS_PROFILE}`) return false;
+  if (
+    extended !== `felix.extended.config.properties ${api}/weasis/configuration`
+  )
+    return false;
+  const disabled = new Set<string>();
+  for (const property of rest) {
+    const match = DISABLED_PROPERTY.exec(property);
+    if (!match) return false;
+    disabled.add(match[1]);
+  }
+  return WEASIS_LOCKDOWN.every((key) => disabled.has(key));
 }

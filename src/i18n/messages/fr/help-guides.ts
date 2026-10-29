@@ -53,7 +53,7 @@ export const guides = {
   weasis: {
     title: "Lire un examen dans Weasis",
     intro:
-      "Weasis, visualiseur DICOM libre des Hôpitaux universitaires de Genève, s’installe sur l’ordinateur et s’ouvre depuis l’écran de lecture, à côté du viewer. Il reçoit cet examen seul, avec le même accès que le viewer, et garde ses images sur le poste jusqu’à sa fermeture.",
+      "Weasis, visualiseur DICOM libre des Hôpitaux universitaires de Genève, s’installe sur l’ordinateur et s’ouvre depuis l’écran de lecture, à côté du viewer. Il reçoit cet examen seul, avec le même accès que le viewer, sans export ni envoi, et garde ses images sur le poste jusqu’à sa fermeture.",
     sections: [
       {
         title: "Installer Weasis, une fois par ordinateur",
@@ -68,7 +68,7 @@ export const guides = {
         steps: [
           "Dans l’écran de lecture, sous les images, cliquez sur « Ouvrir dans Weasis » (l’icône d’écran, sur un écran étroit).",
           "Acceptez la demande du navigateur d’ouvrir Weasis ; vous pouvez l’autoriser pour toujours sur ce site.",
-          "Weasis ferme l’examen qu’il affichait, ouvre celui-ci et télécharge ses images. Le lien vaut cinq minutes et ne sert qu’une fois : pour rouvrir, cliquez de nouveau.",
+          "Weasis s’ouvre dans un profil IMAFRIK, à part de votre Weasis habituel : il ferme l’examen qu’il affichait, ouvre celui-ci et télécharge ses images. Le lien vaut cinq minutes et ne sert qu’une fois.",
           "Si rien ne s’ouvre, l’aide s’affiche : Weasis n’est sans doute pas installé sur cet ordinateur.",
         ],
       },
@@ -77,7 +77,7 @@ export const guides = {
         steps: [
           "Rédigez et signez le compte-rendu dans IMAFRIK : Weasis ne sert qu’à afficher les images.",
           "Fermez Weasis : il efface alors les images téléchargées. Après un arrêt brutal, il les efface à son démarrage suivant.",
-          "N’exportez ni n’enregistrez les images ailleurs sur le poste, et n’utilisez Weasis que sur un ordinateur à session personnelle, verrouillée en votre absence, au disque chiffré (BitLocker, FileVault).",
+          "Weasis ouvert depuis IMAFRIK n’offre ni export, ni envoi, ni enregistrement d’image. N’en faites aucune copie (capture d’écran, impression), et ne l’utilisez que sur un ordinateur à session personnelle, au disque chiffré.",
           "Vous perdez l’accès à l’examen, ou vous vous déconnectez : Weasis ne peut plus en télécharger d’image dans les secondes qui suivent.",
         ],
       },

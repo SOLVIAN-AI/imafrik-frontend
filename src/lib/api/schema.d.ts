@@ -3999,6 +3999,11 @@ export interface paths {
          *     n'a pas été révoqué. Tout refus a la même réponse : rien n'y distingue
          *     un code inconnu d'un code d'une autre étude.
          *
+         *     La remise est inscrite au journal d'audit (``study.viewed``,
+         *     ``{"viewer": "weasis"}``) au nom du titulaire du jeton : qui, quel
+         *     examen, quand l'examen est parti vers Weasis. Sans trace, pas de
+         *     manifeste.
+         *
          *     Args:
          *         study_id: Étude demandée.
          *         code: Code d'ouverture lu dans l'adresse ``weasis://``.
@@ -4503,6 +4508,33 @@ export interface paths {
          *             ce jeton.
          */
         get: operations["verify_report_verify__verify_token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weasis/configuration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Configuration de Weasis
+         * @description Configuration que Weasis lit à son démarrage, quand IMAFRIK l'ouvre.
+         *
+         *     Le profil d'IMAFRIK et les sorties coupées (:data:`LOCKDOWN`). Elle est
+         *     publique : elle ne contient aucune donnée, et Weasis la lit avant
+         *     toute authentification. Voir l'en-tête du module.
+         *
+         *     Returns:
+         *         La configuration, au format de ``conf/base.json``.
+         */
+        get: operations["weasis_configuration_weasis_configuration_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -9490,6 +9522,18 @@ export interface components {
             expires_in: number;
         };
         /**
+         * WeasisConfiguration
+         * @description Configuration étendue de Weasis ouvert depuis IMAFRIK.
+         *
+         *     Attributes:
+         *         weasis_preferences: Propriétés, sous le nom qu'attend Weasis
+         *             (``weasisPreferences``).
+         */
+        WeasisConfiguration: {
+            /** Weasispreferences */
+            weasisPreferences: components["schemas"]["WeasisPreference"][];
+        };
+        /**
          * WeasisLaunch
          * @description Adresse d'ouverture d'une étude dans Weasis.
          *
@@ -9504,6 +9548,30 @@ export interface components {
             expires_in: number;
             /** Launch Url */
             launch_url: string;
+        };
+        /**
+         * WeasisPreference
+         * @description Une propriété de la configuration de Weasis (format de ``conf/base.json``).
+         *
+         *     Attributes:
+         *         code: Nom de la propriété.
+         *         value: Valeur, en texte.
+         *         type: ``A`` : relue à chaque démarrage ; ``AP`` : relue à chaque
+         *             démarrage, et seulement depuis un fichier de configuration.
+         *         category: Rubrique de la documentation de Weasis.
+         *         description: Ce que la valeur change.
+         */
+        WeasisPreference: {
+            /** Category */
+            category: string;
+            /** Code */
+            code: string;
+            /** Description */
+            description: string;
+            /** Type */
+            type: string;
+            /** Value */
+            value: string;
         };
     };
     responses: never;
@@ -15428,6 +15496,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    weasis_configuration_weasis_configuration_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeasisConfiguration"];
                 };
             };
         };
