@@ -642,6 +642,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics/{clinic_id}/view/studies/facets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Examens d'une clinique comptés par dimension, vus de son responsable
+         * @description Les comptes par dimension du responsable (``GET /studies/facets``).
+         *
+         *     Les radiologues sont nommés selon les règles du responsable
+         *     (:data:`app.routers.studies.CLINIC_VIEW_FROM`) : celui qu'il ne peut
+         *     pas nommer n'est pas proposé à l'équipe qui consulte sa clinique. La
+         *     clinique est celle de l'adresse : la compter n'aurait pas de sens.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         */
+        get: operations["count_by_facet_admin_clinics__clinic_id__view_studies_facets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/clinics/{clinic_id}/view/studies/modality-counts": {
         parameters: {
             query?: never;
@@ -3574,6 +3602,9 @@ export interface paths {
          *         modality_group: Restreint à un groupe de modalités.
          *         clinic_id: Restreint à une clinique (dans le périmètre de
          *             l'appelant).
+         *         radiologist_id: Restreint aux examens d'un radiologue (signataire,
+         *             sinon attributaire), dans le périmètre de l'appelant.
+         *         received_after: Restreint aux examens reçus depuis cet instant.
          *         mine: Restreint aux examens que l'appelant a pris en charge.
          *         order: Ordre de tri, voir :data:`StudyOrder`.
          *         limit: Nombre maximal d'examens renvoyés.
@@ -3615,6 +3646,33 @@ export interface paths {
          *     sienne.
          */
         get: operations["count_by_clinic_studies_clinic_counts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/studies/facets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Examens visibles, comptés par dimension
+         * @description Combien d'examens chaque option de chaque filtre retiendrait.
+         *
+         *     Les mêmes filtres que ``GET /studies``, dans le même périmètre (RLS,
+         *     liste de travail d'un radiologue). Pour chaque dimension demandée
+         *     (``?facet=modality&facet=status``), chaque valeur est comptée avec
+         *     tous les autres filtres, le sien mis à part : le nombre affiché sur
+         *     une option est le total de la liste filtrée sur elle. Un appel pour
+         *     toute la barre de filtres d'un écran, au lieu d'un par dimension.
+         */
+        get: operations["count_by_facet_studies_facets_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4527,7 +4585,7 @@ export interface paths {
          * Configuration de Weasis
          * @description Configuration que Weasis lit à son démarrage, quand IMAFRIK l'ouvre.
          *
-         *     Le profil d'IMAFRIK et les sorties coupées (:data:`LOCKDOWN`). Elle est
+         *     Le profil d'IMAFRIK, les entrées et sorties coupées (:data:`LOCKDOWN`). Elle est
          *     publique : elle ne contient aucune donnée, et Weasis la lit avant
          *     toute authentification. Voir l'en-tête du module.
          *
@@ -6370,6 +6428,26 @@ export interface components {
             status: "awaiting_approval" | "pending" | "active" | "suspended" | "rejected" | "revoked";
             /** Tailscale Ip */
             tailscale_ip: string | null;
+        };
+        /**
+         * FacetCount
+         * @description Une valeur d'une dimension, et ses examens.
+         *
+         *     Attributes:
+         *         value: La valeur, telle que le filtre de la liste la reçoit
+         *             (``ct``, l'identifiant d'une clinique ou d'un radiologue,
+         *             ``reported``, ``urgent``).
+         *         label: Son nom, pour une valeur tirée des données (clinique,
+         *             radiologue) ; ``None`` pour une valeur fixe, que l'écran nomme.
+         *         count: Examens de la liste filtrée sur cette valeur.
+         */
+        FacetCount: {
+            /** Count */
+            count: number;
+            /** Label */
+            label?: string | null;
+            /** Value */
+            value: string;
         };
         /**
          * FindingDecision
@@ -8757,6 +8835,31 @@ export interface components {
             study_id: string;
         };
         /**
+         * StudyFacets
+         * @description Combien d'examens chaque valeur de chaque dimension retient.
+         *
+         *     Pour chaque dimension demandée, les examens comptés avec **tous les
+         *     autres filtres** de la liste, le sien mis à part : choisir le scanner
+         *     ne fait pas disparaître l'IRM, et le nombre d'une option est le total
+         *     de la liste filtrée sur elle. Dans le périmètre de l'appelant.
+         *
+         *     Attributes:
+         *         total: Examens de la liste, tous filtres appliqués.
+         *         facets: Pour chaque dimension demandée, ses valeurs : toutes pour
+         *             une dimension fixe (groupe, statut, priorité) et pour les
+         *             cliniques que l'appelant voit, zéro compris ; pour le
+         *             radiologue, ceux qui ont des examens et dont l'appelant voit
+         *             le nom.
+         */
+        StudyFacets: {
+            /** Facets */
+            facets: {
+                [key: string]: components["schemas"]["FacetCount"][];
+            };
+            /** Total */
+            total: number;
+        };
+        /**
          * StudyModalityCounts
          * @description Combien d'examens de chaque groupe de modalités une liste montrerait.
          *
@@ -10594,8 +10697,12 @@ export interface operations {
                 q?: string | null;
                 /** @description Seulement les examens de ce groupe de modalités */
                 modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
-                /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance */
-                order?: "recent" | "received" | "deadline";
+                /** @description Seulement les examens de ce radiologue : signataire du compte-rendu, ou à défaut celui à qui l'examen est attribué */
+                radiologist_id?: string | null;
+                /** @description Seulement les examens reçus à partir de cet instant (ISO 8601) */
+                received_after?: string | null;
+                /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance ; signed : derniers comptes-rendus signés */
+                order?: "recent" | "received" | "deadline" | "signed";
                 limit?: number;
                 /** @description Position après laquelle reprendre : next_cursor de la page précédente */
                 cursor?: string | null;
@@ -10630,6 +10737,54 @@ export interface operations {
             };
         };
     };
+    count_by_facet_admin_clinics__clinic_id__view_studies_facets_get: {
+        parameters: {
+            query?: {
+                /** @description Dimensions à compter ; plusieurs s'additionnent */
+                facet?: ("modality" | "clinic" | "status" | "priority" | "radiologist")[];
+                /** @description Un ou plusieurs statuts ; vide = tous */
+                status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
+                /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
+                q?: string | null;
+                /** @description Seulement les examens de ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+                /** @description Seulement les examens de ce radiologue : signataire du compte-rendu, ou à défaut celui à qui l'examen est attribué */
+                radiologist_id?: string | null;
+                /** @description Seulement les examens reçus à partir de cet instant (ISO 8601) */
+                received_after?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyFacets"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     count_by_modality_admin_clinics__clinic_id__view_studies_modality_counts_get: {
         parameters: {
             query?: {
@@ -10639,6 +10794,10 @@ export interface operations {
                 priority?: ("routine" | "urgent") | null;
                 /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
                 q?: string | null;
+                /** @description Seulement les examens de ce radiologue : signataire du compte-rendu, ou à défaut celui à qui l'examen est attribué */
+                radiologist_id?: string | null;
+                /** @description Seulement les examens reçus à partir de cet instant (ISO 8601) */
+                received_after?: string | null;
             };
             header?: {
                 authorization?: string | null;
@@ -14447,10 +14606,14 @@ export interface operations {
                 modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
                 /** @description Seulement les examens de cette clinique */
                 clinic_id?: string | null;
+                /** @description Seulement les examens de ce radiologue : signataire du compte-rendu, ou à défaut celui à qui l'examen est attribué */
+                radiologist_id?: string | null;
+                /** @description Seulement les examens reçus à partir de cet instant (ISO 8601) */
+                received_after?: string | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
-                /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance */
-                order?: "recent" | "received" | "deadline";
+                /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance ; signed : derniers comptes-rendus signés */
+                order?: "recent" | "received" | "deadline" | "signed";
                 limit?: number;
                 /** @description Position après laquelle reprendre : next_cursor de la page précédente */
                 cursor?: string | null;
@@ -14494,6 +14657,10 @@ export interface operations {
                 q?: string | null;
                 /** @description Seulement les examens de ce groupe de modalités */
                 modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+                /** @description Seulement les examens de ce radiologue : signataire du compte-rendu, ou à défaut celui à qui l'examen est attribué */
+                radiologist_id?: string | null;
+                /** @description Seulement les examens reçus à partir de cet instant (ISO 8601) */
+                received_after?: string | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
             };
@@ -14525,6 +14692,56 @@ export interface operations {
             };
         };
     };
+    count_by_facet_studies_facets_get: {
+        parameters: {
+            query?: {
+                /** @description Dimensions à compter ; plusieurs s'additionnent */
+                facet?: ("modality" | "clinic" | "status" | "priority" | "radiologist")[];
+                /** @description Un ou plusieurs statuts ; vide = tous */
+                status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
+                /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
+                q?: string | null;
+                /** @description Seulement les examens de ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+                /** @description Seulement les examens de cette clinique */
+                clinic_id?: string | null;
+                /** @description Seulement les examens de ce radiologue : signataire du compte-rendu, ou à défaut celui à qui l'examen est attribué */
+                radiologist_id?: string | null;
+                /** @description Seulement les examens reçus à partir de cet instant (ISO 8601) */
+                received_after?: string | null;
+                /** @description Seulement les examens pris en charge par l'appelant */
+                mine?: boolean;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyFacets"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     count_by_modality_studies_modality_counts_get: {
         parameters: {
             query?: {
@@ -14536,6 +14753,10 @@ export interface operations {
                 q?: string | null;
                 /** @description Seulement les examens de cette clinique */
                 clinic_id?: string | null;
+                /** @description Seulement les examens de ce radiologue : signataire du compte-rendu, ou à défaut celui à qui l'examen est attribué */
+                radiologist_id?: string | null;
+                /** @description Seulement les examens reçus à partir de cet instant (ISO 8601) */
+                received_after?: string | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
             };

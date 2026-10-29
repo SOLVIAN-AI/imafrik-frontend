@@ -67,8 +67,24 @@ describe("isWeasisLaunchUrl", () => {
     }
   });
 
+  it("exige aussi les coupures de l’import", () => {
+    for (const key of [
+      "weasis.import.dicom",
+      "weasis.import.images",
+      "weasis.all.importtoolbar.enable",
+      "org.weasis.acquire.explorer.MediaImporterFactory",
+    ]) {
+      expect(WEASIS_LOCKDOWN, key).toContain(key);
+      const props = properties().filter((prop) => prop !== `${key} false`);
+      expect(
+        isWeasisLaunchUrl(launch(commands({ props })), API, STUDY),
+        key,
+      ).toBe(false);
+    }
+  });
+
   it("n’accepte en plus que des propriétés qui coupent davantage", () => {
-    const more = [...properties(), "weasis.import.dicom false"];
+    const more = [...properties(), "weasis.contextmenu.close false"];
     expect(
       isWeasisLaunchUrl(launch(commands({ props: more })), API, STUDY),
     ).toBe(true);
