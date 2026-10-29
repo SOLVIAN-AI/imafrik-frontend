@@ -33,6 +33,8 @@ export const LIST_SEARCH_SCOPES = [
   "vue-clinique-comptes-rendus",
   // Comptes de la plateforme : noms et adresses électroniques.
   "admin-comptes",
+  // Organisations : nom ou ville.
+  "admin-organisations",
 ] as const;
 
 /**

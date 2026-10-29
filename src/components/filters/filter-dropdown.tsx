@@ -47,7 +47,16 @@ const POPUP_REM = 22;
  * largeur d'un téléphone et s'aligne sur le bord libre.
  *
  * @param label       Nom du choix (« Clinique »), visible sur le bouton.
- * @param allLabel    Option qui retire le filtre (« Toutes les cliniques »).
+ * @param allLabel    Option qui retire le filtre (« Toutes les cliniques ») ;
+ *                    sans elle, une liste où l'on choisit toujours une
+ *                    option (la clinique consultée).
+ * @param placeholder Texte du bouton tant que rien n'est choisi, sans
+ *                    option par défaut.
+ * @param navigate    Adresse où mène une option : la liste choisit une
+ *                    page plutôt qu'un filtre.
+ * @param fit         `trigger` : la liste ouverte prend la largeur de son
+ *                    bouton, dans un conteneur étroit (la navigation) ;
+ *                    sinon celle d'un nom long, bornée par la fenêtre.
  * @param options     Options proposées, dans n'importe quel ordre.
  * @param total       Lignes de toutes les options, quand l'écran compte.
  * @param active      Option retenue ; `null` pour toutes.
@@ -64,6 +73,9 @@ const POPUP_REM = 22;
 export function FilterDropdown({
   label,
   allLabel,
+  placeholder,
+  navigate,
+  fit,
   options,
   total,
   active,
@@ -78,7 +90,10 @@ export function FilterDropdown({
   className,
 }: {
   label: string;
-  allLabel: string;
+  allLabel?: string;
+  placeholder?: string;
+  navigate?: (value: string) => string;
+  fit?: "trigger";
   options: readonly ChoiceOption[];
   total?: number;
   active: string | null;
@@ -113,13 +128,16 @@ export function FilterDropdown({
     [options, order, locale],
   );
   const searchable = searchText !== undefined && options.length >= SEARCH_FROM;
+  const all: ChoiceOption[] =
+    allLabel === undefined ? [] : [{ id: "", name: allLabel, count: total }];
   const shownOptions: ChoiceOption[] = [
-    { id: "", name: allLabel, count: total },
+    ...all,
     ...matchChoices(sorted, searchable ? query : ""),
   ];
-  const matches = shownOptions.length - 1;
+  const matches = shownOptions.length - all.length;
   const selected = options.find((option) => option.id === active) ?? null;
-  const shown = selected ?? { id: "", name: allLabel, count: total };
+  const shown = selected ??
+    all[0] ?? { id: "", name: placeholder ?? "", count: undefined };
   const optionId = (index: number) => `${id}-option-${index}`;
   const counts = (count: number | undefined) =>
     count === undefined ? null : (
@@ -141,9 +159,7 @@ export function FilterDropdown({
     setActiveIndex(
       Math.max(
         0,
-        [{ id: "" }, ...sorted].findIndex(
-          (option) => option.id === (active ?? ""),
-        ),
+        [...all, ...sorted].findIndex((option) => option.id === (active ?? "")),
       ),
     );
     setOpen(true);
@@ -159,6 +175,10 @@ export function FilterDropdown({
     close(true);
     const next = option.id || null;
     if (next === active) return;
+    if (navigate && next) {
+      startTransition(() => router.push(navigate(next)));
+      return;
+    }
     startTransition(() =>
       router.replace(
         paramHref(
@@ -324,9 +344,17 @@ export function FilterDropdown({
             "absolute top-full z-40 mt-1 flex flex-col rounded-lg p-1",
             "border border-border-default bg-surface-overlay shadow-overlay",
             "animate-[fade-in_100ms_var(--ease-out-quart)]",
-            alignEnd ? "right-0" : "left-0",
+            fit === "trigger"
+              ? "right-0 left-0"
+              : alignEnd
+                ? "right-0"
+                : "left-0",
           )}
-          style={{ width: `min(${POPUP_REM}rem, calc(100vw - 2rem))` }}
+          style={
+            fit === "trigger"
+              ? undefined
+              : { width: `min(${POPUP_REM}rem, calc(100vw - 2rem))` }
+          }
         >
           {searchable && (
             <div className="relative mb-1">
@@ -349,7 +377,8 @@ export function FilterDropdown({
                 value={query}
                 onChange={(event) => {
                   setQuery(event.target.value);
-                  setActiveIndex(event.target.value.trim() ? 1 : 0);
+                  // La première trouvée, après l'option par défaut s'il y en a.
+                  setActiveIndex(event.target.value.trim() ? all.length : 0);
                 }}
                 onKeyDown={onListKeyDown}
                 className="h-8 w-full rounded-md border border-border-subtle bg-surface-sunken pr-2 pl-8 text-xs text-primary placeholder:text-tertiary focus-visible:border-accent focus-visible:outline-none"
@@ -382,7 +411,7 @@ export function FilterDropdown({
                   className={cn(
                     "flex min-h-9 cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs",
                     highlighted && "bg-surface-hover",
-                    index === 0 && "font-medium",
+                    index === 0 && all.length > 0 && "font-medium",
                     option.count === 0 && !isSelected
                       ? "text-tertiary"
                       : "text-primary",
@@ -395,7 +424,14 @@ export function FilterDropdown({
                     )}
                     aria-hidden
                   />
-                  <span className="min-w-0 flex-1 truncate">{option.name}</span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate">{option.name}</span>
+                    {option.detail && (
+                      <span className="truncate text-2xs text-tertiary">
+                        {option.detail}
+                      </span>
+                    )}
+                  </span>
                   {option.count !== undefined && (
                     <span className="shrink-0 text-2xs text-tertiary tabular-nums">
                       {counts(option.count)}

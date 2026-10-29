@@ -16,6 +16,19 @@ export const filters = {
       : count > 1
         ? `${count} cliniques`
         : "1 clinique",
+  kind: "Nature",
+  allKinds: "Toutes les natures",
+  kinds: { clinic: "Cliniques", radiology_group: "Groupes de radiologie" },
+  standing: "Statut",
+  allStandings: "Tous les statuts",
+  standings: { active: "Actives", suspended: "Suspendues" },
+  link: "Raccordement",
+  allLinks: "Tous les raccordements",
+  links: {
+    connected: "PACS raccordé",
+    not_connected: "Non raccordée",
+    silent: "Silencieuse depuis 24 h",
+  },
   organization: "Organisation",
   allOrganizations: "Toutes les organisations",
   organizationSearch: "Rechercher une organisation",
@@ -74,12 +87,15 @@ export const filters = {
       count > 1 ? `${count} examens` : `${count} examen`,
     reports: (count: number) =>
       count > 1 ? `${count} comptes-rendus` : `${count} compte-rendu`,
+    organizations: (count: number) =>
+      count > 1 ? `${count} organisations` : `${count} organisation`,
   },
   /** Liste vide à cause des filtres. */
   empty: {
     studies: "Aucun examen ne correspond à ces filtres",
     reports: "Aucun compte-rendu ne correspond à ces filtres",
     accounts: "Aucun compte ne correspond à ces filtres",
+    organizations: "Aucune organisation ne correspond à ces filtres",
     detail: (filters: string) =>
       `Filtres retenus : ${filters}. Effacez-en un pour élargir la liste.`,
   },

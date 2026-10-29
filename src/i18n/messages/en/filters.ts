@@ -10,6 +10,19 @@ export const filters: AppMessages["filters"] = {
   clinicNoMatch: "No clinic matches.",
   clinicMatches: (count: number) =>
     count === 0 ? "No clinic" : count === 1 ? "1 clinic" : `${count} clinics`,
+  kind: "Type",
+  allKinds: "All types",
+  kinds: { clinic: "Clinics", radiology_group: "Radiology groups" },
+  standing: "Standing",
+  allStandings: "All standings",
+  standings: { active: "Active", suspended: "Suspended" },
+  link: "Connection",
+  allLinks: "All connections",
+  links: {
+    connected: "PACS connected",
+    not_connected: "Not connected",
+    silent: "Silent for 24 h",
+  },
   organization: "Organisation",
   allOrganizations: "All organisations",
   organizationSearch: "Search for an organisation",
@@ -64,11 +77,14 @@ export const filters: AppMessages["filters"] = {
     studies: (count: number) =>
       count === 1 ? "1 examination" : `${count} examinations`,
     reports: (count: number) => (count === 1 ? "1 report" : `${count} reports`),
+    organizations: (count: number) =>
+      count === 1 ? "1 organisation" : `${count} organisations`,
   },
   empty: {
     studies: "No examination matches these filters",
     reports: "No report matches these filters",
     accounts: "No account matches these filters",
+    organizations: "No organisation matches these filters",
     detail: (filters: string) =>
       `Filters applied: ${filters}. Clear one to widen the list.`,
   },

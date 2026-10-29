@@ -40,6 +40,8 @@ export const LIST_FILTERS = {
   // « Comptes » : l'état du compte est filtré par le service, le reste sur
   // la page (`lib/filters/facets.ts`).
   comptes: ["organization", "role", "modality", "account", "mfa"],
+  // « Organisations » : filtrées et comptées sur la page.
+  organisations: ["kind", "standing", "link"],
   "comptes-rendus-equipe": [
     ...NETWORK,
     "radiologist",

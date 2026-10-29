@@ -67,7 +67,7 @@ test.describe("l’équipe IMAFRIK", () => {
     await expect(nav.locator(`a[href^="/admin/vue-clinique/"]`)).toHaveCount(0);
 
     await choix.click();
-    await page.getByRole("menuitem", { name: /Clinique Saint-Joseph/ }).click();
+    await page.getByRole("option", { name: /Clinique Saint-Joseph/ }).click();
     await expect(page).toHaveURL(`${VUE}/tableau-de-bord`);
 
     // Le bandeau, permanent : la clinique consultée et le retour.
@@ -215,7 +215,7 @@ test.describe("l’équipe IMAFRIK", () => {
     await page.goto(`${VUE}/equipe`);
     const nav = page.getByRole("navigation", { name: "Navigation principale" });
     await nav.getByRole("button", { name: /Clinique Saint-Joseph/ }).click();
-    await page.getByRole("menuitem", { name: /Polyclinique de Kara/ }).click();
+    await page.getByRole("option", { name: /Polyclinique de Kara/ }).click();
     await expect(page).toHaveURL("/admin/vue-clinique/org-pka/equipe");
     await expect(
       page.getByText("Consultation de Polyclinique de Kara"),
@@ -228,7 +228,7 @@ test.describe("l’équipe IMAFRIK", () => {
     // La fiche d'un examen n'existe que dans sa clinique : on revient à la liste.
     await page.goto(`${VUE}/examens/1`);
     await nav.getByRole("button", { name: /Clinique Saint-Joseph/ }).click();
-    await page.getByRole("menuitem", { name: /Polyclinique de Kara/ }).click();
+    await page.getByRole("option", { name: /Polyclinique de Kara/ }).click();
     await expect(page).toHaveURL("/admin/vue-clinique/org-pka/examens");
   });
 

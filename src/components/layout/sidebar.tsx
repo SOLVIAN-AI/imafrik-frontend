@@ -36,6 +36,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { BrandLockup } from "@/components/brand/brand";
+import { FilterDropdown } from "@/components/filters/filter-dropdown";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -314,7 +315,13 @@ function UserCard() {
  * clinique mène à l'équipe d'une autre) ; une fiche propre à la première
  * (un examen, un compte-rendu) ramène à sa liste.
  *
- * @param clinics  Cliniques proposées, par nom.
+ * La liste déroulante commune des filtres (`FilterDropdown`), en mode
+ * « aller à » : cliniques par ordre alphabétique de la langue, ville en
+ * seconde ligne, recherche dès huit cliniques, clavier complet. Jamais
+ * préchargée : ouvrir la vue d'une clinique se trace au journal, ce que
+ * le simple survol d'une liste ne doit pas faire.
+ *
+ * @param clinics  Cliniques proposées.
  * @param current  Clinique consultée, lue dans l'adresse ; `null` hors de la vue.
  * @param pathname Adresse courante.
  */
@@ -327,76 +334,35 @@ function ClinicPicker({
   current: string | null;
   pathname: string;
 }) {
-  const t = useMessages().clinicView.picker;
-  const selected = clinics.find((clinic) => clinic.id === current);
-  const label = current ? (selected?.name ?? t.label) : t.choose;
-
+  const t = useMessages();
+  const text = t.clinicView.picker;
+  if (clinics.length === 0)
+    return <p className="mb-1 px-2.5 text-xs text-tertiary">{text.empty}</p>;
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          data-testid="clinic-picker"
-          className={cn(
-            "group mb-1 flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5",
-            "border border-border-subtle text-sm transition-colors duration-100",
-            "hover:border-border-default hover:bg-surface-hover",
-            "data-[state=open]:border-border-default data-[state=open]:bg-surface-hover",
-            current ? "font-medium text-primary" : "text-secondary",
-          )}
-        >
-          <Hospital className="size-4 shrink-0 text-accent" aria-hidden />
-          {/* Le nom accessible commence par le texte visible (WCAG 2.5.3). */}
-          <span className="min-w-0 flex-1 truncate text-left">{label}</span>
-          <span className="sr-only">{t.change}</span>
-          <ChevronsUpDown
-            className="size-3.5 shrink-0 text-tertiary transition-colors group-hover:text-secondary"
-            aria-hidden
-          />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
-        <DropdownMenuLabel>{t.label}</DropdownMenuLabel>
-        {clinics.length === 0 ? (
-          <DropdownMenuItem disabled>{t.empty}</DropdownMenuItem>
-        ) : (
-          clinics.map((clinic) => (
-            <DropdownMenuItem key={clinic.id} asChild>
-              {/* Jamais préchargé : ouvrir la vue d'une clinique se trace au
-                  journal, ce que le simple survol d'une liste ne doit pas
-                  faire. Un lien, et non un clic programmé : le tiroir du
-                  téléphone se referme sur un lien suivi. */}
-              <Link
-                href={clinicViewPath(clinic.id, clinicScreenOf(pathname))}
-                prefetch={false}
-                aria-current={clinic.id === current ? "page" : undefined}
-              >
-                <Hospital
-                  className="size-3.5 shrink-0 text-tertiary"
-                  aria-hidden
-                />
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-xs font-medium">
-                    {clinic.name}
-                  </span>
-                  {clinic.city && (
-                    <span className="truncate text-2xs text-tertiary">
-                      {clinic.city}
-                    </span>
-                  )}
-                </span>
-                {clinic.id === current && (
-                  <Check
-                    className="size-3.5 shrink-0 text-accent"
-                    aria-hidden
-                  />
-                )}
-              </Link>
-            </DropdownMenuItem>
-          ))
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div data-testid="clinic-picker" className="mb-1">
+      <FilterDropdown
+        label={text.label}
+        placeholder={text.choose}
+        options={clinics.map((clinic) => ({
+          id: clinic.id,
+          name: clinic.name,
+          detail: clinic.city ?? undefined,
+        }))}
+        active={current}
+        param="clinique"
+        navigate={(id) => clinicViewPath(id, clinicScreenOf(pathname))}
+        // La navigation est étroite : la liste ouverte n'en déborde pas.
+        fit="trigger"
+        icon={Hospital}
+        searchText={{
+          search: t.filters.clinicSearch,
+          noMatch: t.filters.clinicNoMatch,
+          matches: t.filters.clinicMatches,
+        }}
+        countPhrase={t.filters.nouns.studies}
+        className="w-full [&>button]:w-full"
+      />
+    </div>
   );
 }
 

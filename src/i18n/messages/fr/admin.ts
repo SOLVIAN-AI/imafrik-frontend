@@ -292,6 +292,7 @@ export const admin = {
   },
 
   organisations: {
+    searchPlaceholder: "Nom ou ville…",
     clinicCount: (count: number) =>
       `${count} ${count > 1 ? "cliniques" : "clinique"}`,
     groupCount: (count: number) =>
