@@ -47,7 +47,7 @@ export const guides: typeof fr = {
   weasis: {
     title: "Read an examination in Weasis",
     intro:
-      "Weasis, the free DICOM viewer from Geneva University Hospitals, installs on the computer and opens from the reading screen, alongside the viewer. It receives this examination only, with the same access as the viewer, without export or sending, and keeps its images on the computer until it is closed.",
+      "Weasis, the free DICOM viewer from Geneva University Hospitals, installs on the computer and opens from the reading screen, alongside the viewer. It receives this examination only, with the same access as the viewer, without import, export or sending, and keeps its images on the computer until it is closed.",
     sections: [
       {
         title: "Install Weasis, once per computer",
@@ -63,6 +63,8 @@ export const guides: typeof fr = {
           "On the reading screen, below the images, click “Open in Weasis” (the screen icon, on a narrow screen).",
           "Accept the browser’s request to open Weasis; you can allow it permanently for this site.",
           "Weasis opens in an IMAFRIK profile, separate from your usual Weasis: it closes the examination it was showing, opens this one and downloads its images. The link is valid for five minutes and works once.",
+          "Weasis opened from IMAFRIK imports nothing, no files, CDs or other images: drop no files or folders into it, so that another patient’s images are never mixed with the examination you read.",
+          "Weasis only receives images: sound, documents (PDF), video and structured reports are viewed in the IMAFRIK viewer, and an examination without images does not open in Weasis.",
           "If nothing opens, the help appears: Weasis is probably not installed on this computer.",
         ],
       },
@@ -79,7 +81,7 @@ export const guides: typeof fr = {
         steps: [
           "Open Weasis on a computer with your own user session, used by you alone, and an encrypted disk.",
           "One examination at a time, and Weasis closed at the end of each read.",
-          "No copies: no screenshots or photos of the screen, no printing, no copying of the temporary folder where Weasis keeps the images. Weasis opened from IMAFRIK offers no export or sending anyway.",
+          "No copies: no screenshots or photos of the screen, no printing, no copying of the temporary folder where Weasis keeps the images. Weasis opened from IMAFRIK offers no import, export or sending anyway.",
           "The access handed to Weasis is yours, for this examination: do not copy it or give it to any other software.",
           "Every opening is logged in your name and may be reviewed; a breach suspends your access (Article 9 of the agreement).",
         ],
