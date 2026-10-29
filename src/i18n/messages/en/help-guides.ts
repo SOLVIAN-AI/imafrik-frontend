@@ -71,8 +71,17 @@ export const guides: typeof fr = {
         steps: [
           "Write and sign the report in IMAFRIK: Weasis only displays the images.",
           "Close Weasis: it then deletes the downloaded images. After a crash, it deletes them when it next starts.",
-          "Weasis opened from IMAFRIK offers no export, no sending and no saving of images. Make no copies (screenshot, printing), and only use it on a computer with your own user session and an encrypted disk.",
           "You lose access to the examination, or you sign out: Weasis can no longer download any of its images within seconds.",
+        ],
+      },
+      {
+        title: "What the practice agreement requires",
+        steps: [
+          "Open Weasis on a computer with your own user session, used by you alone, and an encrypted disk.",
+          "One examination at a time, and Weasis closed at the end of each read.",
+          "No copies: no screenshots or photos of the screen, no printing, no copying of the temporary folder where Weasis keeps the images. Weasis opened from IMAFRIK offers no export or sending anyway.",
+          "The access handed to Weasis is yours, for this examination: do not copy it or give it to any other software.",
+          "Every opening is logged in your name and may be reviewed; a breach suspends your access (Article 9 of the agreement).",
         ],
       },
     ],
