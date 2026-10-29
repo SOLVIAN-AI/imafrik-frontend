@@ -23,6 +23,7 @@
 /** Listes dont la recherche est tenue hors de l'adresse. */
 export const LIST_SEARCH_SCOPES = [
   "worklist",
+  "mes-examens",
   "examens",
   "admin-examens",
   "comptes-rendus",

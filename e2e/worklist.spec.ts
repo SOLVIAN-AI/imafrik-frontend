@@ -80,23 +80,25 @@ test("un filtre est porté par l'adresse et survit au rechargement", async ({
 }) => {
   await page.goto("/worklist");
   await waitForHydration(page);
-  const modalites = page.getByRole("navigation", { name: "Modalités" });
-  const ct = modalites.getByRole("link", { name: /^CT/ });
-  await expect(ct).not.toHaveAttribute("aria-current");
+  // La barre de filtres commune : les modalités par groupe, comme partout.
+  const modalites = page.getByRole("group", { name: "Modalité" });
+  const scanner = modalites.getByRole("link", { name: /^Scanner/ });
+  await expect(scanner).not.toHaveAttribute("aria-current");
 
-  await ct.click();
-  await expect(page).toHaveURL(/[?&]modalite=CT(&|$)/);
-  await expect(ct).toHaveAttribute("aria-current", "true");
+  await scanner.click();
+  await expect(page).toHaveURL(/[?&]modalite=scanner(&|$)/);
+  await expect(scanner).toHaveAttribute("aria-current", "true");
   const filtrees = await rowLinks(page).count();
   expect(filtrees).toBeGreaterThan(0);
-  // Chaque ligne restante est un scanner.
+  // Chaque ligne restante est un scanner, et la puce le compte.
   await expect(
     page.locator("table tbody tr:has(a[data-row-link]) td:nth-child(3)"),
   ).toHaveText(Array(filtrees).fill(/^CT/));
+  await expect(scanner).toContainText(String(filtrees));
 
   await page.reload();
-  await expect(page).toHaveURL(/[?&]modalite=CT(&|$)/);
-  await expect(ct).toHaveAttribute("aria-current", "true");
+  await expect(page).toHaveURL(/[?&]modalite=scanner(&|$)/);
+  await expect(scanner).toHaveAttribute("aria-current", "true");
   await expect(rowLinks(page)).toHaveCount(filtrees);
 
   // La clinique s'ajoute au filtre de modalité, depuis sa liste.
@@ -107,12 +109,56 @@ test("un filtre est porté par l'adresse et survit au rechargement", async ({
   const nom = (await premiere.innerText()).split("\n")[0].trim();
   await premiere.click();
   await expect(page).toHaveURL(/[?&]clinique=[^&]+/);
-  await expect(page).toHaveURL(/[?&]modalite=CT(&|$)/);
+  await expect(page).toHaveURL(/[?&]modalite=scanner(&|$)/);
   await expect(clinique).toContainText(nom);
 
-  await page.getByRole("link", { name: "Retirer les filtres" }).click();
+  await page.getByRole("link", { name: "Effacer les filtres" }).click();
   await expect(page).toHaveURL("/worklist");
-  await expect(ct).not.toHaveAttribute("aria-current");
+  await expect(scanner).not.toHaveAttribute("aria-current");
+});
+
+/**
+ * L'ancienne file écrivait des codes DICOM (`?modalite=CT`) : un favori
+ * ouvre le groupe de son premier code. Un mot qui ressemblait à un code
+ * (`?modalite=SCANNER`) vidait la file ; il est ignoré.
+ */
+test("un ancien lien ouvre son groupe, un mot inconnu ne vide plus la file", async ({
+  page,
+}) => {
+  await page.goto("/worklist");
+  const toutes = await rowLinks(page).count();
+  expect(toutes).toBeGreaterThan(0);
+
+  await page.goto("/worklist?modalite=CT");
+  await expect(
+    page
+      .getByRole("group", { name: "Modalité" })
+      .getByRole("link", { name: /^Scanner/ }),
+  ).toHaveAttribute("aria-current", "true");
+
+  await page.goto("/worklist?modalite=SCANNER");
+  await expect(rowLinks(page)).toHaveCount(toutes);
+});
+
+/**
+ * Les filtres passent par le service, qui compte chaque option sur la file
+ * entière : les urgences seules, puis toutes.
+ */
+test("les urgences se filtrent depuis la barre", async ({ page }) => {
+  await page.goto("/worklist");
+  const urgences = page
+    .getByRole("group", { name: "Filtres" })
+    .getByRole("link", { name: "Urgences", exact: true });
+  await urgences.click();
+  await expect(page).toHaveURL(/[?&]urgent=1(&|$)/);
+  await expect(urgences).toHaveAttribute("aria-current", "true");
+  const lignes = page.locator("main table tbody tr:has(a[data-row-link])");
+  const nombre = await lignes.count();
+  expect(nombre).toBeGreaterThan(0);
+  for (const ligne of await lignes.all())
+    await expect(ligne.getByText("Urgent", { exact: true })).toBeVisible();
+  await urgences.click();
+  await expect(page).toHaveURL("/worklist");
 });
 
 test("la file se relit au plus une fois toutes les trente secondes", async ({
@@ -199,4 +245,53 @@ test("le titre de l’onglet compte les urgences à prendre", async ({ page }) =
   await page.reload();
   await waitForHydration(page);
   await expect(page).toHaveTitle(/^\(2\) À lire/);
+});
+
+/**
+ * « Mes examens » se cherche et se filtre comme « À lire » : recherche
+ * hors de l'adresse, barre commune comptée par le service.
+ */
+test("« Mes examens » se cherche et se filtre comme la file", async ({
+  page,
+  checkA11y,
+}) => {
+  await page.goto("/mes-examens");
+  const lignes = page.locator("main table tbody tr:has(a[data-row-link])");
+  const toutes = await lignes.count();
+  expect(toutes).toBeGreaterThan(0);
+  const modalites = page.getByRole("group", { name: "Modalité" });
+  await expect(
+    modalites.getByRole("link", { name: /^Toutes les modalités/ }),
+  ).toContainText(String(toutes));
+  await checkA11y();
+
+  // La première modalité présente : la liste se réduit à ses examens,
+  // autant que la puce en annonçait.
+  const puces = modalites.getByRole("link");
+  let choisie = -1;
+  let attendu = 0;
+  for (let rang = 1; rang < (await puces.count()) && choisie < 0; rang += 1) {
+    // Le nombre affiché, pas sa forme en toutes lettres (« , 3 examens »).
+    attendu = Number(
+      await puces.nth(rang).locator("span[aria-hidden]").innerText(),
+    );
+    if (attendu > 0) choisie = rang;
+  }
+  expect(choisie).toBeGreaterThan(0);
+  await puces.nth(choisie).click();
+  await expect(page).toHaveURL(/[?&]modalite=/);
+  await expect(puces.nth(choisie)).toHaveAttribute("aria-current", "true");
+  await expect(lignes).toHaveCount(attendu);
+
+  // La recherche ne passe pas par l'adresse.
+  const champ = page.getByRole("searchbox", {
+    name: "Rechercher un patient ou une modalité",
+  });
+  await champ.fill("zzzz");
+  await champ.press("Enter");
+  await expect(page.getByText("Aucun résultat")).toBeVisible();
+  expect(page.url()).not.toContain("zzzz");
+  await champ.fill("");
+  await champ.press("Enter");
+  await expect(lignes.first()).toBeVisible();
 });

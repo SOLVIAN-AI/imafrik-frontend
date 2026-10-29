@@ -16,6 +16,10 @@ export const NETWORK = ["clinic"] as const satisfies readonly DimensionKey[];
  */
 export const LIST_FILTERS = {
   "admin-examens": [...NETWORK, "modality", "urgency"],
+  // « À lire » : la file d'un radiologue, ou toute la plateforme pour
+  // l'équipe IMAFRIK ; la clinique ne s'affiche que s'il y en a plusieurs.
+  worklist: [...NETWORK, "modality", "urgency"],
+  "mes-examens": ["clinic", "modality", "urgency"],
 } as const satisfies Record<string, readonly DimensionKey[]>;
 
 /** Une liste filtrable. */

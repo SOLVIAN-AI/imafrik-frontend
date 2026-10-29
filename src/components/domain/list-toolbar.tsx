@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw, Search, Siren } from "lucide-react";
+import { RefreshCw, Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
@@ -16,35 +16,28 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * Barre d'outils d'une liste d'examens : recherche, filtre des urgences,
- * actualisation.
+ * Barre d'outils d'une liste d'examens : recherche et actualisation.
  *
- * **Aucun état dans le composant** : la page serveur relit les filtres et
- * interroge le service avec, et la liste affichée est toujours celle qu'il
- * a renvoyée — jamais un sous-ensemble filtré dans le navigateur.
+ * **Aucun état dans le composant** : la page serveur relit la recherche
+ * et interroge le service avec, et la liste affichée est toujours celle
+ * qu'il a renvoyée, jamais un sous-ensemble filtré dans le navigateur.
  *
- * Les deux filtres ne voyagent pas de la même façon :
+ * La recherche porte un nom de patient : elle passe par une action
+ * serveur qui la range dans un cookie httpOnly lié au compte, et
+ * n'apparaît ni dans l'adresse, ni dans l'historique, ni dans les
+ * journaux (voir `lib/search/list-search.ts`). Les filtres, qui ne disent
+ * rien de personne, sont dans l'adresse, portés par la barre de filtres
+ * commune (`components/filters`), urgences comprises.
  *
- * - **la recherche** porte un nom de patient : elle passe par une action
- *   serveur qui la range dans un cookie httpOnly lié au compte, et
- *   n'apparaît ni dans l'adresse, ni dans l'historique, ni dans les
- *   journaux (voir `lib/search/list-search.ts`) ;
- * - **le filtre des urgences** ne dit rien de personne : il reste dans
- *   l'adresse (`?urgent=1`), partageable par lien — c'est la destination
- *   des alertes du cockpit.
- *
- * @param scope        Liste dont la recherche est tenue.
- * @param search       Recherche en cours, relue par la page serveur.
- * @param urgentFilter Afficher le bouton « Urgences seulement ».
+ * @param scope  Liste dont la recherche est tenue.
+ * @param search Recherche en cours, relue par la page serveur.
  */
 export function ListToolbar({
   scope,
   search,
-  urgentFilter = false,
 }: {
   scope: ListSearchScope;
   search?: string;
-  urgentFilter?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -52,15 +45,13 @@ export function ListToolbar({
   const t = useMessages();
   const labels = t.worklist.toolbar;
   const [pending, startTransition] = React.useTransition();
-  const urgentOnly = params.get("urgent") === "1";
 
-  const navigate = (update: (next: URLSearchParams) => void) => {
+  // Une autre recherche, une autre liste : on repart de sa première page.
+  const restart = () => {
     const next = new URLSearchParams(params);
     // Un ancien lien portant encore `?q=` ne le transmet pas plus loin.
     next.delete("q");
-    // Un autre filtre, une autre liste : on repart de sa première page.
     next.delete(CURSOR_PARAM);
-    update(next);
     const query = next.toString();
     startTransition(() =>
       router.replace(query ? `${pathname}?${query}` : pathname),
@@ -83,7 +74,7 @@ export function ListToolbar({
             const result = await setListSearch(scope, value);
             if (!result.ok) toast.error(result.error);
             // Le curseur désignait une position dans l'ancienne recherche.
-            else if (params.has(CURSOR_PARAM)) navigate(() => undefined);
+            else if (params.has(CURSOR_PARAM)) restart();
           });
         }}
       >
@@ -113,23 +104,6 @@ export function ListToolbar({
           />
         </label>
       </form>
-
-      {urgentFilter && (
-        <Button
-          variant={urgentOnly ? "secondary" : "ghost"}
-          size="sm"
-          aria-pressed={urgentOnly}
-          onClick={() =>
-            navigate((next) =>
-              urgentOnly ? next.delete("urgent") : next.set("urgent", "1"),
-            )
-          }
-        >
-          <Siren />
-          <span className="sm:hidden">{labels.urgentShort}</span>
-          <span className="hidden sm:inline">{labels.urgentOnly}</span>
-        </Button>
-      )}
 
       <Button
         variant="secondary"

@@ -42,8 +42,8 @@ export const worklist = {
     many: (count: number) => `${count} nouvelles urgences à prendre`,
     one: (study: string) => `Nouvelle urgence à prendre : ${study}`,
   },
-  truncated:
-    "La file compte plus d’examens que l’écran n’en affiche : seuls les plus proches de leur échéance sont listés. Affinez avec la recherche ou les filtres.",
+  truncated: (shown: number, total: number) =>
+    `La file compte ${total} examens ; l’écran affiche les ${shown} plus proches de leur échéance. Les indicateurs ne portent que sur ceux-ci, les nombres des filtres sur toute la file. Affinez avec la recherche ou les filtres.`,
   /** Sections de la file. */
   groups: {
     mine: { title: "Attribués à vous", hint: "par ordre d’échéance" },
@@ -112,8 +112,6 @@ export const worklist = {
   toolbar: {
     searchLabel: "Rechercher un patient ou une modalité",
     searchPlaceholder: "Patient, identifiant, modalité…",
-    urgentShort: "Urgences",
-    urgentOnly: "Urgences seulement",
     invalidSearch: "Recherche invalide.",
   },
 };

@@ -14,7 +14,7 @@ export const pages = {
         "Les examens qu’on vous confie, classés par échéance : ceux qui vous sont attribués et, si vous êtes sur la liste d’urgence d’une clinique, les urgences à prendre. Vous ne voyez ni les examens des autres radiologues, ni leurs comptes-rendus.",
       steps: [
         "Regardez les indicateurs : « Attribués à vous », « Urgences à prendre », « En retard » et « Prochaine échéance ».",
-        "Filtrez par modalité ou par clinique, cliquez sur « Urgences seulement », ou cherchez un patient.",
+        "Filtrez par clinique, modalité ou « Urgences » : chaque choix dit son nombre d’examens, sur toute la file. Ou cherchez un patient.",
         "Lisez d’abord « Attribués à vous », par échéance. Une urgence de « Urgences à prendre » revient au premier radiologue qui la prend.",
         "Cliquez sur une ligne (ou J, K puis Entrée) pour ouvrir l’examen, puis sur « Prendre en charge » dans l’écran de lecture.",
         "Laissez la page ouverte : la file se met à jour toute seule toutes les 30 secondes et signale chaque nouvelle urgence à prendre.",
@@ -32,7 +32,7 @@ export const pages = {
       purpose:
         "Les examens que vous avez pris en charge et qui restent à signer, par ordre d’échéance. Vous les retrouvez ici sans les chercher dans la file.",
       steps: [
-        "Repérez les examens les plus pressés : la colonne « Échéance » indique le temps restant, les plus proches en tête.",
+        "Repérez les plus pressés : la colonne « Échéance » indique le temps restant. Filtrez par clinique, modalité ou « Urgences », ou cherchez un patient.",
         "Cliquez sur une ligne pour rouvrir l’examen dans l’écran de lecture et reprendre son compte-rendu.",
         "Signez le compte-rendu : l’examen quitte cette liste et rejoint vos « Comptes-rendus ».",
         "Si la liste est vide, ouvrez un examen qui vous est attribué, depuis la file « À lire », pour le prendre en charge.",

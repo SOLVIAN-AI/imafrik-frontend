@@ -44,6 +44,22 @@ describe("lecture des filtres", () => {
     });
   });
 
+  it("ouvre le groupe d’un ancien filtre de « À lire », en codes DICOM", () => {
+    expect(readFilters({ modalite: "CT" }, SCREEN)).toEqual({
+      modality: "ct",
+    });
+    expect(readFilters({ modalite: "MR,CT" }, SCREEN)).toEqual({
+      modality: "mri",
+    });
+    // L'HSG est une radiographie.
+    expect(readFilters({ modalite: "RF" }, SCREEN)).toEqual({
+      modality: "radiography",
+    });
+    // Un mot qui ressemble à un code n'en est pas un : la file était vidée.
+    expect(readFilters({ modalite: "SCANNER" }, SCREEN)).toEqual({});
+    expect(readFilters({ modalite: "IRM" }, SCREEN)).toEqual({});
+  });
+
   it("ne lit que les dimensions de l’écran", () => {
     expect(readFilters({ modalite: "irm" }, ["clinic"])).toEqual({});
   });
