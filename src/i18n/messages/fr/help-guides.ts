@@ -77,8 +77,17 @@ export const guides = {
         steps: [
           "Rédigez et signez le compte-rendu dans IMAFRIK : Weasis ne sert qu’à afficher les images.",
           "Fermez Weasis : il efface alors les images téléchargées. Après un arrêt brutal, il les efface à son démarrage suivant.",
-          "Weasis ouvert depuis IMAFRIK n’offre ni export, ni envoi, ni enregistrement d’image. N’en faites aucune copie (capture d’écran, impression), et ne l’utilisez que sur un ordinateur à session personnelle, au disque chiffré.",
           "Vous perdez l’accès à l’examen, ou vous vous déconnectez : Weasis ne peut plus en télécharger d’image dans les secondes qui suivent.",
+        ],
+      },
+      {
+        title: "Ce que demande le contrat d’exercice",
+        steps: [
+          "Ouvrez Weasis sur un ordinateur au disque chiffré, dans une session personnelle que nul autre n’utilise.",
+          "Un examen à la fois, et Weasis fermé à la fin de chaque lecture.",
+          "Aucune copie : ni capture ou photo de l’écran, ni impression, ni copie du dossier temporaire où Weasis garde les images. Weasis ouvert depuis IMAFRIK n’offre d’ailleurs ni export, ni envoi.",
+          "L’accès remis à Weasis est le vôtre, pour cet examen : ne le copiez pas et ne le confiez à aucun autre logiciel.",
+          "Chaque ouverture est tracée à votre nom et peut être contrôlée ; un manquement suspend vos accès (article 9 du contrat).",
         ],
       },
     ],

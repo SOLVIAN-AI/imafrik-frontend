@@ -123,7 +123,7 @@ export const pages = {
     reading: {
       title: "Écran de lecture",
       purpose:
-        "L’écran où vous lisez un examen et rédigez son compte-rendu : les images dans le viewer à gauche, le compte-rendu à droite. Une fois signé, le compte-rendu part à la clinique et n’est plus modifiable.",
+        "L’écran où vous lisez un examen et rédigez son compte-rendu : les images dans le viewer à gauche, le compte-rendu à droite. Une fois signé, le compte-rendu part à la clinique et n’est plus modifiable. Les images ne sortent pas d’IMAFRIK : ni capture, ni photo, ni impression.",
       steps: [
         "Lisez le « Renseignement clinique » et parcourez les images, ou, sur ordinateur, « Ouvrir dans Weasis » ; une antériorité s’ouvre en lecture seule.",
         "Cliquez sur « Prendre en charge » : l’examen vous est réservé jusqu’à la signature, ou jusqu’à « Rendre l’examen », qui efface le brouillon et prévient la clinique.",

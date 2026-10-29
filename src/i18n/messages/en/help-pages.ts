@@ -118,7 +118,7 @@ export const pages: typeof fr = {
     reading: {
       title: "Reading screen",
       purpose:
-        "Where you read an examination and write its report: the images in the viewer on the left, the report on the right. Once signed, the report goes to the clinic and can no longer be edited.",
+        "Where you read an examination and write its report: the images in the viewer on the left, the report on the right. Once signed, the report goes to the clinic and can no longer be edited. The images never leave IMAFRIK: no screenshots, no photos, no printing.",
       steps: [
         "Read the “Clinical information” and go through the images, or, on a computer, “Open in Weasis”; a shared prior examination opens read-only.",
         "Click “Take on”: the examination is reserved for you until you sign it, or until “Return the examination”, which deletes the draft and notifies the clinic.",
