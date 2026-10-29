@@ -1,41 +1,41 @@
 import { INTL_LOCALE, type Locale } from "@/lib/i18n/locale";
 
 /**
- * Le choix d'une clinique dans une liste déroulante (`ClinicDropdown`) :
- * l'ordre des cliniques, la recherche, le déplacement au clavier et
- * l'adresse du choix. Pur, sans navigateur : éprouvé par
- * `clinic-choice.test.ts`.
+ * Le choix d'une option dans la liste déroulante d'un filtre
+ * (`FilterDropdown`) : l'ordre des options, la recherche et le
+ * déplacement au clavier. Pur, sans navigateur : éprouvé par
+ * `choice.test.ts`.
  */
 
-/** Une clinique proposée, avec le nombre d'examens qu'elle retient. */
-export interface ClinicChoice {
+/** Une option proposée, avec le nombre de lignes qu'elle retient. */
+export interface ChoiceOption {
   id: string;
   name: string;
-  /** Examens que la liste montrerait ; absent quand l'écran ne compte pas. */
+  /** Lignes que la liste montrerait ; absent quand l'écran ne compte pas. */
   count?: number;
 }
 
-/** À partir de ce nombre de cliniques, la liste s'ouvre sur une recherche. */
+/** À partir de ce nombre d'options, la liste s'ouvre sur une recherche. */
 export const SEARCH_FROM = 8;
 
 /**
- * Les cliniques par ordre alphabétique, selon la langue : accents et
+ * Les options par ordre alphabétique, selon la langue : accents et
  * majuscules ne déplacent rien (« Élavagnon » se range avec les E), et
  * les nombres se comparent en nombres (« Centre 2 » avant « Centre 10 »).
  *
- * @param clinics Cliniques, dans n'importe quel ordre.
+ * @param options Options, dans n'importe quel ordre.
  * @param locale  Langue de l'utilisateur.
  * @returns Une nouvelle liste, triée.
  */
-export function sortClinics<T extends { name: string }>(
-  clinics: readonly T[],
+export function sortChoices<T extends { name: string }>(
+  options: readonly T[],
   locale: Locale,
 ): T[] {
   const collator = new Intl.Collator(INTL_LOCALE[locale], {
     sensitivity: "base",
     numeric: true,
   });
-  return [...clinics].sort((a, b) => collator.compare(a.name, b.name));
+  return [...options].sort((a, b) => collator.compare(a.name, b.name));
 }
 
 /** Un texte sans accents ni majuscules, pour la recherche. */
@@ -48,23 +48,23 @@ export function foldForSearch(text: string): string {
 }
 
 /**
- * Les cliniques dont le nom contient chacun des mots cherchés, accents et
+ * Les options dont le nom contient chacun des mots cherchés, accents et
  * majuscules ignorés : « st jo » trouve « Clinique Saint-Joseph » par
  * « jo », « kara » trouve « Polyclinique de Kara ».
  *
- * @param clinics Cliniques, dans l'ordre d'affichage (gardé).
- * @param query   Saisie ; vide, toutes les cliniques.
+ * @param options Options, dans l'ordre d'affichage (gardé).
+ * @param query   Saisie ; vide, toutes les options.
  */
-export function matchClinics<T extends { name: string }>(
-  clinics: readonly T[],
+export function matchChoices<T extends { name: string }>(
+  options: readonly T[],
   query: string,
 ): T[] {
   const words = foldForSearch(query)
     .split(/[\s'’-]+/)
     .filter(Boolean);
-  if (words.length === 0) return [...clinics];
-  return clinics.filter((clinic) => {
-    const name = foldForSearch(clinic.name);
+  if (words.length === 0) return [...options];
+  return options.filter((option) => {
+    const name = foldForSearch(option.name);
     return words.every((word) => name.includes(word));
   });
 }
@@ -130,30 +130,4 @@ export function typeAhead(
     if (foldForSearch(labels[index]).startsWith(wanted)) return index;
   }
   return null;
-}
-
-/**
- * Adresse de la liste pour une clinique choisie : les autres paramètres
- * gardés (modalité, urgences, période…), ceux qui n'ont plus de sens
- * retirés (la page de la liste, qui repart au début).
- *
- * @param pathname Adresse de la liste.
- * @param search   Paramètres de l'adresse courante.
- * @param param    Paramètre de la clinique (`clinique`).
- * @param id       Clinique choisie ; `null` pour toutes.
- * @param reset    Paramètres retirés au changement de clinique.
- */
-export function clinicChoiceHref(
-  pathname: string,
-  search: URLSearchParams | string,
-  param: string,
-  id: string | null,
-  reset: readonly string[],
-): string {
-  const next = new URLSearchParams(search);
-  for (const key of reset) next.delete(key);
-  if (id) next.set(param, id);
-  else next.delete(param);
-  const query = next.toString();
-  return query ? `${pathname}?${query}` : pathname;
 }

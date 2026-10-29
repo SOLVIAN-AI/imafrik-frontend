@@ -3,7 +3,8 @@
 Ce document est l'inventaire de référence des pages du frontend IMAFRIK :
 ce qui existe, ce qui reste à construire, et dans quel ordre. Il se lit
 avant d'ajouter une route, pour éviter deux écrans qui font la même
-chose sous deux noms différents.
+chose sous deux noms différents. Les filtres des listes suivent une règle
+commune, décrite dans [`vues-filtrees.md`](vues-filtrees.md).
 
 Chaque écran porte une **phase** :
 
@@ -352,7 +353,7 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | `/admin/organisations` | Volumes sur 30 jours, dernier envoi, suspension, invitation. | Fait |
 | `/admin/organisations/[id]` | Mise en service d'une clinique, activité, liste d'urgence, **règles d'attribution**, **durée de conservation des images**, état du contrat et **fin de contrat**. | Fait |
 | `/admin/utilisateurs` | Comptes : rattachement, **validation des numéros d'ordre** (filtre « À valider », `?validation=attente`), double authentification, réinitialisation, **anonymisation** (droit à l'effacement : nom saisi, retrait des appartenances confirmé pour un membre actif). Pour chaque radiologue, ses **modalités lues** en clair avec le bouton « Modalités », ses listes d'urgence et « Voir ses performances » ; filtre « Modalité lue » (`?modalite=`). | Fait |
-| `/admin/examens` | Recherche globale, urgences en cours, choix de la clinique (`?clinique=`) et onglets par groupe de modalités (`?modalite=`), chacun avec son nombre compté par le service, combinables. La fiche d'une clinique y mène. | Fait |
+| `/admin/examens` | Recherche globale, et la barre de filtres commune (voir [`vues-filtrees.md`](vues-filtrees.md)) : clinique (`?clinique=`, liste déroulante), groupe de modalités (`?modalite=`, puces) et urgences en cours (`?urgent=1`), chacun avec son nombre compté par le service, combinables, « Effacer les filtres ». La fiche d'une clinique y mène. | Fait |
 | `/admin/demandes` | Demandes reçues par le site (établissement ou radiologue, numéro d'ordre déclaré), suivi et notes. | Fait |
 | `/admin/facturation` | Relevé du mois de chaque clinique, le même que celui de son responsable (un seul calcul, dans le service) ; totaux, cliniques sans formule, « Clore le mois » qui fige les relevés ; export CSV protégé contre l'injection de formules. La formule d'abonnement se renseigne sur la fiche de la clinique. | Fait |
 | `/admin/systeme` | Dépendances, PACS, version, filets de sécurité (sauvegardes, exercices, réconciliation, conservation). | Fait |

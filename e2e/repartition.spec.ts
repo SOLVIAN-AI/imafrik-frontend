@@ -67,6 +67,15 @@ test.describe("l’équipe IMAFRIK", () => {
     await expect(page).toHaveURL(/\/worklist$/);
     await page.keyboard.press("Escape");
     await expect(fenetre).toHaveCount(0);
+    // La file ignore le clavier tant qu'une fenêtre est dans la page, et la
+    // fenêtre rend le focus à son bouton une fois fermée : attendre l'un et
+    // l'autre, sans quoi le focus rendu reprend celui que « j » a posé.
+    await expect(page.locator("[role=dialog]")).toHaveCount(0);
+    await expect(
+      aAttribuer.getByRole("button", {
+        name: "Attribuer l’examen de KOFFI Ama",
+      }),
+    ).toBeFocused();
 
     // La navigation au clavier reste celle de la file.
     await page.keyboard.press("j");

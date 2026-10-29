@@ -92,11 +92,13 @@ test("classe les examens par clinique, avec le nombre de chacune", async ({
     .locator("td:nth-child(3)")
     .allInnerTexts())
     expect(etablissement).toBe("Clinique Saint-Joseph");
-  // Les onglets de modalité comptent dans la clinique choisie.
-  const modalites = page.getByRole("navigation", { name: "Modalités" });
-  expect(await countOf(modalites.getByRole("link", { name: /^Toutes/ }))).toBe(
-    stj,
-  );
+  // Les puces de modalité comptent dans la clinique choisie.
+  const modalites = page.getByRole("group", { name: "Modalité" });
+  expect(
+    await countOf(
+      modalites.getByRole("link", { name: /^Toutes les modalités/ }),
+    ),
+  ).toBe(stj);
 
   // Combiné avec une modalité : chaque choix garde l'autre.
   const onglet = modalites.getByRole("link", { name: /^Scanner/ });

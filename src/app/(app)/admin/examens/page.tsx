@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
-import { ClinicDropdown } from "@/components/domain/clinic-dropdown";
 import { EligibilityNote } from "@/components/domain/eligibility-note";
-import { Segmented } from "@/components/admin/control-ui";
+import { type BarDimension, FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
@@ -14,8 +14,6 @@ import {
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { ListPagination } from "@/components/domain/list-pagination";
 import { ListToolbar } from "@/components/domain/list-toolbar";
-import { ModalityTabs } from "@/components/domain/modality-tabs";
-import { CLINIC_PARAM, parseClinic } from "@/lib/admin-params";
 import { getEligibility } from "@/lib/data/eligibility";
 import type { Eligibility } from "@/lib/assignment-blocker";
 import {
@@ -26,11 +24,10 @@ import {
   STUDY_LIST_PAGE_SIZE,
   type Study,
 } from "@/lib/data/studies";
-import {
-  MODALITY_PARAM,
-  MODALITY_SLUGS,
-  readModalityGroup,
-} from "@/lib/modalities";
+import type { ModalityGroup } from "@/lib/api/contracts";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { hasFilters, readFilters } from "@/lib/filters/url";
+import { MODALITY_GROUPS } from "@/lib/modalities";
 import { pageHref, readCursor } from "@/lib/pagination";
 import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
@@ -57,10 +54,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * qu'un examen « n'est pas arrivé », il faut pouvoir répondre sans
  * ouvrir un client SQL.
  *
- * Elle se classe par clinique (`?clinique=`, une liste déroulante) et par
- * groupe de modalités (`?modalite=`, des onglets), chaque choix avec son
- * nombre d'examens compté par le service ; les deux se combinent avec les
- * urgences et la recherche.
+ * Elle se filtre par la barre commune (`components/filters`) : clinique
+ * (`?clinique=`, liste déroulante), groupe de modalités (`?modalite=`,
+ * puces) et urgences en cours (`?urgent=1`), chaque choix avec son nombre
+ * d'examens compté par le service ; tout se combine, recherche comprise.
+ * C'est l'écran de référence de la barre (`docs/vues-filtrees.md`).
  *
  * **Chaque examen non signé porte « Attribuer »** (ou « Réattribuer »),
  * libellé, dans sa colonne : la même fenêtre que « À lire ». Quand
@@ -79,20 +77,24 @@ export default async function AdminStudiesPage({
   searchParams,
 }: PageProps<"/admin/examens">) {
   const session = await requireSession(["platform_admin"]);
-  const { t, locale } = await getMessages();
+  const { t } = await getMessages();
   const text = t.admin.studies;
   const params = await searchParams;
   const search = await readListSearch("admin-examens", session);
+  const keys = LIST_FILTERS["admin-examens"];
+  // Modalité et urgences d'abord : la clinique se valide ensuite, parmi
+  // celles que compte le service.
+  const draft = readFilters(params, keys);
   // `?urgent=1` : les urgences pas encore rendues, la destination de
   // l'alerte « urgences en retard » du cockpit. Filtrées par le service,
   // sur toute la base : filtrer ici une page des plus récents laissait de
   // côté les urgences en retard, justement les plus anciennes.
-  const urgentOnly = params.urgent === "1";
-  // `?modalite=scanner` : un groupe de modalités, compté par onglet.
-  const modalityGroup = readModalityGroup(params[MODALITY_PARAM]);
+  const urgentOnly = draft.urgency !== undefined;
+  // `?modalite=scanner` : un groupe de modalités, compté par puce.
+  const modalityGroup = draft.modality as ModalityGroup | undefined;
   // Les filtres de la liste, groupe et clinique mis à part : ceux des
   // comptes de chaque choix.
-  const filters = {
+  const base = {
     search,
     ...(urgentOnly && {
       priority: "urgent" as const,
@@ -106,18 +108,18 @@ export default async function AdminStudiesPage({
   // `?clinique=` : une clinique de la plateforme, comptée par le service.
   // Les comptes d'abord : un identifiant inconnu ou mal formé, tapé à la
   // main, revient à toutes les cliniques au lieu d'une erreur du service.
-  const clinicCounts = await getClinicCounts({ ...filters, modalityGroup });
-  const clinic = parseClinic(
-    params[CLINIC_PARAM],
-    clinicCounts.clinics.map((row) => row.id),
-  );
+  const clinicCounts = await getClinicCounts({ ...base, modalityGroup });
+  const filters = readFilters(params, keys, {
+    clinic: clinicCounts.clinics.map((row) => row.id),
+  });
+  const clinic = filters.clinic ?? null;
   const clinicName = clinicCounts.clinics.find(
     (row) => row.id === clinic,
   )?.name;
   const [{ studies, total, nextCursor }, stuck, counts] = await Promise.all([
     listStudyPageAt(
       {
-        ...filters,
+        ...base,
         modalityGroup,
         clinic: clinic ?? undefined,
         limit: STUDY_LIST_PAGE_SIZE,
@@ -132,7 +134,7 @@ export default async function AdminStudiesPage({
     listStudyPage({ status: ["received"], priority: "urgent", limit: 1 }).then(
       (page) => page.total,
     ),
-    getModalityCounts({ ...filters, clinic: clinic ?? undefined }),
+    getModalityCounts({ ...base, clinic: clinic ?? undefined }),
   ]);
   // Qui peut recevoir chaque examen à attribuer de la page, en un appel.
   const eligibility = await getEligibility(
@@ -140,12 +142,29 @@ export default async function AdminStudiesPage({
       .filter((study) => isAssignable(study.status) && !study.assignedTo)
       .map((study) => study.id),
   );
-  // Le filtre des urgences garde le groupe de modalités et la clinique, et
-  // inversement.
-  const modality = {
-    ...(modalityGroup && { [MODALITY_PARAM]: MODALITY_SLUGS[modalityGroup] }),
-    ...(clinic && { [CLINIC_PARAM]: clinic }),
-  };
+  // La barre : chaque choix avec son nombre d'examens, compté par le
+  // service avec tous les autres filtres.
+  const bar: BarDimension[] = [
+    {
+      key: "clinic",
+      options: clinicCounts.clinics.map((row) => ({
+        value: row.id,
+        label: row.name,
+        count: row.count,
+      })),
+      total: clinicCounts.total,
+    },
+    {
+      key: "modality",
+      options: MODALITY_GROUPS.map((group) => ({
+        value: group,
+        count: counts.byGroup[group],
+      })),
+      total: counts.total,
+    },
+    { key: "urgency", label: text.openUrgent },
+  ];
+  const filteredEmpty = studies.length === 0 && hasFilters(filters);
 
   return (
     <>
@@ -159,30 +178,7 @@ export default async function AdminStudiesPage({
               : text.allDescription(total)) +
           (clinicName ? ` · ${clinicName}` : "")
         }
-        actions={
-          <>
-            <Segmented
-              label={t.admin.shared.filter}
-              options={[
-                {
-                  label: t.admin.shared.all,
-                  href: pageHref("/admin/examens", modality, null),
-                  active: !urgentOnly,
-                },
-                {
-                  label: text.openUrgent,
-                  href: pageHref(
-                    "/admin/examens",
-                    { ...modality, urgent: "1" },
-                    null,
-                  ),
-                  active: urgentOnly,
-                },
-              ]}
-            />
-            <ListToolbar scope="admin-examens" search={search} />
-          </>
-        }
+        actions={<ListToolbar scope="admin-examens" search={search} />}
       />
 
       {stuck > 0 && (
@@ -192,31 +188,23 @@ export default async function AdminStudiesPage({
         </div>
       )}
 
-      {/* Téléphone : la clinique, puis les modalités en dessous. */}
-      <div className="flex shrink-0 flex-col gap-2 px-4 pb-3 sm:flex-row sm:items-center sm:gap-3 sm:px-6">
-        <ClinicDropdown
-          label={text.clinicFilter}
-          allLabel={text.allClinics}
-          clinics={clinicCounts.clinics}
-          total={clinicCounts.total}
-          active={clinic}
-          param={CLINIC_PARAM}
-        />
-        <ModalityTabs
-          counts={counts}
-          active={modalityGroup}
-          pathname="/admin/examens"
-          params={params}
-          labels={t.assignment}
-          locale={locale}
-          className="min-w-0 px-0 pb-0 sm:px-0"
-        />
-      </div>
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{ count: total, noun: "studies" }}
+        className="shrink-0 px-4 pb-3 sm:px-6"
+      />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
         <Panel className="flex min-h-0 flex-col overflow-hidden">
+          {filteredEmpty && <FilteredEmpty dimensions={bar} active={filters} />}
           {/* Téléphone : une carte par examen, comme dans les portails. */}
-          <ul className="min-h-0 flex-1 divide-y divide-border-subtle overflow-auto lg:hidden">
+          <ul
+            className={cn(
+              "min-h-0 flex-1 divide-y divide-border-subtle overflow-auto lg:hidden",
+              filteredEmpty && "hidden",
+            )}
+          >
             {studies.map((study) => (
               <li
                 key={study.id}
@@ -230,7 +218,8 @@ export default async function AdminStudiesPage({
                     <Link
                       href={`/lecture/${study.id}`}
                       prefetch={false}
-                      className="truncate text-sm font-medium hover:underline"
+                      // 24 px de haut au moins : une cible au doigt (WCAG 2.5.8).
+                      className="truncate py-0.5 text-sm font-medium hover:underline"
                       aria-label={text.openImages(
                         formatPatientName(study.patientName),
                       )}
@@ -276,7 +265,12 @@ export default async function AdminStudiesPage({
             ))}
           </ul>
 
-          <div className="hidden min-h-0 flex-1 overflow-auto lg:block">
+          <div
+            className={cn(
+              "hidden min-h-0 flex-1 overflow-auto",
+              !filteredEmpty && "lg:block",
+            )}
+          >
             {/* Une largeur minimale : à 1024 px, le tableau défile dans son
                 conteneur plutôt que d'écraser ses colonnes, et la colonne
                 d'attribution, collée à droite, reste visible. Mise en page

@@ -107,16 +107,6 @@ export const worklist = {
     modalities: "Modalités",
     clinic: "Clinique",
     allClinics: "Toutes les cliniques",
-    clinicSearch: "Rechercher une clinique",
-    clinicNoMatch: "Aucune clinique ne correspond.",
-    clinicMatches: (count: number) =>
-      count === 0
-        ? "Aucune clinique"
-        : count > 1
-          ? `${count} cliniques`
-          : "1 clinique",
-    studyCount: (count: number) =>
-      count > 1 ? `${count} examens` : `${count} examen`,
   },
   /** Barre d'outils des listes d'examens. */
   toolbar: {
