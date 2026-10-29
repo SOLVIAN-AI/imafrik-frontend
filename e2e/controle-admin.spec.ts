@@ -22,22 +22,23 @@ test("la liste des comptes-rendus montre tout, filtrable par état", async ({
       /toutes cliniques confondues, en cours de rédaction compris/,
     ),
   ).toBeVisible();
-  const filtre = page.getByRole("navigation", {
-    name: "État des comptes-rendus",
-  });
+  // La barre de filtres commune : l'état, en puces comptées.
+  const filtre = page
+    .getByRole("group", { name: "Filtres" })
+    .getByRole("group", { name: "État" });
   await expect(filtre.getByRole("link")).toHaveText([
-    "Tous",
-    "En cours de rédaction",
-    "Signés",
-    "Remis",
+    /^Tous les états/,
+    /^En cours de rédaction/,
+    /^Signés/,
+    /^Remis/,
   ]);
   // Un brouillon en cours, avec son rédacteur, et un document signé.
   await expect(page.getByText(/^En rédaction · /).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /ADJOVI Mawuli/ })).toBeVisible();
   await checkA11y();
 
-  await filtre.getByRole("link", { name: "En cours de rédaction" }).click();
-  await expect(page).toHaveURL(/\?etat=draft$/);
+  await filtre.getByRole("link", { name: /^En cours de rédaction/ }).click();
+  await expect(page).toHaveURL(/\?etat=en-lecture$/);
   await expect(page.getByRole("link", { name: /ADJOVI Mawuli/ })).toHaveCount(
     0,
   );
@@ -47,7 +48,13 @@ test("la liste des comptes-rendus montre tout, filtrable par état", async ({
 test("un brouillon se suit en consultation, sans pouvoir être modifié", async ({
   page,
 }) => {
+  // L'ancienne adresse du filtre reste lue : un favori garde son sens.
   await page.goto("/comptes-rendus?etat=draft");
+  await expect(
+    page
+      .getByRole("group", { name: "État" })
+      .getByRole("link", { name: /^En cours de rédaction/ }),
+  ).toHaveAttribute("aria-current", "true");
   await page.getByRole("link", { name: /MENSAH Kodjo/ }).click();
   await expect(page).toHaveURL("/lecture/2");
   await expect(

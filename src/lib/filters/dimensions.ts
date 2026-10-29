@@ -126,6 +126,16 @@ const STATE_SLUGS: Record<StudyState, string> = {
   delivered: "remis",
 };
 
+/**
+ * Anciennes valeurs de `?etat=` des comptes-rendus de l'équipe IMAFRIK,
+ * encore lues : un favori garde son sens.
+ */
+const LEGACY_STATES: Record<string, StudyState> = {
+  draft: "reading",
+  signed: "ready",
+  delivered: "delivered",
+};
+
 /** Périodes proposées, en jours : la réception depuis 24 h, 7 jours… */
 export const PERIODS = ["1", "7", "30", "90", "365"] as const;
 
@@ -185,7 +195,9 @@ export const DIMENSIONS = {
     presentation: "chips",
     values: STUDY_STATES,
     read: (raw) =>
-      STUDY_STATES.find((state) => STATE_SLUGS[state] === raw) ?? null,
+      STUDY_STATES.find((state) => STATE_SLUGS[state] === raw) ??
+      LEGACY_STATES[raw] ??
+      null,
     write: (value) => STATE_SLUGS[value as StudyState] ?? value,
     text: (t) => ({ name: t.filters.state, all: t.filters.allStates }),
     valueLabel: (t, value) => t.filters.states[value as StudyState] ?? value,

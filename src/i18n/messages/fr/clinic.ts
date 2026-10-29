@@ -230,6 +230,9 @@ export const clinic = {
       draft: "En cours de rédaction",
       signed: "Signés",
       delivered: "Remis",
+      /** États vus du responsable : à télécharger, puis téléchargés. */
+      toDownload: "À télécharger",
+      downloaded: "Téléchargés",
     },
     draftBy: (name: string) => `En rédaction · ${name}`,
     emptyAdmin:

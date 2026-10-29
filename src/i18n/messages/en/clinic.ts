@@ -199,6 +199,8 @@ export const clinic: AppMessages["clinic"] = {
       draft: "Being written",
       signed: "Signed",
       delivered: "Delivered",
+      toDownload: "To download",
+      downloaded: "Downloaded",
     },
     draftBy: (name: string) => `Being written · ${name}`,
     emptyAdmin:

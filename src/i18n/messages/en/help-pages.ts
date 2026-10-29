@@ -64,7 +64,7 @@ export const pages: typeof fr = {
       purpose:
         "The reports you have signed. Each one opens as it was signed, with its PDF, its verification link and its addenda.",
       steps: [
-        "Type a patient name, an ID or a modality in the search box.",
+        "Search for a patient, or filter by clinic, modality, urgency or period: the most recently signed first.",
         "Click a row to open the report as it was signed.",
         "From the open report, download the PDF or add an addendum.",
         "Click “Next page” at the bottom of the list to see more reports.",
@@ -206,8 +206,8 @@ export const pages: typeof fr = {
       purpose:
         "Signed reports sent to your facility. Find a document by patient and download its PDF.",
       steps: [
-        "Search by patient name, ID or modality, then press Enter.",
-        "Look for “To download”: your clinic has not downloaded that report yet.",
+        "Search for a patient, or filter by signer, modality, urgency or period: the most recently signed first.",
+        "Choose the “To download” status: the reports your clinic has not retrieved yet, with their number.",
         "Click “PDF” at the end of the row to download it. It then shows as “Downloaded”.",
         "Click a row to open the report, for example to download again a PDF you already have.",
       ],
@@ -590,8 +590,8 @@ export const pages: typeof fr = {
       purpose:
         "The viewed clinic’s signed and delivered reports, those its manager sees. “To download” means the clinic has not retrieved it yet: a download by the team changes nothing.",
       steps: [
-        "Search for a patient by name, ID or modality, then press Enter.",
-        "Look for “To download”: the clinic has not retrieved this report yet.",
+        "Search for a patient, or filter by signer, modality, urgency or period: the most recently signed first.",
+        "Choose the “To download” status: the reports the clinic has not retrieved yet, with their number.",
         "Click a row to open the signed report.",
         "The PDF you download is logged under your name, without marking the report as delivered.",
       ],
@@ -681,7 +681,7 @@ export const pages: typeof fr = {
       purpose:
         "Every report on the platform, across all clinics, drafts in progress included. Read-only: the team follows them and downloads signed PDFs, without writing or signing.",
       steps: [
-        "Choose the status: “All”, “Being written”, “Signed” or “Delivered”.",
+        "Filter by clinic, radiologist, modality, status (“Being written”, “Signed”, “Delivered”), urgency or period.",
         "Search for a patient, an ID or a modality in the search bar.",
         "On each line, read the examination, the clinic, the radiologist writing or who signed, and the date signed.",
         "Open a draft to follow its writing on the reading screen, or a signed report to see its page.",

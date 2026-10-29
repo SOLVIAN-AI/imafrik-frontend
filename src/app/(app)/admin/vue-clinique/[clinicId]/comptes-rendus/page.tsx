@@ -4,8 +4,7 @@ import { ListPagination } from "@/components/domain/list-pagination";
 import { ReportsView } from "@/components/domain/reports-view";
 import { clinicViewPath } from "@/lib/clinic-view";
 import { requireConsultation } from "@/lib/data/clinic-view";
-import { listStudyPageAt, STUDY_LIST_PAGE_SIZE } from "@/lib/data/studies";
-import { pageHref, readCursor } from "@/lib/pagination";
+import { loadReportList } from "@/lib/data/report-list";
 import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
@@ -17,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Les comptes-rendus signés d'une clinique, consultés par l'équipe
  * IMAFRIK : la liste de son responsable (signés ou remis), lue par la vue
- * de la clinique, avec sa recherche et sa pagination.
+ * de la clinique, avec sa recherche, ses filtres et sa pagination.
  */
 export default async function ClinicViewReportsPage({
   params,
@@ -28,21 +27,22 @@ export default async function ClinicViewReportsPage({
   const search = await readListSearch("vue-clinique-comptes-rendus", session);
   const query = await searchParams;
   const pathname = clinicViewPath(consultation.clinicId, "/comptes-rendus");
-  const { studies, total, nextCursor } = await listStudyPageAt(
-    {
-      status: ["reported", "delivered"],
-      search,
-      limit: STUDY_LIST_PAGE_SIZE,
-      cursor: readCursor(query),
-    },
-    pageHref(pathname, query, null),
-    consultation.clinicId,
-  );
+  const { t } = await getMessages();
+  const { studies, total, nextCursor, filters, bar } = await loadReportList({
+    reader: "clinic",
+    params: query,
+    search,
+    pathname,
+    t,
+    clinicId: consultation.clinicId,
+  });
   return (
     <ReportsView
       studies={studies}
       search={search}
       total={total}
+      bar={bar}
+      filters={filters}
       footer={
         <ListPagination
           pathname={pathname}

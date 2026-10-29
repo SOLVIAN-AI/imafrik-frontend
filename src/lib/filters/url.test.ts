@@ -91,6 +91,21 @@ describe("état, radiologue, période", () => {
     expect(readFilters({ etat: "lu", jours: "8" }, EXAMENS)).toEqual({});
   });
 
+  it("lit encore les anciens états des comptes-rendus de l’équipe", () => {
+    const EQUIPE = LIST_FILTERS["comptes-rendus-equipe"];
+    expect(readFilters({ etat: "draft" }, EQUIPE)).toEqual({
+      state: "reading",
+    });
+    expect(readFilters({ etat: "signed" }, EQUIPE)).toEqual({ state: "ready" });
+    expect(readFilters({ etat: "delivered" }, EQUIPE)).toEqual({
+      state: "delivered",
+    });
+    // Changer une autre dimension laisse l'état tel qu'il est écrit.
+    expect(
+      filterHref("/comptes-rendus", "etat=signed", { modality: "ct" }),
+    ).toBe("/comptes-rendus?etat=signed&modalite=scanner");
+  });
+
   it("lit encore l’ancienne vue « À attribuer », puis la remplace", () => {
     expect(readFilters({ vue: "a-attribuer" }, EXAMENS)).toEqual({
       state: "to_assign",

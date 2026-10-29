@@ -45,9 +45,11 @@ export const filters: AppMessages["filters"] = {
   nouns: {
     studies: (count: number) =>
       count === 1 ? "1 examination" : `${count} examinations`,
+    reports: (count: number) => (count === 1 ? "1 report" : `${count} reports`),
   },
   empty: {
     studies: "No examination matches these filters",
+    reports: "No report matches these filters",
     detail: (filters: string) =>
       `Filters applied: ${filters}. Clear one to widen the list.`,
   },

@@ -174,7 +174,8 @@ export function ClinicDashboardView({
             title={messages.readyTitle}
             action={{
               label: t.common.actions.seeAll,
-              href: href("/comptes-rendus"),
+              // La liste déjà filtrée : ce qui reste à télécharger.
+              href: href("/comptes-rendus?etat=pret"),
             }}
           />
 

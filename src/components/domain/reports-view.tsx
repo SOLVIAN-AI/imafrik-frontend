@@ -13,9 +13,13 @@ import { useSession } from "@/components/providers/session-provider";
 import { DateTime } from "@/components/domain/date-time";
 import { DownloadPdfButton } from "@/components/domain/download-pdf-button";
 import { ListToolbar } from "@/components/domain/list-toolbar";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
+import type { ActiveFilters, BarDimension } from "@/lib/filters/dimensions";
+import { hasFilters } from "@/lib/filters/url";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -49,21 +53,24 @@ import { cn } from "@/lib/utils";
  * @param studies Examens rendus de la page, chacun avec son compte-rendu.
  * @param search  Recherche en cours, relue par la page serveur.
  * @param footer  Pied de liste : pagination, rendue par la page serveur.
- * @param total   Nombre de comptes-rendus du filtre, pour l'équipe.
- * @param filter  Filtre par état, pour l'équipe, rendu par la page serveur.
+ * @param total   Nombre de comptes-rendus des filtres.
+ * @param bar     Dimensions de la barre de filtres, avec leurs nombres.
+ * @param filters Filtres actifs.
  */
 export function ReportsView({
   studies,
   search,
   footer,
   total,
-  filter,
+  bar,
+  filters,
 }: {
   studies: Study[];
   search?: string;
   footer?: React.ReactNode;
-  total?: number;
-  filter?: React.ReactNode;
+  total: number;
+  bar: readonly BarDimension[];
+  filters: ActiveFilters;
 }) {
   const { active } = useSession();
   const consultation = useClinicView();
@@ -82,27 +89,33 @@ export function ReportsView({
         title={t.title}
         description={
           isAdmin
-            ? t.descriptionAdmin(total ?? rows.length)
+            ? t.descriptionAdmin(total)
             : isClinic
               ? t.descriptionClinic
               : t.descriptionRadiologist
         }
         actions={
-          <>
-            {filter}
-            <ListToolbar
-              scope={
-                consultation ? "vue-clinique-comptes-rendus" : "comptes-rendus"
-              }
-              search={search}
-            />
-          </>
+          <ListToolbar
+            scope={
+              consultation ? "vue-clinique-comptes-rendus" : "comptes-rendus"
+            }
+            search={search}
+          />
         }
+      />
+
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{ count: total, noun: "reports" }}
+        className="shrink-0 px-4 pb-3 sm:px-6"
       />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
         <Panel className="flex min-h-0 flex-col overflow-hidden">
-          {rows.length === 0 ? (
+          {rows.length === 0 && hasFilters(filters) ? (
+            <FilteredEmpty dimensions={bar} active={filters} noun="reports" />
+          ) : rows.length === 0 ? (
             <EmptyState
               icon={search ? SearchX : FileText}
               title={search ? t.noResult : t.empty}

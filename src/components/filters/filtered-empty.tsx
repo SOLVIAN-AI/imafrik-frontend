@@ -7,6 +7,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import {
   type BarDimension,
   describeFilters,
+  type FilterNoun,
 } from "@/components/filters/filter-bar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -21,13 +22,16 @@ import { clearFiltersHref } from "@/lib/filters/url";
  *
  * @param dimensions Dimensions de l'écran, comme la barre les reçoit.
  * @param active     Filtres lus par la page.
+ * @param noun       Ce que la liste montre (« examens », par défaut).
  */
 export function FilteredEmpty({
   dimensions,
   active,
+  noun = "studies",
 }: {
   dimensions: readonly BarDimension[];
   active: ActiveFilters;
+  noun?: FilterNoun;
 }) {
   const t = useMessages();
   const pathname = usePathname();
@@ -35,7 +39,7 @@ export function FilteredEmpty({
   return (
     <EmptyState
       icon={SearchX}
-      title={t.filters.empty.studies}
+      title={t.filters.empty[noun]}
       detail={t.filters.empty.detail(
         describeFilters(dimensions, active, t).join(", "),
       )}
