@@ -771,6 +771,14 @@ export interface AuditEntry {
 export interface AuditFilters {
   /** Action exacte, par exemple `report.signed`. */
   action?: string;
+  /** Famille d'actions : le préfixe avant le point (`report`). */
+  family?: string;
+  /** Auteur des entrées. */
+  actorId?: string;
+  /** Organisation concernée. */
+  organizationId?: string;
+  /** Entrées depuis cet instant. */
+  since?: Date;
   /** Entrées strictement plus anciennes que cet identifiant. */
   beforeId?: number;
   limit?: number;
@@ -792,12 +800,23 @@ export async function listAudit(
       .filter(
         (row) =>
           (!filters.action || row.action === filters.action) &&
+          (!filters.family || row.action.split(".")[0] === filters.family) &&
+          (!filters.actorId || row.actor_id === filters.actorId) &&
+          (!filters.organizationId ||
+            row.organization_id === filters.organizationId) &&
+          (!filters.since ||
+            new Date(row.at).getTime() >= filters.since.getTime()) &&
           (filters.beforeId === undefined || row.id < filters.beforeId),
       )
       .slice(0, limit);
   } else {
     const params = new URLSearchParams({ limit: String(limit) });
     if (filters.action) params.set("action", filters.action.slice(0, 64));
+    if (filters.family) params.set("family", filters.family);
+    if (filters.actorId) params.set("actor_id", filters.actorId);
+    if (filters.organizationId)
+      params.set("organization_id", filters.organizationId);
+    if (filters.since) params.set("since", filters.since.toISOString());
     if (filters.beforeId !== undefined)
       params.set("before_id", String(filters.beforeId));
     rows = await apiGet(`/admin/audit?${params}`, z.array(auditEntrySchema));

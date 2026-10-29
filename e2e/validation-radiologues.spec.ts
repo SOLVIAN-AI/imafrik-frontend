@@ -135,7 +135,7 @@ test.describe("tour de contrôle", () => {
   }) => {
     await page.goto("/admin/demandes?etat=all");
     await page
-      .getByRole("navigation", { name: "Demandeur" })
+      .getByRole("group", { name: "Demandeur" })
       .getByRole("link", { name: /^Radiologues/ })
       .click();
     await expect(page).toHaveURL(

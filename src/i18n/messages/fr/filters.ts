@@ -29,6 +29,24 @@ export const filters = {
     not_connected: "Non raccordée",
     silent: "Silencieuse depuis 24 h",
   },
+  author: "Auteur",
+  allAuthors: "Tous les auteurs",
+  authorSearch: "Rechercher un auteur",
+  authorNoMatch: "Aucun auteur ne correspond.",
+  authorMatches: (count: number) =>
+    count === 0 ? "Aucun auteur" : count > 1 ? `${count} auteurs` : "1 auteur",
+  family: "Famille",
+  allFamilies: "Toutes les familles",
+  action: "Action",
+  actionSearch: "Rechercher une action",
+  actionNoMatch: "Aucune action ne correspond.",
+  actionMatches: (count: number) =>
+    count === 0 ? "Aucune action" : count > 1 ? `${count} actions` : "1 action",
+  allRequesters: "Tous les demandeurs",
+  requestSearch: "Rechercher une demande",
+  requestSearchPlaceholder: "Nom, adresse, établissement…",
+  stage: "Étape",
+  allStages: "Toutes les étapes",
   organization: "Organisation",
   allOrganizations: "Toutes les organisations",
   organizationSearch: "Rechercher une organisation",
@@ -85,6 +103,10 @@ export const filters = {
   urgent: "Urgences",
   /** Ce que comptent les options et la liste, en toutes lettres. */
   nouns: {
+    entries: (count: number) =>
+      count > 1 ? `${count} entrées` : `${count} entrée`,
+    requests: (count: number) =>
+      count > 1 ? `${count} demandes` : `${count} demande`,
     gateways: (count: number) =>
       count > 1 ? `${count} passerelles` : `${count} passerelle`,
     statements: (count: number) =>
@@ -100,6 +122,8 @@ export const filters = {
   },
   /** Liste vide à cause des filtres. */
   empty: {
+    entries: "Aucune entrée ne correspond à ces filtres",
+    requests: "Aucune demande ne correspond à ces filtres",
     gateways: "Aucune passerelle ne correspond à ces filtres",
     statements: "Aucun relevé ne correspond à ces filtres",
     studies: "Aucun examen ne correspond à ces filtres",
