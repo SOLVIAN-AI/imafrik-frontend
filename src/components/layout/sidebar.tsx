@@ -579,7 +579,10 @@ function NavBlockView({
             ))}
             <ChevronDown
               className={cn(
-                "size-3 shrink-0 transition-transform duration-150",
+                "size-3 shrink-0",
+                // Le repli retenu se pose à l'hydratation sans tourner :
+                // seul un geste anime le chevron.
+                choice && "transition-transform duration-150",
                 open && "rotate-180",
               )}
               aria-hidden
