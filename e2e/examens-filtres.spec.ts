@@ -87,6 +87,9 @@ test.describe("le responsable de la clinique", () => {
 
   test("filtre par période de réception", async ({ page }) => {
     await page.goto("/examens");
+    // Attendre la liste avant de compter : `count()` ne se répète pas, et
+    // la page arrivée en flux peut attendre encore son dévoilement.
+    await expect(page.locator("main tbody tr").first()).toBeVisible();
     const tous = await page.locator("main tbody tr").count();
     await bar(page)
       .getByRole("button", { name: /^Période Toutes les dates/ })

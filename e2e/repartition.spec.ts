@@ -104,11 +104,14 @@ test.describe("l’équipe IMAFRIK", () => {
     const entree = nav.getByRole("link", { name: /^À lire/ });
     const badge = entree.getByLabel(/, dont des urgences$/);
     await expect(badge).toBeVisible();
-    const attendus = await page
+    const boutons = page
       .locator("main table tbody")
       .filter({ hasText: "À attribuer" })
-      .getByRole("button", { name: /^Attribuer l’examen de/ })
-      .count();
+      .getByRole("button", { name: /^Attribuer l’examen de/ });
+    // Attendre la file avant de compter : la barre latérale s'affiche avant
+    // la page, qui peut attendre encore son dévoilement.
+    await expect(boutons.first()).toBeVisible();
+    const attendus = await boutons.count();
     await expect(badge).toHaveText(String(attendus));
   });
 });
