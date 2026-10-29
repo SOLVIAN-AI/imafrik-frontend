@@ -1,7 +1,6 @@
 "use client";
 
 import { FlaskConical, Moon, Search, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
 import Link from "next/link";
 import * as React from "react";
 
@@ -14,6 +13,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { HelpMenu } from "@/components/tour/help-menu";
 import { useSession } from "@/components/providers/session-provider";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import type { ViewableClinic } from "@/lib/clinic-view";
 import type { NavCounts } from "@/lib/navigation";
@@ -86,14 +86,14 @@ function SearchTrigger() {
  */
 function ThemeToggle() {
   const t = useMessages();
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const mounted = useHydrated();
 
   // Avant l'hydratation, le thème réel est inconnu du serveur. Icône ET
   // étiquette doivent donc rester neutres : les faire dépendre du thème
   // supposé produirait une divergence serveur/client — React la signale,
   // et un lecteur d'écran annoncerait brièvement l'inverse de la réalité.
-  const dark = resolvedTheme !== "light";
+  const dark = theme !== "light";
 
   return (
     <Button

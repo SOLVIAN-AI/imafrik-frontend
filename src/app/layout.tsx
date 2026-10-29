@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 
-import { ThemeProvider } from "@/components/providers/theme-provider";
+import { ThemeScript } from "@/components/providers/theme-script";
 import { Toaster } from "@/components/ui/toaster";
 
 import { DEFAULT_LOCALE, isLocale, LOCALE_HEADER } from "@/lib/i18n/locale";
@@ -88,11 +88,11 @@ export const viewport: Viewport = {
  * Disposition racine.
  *
  * Elle lit le nonce de la politique de sécurité du contenu, posé par le
- * proxy pour cette requête, et le transmet à next-themes — dont le script
- * d'initialisation du thème est le seul script en ligne de l'application
- * que Next ne marque pas lui-même. Lire les en-têtes rend chaque page
- * dynamique : c'est la condition, documentée par Next, pour qu'un nonce
- * différent puisse être servi à chaque requête.
+ * proxy pour cette requête, et le transmet au script du thème
+ * (`ThemeScript`), seul script en ligne de l'application que Next ne
+ * marque pas lui-même. Lire les en-têtes rend chaque page dynamique :
+ * c'est la condition, documentée par Next, pour qu'un nonce différent
+ * puisse être servi à chaque requête.
  */
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const requestHeaders = await headers();
@@ -103,15 +103,14 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const lang = isLocale(locale) ? locale : DEFAULT_LOCALE;
 
   return (
-    // suppressHydrationWarning : next-themes pose la classe de thème sur
+    // suppressHydrationWarning : le script du thème pose sa classe sur
     // <html> avant l'hydratation, ce que React signalerait autrement
     // comme une divergence.
     <html lang={lang} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ThemeProvider nonce={nonce}>
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <ThemeScript nonce={nonce} />
+        {children}
+        <Toaster />
       </body>
     </html>
   );

@@ -89,7 +89,7 @@ export async function proxy(request: NextRequest) {
 
   // Next lit le nonce dans l'en-tête CSP **de la requête** pour le
   // reporter sur ses propres scripts ; la disposition racine le lit dans
-  // x-nonce pour le transmettre à next-themes.
+  // x-nonce pour le transmettre au script du thème.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
