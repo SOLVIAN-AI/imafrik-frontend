@@ -439,8 +439,8 @@ export const pages: typeof fr = {
       purpose:
         "Lists the examinations of the whole platform, across all organisations, to answer a clinic quickly. The patient’s name opens the images and the report in view-only mode, and every opening is logged.",
       steps: [
-        "Choose a clinic in the list (type its name when there are many), then a modality group: each choice shows its number of examinations, and the two combine.",
-        "Search for an examination by patient, ID or modality, or click “Open urgent cases”, the most overdue first.",
+        "Filter by clinic (type its name when there are many), by modality or by “Open urgent cases”: each choice shows its number of examinations, and they combine.",
+        "Search for an examination by patient, ID or modality. “Clear filters” brings back the whole list; the address keeps your filters, to share.",
         "Click the patient’s name to open the images and the report, without being able to write or sign.",
         "For an unsigned examination, click “Assign” at the end of the row, choose a radiologist who reads its modality, tick the useful prior examinations, then confirm.",
         "“Nobody can receive it”: the window says why and what to do. To take an examination back from its holder: “Reassign”, then “Withdraw the assignment”.",

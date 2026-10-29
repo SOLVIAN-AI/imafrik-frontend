@@ -40,6 +40,7 @@ import {
   MODALITY_PARAM,
   readModalityGroup,
 } from "@/lib/modalities";
+import { readListSearch } from "@/lib/search/server";
 import { roleRequiresMfa } from "@/lib/session/mfa";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
@@ -74,7 +75,9 @@ export default async function UsersPage({
   const { t } = await getMessages();
   const text = t.admin.users;
   const params = await searchParams;
-  const query = typeof params.q === "string" ? params.q : undefined;
+  // La recherche porte un nom ou une adresse : relue d'un cookie lié au
+  // compte, jamais de l'adresse (le proxy retire un ancien `?q=`).
+  const query = await readListSearch("admin-comptes", session);
   const filter = parseUserFilter(params);
   // `?modalite=scanner` : les radiologues qui lisent ce groupe.
   const modality = readModalityGroup(params[MODALITY_PARAM]);
@@ -159,22 +162,22 @@ export default async function UsersPage({
               options={[
                 {
                   label: t.admin.shared.all,
-                  href: userListHref("all", query, modality),
+                  href: userListHref("all", modality),
                   active: filter === "all",
                 },
                 {
                   label: counted(text.unverifiedFilter, unverifiedCount),
-                  href: userListHref("unverified", query, modality),
+                  href: userListHref("unverified", modality),
                   active: filter === "unverified",
                 },
                 {
                   label: counted(text.signingFilter, signingCount),
-                  href: userListHref("signing", query, modality),
+                  href: userListHref("signing", modality),
                   active: filter === "signing",
                 },
                 {
                   label: counted(text.pendingFilter, pendingCount),
-                  href: userListHref("pending", query, modality),
+                  href: userListHref("pending", modality),
                   active: filter === "pending",
                 },
               ]}
@@ -185,6 +188,8 @@ export default async function UsersPage({
               active={modality}
             />
             <SearchBox
+              scope="admin-comptes"
+              search={query}
               label={text.searchLabel}
               placeholder={text.searchPlaceholder}
             />

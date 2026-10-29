@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  clinicChoiceHref,
   foldForSearch,
-  matchClinics,
+  matchChoices,
   moveActive,
-  sortClinics,
+  sortChoices,
   typeAhead,
-} from "@/lib/clinic-choice";
+} from "@/lib/filters/choice";
 
 const names = (clinics: { name: string }[]) => clinics.map((c) => c.name);
 
@@ -22,7 +21,7 @@ describe("ordre des cliniques", () => {
       { name: "Centre 10" },
       { name: "Centre 2" },
     ];
-    expect(names(sortClinics(clinics, "fr"))).toEqual([
+    expect(names(sortChoices(clinics, "fr"))).toEqual([
       "Cabinet Espérance",
       "Centre 2",
       "Centre 10",
@@ -31,12 +30,12 @@ describe("ordre des cliniques", () => {
       "Eyadéma",
       "Polyclinique de Kara",
     ]);
-    expect(names(sortClinics(clinics, "en"))[4]).toBe("Élavagnon");
+    expect(names(sortChoices(clinics, "en"))[4]).toBe("Élavagnon");
   });
 
   it("ne modifie pas la liste reçue", () => {
     const clinics = [{ name: "B" }, { name: "A" }];
-    sortClinics(clinics, "fr");
+    sortChoices(clinics, "fr");
     expect(names(clinics)).toEqual(["B", "A"]);
   });
 });
@@ -51,25 +50,25 @@ describe("recherche d’une clinique", () => {
 
   it("ignore accents et majuscules", () => {
     expect(foldForSearch("  ÉSPÉRANCE ")).toBe("esperance");
-    expect(names(matchClinics(clinics, "esperance"))).toEqual([
+    expect(names(matchChoices(clinics, "esperance"))).toEqual([
       "Cabinet Espérance",
     ]);
-    expect(names(matchClinics(clinics, "CHU"))).toEqual(["CHU Campus"]);
+    expect(names(matchChoices(clinics, "CHU"))).toEqual(["CHU Campus"]);
   });
 
   it("retient les cliniques qui contiennent chacun des mots", () => {
-    expect(names(matchClinics(clinics, "clinique"))).toEqual([
+    expect(names(matchChoices(clinics, "clinique"))).toEqual([
       "Clinique Saint-Joseph",
       "Polyclinique de Kara",
     ]);
-    expect(names(matchClinics(clinics, "saint jo"))).toEqual([
+    expect(names(matchChoices(clinics, "saint jo"))).toEqual([
       "Clinique Saint-Joseph",
     ]);
-    expect(matchClinics(clinics, "lomé")).toEqual([]);
+    expect(matchChoices(clinics, "lomé")).toEqual([]);
   });
 
   it("garde tout pour une saisie vide", () => {
-    expect(matchClinics(clinics, "   ")).toHaveLength(4);
+    expect(matchChoices(clinics, "   ")).toHaveLength(4);
   });
 });
 
@@ -109,34 +108,5 @@ describe("déplacement au clavier", () => {
     expect(typeAhead(labels, 2, "c")).toBe(1);
     expect(typeAhead(labels, 0, "e")).toBe(3);
     expect(typeAhead(labels, 0, "z")).toBeNull();
-  });
-});
-
-describe("adresse du choix", () => {
-  it("garde les autres filtres et repart de la première page", () => {
-    expect(
-      clinicChoiceHref(
-        "/admin/examens",
-        "modalite=scanner&apres=abc&urgent=1",
-        "clinique",
-        "org-pka",
-        ["apres"],
-      ),
-    ).toBe("/admin/examens?modalite=scanner&urgent=1&clinique=org-pka");
-  });
-
-  it("retire la clinique pour toutes les cliniques", () => {
-    expect(
-      clinicChoiceHref(
-        "/worklist",
-        new URLSearchParams("clinique=org-stj&modalite=CT"),
-        "clinique",
-        null,
-        [],
-      ),
-    ).toBe("/worklist?modalite=CT");
-    expect(
-      clinicChoiceHref("/worklist", "clinique=org-stj", "clinique", null, []),
-    ).toBe("/worklist");
   });
 });

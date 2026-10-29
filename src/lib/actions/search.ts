@@ -60,11 +60,11 @@ export async function searchStudies(
 }
 
 /**
- * Applique — ou efface — la recherche d'une liste d'examens.
+ * Applique, ou efface, la recherche d'une liste.
  *
  * La recherche est écrite dans un cookie httpOnly lié au compte et à
  * l'organisation active, jamais dans l'adresse : elle porte un nom de
- * patient (voir `lib/search/list-search.ts`). Modifier un cookie depuis
+ * patient ou de médecin (voir `lib/search/list-search.ts`). Modifier un cookie depuis
  * une action fait relire l'écran courant par Next, qui affiche aussitôt
  * la liste filtrée.
  *

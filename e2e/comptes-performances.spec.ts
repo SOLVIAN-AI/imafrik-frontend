@@ -70,6 +70,50 @@ test.describe("l’équipe IMAFRIK", () => {
     await expect(page.getByText("Fatou Diallo")).toHaveCount(0);
   });
 
+  /**
+   * Un nom ou une adresse cherchés n'entrent jamais dans l'adresse : ils
+   * finiraient dans l'historique et les journaux d'accès. La recherche vit
+   * dans un cookie lié au compte, et suit d'un filtre à l'autre.
+   */
+  test("cherche un compte sans mettre le nom dans l’adresse", async ({
+    page,
+  }) => {
+    await page.goto("/admin/utilisateurs");
+    const champ = page.getByRole("searchbox", { name: "Rechercher un compte" });
+    await champ.fill("diallo");
+    await champ.press("Enter");
+    await expect(page.getByText("Dr Fatou Diallo")).toBeVisible();
+    await expect(page.getByText("Dr Adjo Kponton")).toHaveCount(0);
+    expect(page.url()).not.toContain("diallo");
+
+    // Un filtre garde la recherche, sans qu'elle passe par l'adresse.
+    await page
+      .getByRole("navigation", { name: "Filtre" })
+      .getByRole("link", { name: /^En attente/ })
+      .click();
+    await expect(page).toHaveURL("/admin/utilisateurs?attente=1");
+    await expect(champ).toHaveValue("diallo");
+
+    // Effacer la recherche rend toute la liste.
+    await page
+      .getByRole("navigation", { name: "Filtre" })
+      .getByRole("link", { name: "Tous", exact: true })
+      .click();
+    await expect(page).toHaveURL("/admin/utilisateurs");
+    await expect(champ).toHaveValue("diallo");
+    await champ.fill("");
+    await champ.press("Enter");
+    await expect(page.getByText("Dr Adjo Kponton")).toBeVisible();
+  });
+
+  test("retire la recherche d’un ancien lien", async ({ page }) => {
+    await page.goto("/admin/utilisateurs?q=diallo&validation=attente");
+    await expect(page).toHaveURL("/admin/utilisateurs?validation=attente");
+    await expect(
+      page.getByRole("searchbox", { name: "Rechercher un compte" }),
+    ).toHaveValue("");
+  });
+
   test("ouvre les performances d’un radiologue depuis sa ligne", async ({
     page,
   }) => {

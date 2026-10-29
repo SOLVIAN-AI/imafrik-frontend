@@ -101,12 +101,6 @@ export const worklist: AppMessages["worklist"] = {
     modalities: "Modalities",
     clinic: "Clinic",
     allClinics: "All clinics",
-    clinicSearch: "Search for a clinic",
-    clinicNoMatch: "No clinic matches.",
-    clinicMatches: (count: number) =>
-      count === 0 ? "No clinic" : count === 1 ? "1 clinic" : `${count} clinics`,
-    studyCount: (count: number) =>
-      count === 1 ? "1 examination" : `${count} examinations`,
   },
   toolbar: {
     searchLabel: "Search for a patient or a modality",

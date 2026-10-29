@@ -119,20 +119,21 @@ export function parseUserFilter(params: {
 }
 
 /**
- * Adresse de la liste des comptes pour un filtre, recherche et modalité
- * conservées.
+ * Adresse de la liste des comptes pour un filtre, modalité conservée.
+ *
+ * La recherche n'y figure pas : elle porte un nom ou une adresse
+ * électronique, et vit dans un cookie lié au compte (portée
+ * `admin-comptes`) ; elle suit donc d'un filtre à l'autre sans passer par
+ * l'adresse.
  *
  * @param filter   Filtre voulu.
- * @param query    Recherche en cours.
  * @param modality Modalité lue retenue (`?modalite=scanner`).
  */
 export function userListHref(
   filter: UserListFilter,
-  query?: string,
   modality?: ModalityGroup,
 ): string {
   const next = new URLSearchParams();
-  if (query) next.set("q", query);
   if (modality) next.set(MODALITY_PARAM, MODALITY_SLUGS[modality]);
   if (filter === "pending") next.set("attente", "1");
   if (filter === "unverified") next.set("validation", "attente");
