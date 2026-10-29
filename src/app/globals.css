@@ -636,12 +636,18 @@
 
    Le masquage n'est posé qu'une fois le script prêt (`data-reveal-ready` sur
    `<html>`), et jamais sur ce qui est déjà à l'écran : sans script, ou
-   avec « moins de mouvement », tout est visible d'emblée. */
+   avec « moins de mouvement », tout est visible d'emblée.
+
+   Le fondu ne vaut que pour l'apparition : masquer, à l'arrivée, ce qui est
+   hors de l'écran se fait d'un coup. Sinon chaque section sous la ligne de
+   flottaison s'efface en 0,8 s, ce qu'un défilement rapide montre et
+   qu'un audit d'accessibilité mesure à mi-course. Le thème gelait
+   jusqu'ici les transitions au montage, et masquait ce défaut au hasard. */
 html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
   opacity: 0;
   translate: 0 1.25rem;
 }
-html[data-reveal-ready] [data-reveal] {
+html[data-reveal-ready] [data-reveal][data-revealed] {
   transition:
     opacity 0.8s var(--ease-out-quart),
     translate 0.8s var(--ease-out-quart);
