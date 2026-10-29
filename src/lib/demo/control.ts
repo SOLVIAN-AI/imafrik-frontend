@@ -25,6 +25,7 @@ import {
 import { messagesFor } from "@/i18n";
 import { DEMO_SIGNING_REVIEW_PROFILE } from "@/lib/demo/signing";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
+import { MODALITY_GROUPS, modalityGroupOf } from "@/lib/modalities";
 
 /**
  * Réseau de démonstration de la tour de contrôle.
@@ -183,6 +184,27 @@ const READERS = [
     pace: 1.3,
   },
 ] as const;
+
+/** Tous les groupes de modalités, la mammographie mise à part. */
+const ALL_BUT_MAMMOGRAPHY = MODALITY_GROUPS.filter(
+  (group) => group !== "mammography",
+);
+
+/**
+ * Modalités lues par chaque radiologue du groupe, comme les règle l'équipe
+ * dans « Comptes » : Dr Diallo ne lit que le scanner et l'IRM, et personne
+ * ne lit la mammographie. L'examen de mammographie de Kara (BOKO Essi)
+ * montre ainsi ce que dit la fenêtre d'attribution quand personne ne peut
+ * recevoir un examen.
+ */
+type ReaderId = (typeof READERS)[number]["id"];
+
+const READS: Readonly<Record<ReaderId, ModalityGroup[]>> = {
+  [READERS[0].id]: ALL_BUT_MAMMOGRAPHY,
+  [READERS[1].id]: ALL_BUT_MAMMOGRAPHY,
+  [READERS[2].id]: ALL_BUT_MAMMOGRAPHY,
+  [READERS[3].id]: ["ct", "mri"],
+};
 
 /**
  * Modalités : part du volume, taille médiane d'un examen (Mo), et durée
@@ -1079,15 +1101,15 @@ export function demoUsers(now = Date.now()): ApiAdminUser[] {
       "BJ-RAD-0477",
     ),
   ];
-  // Modalités lues et listes d'urgence, comme les règle l'équipe : Dr
-  // Diallo ne lit que le scanner et l'IRM ; Dr Kponton est sur la liste
-  // d'urgence de Saint-Joseph (voir `demoUrgentReaders`).
+  // Modalités lues et listes d'urgence, comme les règle l'équipe (voir
+  // `READS`) ; Dr Kponton est sur la liste d'urgence de Saint-Joseph (voir
+  // `demoUrgentReaders`).
   const saintJoseph = DEMO_NETWORK[0];
   return users.map((row) => ({
     ...row,
     memberships: row.memberships.map((membership) =>
-      row.id === READERS[3].id && membership.role === "radiologist"
-        ? { ...membership, read_modalities: ["ct", "mri"] as ModalityGroup[] }
+      membership.role === "radiologist" && row.id in READS
+        ? { ...membership, read_modalities: READS[row.id as ReaderId] }
         : membership,
     ),
     urgent_lists:
@@ -1420,7 +1442,7 @@ export function demoUrgentReaders(clinicId: string): ApiUrgentReader[] {
     name: `${reader.title} ${reader.name}`,
     organization_name: DEMO_GROUP.name,
     via_pool: true,
-    read_modalities: null,
+    read_modalities: READS[reader.id],
     urgent_reader: index === 0,
   }));
 }
@@ -1464,7 +1486,7 @@ export function demoAssignmentRules(
     name: `${reader.title} ${reader.name}`,
     organization_name: DEMO_GROUP.name,
     via_pool: true,
-    read_modalities: null,
+    read_modalities: READS[reader.id],
     can_receive: true,
   });
   const [, , agbeko, diallo] = READERS;
@@ -1541,11 +1563,38 @@ export function demoPriorCandidates(studyId: string): ApiPriorCandidate[] {
 }
 
 /**
+ * Qui peut recevoir un examen de démonstration, et sinon pourquoi, comme
+ * `POST /admin/studies/eligibility`.
+ *
+ * Toutes les cliniques du jeu sont actives et lues par le groupe sous
+ * contrat, dont chaque radiologue est habilité : un examen sans candidat
+ * l'est faute de lecteur de sa modalité.
+ *
+ * @param studyId Examen de démonstration.
+ * @returns Le nombre de candidats et la raison d'un zéro, ou `null` pour
+ *          un examen inconnu.
+ */
+export function demoEligibility(studyId: string): {
+  candidates: number;
+  reason: "modality_not_read" | null;
+} | null {
+  const state = demoAssignment(studyId);
+  if (!state) return null;
+  const candidates = state.candidates.length;
+  return {
+    candidates,
+    reason: candidates === 0 ? "modality_not_read" : null,
+  };
+}
+
+/**
  * Attribution d'un examen de démonstration : son titulaire, et les
- * radiologues du groupe, les moins chargés d'abord.
+ * radiologues du groupe qui lisent sa modalité (`READS`), les moins chargés
+ * d'abord.
  *
  * Tous lisent par le groupe sous contrat, comme les libéraux : la
- * démonstration n'a pas de radiologue propre à une clinique.
+ * démonstration n'a pas de radiologue propre à une clinique. Personne ne
+ * lit la mammographie : l'examen de BOKO Essi n'a aucun candidat.
  *
  * @param studyId Examen de démonstration.
  * @returns L'état, ou `null` pour un examen inconnu.
@@ -1572,15 +1621,20 @@ export function demoAssignment(studyId: string): ApiAssignmentState | null {
       ? new Date(study.receivedAt.getTime() + 5 * 60_000).toISOString()
       : null,
     draft_in_progress: study.status === "in_progress",
-    candidates: READERS.map((reader) => ({
-      profile_id: reader.id,
-      name: `${reader.title} ${reader.name}`,
-      organization_name: DEMO_GROUP.name,
-      via_pool: true,
-      open_studies: open(reader.id),
-    })).sort(
-      (a, b) => a.open_studies - b.open_studies || a.name.localeCompare(b.name),
-    ),
+    candidates: READERS.filter((reader) =>
+      READS[reader.id].includes(modalityGroupOf(study.modality)),
+    )
+      .map((reader) => ({
+        profile_id: reader.id,
+        name: `${reader.title} ${reader.name}`,
+        organization_name: DEMO_GROUP.name,
+        via_pool: true,
+        open_studies: open(reader.id),
+      }))
+      .sort(
+        (a, b) =>
+          a.open_studies - b.open_studies || a.name.localeCompare(b.name),
+      ),
     prior_shares: [],
     notified: null,
   };

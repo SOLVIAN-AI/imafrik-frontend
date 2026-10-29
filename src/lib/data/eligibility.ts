@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { apiSend } from "@/lib/api/client";
 import { studyEligibilitySchema } from "@/lib/api/contracts";
-import { demoAssignment } from "@/lib/demo/control";
+import { demoEligibility } from "@/lib/demo/control";
 import { isDemoMode } from "@/lib/demo/mode";
 
 /** Pourquoi aucun radiologue ne peut recevoir un examen. */
@@ -43,18 +43,8 @@ export async function getEligibility(
   if (isDemoMode()) {
     return Object.fromEntries(
       ids.flatMap((id) => {
-        const state = demoAssignment(id);
-        if (!state) return [];
-        const candidates = state.candidates.length;
-        return [
-          [
-            id,
-            {
-              candidates,
-              reason: candidates === 0 ? ("no_reader" as const) : null,
-            },
-          ],
-        ];
+        const found = demoEligibility(id);
+        return found ? [[id, found]] : [];
       }),
     );
   }
