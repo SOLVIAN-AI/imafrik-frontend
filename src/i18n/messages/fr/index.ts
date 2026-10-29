@@ -5,6 +5,7 @@ import { clinic } from "@/i18n/messages/fr/clinic";
 import { clinicView } from "@/i18n/messages/fr/clinic-view";
 import { common } from "@/i18n/messages/fr/common";
 import { credentials } from "@/i18n/messages/fr/credentials";
+import { filters } from "@/i18n/messages/fr/filters";
 import { gateways } from "@/i18n/messages/fr/gateways";
 import { help } from "@/i18n/messages/fr/help";
 import { nav } from "@/i18n/messages/fr/nav";
@@ -32,6 +33,8 @@ import { worklist } from "@/i18n/messages/fr/worklist";
  *   en consultation par l'équipe IMAFRIK ;
  * - `assignment` : attribution des examens, antériorités, modalités et
  *   liste d'urgence, pour la clinique et l'équipe IMAFRIK ;
+ * - `filters` : barre de filtres des listes, ses dimensions et ses
+ *   nombres ;
  * - `credentials` : habilitation des radiologues, partout où elle se dit ;
  * - `agreements` : contrat du radiologue, convention de l'établissement ;
  * - `settings` : paramètres ;
@@ -50,6 +53,7 @@ export const fr = {
   clinic,
   clinicView,
   assignment,
+  filters,
   onboarding,
   credentials,
   agreements,

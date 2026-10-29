@@ -6,6 +6,7 @@ import { clinic } from "@/i18n/messages/en/clinic";
 import { clinicView } from "@/i18n/messages/en/clinic-view";
 import { common } from "@/i18n/messages/en/common";
 import { credentials } from "@/i18n/messages/en/credentials";
+import { filters } from "@/i18n/messages/en/filters";
 import { gateways } from "@/i18n/messages/en/gateways";
 import { help } from "@/i18n/messages/en/help";
 import { nav } from "@/i18n/messages/en/nav";
@@ -51,6 +52,7 @@ export const en: AppMessages = {
   clinic,
   clinicView,
   assignment,
+  filters,
   onboarding,
   credentials,
   agreements,

@@ -444,8 +444,8 @@ export const pages = {
       purpose:
         "Liste les examens de toute la plateforme, toutes organisations confondues, pour répondre vite à une clinique. Le nom du patient ouvre les images et le compte-rendu en consultation seule, et chaque ouverture est tracée.",
       steps: [
-        "Choisissez une clinique dans la liste (tapez son nom si elles sont nombreuses), puis un groupe de modalités : chaque choix dit son nombre d’examens, les deux se combinent.",
-        "Cherchez un examen par patient, identifiant ou modalité, ou cliquez sur « Urgences en cours », les plus en retard en tête.",
+        "Filtrez par clinique (tapez son nom si elles sont nombreuses), par modalité ou par « Urgences en cours » : chaque choix dit son nombre d’examens, et ils se combinent.",
+        "Cherchez un examen par patient, identifiant ou modalité. « Effacer les filtres » rend toute la liste ; l’adresse garde vos filtres, à partager.",
         "Cliquez sur le nom du patient pour ouvrir les images et le compte-rendu, sans pouvoir rédiger ni signer.",
         "Pour un examen non signé, cliquez sur « Attribuer » en fin de ligne, choisissez un radiologue qui lit sa modalité, cochez les antériorités utiles, puis validez.",
         "« Personne ne peut le recevoir » : la fenêtre dit pourquoi et quoi faire. Pour reprendre un examen à son titulaire : « Réattribuer », puis « Retirer l’attribution ».",

@@ -84,11 +84,16 @@ test.describe("l’équipe IMAFRIK", () => {
     page,
   }) => {
     await page.goto("/admin/examens");
-    const reseau = await tabCount(page, "Toutes");
-    await page
-      .getByRole("navigation", { name: "Modalités" })
-      .getByRole("link", { name: /^IRM/ })
-      .click();
+    // La barre de filtres commune : des puces dans le groupe « Modalité ».
+    const puces = page.getByRole("group", { name: "Modalité" });
+    const reseau = Number(
+      (
+        await puces
+          .getByRole("link", { name: /^Toutes les modalités/ })
+          .innerText()
+      ).replace(/\D/g, ""),
+    );
+    await puces.getByRole("link", { name: /^IRM/ }).click();
     await expect(page).toHaveURL(/modalite=irm/);
     // Le filtre des urgences garde le groupe.
     await page.getByRole("link", { name: "Urgences en cours" }).click();

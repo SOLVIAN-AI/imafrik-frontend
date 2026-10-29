@@ -16,11 +16,13 @@ Ce document fait trois choses :
 3. il découpe le travail en petites PR, par priorité.
 
 **État au 29 octobre 2026.** Recensement fait sur `main` (728bb77) et sur
-la PR « Attribuer toujours visible » en cours, qui crée la liste
-déroulante des cliniques (`ClinicDropdown`, motif combobox) et la branche
-dans « Examens », « À lire », « Activité » et « Flux ». Ce composant est
-la base de la liste déroulante commune décrite ici : il est généralisé,
-pas réécrit.
+la PR « Attribuer toujours visible » (#98, fusionnée depuis), qui a créé
+la liste déroulante des cliniques (`ClinicDropdown`, motif combobox) et
+l’a branchée dans « Examens », « À lire », « Activité » et « Flux ». Ce
+composant est devenu la liste déroulante commune (`FilterDropdown`) :
+généralisé, pas réécrit. Plan validé le 29 octobre 2026, ses cinq
+décisions comprises (section 5) ; la recherche des comptes est sortie de
+l’adresse en premier (PR #99).
 
 ---
 
@@ -155,22 +157,28 @@ Aujourd’hui, sept briques différentes font le même travail :
 écrit l’adresse à sa façon (lien, `router.push`, `router.replace`), compte
 ou ne compte pas, défile ou passe à la ligne.
 
-Elles sont remplacées par un module pur et quatre composants :
+Elles sont remplacées par un module pur et quatre composants (en place
+depuis le socle, F1 ; `facets.ts` arrive avec la première liste filtrée
+sur la page) :
 
 ```
 src/lib/filters/
 ├── dimensions.ts   registre des dimensions : le seul endroit à toucher pour en ajouter une
-├── screens.ts      dimensions de chaque écran, dans l’ordre commun
-├── url.ts          lecture validée de l’adresse, écriture, paramètres du service
-├── facets.ts       comptes par option pour les listes filtrées sur la page
+├── screens.ts      dimensions de chaque écran, dans l’ordre commun ; NETWORK
+├── url.ts          lecture validée de l’adresse, écriture
+├── facets.ts       comptes par option pour les listes filtrées sur la page (à venir)
 └── choice.ts       tri selon la langue, recherche, clavier (issu de clinic-choice.ts)
 
 src/components/filters/
 ├── filter-bar.tsx       la barre : dimensions, « Effacer les filtres », annonce du résultat
-├── filter-chips.tsx     puces (issues de ModalityTabs et des pastilles de la file)
+├── filter-chips.tsx     puces et bascule (issues de ModalityTabs et des pastilles de la file)
 ├── filter-dropdown.tsx  liste déroulante (ClinicDropdown généralisé)
-└── filtered-empty.tsx   liste vide à cause des filtres
+├── filtered-empty.tsx   liste vide à cause des filtres
+└── icons.ts             pictogramme de chaque dimension
 ```
+
+`ClinicDropdown` reste une enveloppe de la liste déroulante commune, pour
+les écrans pas encore passés à la barre.
 
 `ListToolbar` reste à sa place dans l’en-tête de la liste : recherche
 (cookie) et actualisation. Le bouton « Urgences seulement » qu’elle porte
@@ -179,61 +187,58 @@ devient la dimension « Urgence » de la barre.
 ### 3.2 Le modèle : une dimension de filtre
 
 ```ts
-// src/lib/filters/dimensions.ts (esquisse)
-export interface FilterDimension<Value extends string = string> {
+// src/lib/filters/dimensions.ts
+export interface FilterDimension {
   /** Paramètre d’adresse : court, en français, stable (`modalite`). */
   param: string;
-  /** Puces pour une liste fixe et courte, liste déroulante pour une liste qui grandit. */
-  presentation: "chips" | "dropdown";
-  /** Valeurs connues du code (modalités, états) ; absentes si elles viennent des données. */
-  values?: readonly Value[];
+  /** `chips` (valeurs fixes), `dropdown` (valeurs des données), `toggle` (une valeur). */
+  presentation: Presentation;
+  /** Valeurs fixes, dans l’ordre d’affichage ; absentes si elles viennent des données. */
+  values?: readonly string[];
   /** Valeur de l’adresse vers la valeur interne, `null` si inconnue (= « Tous »). */
-  read(raw: string): Value | null;
-  write(value: Value): string;
-  /** Paramètre du service quand il filtre ; sinon le filtre se fait sur la page. */
-  api?: { param: string; value?: (value: Value) => string };
-  /** Nom (« Modalité »), option par défaut (« Toutes les modalités »), forme courte (« Toutes »). */
-  text: (t: AppMessages) => { name: string; all: string; short: string };
-  icon: LucideIcon;
-  /** Dimension qui restreint les options : la clinique dépend du pays. */
-  narrowedBy?: DimensionKey;
+  read(raw: string): string | null;
+  write(value: string): string;
+  /** Nom (« Modalité ») et option par défaut (« Toutes les modalités »). */
+  text(t: AppMessages): { name: string; all: string };
+  /** Nom d’une valeur fixe (« Scanner »). */
+  valueLabel?(t: AppMessages, value: string): string;
+  /** Textes de la recherche d’une liste déroulante qui grandit. */
+  searchText?(t: AppMessages): SearchText;
 }
 
-export const DIMENSIONS = {
-  country, clinic, radiologist, modality, state, urgency, period,
-  role, action, author, requester,
-} satisfies Record<string, FilterDimension>;
+export const DIMENSIONS = { clinic, modality, urgency } satisfies Record<string, FilterDimension>;
+// demain : country, radiologist, state, period, role, action, author, requester
 ```
 
 L’ordre du registre est l’ordre de la barre, le même sur tous les
 écrans : où (pays, clinique), qui (radiologue, auteur), quoi (modalité),
-où en est-on (état, urgence), quand (période).
+où en est-on (état, urgence), quand (période). Le pictogramme de chaque
+dimension vit à côté des composants (`components/filters/icons.ts`) : le
+registre reste pur.
 
 ### 3.3 Les dimensions de chaque écran
 
 ```ts
-// src/lib/filters/screens.ts (esquisse)
+// src/lib/filters/screens.ts
 /** Le réseau : tout écran de l’équipe qui couvre plusieurs cliniques. */
-const NETWORK = ["clinic"] as const; // demain : ["country", "clinic"]
+export const NETWORK = ["clinic"] as const; // demain : ["country", "clinic"]
 
-export const SCREEN_FILTERS = {
-  "admin-examens": [...NETWORK, "radiologist", "modality", "state", "urgency", "period"],
-  worklist: [...NETWORK, "radiologist", "modality", "state", "urgency"],
-  "mes-examens": ["clinic", "modality", "state", "urgency"],
-  examens: ["radiologist", "modality", "state", "urgency", "period"],
-  // …
-} satisfies Record<ListScreen, readonly DimensionKey[]>;
+export const LIST_FILTERS = {
+  "admin-examens": [...NETWORK, "modality", "urgency"],
+  // chaque PR d’écran ajoute le sien
+} as const satisfies Record<string, readonly DimensionKey[]>;
 ```
 
-Une page serveur ne fait plus que :
+Une page serveur lit les filtres, interroge le service avec, puis décrit
+la barre (options et nombres de chaque dimension) :
 
 ```ts
-const filters = readFilters(await searchParams, "admin-examens", { clinic: clinicIds });
-const [page, facets] = await Promise.all([
-  listStudyPage({ ...studyQuery(filters), cursor, search }),
-  getStudyFacets(filters),
-]);
-// <FilterBar screen="admin-examens" filters={filters} facets={facets} options={{ clinic: clinics }} />
+const keys = LIST_FILTERS["admin-examens"];
+const draft = readFilters(params, keys); // modalité, urgence
+const clinicCounts = await getClinicCounts({ ...base, modalityGroup: draft.modality });
+const filters = readFilters(params, keys, { clinic: clinicCounts.clinics.map((c) => c.id) });
+// … listStudyPageAt({ ...base, modalityGroup, clinic: filters.clinic, … })
+// <FilterBar dimensions={bar} active={filters} result={{ count: total, noun: "studies" }} />
 ```
 
 La règle « une dimension à une seule valeur n’est pas proposée » (section
@@ -349,11 +354,13 @@ La colonne existe déjà : `organizations.country char(2) not null default
    accepter `country` sur `/studies`, `/studies/facets`, `/admin/analytics`,
    `/admin/performance`, `/admin/pipeline`, `/admin/billing/statements`,
    `/admin/gateways`, `/admin/users`, `/admin/audit`. Aucune migration.
-2. **Frontend, un seul endroit** : la dimension `country` dans
-   `lib/filters/dimensions.ts`, puis `NETWORK = ["country", "clinic"]`
-   dans `lib/filters/screens.ts`. Tous les écrans du réseau la reçoivent,
-   avec ses comptes ; la liste des cliniques se restreint au pays choisi
-   (`narrowedBy`).
+2. **Frontend** : la dimension `country` dans `lib/filters/dimensions.ts`
+   (son paramètre, sa lecture, ses textes) et son pictogramme, puis
+   `NETWORK = ["country", "clinic"]` dans `lib/filters/screens.ts` : tous
+   les écrans du réseau la déclarent d’un coup. Chacun transmet ensuite
+   `filters.country` au service et ses nombres à la barre, comme il le
+   fait pour la clinique ; la liste des cliniques se restreint au pays
+   choisi.
 3. **Textes** : le nom de la dimension et « Tous les pays » ; les noms
    des pays viennent de `Intl.DisplayNames`, dans la langue de l’écran.
 

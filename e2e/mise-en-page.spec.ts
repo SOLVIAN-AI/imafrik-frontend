@@ -48,6 +48,8 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       "/admin/demandes?etat=all",
       // Fiche d'une clinique, zone de danger de la fin de contrat comprise.
       "/admin/organisations/org-stj",
+      // Barre de filtres commune, filtres actifs : rien ne défile en largeur.
+      "/admin/examens?clinique=org-stj&modalite=scanner&urgent=1",
       // Passerelles : vue d'ensemble et fiche, gestes compris.
       "/admin/passerelles",
       "/admin/passerelles/gw-pka-radio",
