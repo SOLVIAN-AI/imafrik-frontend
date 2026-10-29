@@ -196,12 +196,34 @@ describe("registre des dimensions", () => {
     expect(params).not.toContain("q");
   });
 
-  it("chaque valeur fixe s’écrit puis se relit à l’identique", () => {
+  it("chaque valeur fixe s’écrit dans l’adresse puis se relit à l’identique", () => {
     for (const key of DIMENSION_ORDER) {
       const definition = DIMENSIONS[key];
-      for (const value of "values" in definition ? definition.values : [])
-        expect(definition.read(definition.write(value))).toBe(value);
+      for (const value of "values" in definition ? definition.values : []) {
+        const href = filterHref("/liste", "", { [key]: value });
+        const params = new URL(href, "https://imafrik.test").searchParams;
+        expect(readFilters(params, [key])).toEqual({ [key]: value });
+      }
     }
+  });
+
+  it("l’état d’un compte garde ses adresses de toujours", () => {
+    expect(
+      filterHref("/admin/utilisateurs", "", { account: "unverified" }),
+    ).toBe("/admin/utilisateurs?validation=attente");
+    expect(filterHref("/admin/utilisateurs", "", { account: "pending" })).toBe(
+      "/admin/utilisateurs?attente=1",
+    );
+    // Un seul état à la fois : changer retire l'ancien paramètre.
+    expect(
+      filterHref("/admin/utilisateurs", "validation=attente&role=radiologue", {
+        account: "signing",
+      }),
+    ).toBe("/admin/utilisateurs?role=radiologue&signature=attente");
+    // La validation l'emporte, comme le cockpit l'a toujours lu.
+    expect(
+      readFilters({ validation: "attente", signature: "attente" }, ["account"]),
+    ).toEqual({ account: "unverified" });
   });
 
   it("chaque dimension a son nom et son option par défaut, en deux langues", () => {

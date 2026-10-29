@@ -16,6 +16,22 @@ export const filters = {
       : count > 1
         ? `${count} cliniques`
         : "1 clinique",
+  organization: "Organisation",
+  allOrganizations: "Toutes les organisations",
+  organizationSearch: "Rechercher une organisation",
+  organizationNoMatch: "Aucune organisation ne correspond.",
+  organizationMatches: (count: number) =>
+    count === 0
+      ? "Aucune organisation"
+      : count > 1
+        ? `${count} organisations`
+        : "1 organisation",
+  role: "Rôle",
+  allRoles: "Tous les rôles",
+  account: "Compte",
+  allAccounts: "Tous les comptes",
+  mfa: "Double authentification",
+  withoutMfa: "Sans double authentification",
   radiologist: "Radiologue",
   allRadiologists: "Tous les radiologues",
   radiologistSearch: "Rechercher un radiologue",
@@ -52,6 +68,8 @@ export const filters = {
   urgent: "Urgences",
   /** Ce que comptent les options et la liste, en toutes lettres. */
   nouns: {
+    accounts: (count: number) =>
+      count > 1 ? `${count} comptes` : `${count} compte`,
     studies: (count: number) =>
       count > 1 ? `${count} examens` : `${count} examen`,
     reports: (count: number) =>
@@ -61,6 +79,7 @@ export const filters = {
   empty: {
     studies: "Aucun examen ne correspond à ces filtres",
     reports: "Aucun compte-rendu ne correspond à ces filtres",
+    accounts: "Aucun compte ne correspond à ces filtres",
     detail: (filters: string) =>
       `Filtres retenus : ${filters}. Effacez-en un pour élargir la liste.`,
   },

@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AnonymizeDialog } from "@/components/admin/anonymize-dialog";
-import { ControlBody, Section, Segmented } from "@/components/admin/control-ui";
+import { ControlBody, Section } from "@/components/admin/control-ui";
 import {
   CredentialReview,
   RevokeCredentials,
@@ -18,15 +18,16 @@ import { GrantDialog } from "@/components/admin/grant-dialog";
 import { SigningReviewDialog } from "@/components/admin/signing-review-dialog";
 import { MfaResetButton } from "@/components/admin/mfa-reset-button";
 import { ModalitiesDialog } from "@/components/admin/modalities-dialog";
-import { ModalityFilter } from "@/components/admin/modality-filter";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { SearchBox } from "@/components/admin/search-box";
 import { CredentialChip } from "@/components/domain/credential-chip";
 import { DateTime } from "@/components/domain/date-time";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { needsMembershipRemoval } from "@/lib/account-anonymization";
-import { parseUserFilter, userListHref } from "@/lib/admin-params";
+import type { UserListFilter } from "@/lib/admin-params";
 import { listOrganizations } from "@/lib/data/admin";
 import { type AdminUser, listUsers } from "@/lib/data/control";
 import {
@@ -35,17 +36,18 @@ import {
   type TraineeProgress,
 } from "@/lib/data/training";
 import { formatPersonName } from "@/lib/format";
-import {
-  describeModalities,
-  MODALITY_PARAM,
-  readModalityGroup,
-} from "@/lib/modalities";
+import { type BarDimension, ROLES } from "@/lib/filters/dimensions";
+import { countOptions, filterRows, type RowValues } from "@/lib/filters/facets";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { hasFilters, readFilters } from "@/lib/filters/url";
+import { describeModalities, MODALITY_GROUPS } from "@/lib/modalities";
 import { readListSearch } from "@/lib/search/server";
 import { roleRequiresMfa } from "@/lib/session/mfa";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
 import { getMessages } from "@/i18n/server";
 import type { AppMessages } from "@/i18n";
+import type { ModalityGroup } from "@/lib/api/contracts";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getMessages()).t.nav.items.accounts };
@@ -78,12 +80,15 @@ export default async function UsersPage({
   // La recherche porte un nom ou une adresse : relue d'un cookie lié au
   // compte, jamais de l'adresse (le proxy retire un ancien `?q=`).
   const query = await readListSearch("admin-comptes", session);
-  const filter = parseUserFilter(params);
-  // `?modalite=scanner` : les radiologues qui lisent ce groupe.
-  const modality = readModalityGroup(params[MODALITY_PARAM]);
+  const keys = LIST_FILTERS.comptes;
+  // L'état du compte (à valider, signature, en attente) est filtré par le
+  // service, à ses adresses de toujours (`?validation=attente`, celle de
+  // l'alerte du cockpit) ; le reste sur la page : la liste tient en
+  // quelques centaines de comptes.
+  const filter = (readFilters(params, keys).account ?? "all") as UserListFilter;
 
   const [
-    users,
+    accounts,
     pendingCount,
     unverifiedCount,
     signingCount,
@@ -96,7 +101,6 @@ export default async function UsersPage({
       pending: filter === "pending",
       unverified: filter === "unverified",
       signing: filter === "signing",
-      modality,
     }),
     listUsers({ pending: true }).then((rows) => rows.length),
     listUsers({ unverified: true }).then((rows) => rows.length),
@@ -109,6 +113,59 @@ export default async function UsersPage({
       .then((cases) => cases.filter((c) => c.published).length)
       .catch(() => 0),
   ]);
+  const filters = readFilters(params, keys, {
+    organization: organizations.map((org) => org.id),
+  });
+  const values: RowValues<AdminUser> = {
+    organization: (user) =>
+      user.memberships.map((membership) => membership.organizationId),
+    role: (user) => user.memberships.map((membership) => membership.role),
+    modality: readGroups,
+    mfa: (user) =>
+      user.mfaEnabled === false && needsMfa(user) ? ["missing"] : [],
+  };
+  const users = filterRows(accounts, values, filters);
+  const count = (
+    key: "organization" | "role" | "modality" | "mfa",
+    candidates: readonly { value: string; label?: string }[],
+  ) => countOptions(accounts, values, filters, key, candidates);
+  // La barre : chaque option comptée avec les autres filtres.
+  const bar: BarDimension[] = [
+    {
+      key: "organization",
+      ...count(
+        "organization",
+        organizations.map((org) => ({ value: org.id, label: org.name })),
+      ),
+    },
+    {
+      key: "role",
+      ...count(
+        "role",
+        ROLES.map((value) => ({ value })),
+      ),
+    },
+    {
+      key: "modality",
+      ...count(
+        "modality",
+        MODALITY_GROUPS.map((value) => ({ value })),
+      ),
+    },
+    {
+      key: "account",
+      // Comptés par le service, sur tous les comptes.
+      options: [
+        { value: "unverified", count: unverifiedCount },
+        { value: "signing", count: signingCount },
+        { value: "pending", count: pendingCount },
+      ],
+    },
+    {
+      key: "mfa",
+      options: count("mfa", [{ value: "missing" }]).options,
+    },
+  ];
   const grantable = organizations
     .filter((org) => org.active)
     .map((org) => ({ id: org.id, name: org.name, kind: org.kind }));
@@ -116,8 +173,6 @@ export default async function UsersPage({
     (user) => user.mfaEnabled === false && needsMfa(user),
   ).length;
 
-  const counted = (label: string, count: number) =>
-    count ? `${label} · ${count}` : label;
   const section = {
     all: {
       title: text.allTitle,
@@ -157,36 +212,6 @@ export default async function UsersPage({
           .join(" · ")}
         actions={
           <>
-            <Segmented
-              label={t.admin.shared.filter}
-              options={[
-                {
-                  label: t.admin.shared.all,
-                  href: userListHref("all", modality),
-                  active: filter === "all",
-                },
-                {
-                  label: counted(text.unverifiedFilter, unverifiedCount),
-                  href: userListHref("unverified", modality),
-                  active: filter === "unverified",
-                },
-                {
-                  label: counted(text.signingFilter, signingCount),
-                  href: userListHref("signing", modality),
-                  active: filter === "signing",
-                },
-                {
-                  label: counted(text.pendingFilter, pendingCount),
-                  href: userListHref("pending", modality),
-                  active: filter === "pending",
-                },
-              ]}
-            />
-            <ModalityFilter
-              label={text.reading.filter}
-              any={text.reading.anyModality}
-              active={modality}
-            />
             <SearchBox
               scope="admin-comptes"
               search={query}
@@ -196,9 +221,18 @@ export default async function UsersPage({
           </>
         }
       />
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{ count: users.length, noun: "accounts" }}
+        className="shrink-0 px-4 pb-3 sm:px-6"
+      />
       <ControlBody>
         <Section title={section.title} description={section.description} flush>
-          {users.length === 0 ? (
+          {users.length === 0 &&
+          hasFilters({ ...filters, account: undefined }) ? (
+            <FilteredEmpty dimensions={bar} active={filters} noun="accounts" />
+          ) : users.length === 0 ? (
             <EmptyState
               icon={UserRoundSearch}
               title={section.empty}
@@ -241,6 +275,21 @@ function needsMfa(user: AdminUser): boolean {
   return user.memberships.some((membership) =>
     roleRequiresMfa(membership.role),
   );
+}
+
+/**
+ * Les groupes de modalités qu'un compte lit : ceux de ses appartenances
+ * de radiologue, tous pour une appartenance sans restriction. La même
+ * règle que le service (`/admin/users?modality=`).
+ */
+function readGroups(user: AdminUser): ModalityGroup[] {
+  const groups = new Set<ModalityGroup>();
+  for (const membership of user.memberships) {
+    if (membership.role !== "radiologist") continue;
+    for (const group of membership.readModalities ?? MODALITY_GROUPS)
+      groups.add(group);
+  }
+  return [...groups];
 }
 
 /**

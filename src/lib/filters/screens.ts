@@ -37,6 +37,9 @@ export const LIST_FILTERS = {
     "period",
   ],
   "comptes-rendus-radiologue": ["clinic", "modality", "urgency", "period"],
+  // « Comptes » : l'état du compte est filtré par le service, le reste sur
+  // la page (`lib/filters/facets.ts`).
+  comptes: ["organization", "role", "modality", "account", "mfa"],
   "comptes-rendus-equipe": [
     ...NETWORK,
     "radiologist",

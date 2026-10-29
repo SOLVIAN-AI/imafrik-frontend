@@ -8,7 +8,7 @@
  */
 
 import type { ModalityGroup } from "@/lib/api/contracts";
-import { MODALITY_PARAM, MODALITY_SLUGS } from "@/lib/modalities";
+import { filterHref, readFilters } from "@/lib/filters/url";
 
 type Param = string | string[] | undefined;
 
@@ -102,7 +102,8 @@ export function parseCursor(value: Param): number | undefined {
 export type UserListFilter = "all" | "pending" | "unverified" | "signing";
 
 /**
- * Filtre de la liste des comptes, lu dans l'adresse.
+ * Filtre de la liste des comptes, lu dans l'adresse : la dimension
+ * « compte » du registre des filtres, à ses adresses de toujours.
  *
  * @param params Paramètres `attente`, `validation` et `signature`.
  * @returns Le filtre ; la validation l'emporte, puis la signature.
@@ -112,10 +113,11 @@ export function parseUserFilter(params: {
   validation?: Param;
   signature?: Param;
 }): UserListFilter {
-  if (first(params.validation) === "attente") return "unverified";
-  if (first(params.signature) === "attente") return "signing";
-  if (first(params.attente) === "1") return "pending";
-  return "all";
+  const { account } = readFilters(
+    params as Record<string, string | string[] | undefined>,
+    ["account"],
+  );
+  return (account as UserListFilter | undefined) ?? "all";
 }
 
 /**
@@ -133,11 +135,8 @@ export function userListHref(
   filter: UserListFilter,
   modality?: ModalityGroup,
 ): string {
-  const next = new URLSearchParams();
-  if (modality) next.set(MODALITY_PARAM, MODALITY_SLUGS[modality]);
-  if (filter === "pending") next.set("attente", "1");
-  if (filter === "unverified") next.set("validation", "attente");
-  if (filter === "signing") next.set("signature", "attente");
-  const search = next.toString();
-  return search ? `/admin/utilisateurs?${search}` : "/admin/utilisateurs";
+  return filterHref("/admin/utilisateurs", "", {
+    modality: modality ?? null,
+    account: filter === "all" ? null : filter,
+  });
 }

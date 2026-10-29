@@ -255,11 +255,11 @@ test.describe("tour de contrôle", () => {
       })
       .click();
     await expect(page).toHaveURL("/admin/utilisateurs?signature=attente");
-    await expect(
-      page
-        .getByRole("navigation", { name: "Filtre" })
-        .getByRole("link", { name: "Signature à vérifier · 1" }),
-    ).toHaveAttribute("aria-current", "page");
+    const signatures = page
+      .getByRole("group", { name: "Compte" })
+      .getByRole("link", { name: /^Signature à vérifier/ });
+    await expect(signatures).toHaveAttribute("aria-current", "true");
+    await expect(signatures.locator("span[aria-hidden]")).toHaveText("1");
 
     await page.getByRole("button", { name: /Signature à vérifier/ }).click();
     const fenetre = page.getByRole("dialog", {
