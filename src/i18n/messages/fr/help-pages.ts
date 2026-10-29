@@ -444,11 +444,11 @@ export const pages = {
       purpose:
         "Liste les examens de toute la plateforme, toutes organisations confondues, pour répondre vite à une clinique. Le nom du patient ouvre les images et le compte-rendu en consultation seule, et chaque ouverture est tracée.",
       steps: [
-        "Choisissez une clinique et un groupe de modalités en tête de liste : chaque choix dit combien d’examens il compte, et les deux se combinent.",
+        "Choisissez une clinique dans la liste (tapez son nom si elles sont nombreuses), puis un groupe de modalités : chaque choix dit son nombre d’examens, les deux se combinent.",
         "Cherchez un examen par patient, identifiant ou modalité, ou cliquez sur « Urgences en cours », les plus en retard en tête.",
         "Cliquez sur le nom du patient pour ouvrir les images et le compte-rendu, sans pouvoir rédiger ni signer.",
-        "Pour un examen non signé, cliquez sur le bouton d’attribution, choisissez un radiologue qui lit sa modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
-        "Pour le reprendre à son titulaire, rouvrez la même fenêtre et cliquez sur « Retirer l’attribution ».",
+        "Pour un examen non signé, cliquez sur « Attribuer » en fin de ligne, choisissez un radiologue qui lit sa modalité, cochez les antériorités utiles, puis validez.",
+        "« Personne ne peut le recevoir » : la fenêtre dit pourquoi et quoi faire. Pour reprendre un examen à son titulaire : « Réattribuer », puis « Retirer l’attribution ».",
       ],
       terms: [
         "groupeModalites",
@@ -568,6 +568,7 @@ export const pages = {
         "Sur une ligne, cliquez sur « Attribuer » : la fenêtre de l’équipe propose aussi les radiologues du réseau qui lisent la clinique.",
         "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
         "Cliquez sur une ligne pour ouvrir la fiche de l’examen.",
+        "« Personne ne peut le recevoir » sur une ligne : ouvrez « Attribuer », la fenêtre dit pourquoi et mène à l’écran qui le règle.",
       ],
       terms: ["vueCliniques", "attribution", "anteriorite", "urgence"],
     },
@@ -666,11 +667,11 @@ export const pages = {
       purpose:
         "Le poste de répartition de l’équipe IMAFRIK : la file de toute la plateforme, par échéance. Vous y attribuez d’affilée chaque examen en attente et réattribuez ceux qui sont chez un radiologue. « Examens » reste le registre complet, où l’attribution reste possible.",
       steps: [
-        "Filtrez par modalité, clinique, urgence ou recherche : par exemple tous les scanners d’une clinique, à répartir d’affilée.",
+        "Filtrez par clinique (liste par ordre alphabétique, avec recherche), modalité, urgence ou nom : par exemple les scanners d’une clinique, à répartir d’affilée.",
         "Dans « À attribuer », cliquez sur « Attribuer », choisissez un radiologue qui lit la modalité et les antériorités utiles : la ligne passe aussitôt « Chez un radiologue ».",
-        "« Aucun radiologue » : personne ne peut recevoir l’examen. Survolez la mention pour la raison : modalité non couverte, aucun habilité, clinique sans contrat.",
+        "« Personne d’éligible » : cliquez quand même sur « Attribuer ». La fenêtre dit pourquoi et mène à l’écran qui le règle : habilitation, modalités, pool.",
         "Dans « Chez un radiologue », « Réattribuer » confie l’examen à un autre ou retire l’attribution, tant que le compte-rendu n’est pas signé.",
-        "Le nombre sur « À lire » dans la navigation compte les examens à attribuer, en rouge si une urgence attend. La file se met à jour toutes les 30 secondes.",
+        "Le nombre sur « À lire » compte les examens à attribuer, en rouge si une urgence attend, même « Lectures » replié. La file se met à jour toutes les 30 secondes.",
       ],
       terms: [
         "attribution",

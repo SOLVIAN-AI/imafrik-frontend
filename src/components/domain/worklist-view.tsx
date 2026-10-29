@@ -5,6 +5,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
+import { EligibilityNote } from "@/components/domain/eligibility-note";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { CredentialsBanner } from "@/components/domain/credentials-banner";
 import { ListToolbar } from "@/components/domain/list-toolbar";
@@ -21,7 +22,7 @@ import { useLocale, useMessages } from "@/i18n/client";
 import type { AppMessages } from "@/i18n";
 import { useNow } from "@/hooks/use-now";
 import type { AssignmentState } from "@/lib/actions/assignment";
-import type { Eligibility } from "@/lib/data/eligibility";
+import type { Eligibility } from "@/lib/assignment-blocker";
 import type { Study } from "@/lib/data/studies";
 import { formatPatientName } from "@/lib/format";
 import { INTL_LOCALE, type Locale } from "@/lib/i18n/locale";
@@ -300,6 +301,13 @@ export function WorklistView({
                       ...labels.supervision.open,
                       studies: sections.open,
                       follow: "none",
+                      note: (study) => (
+                        <EligibilityNote
+                          found={eligibility[study.id]}
+                          modality={study.modality}
+                          compact
+                        />
+                      ),
                     },
                   ]
                 : [
@@ -324,38 +332,19 @@ export function WorklistView({
               supervising
                 ? {
                     label: assign.column,
-                    render: (study, group) => {
-                      const patient = formatPatientName(study.patientName);
-                      const found = eligibility[study.id];
-                      // Personne ne peut le recevoir : la ligne le dit, la
-                      // raison en info-bulle, sans ouvrir la fenêtre.
-                      if (
-                        group.key === "open" &&
-                        found &&
-                        found.candidates === 0 &&
-                        found.reason
-                      ) {
-                        const reason = assign.reasons[found.reason];
-                        return (
-                          <span
-                            title={reason}
-                            className="text-2xs whitespace-nowrap text-tertiary"
-                          >
-                            {assign.noCandidate}
-                            <span className="sr-only"> : {reason}</span>
-                          </span>
-                        );
-                      }
-                      return (
-                        <AssignDialog
-                          portal="team"
-                          studyId={study.id}
-                          patient={patient}
-                          assigned={study.assignedTo !== null}
-                          onChanged={(state) => record(study.id, state)}
-                        />
-                      );
-                    },
+                    // Toujours le bouton, jamais une mention à sa place :
+                    // quand personne ne peut recevoir l'examen, la ligne le
+                    // dit dans son suivi et la fenêtre explique quoi faire.
+                    render: (study) => (
+                      <AssignDialog
+                        portal="team"
+                        studyId={study.id}
+                        patient={formatPatientName(study.patientName)}
+                        assigned={study.assignedTo !== null}
+                        clinic={{ id: study.clinicId, name: study.clinic }}
+                        onChanged={(state) => record(study.id, state)}
+                      />
+                    ),
                   }
                 : undefined
             }

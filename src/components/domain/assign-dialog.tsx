@@ -1,6 +1,7 @@
 "use client";
 
-import { FileCheck2, UserCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, FileCheck2, UserCheck } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -28,6 +29,7 @@ import {
   sharePriors,
   unassignStudy,
 } from "@/lib/actions/assignment";
+import { blockedReason, remediesFor } from "@/lib/assignment-blocker";
 import { formatDate, formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -53,11 +55,19 @@ const ASSIGNABLE = new Set(["received", "assigned", "in_progress"]);
  * Réattribuer un examen dont le compte-rendu est commencé demande de
  * cocher l'effacement du brouillon, que le service exige aussi.
  *
+ * **Le bouton est toujours là, toujours libellé**, sur chaque examen non
+ * signé : « Attribuer », souligné de la teinte d'accent tant que personne
+ * ne le lit, « Réattribuer » ensuite. Quand personne ne peut recevoir
+ * l'examen, la fenêtre le dit, avec la raison (pour l'équipe, celle du
+ * service) et les gestes qui la lèvent, chacun menant à son écran : un
+ * bouton absent ne disait rien de tout cela.
+ *
  * @param portal    Portail de l'appelant.
  * @param studyId   Examen à attribuer.
  * @param patient   Nom du patient, pour l'intitulé accessible du bouton.
  * @param assigned  L'examen a déjà un titulaire : le bouton dit « Réattribuer ».
- * @param compact   Bouton réduit à son icône (liste sur téléphone).
+ * @param clinic    Clinique de l'examen : la fenêtre mène à sa fiche quand
+ *                  personne ne peut le recevoir.
  * @param onChanged Après une attribution ou un retrait réussi, l'état que
  *                  renvoie le service : la file de répartition déplace la
  *                  ligne aussitôt, sans attendre sa relecture.
@@ -67,14 +77,14 @@ export function AssignDialog({
   studyId,
   patient,
   assigned = false,
-  compact = false,
+  clinic,
   onChanged,
 }: {
   portal: AssignmentPortal;
   studyId: string;
   patient: string;
   assigned?: boolean;
-  compact?: boolean;
+  clinic?: { id: string; name: string };
   onChanged?: (state: AssignmentState) => void;
 }) {
   const t = useMessages();
@@ -124,6 +134,9 @@ export function AssignDialog({
   const sharedFor = (prior: PriorCandidate) => !changing && prior.shared;
   const offered = (priors ?? []).filter((prior) => !sharedFor(prior));
   const sharing = !changing && Boolean(state?.assignedTo) && checked.size > 0;
+  // Personne ne peut recevoir l'examen : la fenêtre dit pourquoi, et les
+  // antériorités, sans destinataire, n'ont rien à faire là.
+  const blocked = assignable && state !== null && state.candidates.length === 0;
 
   const toggle = (id: string) =>
     setChecked((current) => {
@@ -221,11 +234,17 @@ export function AssignDialog({
               ? text.triggerReassignLabel(patient)
               : text.triggerLabel(patient)
           }
-          className={cn(compact && "px-2")}
+          // Un examen que personne ne lit encore : l'action attendue de la
+          // ligne, soulignée de l'accent sans devenir un aplat (une liste en
+          // compte des dizaines, l'écran n'a qu'une action principale).
+          className={cn(
+            !assigned &&
+              "border-accent/50 text-accent hover:border-accent hover:bg-accent-muted",
+          )}
           onClick={(event) => event.stopPropagation()}
         >
           <UserCheck />
-          {!compact && (assigned ? text.triggerReassign : text.trigger)}
+          {assigned ? text.triggerReassign : text.trigger}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-xl">
@@ -277,10 +296,16 @@ export function AssignDialog({
 
                 {!assignable ? (
                   <p className="text-sm text-secondary">{text.signed}</p>
+                ) : blocked ? (
+                  <NobodyEligible
+                    state={state}
+                    portal={portal}
+                    clinicId={clinic?.id ?? null}
+                    onNavigate={() => setOpen(false)}
+                  />
                 ) : (
                   <CandidateList
                     state={state}
-                    portal={portal}
                     choice={choice}
                     onChoose={(id) => {
                       setChoice(id);
@@ -289,7 +314,7 @@ export function AssignDialog({
                   />
                 )}
 
-                {assignable && (
+                {assignable && !blocked && (
                   <PriorList
                     priors={priors}
                     state={state}
@@ -379,12 +404,10 @@ export function AssignDialog({
 /** Les radiologues qui peuvent recevoir l'examen, à choisir. */
 function CandidateList({
   state,
-  portal,
   choice,
   onChoose,
 }: {
   state: AssignmentState;
-  portal: AssignmentPortal;
   choice: string | null;
   onChoose: (id: string) => void;
 }) {
@@ -395,13 +418,6 @@ function CandidateList({
       {state.modality && (
         <p className="-mt-1 mb-1 text-xs text-tertiary">
           {text.candidatesHint(state.modality)}
-        </p>
-      )}
-      {state.candidates.length === 0 && (
-        <p className="text-sm text-secondary">
-          {portal === "clinic"
-            ? text.noCandidatesClinic
-            : text.noCandidatesTeam}
         </p>
       )}
       <div className="flex max-h-56 flex-col gap-1.5 overflow-auto">
@@ -446,6 +462,86 @@ function CandidateList({
         })}
       </div>
     </fieldset>
+  );
+}
+
+/**
+ * Personne ne peut recevoir l'examen : pourquoi, et les gestes qui le
+ * permettraient, chacun menant à son écran.
+ *
+ * L'équipe IMAFRIK lit la raison du service (clinique suspendue, aucun
+ * lecteur, aucun habilité, modalité non lue) ; le responsable d'une
+ * clinique, qui ne choisit que parmi ses radiologues, reçoit les
+ * vérifications à sa portée.
+ */
+function NobodyEligible({
+  state,
+  portal,
+  clinicId,
+  onNavigate,
+}: {
+  state: AssignmentState;
+  portal: AssignmentPortal;
+  clinicId: string | null;
+  onNavigate: () => void;
+}) {
+  const messages = useMessages().assignment;
+  const text = messages.blocked;
+  const reason =
+    portal === "clinic"
+      ? text.clinic
+      : blockedReason(messages, state.noCandidateReason, state.modality);
+  const remedies = remediesFor(portal, state.noCandidateReason, clinicId);
+  const titleId = React.useId();
+  return (
+    <section
+      aria-labelledby={titleId}
+      className="flex flex-col gap-3 rounded-lg border border-progress/30 bg-progress-muted px-3.5 py-3"
+    >
+      <div className="flex gap-2.5">
+        <AlertTriangle
+          className="mt-0.5 size-4 shrink-0 text-progress"
+          aria-hidden
+        />
+        <div className="flex flex-col gap-1">
+          <h3 id={titleId} className="text-sm font-semibold text-primary">
+            {text.title}
+          </h3>
+          <p className="text-xs text-secondary">{reason}</p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5 pl-6.5">
+        {/* En texte principal : l'intitulé gris des sections n'atteint
+            pas le contraste voulu sur le fond ambre, en thème sombre. */}
+        <p className="text-2xs font-semibold tracking-wide text-primary uppercase">
+          {text.whatToDo}
+        </p>
+        <ul className="flex flex-col gap-2">
+          {remedies.map((remedy) => {
+            const step = text.remedies[remedy.key];
+            return (
+              <li key={remedy.key} className="text-xs text-primary">
+                {step.text}
+                {remedy.href && (
+                  <>
+                    {" "}
+                    <Link
+                      href={remedy.href}
+                      prefetch={false}
+                      onClick={onNavigate}
+                      className="inline-flex items-center gap-1 font-medium whitespace-nowrap text-accent underline decoration-accent/40 underline-offset-2 hover:decoration-accent"
+                    >
+                      {step.link}
+                      <ArrowRight className="size-3" aria-hidden />
+                    </Link>
+                  </>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
   );
 }
 

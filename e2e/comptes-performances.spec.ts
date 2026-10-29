@@ -58,12 +58,15 @@ test.describe("l’équipe IMAFRIK", () => {
     await expect(page.getByText("Adjo Kponton").first()).toBeVisible();
     await expect(page.getByText("Fatou Diallo")).toHaveCount(0);
 
-    // La mammographie, personne ne la lit.
+    // La mammographie, aucun radiologue habilité ne la lit : seuls restent
+    // ceux dont le dossier attend encore sa validation.
     await page
       .getByLabel("Modalité lue")
       .selectOption({ label: "Mammographie" });
     await expect(page).toHaveURL(/modalite=mammographie/);
-    await expect(page.getByText("Aucun compte trouvé")).toBeVisible();
+    await expect(page.getByText("Kossi Amegah").first()).toBeVisible();
+    await expect(page.getByText("Adjo Kponton")).toHaveCount(0);
+    await expect(page.getByText("Fatou Diallo")).toHaveCount(0);
   });
 
   test("ouvre les performances d’un radiologue depuis sa ligne", async ({

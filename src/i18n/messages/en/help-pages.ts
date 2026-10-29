@@ -439,11 +439,11 @@ export const pages: typeof fr = {
       purpose:
         "Lists the examinations of the whole platform, across all organisations, to answer a clinic quickly. The patient’s name opens the images and the report in view-only mode, and every opening is logged.",
       steps: [
-        "Choose a clinic and a modality group at the top of the list: each choice shows how many examinations it holds, and the two combine.",
+        "Choose a clinic in the list (type its name when there are many), then a modality group: each choice shows its number of examinations, and the two combine.",
         "Search for an examination by patient, ID or modality, or click “Open urgent cases”, the most overdue first.",
         "Click the patient’s name to open the images and the report, without being able to write or sign.",
-        "For an unsigned examination, click the assign button, choose a radiologist who reads its modality, tick the useful prior examinations, then click “Assign”.",
-        "To take it back from its holder, reopen the same window and click “Withdraw the assignment”.",
+        "For an unsigned examination, click “Assign” at the end of the row, choose a radiologist who reads its modality, tick the useful prior examinations, then confirm.",
+        "“Nobody can receive it”: the window says why and what to do. To take an examination back from its holder: “Reassign”, then “Withdraw the assignment”.",
       ],
       terms: [
         "groupeModalites",
@@ -563,6 +563,7 @@ export const pages: typeof fr = {
         "On a row, click “Assign”: the team’s window also offers the network radiologists who read for the clinic.",
         "Type a patient name, an ID or a modality in the search, then press Enter.",
         "Click a row to open the examination’s page.",
+        "“Nobody can receive it” on a row: open “Assign”, the window says why and leads to the screen that fixes it.",
       ],
       terms: ["vueCliniques", "attribution", "anteriorite", "urgence"],
     },
@@ -661,11 +662,11 @@ export const pages: typeof fr = {
       purpose:
         "The IMAFRIK team’s dispatch desk: the whole platform’s worklist, by deadline. Here you assign each waiting examination one after another and reassign those held by a radiologist. “Examinations” remains the full register, where assigning is still possible.",
       steps: [
-        "Filter by modality, clinic, urgency or search: for example every CT of a clinic, to dispatch one after another.",
+        "Filter by clinic (alphabetical list, with a search), modality, urgency or name: for example a clinic’s CT scans, to dispatch one after another.",
         "Under “To assign”, click “Assign”, choose a radiologist who reads the modality and the useful priors: the row moves at once to “With a radiologist”.",
-        "“No radiologist”: nobody can receive the examination. Hover the mention for the reason: modality not covered, nobody credentialed, clinic without contract.",
+        "“Nobody eligible”: click “Assign” anyway. The window says why and leads to the screen that fixes it: credentials, modalities, pool.",
         "Under “With a radiologist”, “Reassign” hands the examination to someone else or withdraws the assignment, until the report is signed.",
-        "The number on “To read” in the navigation counts the examinations to assign, in red when an urgent one waits. The worklist refreshes every 30 seconds.",
+        "The number on “To read” counts the examinations to assign, in red when an urgent one waits, even with “Readings” folded. The worklist refreshes every 30 seconds.",
       ],
       terms: [
         "attribution",

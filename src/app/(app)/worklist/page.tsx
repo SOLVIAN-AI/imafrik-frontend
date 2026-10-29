@@ -74,9 +74,10 @@ export async function generateMetadata({
  * options proposées se comptent ainsi sur la file entière.
  *
  * **Pour l'équipe IMAFRIK, c'est le poste de répartition** : chaque ligne
- * à attribuer porte « Attribuer », ou dit qu'aucun radiologue ne peut
- * recevoir l'examen. Ce dernier point est lu ici, pour toute la file
- * affichée en un appel (`/admin/studies/eligibility`).
+ * porte « Attribuer » (ou « Réattribuer »), toujours. Quand personne ne
+ * peut recevoir un examen, la ligne le dit aussi, et la fenêtre explique
+ * pourquoi et quoi faire : qui peut recevoir chaque examen est lu ici,
+ * pour toute la file affichée en un appel (`/admin/studies/eligibility`).
  */
 export default async function WorklistPage({
   searchParams,

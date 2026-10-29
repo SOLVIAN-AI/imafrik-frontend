@@ -232,7 +232,7 @@ export const admin: AppMessages["admin"] = {
     clinicDescription: (count: number) =>
       `${count} examination${count === 1 ? "" : "s"}`,
     openUrgent: "Open urgent cases",
-    clinicFilter: "Clinics",
+    clinicFilter: "Clinic",
     allClinics: "All clinics",
     openImages: (patient: string) => `Open the images of ${patient}`,
     stuck: (count: number) =>

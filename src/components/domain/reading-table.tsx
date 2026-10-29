@@ -46,6 +46,12 @@ export interface ReadingGroup {
   muted?: boolean;
   /** Contenu de la colonne de suivi. */
   follow: FollowColumn;
+  /**
+   * Mention propre à l'écran dans la colonne de suivi, à la place de rien
+   * (`follow: "none"`) : par exemple, pour l'équipe IMAFRIK, qui peut
+   * recevoir un examen à attribuer.
+   */
+  note?: (study: Study) => React.ReactNode;
 }
 
 const DEADLINE_STYLES: Record<DeadlineTone, string> = {
@@ -105,8 +111,9 @@ function ClinicalInfo({ text }: { text: string | null }) {
 }
 
 /** Contenu de la colonne de suivi. */
-function Follow({ study, follow }: { study: Study; follow: FollowColumn }) {
+function Follow({ study, group }: { study: Study; group: ReadingGroup }) {
   const t = useMessages();
+  const follow = group.follow;
   if (follow === "status") return <StudyStatusChip status={study.status} />;
   if (follow === "reader")
     return (
@@ -114,7 +121,7 @@ function Follow({ study, follow }: { study: Study; follow: FollowColumn }) {
         {study.assignedToName ?? t.worklist.table.colleague}
       </span>
     );
-  return null;
+  return group.note?.(study) ?? null;
 }
 
 /** Sexe, âge et identifiant, sur la seconde ligne du patient. */
@@ -248,10 +255,11 @@ function GroupHeading({
  *   de la ligne reste un raccourci pour la souris.
  *
  * - **Une colonne d'action**, quand l'écran en donne une : pour l'équipe
- *   IMAFRIK, « Attribuer » ou « Réattribuer » (la file devient son poste
- *   de répartition). Un clic sur le bouton, ou dans la fenêtre qu'il
- *   ouvre, n'ouvre pas l'examen ; la navigation au clavier ne parcourt
- *   que les liens des lignes.
+ *   IMAFRIK, « Attribuer » ou « Réattribuer » sur chaque ligne (la file
+ *   devient son poste de répartition), et dans le suivi des examens à
+ *   attribuer, qui peut les recevoir (`ReadingGroup.note`). Un clic sur le
+ *   bouton, ou dans la fenêtre qu'il ouvre, n'ouvre pas l'examen ; la
+ *   navigation au clavier ne parcourt que les liens des lignes.
  *
  * @param groups  Sections, dans l'ordre d'affichage.
  * @param hrefFor Adresse ouverte pour un examen.
@@ -362,7 +370,7 @@ export function ReadingTable({
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1.5">
                         <DeadlineBadge study={study} muted={group.muted} />
-                        <Follow study={study} follow={group.follow} />
+                        <Follow study={study} group={group} />
                       </div>
                     </Link>
                     {action && (
@@ -383,7 +391,7 @@ export function ReadingTable({
         <table
           className={cn(
             "w-full table-fixed border-separate border-spacing-0 text-sm",
-            action && "min-w-[58rem]",
+            action && "min-w-[60rem]",
           )}
         >
           <thead className="sticky top-0 z-20">
@@ -401,8 +409,15 @@ export function ReadingTable({
                 <span className="label-eyebrow">{labels.columns.study}</span>
               </th>
               {/* Assez large pour le statut le plus long des deux langues
-                  (« In progress ») : une pastille tronquée ne se lit plus. */}
-              <th scope="col" className="w-36 2xl:w-auto 2xl:!text-right">
+                  (« In progress ») : une pastille tronquée ne se lit plus.
+                  Avec une colonne d'action, pour « Personne d'éligible ». */}
+              <th
+                scope="col"
+                className={cn(
+                  "2xl:w-auto 2xl:!text-right",
+                  action ? "w-44" : "w-36",
+                )}
+              >
                 <span className="label-eyebrow">{labels.columns.follow}</span>
               </th>
               <th scope="col" className="w-20 !text-right">
@@ -499,7 +514,7 @@ export function ReadingTable({
                     </td>
 
                     <td className="truncate 2xl:text-right">
-                      <Follow study={study} follow={group.follow} />
+                      <Follow study={study} group={group} />
                     </td>
 
                     <td className="text-right whitespace-nowrap tabular-nums">

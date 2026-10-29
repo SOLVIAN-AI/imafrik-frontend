@@ -22,18 +22,6 @@ export const worklist = {
     /** Attribution depuis la file. */
     assign: {
       column: "Attribution",
-      noCandidate: "Aucun radiologue",
-      /** Pourquoi aucun radiologue ne peut recevoir l'examen (info-bulle). */
-      reasons: {
-        clinic_inactive:
-          "La clinique est suspendue : ses examens ne s’attribuent plus.",
-        no_reader:
-          "Aucun radiologue ne lit cette clinique : ni radiologue à elle, ni contrat avec le réseau.",
-        not_credentialed:
-          "Aucun des radiologues qui lisent cette clinique n’est encore habilité.",
-        modality_not_read:
-          "Aucun radiologue habilité ne lit cette modalité pour cette clinique.",
-      },
     },
     readingHint: (count: number) => `et ${count} chez un radiologue`,
     reading: { title: "Chez un radiologue", hint: "attribués ou en lecture" },
@@ -119,6 +107,16 @@ export const worklist = {
     modalities: "Modalités",
     clinic: "Clinique",
     allClinics: "Toutes les cliniques",
+    clinicSearch: "Rechercher une clinique",
+    clinicNoMatch: "Aucune clinique ne correspond.",
+    clinicMatches: (count: number) =>
+      count === 0
+        ? "Aucune clinique"
+        : count > 1
+          ? `${count} cliniques`
+          : "1 clinique",
+    studyCount: (count: number) =>
+      count > 1 ? `${count} examens` : `${count} examen`,
   },
   /** Barre d'outils des listes d'examens. */
   toolbar: {

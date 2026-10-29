@@ -1,13 +1,14 @@
 "use client";
 
-import { ChevronDown, X } from "lucide-react";
+import { X } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import * as React from "react";
+import { usePathname } from "next/navigation";
 
+import { ClinicDropdown } from "@/components/domain/clinic-dropdown";
 import { useMessages } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import {
+  FILTER_PARAMS,
   filtersToQuery,
   hasFilters,
   NO_FILTERS,
@@ -16,12 +17,14 @@ import {
 } from "@/lib/worklist";
 
 /**
- * Filtres de la file : modalités et clinique.
+ * Filtres de la file : clinique et modalités.
  *
  * L'état vit dans l'adresse (`?modalite=CT,MR&clinique=…`) : un filtre se
  * garde au rechargement et se partage par lien, et rien de nominatif n'y
  * figure. Les modalités sont des liens, qui fonctionnent avant même que
- * le script soit chargé ; la clinique, plus nombreuse, est une liste.
+ * le script soit chargé ; la clinique, plus nombreuse, est une liste
+ * déroulante (`ClinicDropdown`), par ordre alphabétique, avec une
+ * recherche quand les cliniques sont nombreuses.
  *
  * Chaque choix affiche le nombre d'examens qu'il retient, compté sur la
  * file **non filtrée** : on voit ce qu'on obtiendra avant de cliquer.
@@ -40,11 +43,9 @@ export function WorklistFilterBar({
   /** Repère de la visite guidée (`data-tour`, voir `components/tour`). */
   tour?: string;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const t = useMessages();
   const labels = t.worklist.filters;
-  const [pending, startTransition] = React.useTransition();
 
   const href = (next: WorklistFilters) => {
     const query = filtersToQuery(next);
@@ -67,11 +68,25 @@ export function WorklistFilterBar({
       data-tour={tour}
       // La barre porte la marge de la page : la visite montre les filtres.
       data-tour-fit={tour ? "content" : undefined}
-      className={cn(
-        "flex flex-wrap items-center gap-2 px-4 pb-3 sm:px-6",
-        pending && "opacity-70",
-      )}
+      className="flex flex-wrap items-center gap-2 px-4 pb-3 sm:px-6"
     >
+      {showClinics && (
+        <ClinicDropdown
+          appearance="pill"
+          label={labels.clinic}
+          allLabel={labels.allClinics}
+          clinics={options.clinics.map((option) => ({
+            id: option.value,
+            name: option.label,
+            count: option.count,
+          }))}
+          total={options.clinics.reduce((sum, option) => sum + option.count, 0)}
+          active={filters.clinicId}
+          param={FILTER_PARAMS.clinic}
+          reset={[]}
+        />
+      )}
+
       {showModalities && (
         <nav aria-label={labels.modalities} className="flex flex-wrap gap-1.5">
           {options.modalities.map((option) => {
@@ -105,44 +120,6 @@ export function WorklistFilterBar({
             );
           })}
         </nav>
-      )}
-
-      {showClinics && (
-        <label className="relative flex items-center">
-          <span className="sr-only">{labels.clinic}</span>
-          <select
-            value={filters.clinicId ?? ""}
-            onChange={(event) =>
-              startTransition(() =>
-                router.replace(
-                  href({ ...filters, clinicId: event.target.value || null }),
-                  { scroll: false },
-                ),
-              )
-            }
-            className={cn(
-              // Dessin des puces, pas celui du système : la flèche native
-              // jurait avec le reste de la barre, en clair surtout.
-              "h-7 max-w-60 cursor-pointer appearance-none truncate rounded-full border bg-transparent pr-7 pl-2.5 text-xs transition-colors",
-              "hover:border-border-default hover:text-primary",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
-              filters.clinicId
-                ? "border-accent bg-accent-muted font-medium text-primary"
-                : "border-border-subtle text-secondary",
-            )}
-          >
-            <option value="">{labels.allClinics}</option>
-            {options.clinics.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label} ({option.count})
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            className="pointer-events-none absolute right-2.5 size-3 text-tertiary"
-            aria-hidden
-          />
-        </label>
       )}
 
       {hasFilters(filters) && (

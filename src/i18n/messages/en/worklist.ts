@@ -17,17 +17,6 @@ export const worklist: AppMessages["worklist"] = {
     },
     assign: {
       column: "Assignment",
-      noCandidate: "No radiologist",
-      reasons: {
-        clinic_inactive:
-          "The clinic is suspended: its examinations can no longer be assigned.",
-        no_reader:
-          "No radiologist reads for this clinic: none of its own, and no contract with the network.",
-        not_credentialed:
-          "None of the radiologists who read for this clinic is credentialed yet.",
-        modality_not_read:
-          "No credentialed radiologist reads this modality for this clinic.",
-      },
     },
     readingHint: (count: number) => `and ${count} with a radiologist`,
     reading: { title: "With a radiologist", hint: "assigned or being read" },
@@ -100,6 +89,12 @@ export const worklist: AppMessages["worklist"] = {
     modalities: "Modalities",
     clinic: "Clinic",
     allClinics: "All clinics",
+    clinicSearch: "Search for a clinic",
+    clinicNoMatch: "No clinic matches.",
+    clinicMatches: (count: number) =>
+      count === 0 ? "No clinic" : count === 1 ? "1 clinic" : `${count} clinics`,
+    studyCount: (count: number) =>
+      count === 1 ? "1 examination" : `${count} examinations`,
   },
   toolbar: {
     searchLabel: "Search for a patient or a modality",

@@ -28,7 +28,9 @@ test.describe("le responsable de la clinique", () => {
     ).toBeVisible();
 
     // Les règles lues : l'échographie à Afi Mensah, une semaine couverte.
-    await expect(page.getByLabel("Échographie")).toHaveValue("p-amensah");
+    await expect(page.getByLabel("Échographie", { exact: true })).toHaveValue(
+      "p-amensah",
+    );
     await expect(page.getByLabel("Scanner")).toHaveValue("");
     const creneaux = page.getByRole("listitem", { name: /^Créneau \d$/ });
     await expect(creneaux).toHaveCount(3);
@@ -128,7 +130,9 @@ test.describe("l'équipe IMAFRIK", () => {
     await expect(
       page.getByText(/reçoit d’office les examens de cette clinique/),
     ).toBeVisible();
-    await expect(page.getByLabel("Échographie")).toHaveValue("p-amensah");
+    await expect(page.getByLabel("Échographie", { exact: true })).toHaveValue(
+      "p-amensah",
+    );
     await expect(
       page.getByRole("listitem", { name: /^Créneau \d$/ }),
     ).toHaveCount(3);

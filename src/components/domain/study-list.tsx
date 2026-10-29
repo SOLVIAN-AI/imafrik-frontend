@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
+import { EligibilityNote } from "@/components/domain/eligibility-note";
 import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
@@ -16,6 +17,7 @@ import {
 } from "@/components/providers/clinic-view-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useMessages } from "@/i18n/client";
+import type { Eligibility } from "@/lib/assignment-blocker";
 import type { Study } from "@/lib/data/studies";
 import { formatPatientName } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -37,26 +39,32 @@ import { cn } from "@/lib/utils";
  *
  * **Qui le lit.** La colonne « Radiologue » dit à qui l'examen est
  * attribué, ou qu'il est « à attribuer » : aucun radiologue ne le voit
- * tant qu'on ne le lui a pas confié. Le responsable l'attribue d'un clic,
- * sur la ligne.
+ * tant qu'on ne le lui a pas confié. Le responsable l'attribue d'un clic :
+ * chaque examen non signé porte « Attribuer » (ou « Réattribuer »),
+ * libellé, dans sa propre colonne.
  *
  * Dans la vue des cliniques, l'équipe IMAFRIK y voit la même liste ; ses
  * liens restent sous la vue, et « Attribuer » passe par le portail de
- * l'équipe (`/admin/studies`), qui est son propre geste.
+ * l'équipe (`/admin/studies`), qui est son propre geste. Elle y voit aussi
+ * quand personne ne peut recevoir un examen.
  *
- * @param studies    Examens à afficher.
- * @param filtered   Une recherche ou une vue est active : l'état vide dit
- *                   « aucun résultat » plutôt que « aucun examen ».
- * @param assignable Le responsable de la clinique attribue depuis la liste.
+ * @param studies     Examens à afficher.
+ * @param filtered    Une recherche ou une vue est active : l'état vide dit
+ *                    « aucun résultat » plutôt que « aucun examen ».
+ * @param assignable  Le responsable de la clinique attribue depuis la liste.
+ * @param eligibility Équipe IMAFRIK : qui peut recevoir chaque examen à
+ *                    attribuer, lu par l'écran pour la page.
  */
 export function StudyList({
   studies,
   filtered = false,
   assignable = false,
+  eligibility = {},
 }: {
   studies: Study[];
   filtered?: boolean;
   assignable?: boolean;
+  eligibility?: Record<string, Eligibility>;
 }) {
   const router = useRouter();
   const href = useClinicHref();
@@ -138,9 +146,11 @@ export function StudyList({
                 />
                 <StudyStatusChip status={study.status} />
                 {reader(study) === null && (
-                  <span className="text-2xs font-medium text-progress">
-                    {views.unassigned}
-                  </span>
+                  <EligibilityNote
+                    found={eligibility[study.id]}
+                    modality={study.modality}
+                    fallback={views.unassigned}
+                  />
                 )}
               </div>
             </Link>
@@ -151,6 +161,7 @@ export function StudyList({
                   studyId={study.id}
                   patient={formatPatientName(study.patientName)}
                   assigned={study.assignedTo !== null}
+                  clinic={{ id: study.clinicId, name: study.clinic }}
                 />
               </div>
             )}
@@ -160,26 +171,33 @@ export function StudyList({
 
       <div className="hidden min-h-0 flex-1 overflow-auto lg:block">
         <table className="w-full border-separate border-spacing-0 text-sm">
-          <thead className="sticky top-0 z-10">
+          <thead className="sticky top-0 z-20">
             <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
-              <th scope="col" className="w-[26%]">
+              <th scope="col" className="w-[24%]">
                 <span className="label-eyebrow">{t.columns.patient}</span>
               </th>
-              <th scope="col" className="w-[14%]">
+              <th scope="col" className="w-[13%]">
                 <span className="label-eyebrow">{t.columns.study}</span>
               </th>
-              <th scope="col" className="w-[14%]">
+              <th scope="col" className="w-[13%]">
                 <span className="label-eyebrow">{t.columns.status}</span>
               </th>
-              <th scope="col" className="w-[20%]">
+              <th scope="col" className="w-[19%]">
                 <span className="label-eyebrow">{views.radiologist}</span>
               </th>
-              <th scope="col" className="w-[10%] text-right">
+              <th scope="col" className="w-[9%] text-right">
                 <span className="label-eyebrow">{t.columns.sent}</span>
               </th>
-              <th scope="col" className="w-[16%] text-right">
+              <th scope="col" className="w-[13%] text-right">
                 <span className="label-eyebrow">{t.columns.report}</span>
               </th>
+              {assignable && (
+                // Collée à droite : l'action reste visible si le tableau
+                // défile en largeur.
+                <th scope="col" className="sticky right-0 w-36 !text-right">
+                  <span className="label-eyebrow">{views.action}</span>
+                </th>
+              )}
             </tr>
           </thead>
 
@@ -234,24 +252,17 @@ export function StudyList({
                 </td>
 
                 <td>
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0">
                     {reader(study) === null ? (
-                      <span className="text-xs font-medium text-progress">
-                        {views.unassigned}
-                      </span>
+                      <EligibilityNote
+                        found={eligibility[study.id]}
+                        modality={study.modality}
+                        fallback={views.unassigned}
+                      />
                     ) : (
                       <span className="truncate text-secondary">
                         {reader(study)}
                       </span>
-                    )}
-                    {assignable && open(study) && (
-                      <AssignDialog
-                        portal={portal}
-                        studyId={study.id}
-                        patient={formatPatientName(study.patientName)}
-                        assigned={study.assignedTo !== null}
-                        compact
-                      />
                     )}
                   </div>
                 </td>
@@ -284,6 +295,20 @@ export function StudyList({
                     <span className="text-2xs text-tertiary">{t.pending}</span>
                   )}
                 </td>
+
+                {assignable && (
+                  <td className="sticky right-0 bg-surface-raised text-right">
+                    {open(study) && (
+                      <AssignDialog
+                        portal={portal}
+                        studyId={study.id}
+                        patient={formatPatientName(study.patientName)}
+                        assigned={study.assignedTo !== null}
+                        clinic={{ id: study.clinicId, name: study.clinic }}
+                      />
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

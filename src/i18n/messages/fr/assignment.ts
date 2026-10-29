@@ -22,10 +22,6 @@ export const assignment = {
     candidates: "Radiologues qui peuvent le recevoir",
     candidatesHint: (modality: string) =>
       `Habilités, et lecteurs de la modalité ${modality}.`,
-    noCandidatesClinic:
-      "Aucun de vos radiologues ne peut recevoir cet examen : vérifiez leurs modalités dans « Équipe », ou demandez à l’équipe IMAFRIK de l’attribuer à un radiologue du réseau.",
-    noCandidatesTeam:
-      "Aucun radiologue habilité ne peut recevoir cet examen : vérifiez les rattachements, le contrat de service et les modalités.",
     pool: "Réseau IMAFRIK",
     clinicRadiologist: "Radiologue de la clinique",
     load: (count: number) =>
@@ -48,6 +44,70 @@ export const assignment = {
     unshared: "Antériorité retirée.",
     signed: "Compte-rendu signé : l’examen ne s’attribue plus.",
     loading: "Chargement des radiologues…",
+  },
+  /**
+   * Personne ne peut recevoir l'examen : la fenêtre, la fiche et les
+   * listes disent pourquoi, et quoi faire. Le bouton « Attribuer » reste.
+   */
+  blocked: {
+    title: "Personne ne peut recevoir cet examen",
+    /** Sur la ligne d'une liste. */
+    short: "Personne ne peut le recevoir",
+    candidates: (count: number) =>
+      count > 1 ? `${count} radiologues possibles` : "1 radiologue possible",
+    /** Dans une colonne étroite (suivi de « À lire »). */
+    compact: "Personne d’éligible",
+    candidatesCompact: (count: number) =>
+      count > 1 ? `${count} éligibles` : "1 éligible",
+    /** Pourquoi, pour l'équipe IMAFRIK (raison du service). */
+    reasons: {
+      clinic_inactive:
+        "La clinique est suspendue : ses examens ne s’attribuent plus.",
+      no_reader:
+        "Aucun radiologue ne lit cette clinique : elle n’a pas de radiologue à elle, et aucun groupe du réseau n’a de contrat avec elle.",
+      not_credentialed:
+        "Les radiologues qui lisent cette clinique ne sont pas encore habilités : leur justificatif n’est pas validé.",
+      modality_not_read:
+        "Aucun radiologue habilité ne lit cette modalité pour cette clinique.",
+    },
+    modalityNotRead: (group: string) =>
+      `Aucun radiologue habilité ne lit « ${group} » pour cette clinique.`,
+    /** Raison inconnue (service injoignable), pour l'équipe. */
+    unknown:
+      "Aucun radiologue habilité, qui lit cette clinique et sa modalité, ne peut le recevoir.",
+    /** Pour le responsable : il ne choisit que parmi ses radiologues. */
+    clinic: "Aucun de vos radiologues ne peut recevoir cet examen.",
+    whatToDo: "Pour pouvoir l’attribuer",
+    remedies: {
+      reactivate: {
+        text: "Réactivez la clinique depuis sa fiche.",
+        link: "Fiche de la clinique",
+      },
+      openToPool: {
+        text: "Vérifiez sur sa fiche qu’elle est ouverte au pool, avec un contrat de service actif.",
+        link: "Fiche de la clinique",
+      },
+      attachRadiologist: {
+        text: "Ou rattachez-lui un radiologue habilité, depuis « Comptes ».",
+        link: "Comptes",
+      },
+      validateCredentials: {
+        text: "Validez le justificatif d’un radiologue qui lit la clinique : il devient habilité.",
+        link: "Justificatifs à valider",
+      },
+      setModalities: {
+        text: "Cochez cette modalité pour un radiologue habilité : bouton « Modalités » de sa ligne, dans « Comptes ».",
+        link: "Comptes",
+      },
+      checkTeam: {
+        text: "Vérifiez dans « Équipe » que vos radiologues sont validés et lisent cette modalité.",
+        link: "Équipe",
+      },
+      askTeam: {
+        text: "Sinon, demandez à l’équipe IMAFRIK de l’attribuer à un radiologue du réseau.",
+        link: "",
+      },
+    },
   },
   /** Antériorités du patient, proposées dans la fenêtre d'attribution. */
   priors: {
@@ -96,6 +156,8 @@ export const assignment = {
     filterLabel: "Afficher",
     radiologist: "Radiologue",
     unassigned: "À attribuer",
+    /** Colonne du bouton « Attribuer ». */
+    action: "Attribution",
     /** Onglets des groupes de modalités d'une liste d'examens. */
     modalityLabel: "Modalités",
     allModalities: "Toutes",

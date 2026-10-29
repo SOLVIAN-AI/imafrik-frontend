@@ -99,13 +99,16 @@ test("un filtre est porté par l'adresse et survit au rechargement", async ({
   await expect(ct).toHaveAttribute("aria-current", "true");
   await expect(rowLinks(page)).toHaveCount(filtrees);
 
-  // La clinique s'ajoute au filtre de modalité.
-  const clinique = page.getByRole("combobox", { name: "Clinique" });
-  const valeur = await clinique.locator("option").nth(1).getAttribute("value");
-  expect(valeur).toBeTruthy();
-  await clinique.selectOption(valeur ?? "");
-  await expect(page).toHaveURL(new RegExp(`[?&]clinique=${valeur}(&|$)`));
+  // La clinique s'ajoute au filtre de modalité, depuis sa liste.
+  const clinique = page.getByRole("button", { name: /^Clinique / });
+  await expect(clinique).toContainText("Toutes les cliniques");
+  await clinique.click();
+  const premiere = page.getByRole("listbox").getByRole("option").nth(1);
+  const nom = (await premiere.innerText()).split("\n")[0].trim();
+  await premiere.click();
+  await expect(page).toHaveURL(/[?&]clinique=[^&]+/);
   await expect(page).toHaveURL(/[?&]modalite=CT(&|$)/);
+  await expect(clinique).toContainText(nom);
 
   await page.getByRole("link", { name: "Retirer les filtres" }).click();
   await expect(page).toHaveURL("/worklist");

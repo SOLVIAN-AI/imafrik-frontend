@@ -1,6 +1,13 @@
-import { FileCheck2, History, Siren, UserCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  FileCheck2,
+  History,
+  Siren,
+  UserCheck,
+} from "lucide-react";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
+import { blockedReason } from "@/lib/assignment-blocker";
 import { DateTime } from "@/components/domain/date-time";
 import { Panel } from "@/components/layout/app-shell";
 import type { AppMessages } from "@/i18n";
@@ -23,6 +30,9 @@ import type { Locale } from "@/lib/i18n/locale";
  * Dans la vue des cliniques, l'équipe IMAFRIK y voit le même état et
  * attribue par son propre portail (`portal="team"`).
  *
+ * Quand personne ne peut recevoir l'examen, le bloc le dit, avec la
+ * raison pour l'équipe ; « Attribuer » reste, et sa fenêtre dit quoi faire.
+ *
  * @param studyId  Examen.
  * @param patient  Nom du patient, pour l'intitulé accessible du bouton.
  * @param state    Attribution lue par le service, `null` si indisponible.
@@ -30,6 +40,7 @@ import type { Locale } from "@/lib/i18n/locale";
  * @param messages Textes de l'attribution.
  * @param locale   Langue de l'utilisateur.
  * @param portal   Portail qui attribue : la clinique, ou l'équipe IMAFRIK.
+ * @param clinic   Clinique de l'examen, pour la fenêtre d'attribution.
  */
 export function AssignmentPanel({
   studyId,
@@ -39,6 +50,7 @@ export function AssignmentPanel({
   messages,
   locale,
   portal = "clinic",
+  clinic,
 }: {
   studyId: string;
   patient: string;
@@ -47,6 +59,7 @@ export function AssignmentPanel({
   messages: AppMessages["assignment"];
   locale: Locale;
   portal?: AssignmentPortal;
+  clinic?: { id: string; name: string };
 }) {
   const text = messages.sheet;
   const open =
@@ -62,6 +75,7 @@ export function AssignmentPanel({
             studyId={studyId}
             patient={patient}
             assigned={state.assignedTo !== null}
+            clinic={clinic}
           />
         )}
       </div>
@@ -103,6 +117,25 @@ export function AssignmentPanel({
             <p className="text-secondary">
               {state.urgent ? text.urgentWaiting : text.toAssignHint}
             </p>
+            {open && state.candidates.length === 0 && (
+              <p className="mt-1 flex gap-2 rounded-md bg-progress-muted px-2.5 py-2 text-primary">
+                <AlertTriangle
+                  className="mt-px size-3.5 shrink-0 text-progress"
+                  aria-hidden
+                />
+                <span>
+                  <span className="font-medium">{messages.blocked.title}</span>
+                  {" : "}
+                  {portal === "clinic"
+                    ? messages.blocked.clinic
+                    : blockedReason(
+                        messages,
+                        state.noCandidateReason,
+                        state.modality,
+                      )}
+                </span>
+              </p>
+            )}
           </div>
         ) : null}
 
