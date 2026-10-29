@@ -195,6 +195,39 @@ const _clinicCounts: Matches<
   Schemas["StudyClinicCounts"]
 > = true;
 
+/** Dimensions qu'on peut compter d'une liste d'examens. */
+export const studyFacetSchema = z.enum([
+  "modality",
+  "clinic",
+  "status",
+  "priority",
+  "radiologist",
+]);
+/** Une dimension comptée. */
+export type StudyFacet = z.infer<typeof studyFacetSchema>;
+
+/**
+ * Combien d'examens chaque valeur de chaque dimension retient, chacune
+ * comptée avec tous les autres filtres, le sien mis à part.
+ */
+export const studyFacetsSchema = z.object({
+  total: z.number().int(),
+  facets: z.record(
+    z.string(),
+    z.array(
+      z.object({
+        value: z.string(),
+        label: z.string().nullable().optional(),
+        count: z.number().int(),
+      }),
+    ),
+  ),
+});
+const _studyFacets: Matches<
+  z.input<typeof studyFacetsSchema>,
+  Schemas["StudyFacets"]
+> = true;
+
 /** Qui peut recevoir un examen de la file de répartition. */
 export const studyEligibilitySchema = z.object({
   study_id: uuid,
@@ -1753,6 +1786,7 @@ export const CONTRACT_CHECKS = [
   _studyPage,
   _modalityCounts,
   _clinicCounts,
+  _studyFacets,
   _studyEligibility,
   _report,
   _viewer,

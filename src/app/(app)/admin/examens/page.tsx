@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
 import { EligibilityNote } from "@/components/domain/eligibility-note";
-import { type BarDimension, FilterBar } from "@/components/filters/filter-bar";
+import { FilterBar } from "@/components/filters/filter-bar";
 import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { STALE_AFTER_HOURS, StudyAge } from "@/components/domain/study-age";
 import {
@@ -17,18 +17,17 @@ import { ListPagination } from "@/components/domain/list-pagination";
 import { ListToolbar } from "@/components/domain/list-toolbar";
 import { getEligibility } from "@/lib/data/eligibility";
 import type { Eligibility } from "@/lib/assignment-blocker";
+import { loadStudyFilters } from "@/lib/data/study-filters";
 import {
-  getClinicCounts,
-  getModalityCounts,
   listStudyPage,
   listStudyPageAt,
+  OPEN_STATUSES,
   STUDY_LIST_PAGE_SIZE,
   type Study,
 } from "@/lib/data/studies";
-import type { ModalityGroup } from "@/lib/api/contracts";
 import { LIST_FILTERS } from "@/lib/filters/screens";
-import { clinicDimension, modalityDimension } from "@/lib/filters/studies";
-import { hasFilters, readFilters } from "@/lib/filters/url";
+import { facetDimensions } from "@/lib/filters/studies";
+import { hasFilters } from "@/lib/filters/url";
 import { pageHref, readCursor } from "@/lib/pagination";
 import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
@@ -56,9 +55,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * ouvrir un client SQL.
  *
  * Elle se filtre par la barre commune (`components/filters`) : clinique
- * (`?clinique=`, liste déroulante), groupe de modalités (`?modalite=`,
- * puces) et urgences en cours (`?urgent=1`), chaque choix avec son nombre
- * d'examens compté par le service ; tout se combine, recherche comprise.
+ * et radiologue (listes déroulantes), groupe de modalités et état (puces),
+ * urgences en cours (`?urgent=1`), période de réception ; chaque choix
+ * avec son nombre d'examens, compté par le service en un appel
+ * (`/studies/facets`) ; tout se combine, recherche comprise.
  * C'est l'écran de référence de la barre (`docs/vues-filtrees.md`).
  *
  * **Chaque examen non signé porte « Attribuer »** (ou « Réattribuer »),
@@ -83,50 +83,33 @@ export default async function AdminStudiesPage({
   const params = await searchParams;
   const search = await readListSearch("admin-examens", session);
   const keys = LIST_FILTERS["admin-examens"];
-  // Modalité et urgences d'abord : la clinique se valide ensuite, parmi
-  // celles que compte le service.
-  const draft = readFilters(params, keys);
-  // `?urgent=1` : les urgences pas encore rendues, la destination de
-  // l'alerte « urgences en retard » du cockpit. Filtrées par le service,
-  // sur toute la base : filtrer ici une page des plus récents laissait de
-  // côté les urgences en retard, justement les plus anciennes.
-  const urgentOnly = draft.urgency !== undefined;
-  // `?modalite=scanner` : un groupe de modalités, compté par puce.
-  const modalityGroup = draft.modality as ModalityGroup | undefined;
-  // Les filtres de la liste, groupe et clinique mis à part : ceux des
-  // comptes de chaque choix.
-  const base = {
-    search,
-    ...(urgentOnly && {
-      priority: "urgent" as const,
-      status: [
-        "received" as const,
-        "assigned" as const,
-        "in_progress" as const,
-      ],
-    }),
-  };
-  // `?clinique=` : une clinique de la plateforme, comptée par le service.
-  // Les comptes d'abord : un identifiant inconnu ou mal formé, tapé à la
-  // main, revient à toutes les cliniques au lieu d'une erreur du service.
-  const clinicCounts = await getClinicCounts({ ...base, modalityGroup });
-  const filters = readFilters(params, keys, {
-    clinic: clinicCounts.clinics.map((row) => row.id),
+  // Les filtres lus, validés et comptés par le service, en un appel pour
+  // toute la barre. `?urgent=1` : les urgences pas encore rendues, la
+  // destination de l'alerte « urgences en retard » du cockpit ; filtrées
+  // par le service sur toute la base, sans état choisi.
+  const { filters, counts, query } = await loadStudyFilters({
+    params,
+    keys,
+    base: { search },
+    adjust: (next, chosen) =>
+      chosen.urgency && !chosen.state
+        ? { ...next, status: [...OPEN_STATUSES] }
+        : next,
   });
-  const clinic = filters.clinic ?? null;
-  const clinicName = clinicCounts.clinics.find(
-    (row) => row.id === clinic,
-  )?.name;
-  const [{ studies, total, nextCursor }, stuck, counts] = await Promise.all([
+  const urgentOnly = filters.urgency !== undefined;
+  const clinicName = counts.facets.clinic?.find(
+    (row) => row.value === filters.clinic,
+  )?.label;
+  const [{ studies, total, nextCursor }, stuck] = await Promise.all([
     listStudyPageAt(
       {
-        ...base,
-        modalityGroup,
-        clinic: clinic ?? undefined,
+        ...query,
         limit: STUDY_LIST_PAGE_SIZE,
         cursor: readCursor(params),
-        // Les plus anciennes, donc les plus en retard, d'abord.
-        ...(urgentOnly && { order: "deadline" as const }),
+        // Urgences et examens à attribuer : les plus en retard d'abord.
+        ...((urgentOnly || filters.state === "to_assign") && {
+          order: "deadline" as const,
+        }),
       },
       pageHref("/admin/examens", params, null),
     ),
@@ -135,7 +118,6 @@ export default async function AdminStudiesPage({
     listStudyPage({ status: ["received"], priority: "urgent", limit: 1 }).then(
       (page) => page.total,
     ),
-    getModalityCounts({ ...base, clinic: clinic ?? undefined }),
   ]);
   // Qui peut recevoir chaque examen à attribuer de la page, en un appel.
   const eligibility = await getEligibility(
@@ -145,11 +127,7 @@ export default async function AdminStudiesPage({
   );
   // La barre : chaque choix avec son nombre d'examens, compté par le
   // service avec tous les autres filtres.
-  const bar: BarDimension[] = [
-    clinicDimension(clinicCounts),
-    modalityDimension(counts),
-    { key: "urgency", label: text.openUrgent },
-  ];
+  const bar = facetDimensions(keys, counts, { urgency: text.openUrgent });
   const filteredEmpty = studies.length === 0 && hasFilters(filters);
 
   return (

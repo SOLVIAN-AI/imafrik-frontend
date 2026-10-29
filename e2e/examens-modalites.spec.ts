@@ -12,12 +12,13 @@ import { expect, test } from "./support/fixtures";
  * liste repart de sa première page.
  */
 
-/** Le nombre d'examens qu'annonce l'onglet d'un groupe. */
+/** Le nombre d'examens qu'annonce la puce d'un groupe. */
 async function tabCount(page: Page, label: string): Promise<number> {
   const tab = page
-    .getByRole("navigation", { name: "Modalités" })
+    .getByRole("group", { name: "Modalité" })
     .getByRole("link", { name: new RegExp(`^${label}`) });
-  return Number((await tab.innerText()).replace(/\D/g, ""));
+  // Le nombre affiché, pas sa forme en toutes lettres.
+  return Number(await tab.locator("span[aria-hidden]").innerText());
 }
 
 test.describe("le responsable de la clinique", () => {
@@ -28,9 +29,9 @@ test.describe("le responsable de la clinique", () => {
     checkA11y,
   }) => {
     await page.goto("/examens");
-    const onglets = page.getByRole("navigation", { name: "Modalités" });
+    const onglets = page.getByRole("group", { name: "Modalité" });
     for (const label of [
-      "Toutes",
+      "Toutes les modalités",
       "Radiographie",
       "Mammographie",
       "Échographie",
@@ -42,7 +43,7 @@ test.describe("le responsable de la clinique", () => {
         onglets.getByRole("link", { name: new RegExp(`^${label}`) }),
       ).toBeVisible();
     }
-    const total = await tabCount(page, "Toutes");
+    const total = await tabCount(page, "Toutes les modalités");
     const scanners = await tabCount(page, "Scanner");
     expect(scanners).toBeGreaterThan(0);
     expect(scanners).toBeLessThan(total);
@@ -52,7 +53,7 @@ test.describe("le responsable de la clinique", () => {
     await expect(page).toHaveURL(/modalite=scanner/);
     await expect(
       onglets.getByRole("link", { name: /^Scanner/ }),
-    ).toHaveAttribute("aria-current", "page");
+    ).toHaveAttribute("aria-current", "true");
     // Le compte de l'onglet est le total de la liste filtrée.
     await expect(
       page.getByText(new RegExp(`^${scanners} examens? ·`)),
@@ -65,13 +66,13 @@ test.describe("le responsable de la clinique", () => {
       expect(cellule).toMatch(/^CT/);
     await checkA11y();
 
-    // Combiné avec la vue « À attribuer » : le groupe est gardé.
+    // Combiné avec l'état « À attribuer » : le groupe est gardé.
     await page
-      .getByRole("navigation", { name: "Afficher" })
-      .getByRole("link", { name: "À attribuer" })
+      .getByRole("group", { name: "État" })
+      .getByRole("link", { name: /^À attribuer/ })
       .click();
     await expect(page).toHaveURL(/modalite=scanner/);
-    await expect(page).toHaveURL(/vue=a-attribuer/);
+    await expect(page).toHaveURL(/etat=a-attribuer/);
     const aAttribuer = await tabCount(page, "Scanner");
     await expect(lignes).toHaveCount(aAttribuer);
   });
@@ -102,7 +103,7 @@ test.describe("l’équipe IMAFRIK", () => {
 
     // La vue d'une clinique compte comme son responsable.
     await page.goto("/admin/vue-clinique/org-stj/examens");
-    const clinique = await tabCount(page, "Toutes");
+    const clinique = await tabCount(page, "Toutes les modalités");
     expect(clinique).toBeLessThan(reseau);
   });
 });
@@ -114,8 +115,10 @@ test.describe("en anglais", () => {
     page,
   }) => {
     await page.goto("/examens");
-    const tabs = page.getByRole("navigation", { name: "Modalities" });
-    await expect(tabs.getByRole("link", { name: /^All/ })).toBeVisible();
+    const tabs = page.getByRole("group", { name: "Modality" });
+    await expect(
+      tabs.getByRole("link", { name: /^All modalities/ }),
+    ).toBeVisible();
     await expect(tabs.getByRole("link", { name: /^Ultrasound/ })).toBeVisible();
   });
 });

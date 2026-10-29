@@ -14,6 +14,8 @@ import {
   viewerTokenSchema,
   type ApiStudy,
   type ModalityGroup,
+  type StudyFacet,
+  studyFacetsSchema,
 } from "@/lib/api/contracts";
 import { clinicViewApi } from "@/lib/clinic-view";
 import { isDemoMode } from "@/lib/demo/mode";
@@ -130,9 +132,11 @@ function toStudy(row: ApiStudy): Study {
  *   récents. Écrans de suivi ;
  * - `received` : les plus récemment reçus, sans autre critère. « Dernier
  *   examen reçu » ;
- * - `deadline` : l'échéance la plus proche d'abord. File de lecture.
+ * - `deadline` : l'échéance la plus proche d'abord. File de lecture ;
+ * - `signed` : les derniers comptes-rendus signés d'abord, un examen sans
+ *   compte-rendu signé à sa date de réception. Liste des comptes-rendus.
  */
-export type StudyOrder = "recent" | "received" | "deadline";
+export type StudyOrder = "recent" | "received" | "deadline" | "signed";
 
 export interface StudyQuery {
   status?: StudyStatus[];
@@ -145,6 +149,13 @@ export interface StudyQuery {
    * classement pour l'équipe IMAFRIK, pas un accès (RLS borne chacun).
    */
   clinic?: string;
+  /**
+   * Seulement les examens de ce radiologue, filtrés par le service : le
+   * signataire du compte-rendu, sinon celui à qui l'examen est attribué.
+   */
+  radiologist?: string;
+  /** Seulement les examens reçus depuis cet instant, filtrés par le service. */
+  receivedAfter?: Date;
   /** Recherche libre : nom ou identifiant du patient, modalité. */
   search?: string;
   /** Seulement les examens que l'utilisateur a pris en charge. */
@@ -226,6 +237,9 @@ export async function listStudyPage(
   if (query.priority) params.set("priority", query.priority);
   if (query.modalityGroup) params.set("modality_group", query.modalityGroup);
   if (query.clinic && !clinicId) params.set("clinic_id", query.clinic);
+  if (query.radiologist) params.set("radiologist_id", query.radiologist);
+  if (query.receivedAfter)
+    params.set("received_after", query.receivedAfter.toISOString());
   if (query.search) params.set("q", query.search);
   if (query.mine && !clinicId) params.set("mine", "true");
   if (query.order) params.set("order", query.order);
@@ -353,6 +367,169 @@ export async function getClinicCounts(
       count: row.count,
     })),
   };
+}
+
+/** Une valeur d'une dimension comptée, et ses examens. */
+export interface FacetValue {
+  value: string;
+  /** Nom d'une valeur tirée des données (clinique, radiologue). */
+  label?: string;
+  count: number;
+}
+
+/** Combien d'examens chaque valeur de chaque dimension retient. */
+export interface StudyFacets {
+  /** Examens de la liste, tous filtres appliqués. */
+  total: number;
+  facets: Partial<Record<StudyFacet, FacetValue[]>>;
+}
+
+/** La requête sans le filtre d'une dimension : ce qu'elle compte. */
+function withoutFacet(query: StudyQuery, facet: StudyFacet): StudyQuery {
+  switch (facet) {
+    case "modality":
+      return { ...query, modalityGroup: undefined };
+    case "clinic":
+      return { ...query, clinic: undefined };
+    case "status":
+      return { ...query, status: undefined };
+    case "priority":
+      return { ...query, priority: undefined };
+    case "radiologist":
+      return { ...query, radiologist: undefined };
+  }
+}
+
+/** Statuts et priorités, dans l'ordre du service. */
+const STATUS_VALUES: readonly StudyStatus[] = [
+  "received",
+  "assigned",
+  "in_progress",
+  "reported",
+  "delivered",
+];
+
+/**
+ * Comptes du jeu de démonstration, comme le service les fait : chaque
+ * dimension avec tous les autres filtres, le sien mis à part.
+ */
+function demoFacets(
+  studies: Study[],
+  query: StudyQuery,
+  wanted: readonly StudyFacet[],
+  clinicId?: string,
+): StudyFacets {
+  const all = (subset: StudyQuery) =>
+    demoPage(studies, { ...subset, limit: STUDY_PAGE_LIMIT * 100 }).studies;
+  const count = <T>(rows: Study[], key: (study: Study) => T, value: T) =>
+    rows.filter((study) => key(study) === value).length;
+  const facets: StudyFacets["facets"] = {};
+  for (const facet of new Set(wanted)) {
+    const rows = all(withoutFacet(query, facet));
+    switch (facet) {
+      case "modality":
+        facets.modality = MODALITY_GROUPS.map((group) => ({
+          value: group,
+          count: count(rows, (study) => modalityGroupOf(study.modality), group),
+        }));
+        break;
+      case "clinic":
+        if (clinicId) break;
+        facets.clinic = DEMO_NETWORK.map((clinic) => ({
+          value: clinic.id,
+          label: clinic.name,
+          count: count(rows, (study) => study.clinicId, clinic.id),
+        })).sort((a, b) => a.label.localeCompare(b.label, "fr"));
+        break;
+      case "status":
+        facets.status = STATUS_VALUES.map((status) => ({
+          value: status,
+          count: count(rows, (study) => study.status, status),
+        }));
+        break;
+      case "priority":
+        facets.priority = (["routine", "urgent"] as const).map((priority) => ({
+          value: priority,
+          count: count(rows, (study) => study.urgent, priority === "urgent"),
+        }));
+        break;
+      case "radiologist": {
+        const named = new Map<string, FacetValue>();
+        for (const study of rows) {
+          const label = study.reportedBy ?? study.assignedToName;
+          if (!study.assignedTo || !label) continue;
+          const entry = named.get(study.assignedTo) ?? {
+            value: study.assignedTo,
+            label,
+            count: 0,
+          };
+          entry.count += 1;
+          named.set(study.assignedTo, entry);
+        }
+        facets.radiologist = [...named.values()].sort((a, b) =>
+          (a.label ?? "").localeCompare(b.label ?? "", "fr"),
+        );
+        break;
+      }
+    }
+  }
+  return { total: all(query).length, facets };
+}
+
+/**
+ * Combien d'examens chaque option de chaque filtre retiendrait, en un
+ * appel pour toute la barre de filtres d'un écran.
+ *
+ * Compté par le service avec les mêmes filtres que la liste, chaque
+ * dimension avec tous les autres filtres, le sien mis à part, dans le
+ * périmètre de l'utilisateur : le nombre d'une option est le total de la
+ * liste filtrée sur elle. Un radiologue que l'utilisateur ne peut pas
+ * nommer n'est pas proposé.
+ *
+ * @param query    Filtres de la liste ; son ordre et sa page sont ignorés.
+ * @param wanted   Dimensions à compter.
+ * @param clinicId Clinique consultée par l'équipe IMAFRIK, voir
+ *                 {@link listStudyPage} ; sa clinique ne se compte pas.
+ */
+export async function getStudyFacets(
+  query: StudyQuery,
+  wanted: readonly StudyFacet[],
+  clinicId?: string,
+): Promise<StudyFacets> {
+  if (isDemoMode()) {
+    return demoFacets(
+      clinicId ? demoClinicStudies(clinicId) : await demoScope(),
+      query,
+      wanted,
+      clinicId,
+    );
+  }
+  const params = new URLSearchParams();
+  for (const facet of wanted) params.append("facet", facet);
+  for (const status of query.status ?? []) params.append("status", status);
+  if (query.priority) params.set("priority", query.priority);
+  if (query.modalityGroup) params.set("modality_group", query.modalityGroup);
+  if (query.clinic && !clinicId) params.set("clinic_id", query.clinic);
+  if (query.radiologist) params.set("radiologist_id", query.radiologist);
+  if (query.receivedAfter)
+    params.set("received_after", query.receivedAfter.toISOString());
+  if (query.search) params.set("q", query.search);
+  if (query.mine && !clinicId) params.set("mine", "true");
+  const path = clinicId
+    ? `${clinicViewApi(clinicId)}/studies/facets`
+    : "/studies/facets";
+  const raw = await apiGet(`${path}?${params.toString()}`, studyFacetsSchema);
+  const facets: StudyFacets["facets"] = {};
+  for (const facet of wanted) {
+    const rows = raw.facets[facet];
+    if (rows)
+      facets[facet] = rows.map((row) => ({
+        value: row.value,
+        label: row.label ?? undefined,
+        count: row.count,
+      }));
+  }
+  return { total: raw.total, facets };
 }
 
 /**
@@ -514,7 +691,7 @@ async function demoScope(): Promise<Study[]> {
 }
 
 /** Statuts d'un examen pas encore rendu, comme pour le service. */
-const OPEN_STATUSES: readonly StudyStatus[] = [
+export const OPEN_STATUSES: readonly StudyStatus[] = [
   "received",
   "assigned",
   "in_progress",
@@ -532,6 +709,9 @@ const DEMO_ORDERS: Record<StudyOrder, (a: Study, b: Study) => number> = {
     a.dueAt.getTime() - b.dueAt.getTime() ||
     a.receivedAt.getTime() - b.receivedAt.getTime() ||
     a.id.localeCompare(b.id),
+  signed: (a, b) =>
+    (b.reportedAt ?? b.receivedAt).getTime() -
+      (a.reportedAt ?? a.receivedAt).getTime() || b.id.localeCompare(a.id),
 };
 
 function isOpenUrgent(study: Study): boolean {
@@ -539,7 +719,7 @@ function isOpenUrgent(study: Study): boolean {
 }
 
 /** Préfixe des curseurs du jeu de démonstration, suivi du rang. */
-const DEMO_CURSOR = /^demo-(recent|received|deadline)-(\d{1,6})$/;
+const DEMO_CURSOR = /^demo-(recent|received|deadline|signed)-(\d{1,6})$/;
 
 /**
  * Applique les filtres, l'ordre et la pagination au jeu de démonstration,
@@ -568,6 +748,14 @@ function demoPage(studies: Study[], query: StudyQuery): StudyPage {
   }
   if (query.clinic) {
     result = result.filter((study) => study.clinicId === query.clinic);
+  }
+  if (query.radiologist) {
+    // Dans le jeu de démonstration, le signataire est le radiologue attribué.
+    result = result.filter((study) => study.assignedTo === query.radiologist);
+  }
+  if (query.receivedAfter) {
+    const since = query.receivedAfter.getTime();
+    result = result.filter((study) => study.receivedAt.getTime() >= since);
   }
   if (query.mine) {
     result = result.filter((study) => study.assignedTo === DEMO_USER_ID);

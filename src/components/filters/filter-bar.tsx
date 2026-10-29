@@ -140,7 +140,9 @@ export function FilterBar({
           );
         }
 
-        const dropdown = (className?: string, given = false) => (
+        // Des valeurs fixes gardent l'ordre du registre, sans recherche.
+        const fixed = definition.values !== undefined;
+        const dropdown = (className?: string, given = fixed) => (
           <FilterDropdown
             key={`${entry.key}-liste`}
             appearance="pill"
@@ -161,7 +163,7 @@ export function FilterBar({
 
         if (definition.presentation === "dropdown") {
           // Rien à choisir : une seule clinique, un seul pays.
-          if (options.length < 2 && current === null) return null;
+          if (!fixed && options.length < 2 && current === null) return null;
           return dropdown();
         }
 

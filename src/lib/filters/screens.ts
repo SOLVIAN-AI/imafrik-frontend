@@ -15,7 +15,17 @@ export const NETWORK = ["clinic"] as const satisfies readonly DimensionKey[];
  * réseau sans savoir qui le regarde.
  */
 export const LIST_FILTERS = {
-  "admin-examens": [...NETWORK, "modality", "urgency"],
+  "admin-examens": [
+    ...NETWORK,
+    "radiologist",
+    "modality",
+    "state",
+    "urgency",
+    "period",
+  ],
+  // « Examens » du responsable, et de la vue des cliniques : sa clinique
+  // est celle de l'écran.
+  examens: ["radiologist", "modality", "state", "urgency", "period"],
   // « À lire » : la file d'un radiologue, ou toute la plateforme pour
   // l'équipe IMAFRIK ; la clinique ne s'affiche que s'il y en a plusieurs.
   worklist: [...NETWORK, "modality", "urgency"],

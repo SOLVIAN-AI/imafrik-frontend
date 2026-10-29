@@ -36,7 +36,13 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
   },
   {
     membership: "m-clinic",
-    paths: ["/tableau-de-bord", "/examens/1", "/activite"],
+    paths: [
+      "/tableau-de-bord",
+      "/examens/1",
+      "/activite",
+      // Barre de filtres commune, filtres actifs : rien ne défile en largeur.
+      "/examens?etat=pret&modalite=scanner&jours=30",
+    ],
   },
   {
     membership: "m-admin",

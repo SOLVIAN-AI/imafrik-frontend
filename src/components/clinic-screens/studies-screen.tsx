@@ -1,18 +1,16 @@
-import Link from "next/link";
-
 import { ClinicStudiesActions } from "@/components/domain/clinic-studies-actions";
 import { ListPagination } from "@/components/domain/list-pagination";
-import { ModalityTabs } from "@/components/domain/modality-tabs";
 import { StudyList } from "@/components/domain/study-list";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { type ClinicConsultation, clinicHref } from "@/lib/clinic-view";
 import { getEligibility } from "@/lib/data/eligibility";
-import {
-  getModalityCounts,
-  listStudyPageAt,
-  STUDY_LIST_PAGE_SIZE,
-} from "@/lib/data/studies";
-import { MODALITY_PARAM, readModalityGroup } from "@/lib/modalities";
+import { loadStudyFilters } from "@/lib/data/study-filters";
+import { listStudyPageAt, STUDY_LIST_PAGE_SIZE } from "@/lib/data/studies";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { facetDimensions } from "@/lib/filters/studies";
+import { hasFilters } from "@/lib/filters/url";
 import {
   pageHref,
   readCursor,
@@ -22,18 +20,14 @@ import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
 
-/** Paramètre d'adresse de la vue « À attribuer ». */
-const VIEW_PARAM = "vue";
-const TO_ASSIGN = "a-attribuer";
-
 /**
  * Les examens de la clinique.
  *
- * Ses envois, rendus compris, avec qui les lit. La vue « À attribuer »
+ * Ses envois, rendus compris, avec qui les lit. L'état « À attribuer »
  * ne garde que ceux qu'aucun radiologue ne voit encore (statut
- * `received`, sans titulaire) : le responsable les attribue d'ici, ou
- * depuis leur fiche. Le radiologue n'a pas cet écran : sa file en tient
- * lieu.
+ * `received`, sans titulaire), les plus pressés en tête : le responsable
+ * les attribue d'ici, ou depuis leur fiche. Le radiologue n'a pas cet
+ * écran : sa file en tient lieu.
  *
  * Écran de suivi : on y vient pour retrouver un dossier précis, d'où la
  * recherche en tête, faite par le service sur tout le périmètre. L'état du
@@ -45,15 +39,19 @@ const TO_ASSIGN = "a-attribuer";
  * liste mène à la page suivante. La liste s'arrêtait auparavant aux deux
  * cents premiers examens, et l'en-tête annonçait « 200 examens ».
  *
- * Des onglets la classent par groupe de modalités, chacun avec son nombre
- * d'examens, combinables avec la vue et la recherche (`?modalite=`).
+ * La barre de filtres commune la classe par radiologue, groupe de
+ * modalités, état (à attribuer, en lecture, prêt, remis), urgence et
+ * période de réception, chaque option avec son nombre d'examens, compté
+ * par le service en un appel ; tout se combine, recherche comprise.
+ * L'ancienne adresse de la vue « À attribuer » (`?vue=a-attribuer`) mène
+ * à l'état du même nom.
  *
  * Dans la vue des cliniques, l'équipe IMAFRIK voit la même liste, lue par
  * la vue de la clinique ; elle attribue par son propre portail.
  *
  * @param consultation Clinique consultée par l'équipe IMAFRIK ; `null`
  *                     pour son responsable.
- * @param params       Paramètres de l'adresse : vue, modalité et curseur.
+ * @param params       Paramètres de l'adresse : filtres et curseur.
  */
 export async function StudiesScreen({
   consultation,
@@ -68,28 +66,24 @@ export async function StudiesScreen({
     consultation ? "vue-clinique-examens" : "examens",
     session,
   );
-  const toAssign = params[VIEW_PARAM] === TO_ASSIGN;
-  const modalityGroup = readModalityGroup(params[MODALITY_PARAM]);
-  // Les filtres de la liste, groupe de modalités mis à part : ceux des
-  // comptes de chaque onglet.
-  const filters = {
-    search,
-    ...(toAssign ? { status: ["received" as const] } : {}),
-  };
-  const [{ studies, total, nextCursor }, counts] = await Promise.all([
-    listStudyPageAt(
-      {
-        ...filters,
-        modalityGroup,
-        limit: STUDY_LIST_PAGE_SIZE,
-        cursor: readCursor(params),
-        ...(toAssign ? { order: "deadline" as const } : {}),
-      },
-      pageHref(pathname, params, null),
-      consultation?.clinicId,
-    ),
-    getModalityCounts(filters, consultation?.clinicId),
-  ]);
+  const keys = LIST_FILTERS.examens;
+  const { filters, counts, query } = await loadStudyFilters({
+    params,
+    keys,
+    base: { search },
+    clinicId: consultation?.clinicId,
+  });
+  const { studies, total, nextCursor } = await listStudyPageAt(
+    {
+      ...query,
+      limit: STUDY_LIST_PAGE_SIZE,
+      cursor: readCursor(params),
+      // À attribuer : les plus pressés d'abord.
+      ...(filters.state === "to_assign" && { order: "deadline" as const }),
+    },
+    pageHref(pathname, params, null),
+    consultation?.clinicId,
+  );
   // L'équipe IMAFRIK voit sur la ligne quand personne ne peut recevoir un
   // examen (un appel pour la page) ; le responsable n'a pas cette lecture,
   // sa fenêtre lui dit quoi vérifier.
@@ -100,13 +94,10 @@ export async function StudiesScreen({
           .map((study) => study.id),
       )
     : {};
-  const { t, locale } = await getMessages();
-  const views = t.assignment.list;
-  // Changer de vue garde le groupe de modalités, et inversement.
-  const withoutView = Object.fromEntries(
-    Object.entries(params).filter(([key]) => key !== VIEW_PARAM),
-  );
+  const { t } = await getMessages();
   const clinicName = consultation?.name ?? session.active.organizationName;
+  const bar = facetDimensions(keys, counts);
+  const filteredEmpty = studies.length === 0 && hasFilters(filters);
 
   return (
     <>
@@ -116,60 +107,25 @@ export async function StudiesScreen({
         actions={<ClinicStudiesActions search={search} />}
       />
 
-      <nav
-        aria-label={views.filterLabel}
-        className="flex gap-1 px-4 pb-3 sm:px-6"
-      >
-        {[
-          {
-            key: "all",
-            label: views.all,
-            active: !toAssign,
-            href: pageHref(pathname, withoutView, null),
-          },
-          {
-            key: TO_ASSIGN,
-            label: views.toAssign,
-            active: toAssign,
-            href: pageHref(
-              pathname,
-              { ...withoutView, [VIEW_PARAM]: TO_ASSIGN },
-              null,
-            ),
-          },
-        ].map((view) => (
-          <Link
-            key={view.key}
-            href={view.href}
-            aria-current={view.active ? "page" : undefined}
-            className={
-              view.active
-                ? "rounded-md bg-accent-muted px-2.5 py-1 text-xs font-medium text-accent"
-                : "rounded-md px-2.5 py-1 text-xs text-secondary hover:bg-surface-hover hover:text-primary"
-            }
-          >
-            {view.label}
-          </Link>
-        ))}
-      </nav>
-
-      <ModalityTabs
-        counts={counts}
-        active={modalityGroup}
-        pathname={pathname}
-        params={params}
-        labels={t.assignment}
-        locale={locale}
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{ count: total, noun: "studies" }}
+        className="shrink-0 px-4 pb-3 sm:px-6"
       />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
         <Panel className="flex min-h-0 flex-col overflow-hidden">
-          <StudyList
-            studies={studies}
-            filtered={Boolean(search) || toAssign || Boolean(modalityGroup)}
-            assignable
-            eligibility={eligibility}
-          />
+          {filteredEmpty ? (
+            <FilteredEmpty dimensions={bar} active={filters} />
+          ) : (
+            <StudyList
+              studies={studies}
+              filtered={Boolean(search) || hasFilters(filters)}
+              assignable
+              eligibility={eligibility}
+            />
+          )}
           <ListPagination
             pathname={pathname}
             params={params}
