@@ -434,6 +434,8 @@ export const reading = {
   /** Ouverture de l'examen dans Weasis, installé sur l'ordinateur. */
   weasis: {
     open: "Ouvrir dans Weasis",
+    /** Libellé du bouton quand le volet d'images est étroit. */
+    openShort: "Weasis",
     openHint: "Ouvrir l’examen dans Weasis, installé sur cet ordinateur",
     /** Ce qui est indisponible en démonstration. */
     name: "L’ouverture dans Weasis",

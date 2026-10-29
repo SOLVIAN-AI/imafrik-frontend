@@ -43,6 +43,11 @@ const NO_LAUNCH_DELAY_MS = 3000;
  * au chargement : il revérifie l'accès, trace l'ouverture et émet un code
  * à usage unique de cinq minutes.
  *
+ * Un vrai bouton, encadré, et toujours nommé à l'écran : réduit à une
+ * icône dans la barre sous les images, on ne le voyait pas. Secondaire et
+ * non plein : Weasis est une option à côté du viewer, le bouton plein reste
+ * aux actions principales de l'écran (signer, prendre en charge).
+ *
  * Le point d'interrogation ouvre la même aide que celle qui suit une
  * ouverture sans effet : où télécharger Weasis, comment l'installer, et
  * pourquoi le fermer après la lecture.
@@ -75,17 +80,18 @@ export function WeasisButton({ studyId }: { studyId: string }) {
   return (
     <>
       <Button
-        variant="ghost"
+        variant="secondary"
         size="sm"
-        className="shrink-0"
+        className="shrink-0 font-medium [&_svg]:text-accent"
         loading={pending}
         aria-label={labels.open}
         title={labels.openHint}
         onClick={launch}
       >
         <MonitorUp aria-hidden />
-        {/* Sous 1280 px, le volet d'images est étroit : l'icône seule,
-            nommée par aria-label et par son info-bulle. */}
+        {/* Sous 1280 px, le volet d'images est étroit : « Weasis » seul,
+            le nom complet restant celui du bouton (aria-label, info-bulle). */}
+        <span className="xl:hidden">{labels.openShort}</span>
         <span className="hidden xl:inline">{labels.open}</span>
       </Button>
       <Button

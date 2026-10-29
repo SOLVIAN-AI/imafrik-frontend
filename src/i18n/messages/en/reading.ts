@@ -396,6 +396,7 @@ export const reading: AppMessages["reading"] = {
   /** Opening the examination in Weasis, installed on the computer. */
   weasis: {
     open: "Open in Weasis",
+    openShort: "Weasis",
     openHint: "Open the examination in Weasis, installed on this computer",
     name: "Opening in Weasis",
     opening: "Opening the examination in Weasis…",
