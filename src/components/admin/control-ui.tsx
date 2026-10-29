@@ -11,6 +11,7 @@ import type * as React from "react";
 
 import { RelativeTime } from "@/components/admin/relative-time";
 import { Panel } from "@/components/layout/app-shell";
+import { InfoTip, type InfoTipContent } from "@/components/ui/info-tip";
 import { messagesFor } from "@/i18n";
 import type { Alert, OpsKind, OpsRun } from "@/lib/data/control";
 import type { Locale } from "@/lib/i18n/locale";
@@ -35,6 +36,8 @@ import { cn } from "@/lib/utils";
  * @param description Précision sous le titre — période, unité, définition.
  * @param action      Lien vers l'écran détaillé.
  * @param aside       Contenu à droite du titre — légende, sélecteur.
+ * @param info        Bulle ⓘ à côté du titre : ce que la section montre
+ *                    et qui ne se lit pas de soi-même.
  * @param flush       Sans marge intérieure : listes et tableaux bord à bord.
  */
 export function Section({
@@ -43,6 +46,7 @@ export function Section({
   description,
   action,
   aside,
+  info,
   flush = false,
   className,
   children,
@@ -53,6 +57,7 @@ export function Section({
   description?: React.ReactNode;
   action?: { label: string; href: string };
   aside?: React.ReactNode;
+  info?: InfoTipContent;
   flush?: boolean;
   className?: string;
   children: React.ReactNode;
@@ -64,7 +69,14 @@ export function Section({
     >
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border-subtle px-4 py-3">
         <div className="min-w-0">
-          <h2 className="label-eyebrow">{title}</h2>
+          {info ? (
+            <div className="flex items-center">
+              <h2 className="label-eyebrow">{title}</h2>
+              <InfoTip label={title} {...info} />
+            </div>
+          ) : (
+            <h2 className="label-eyebrow">{title}</h2>
+          )}
           {description && (
             <p className="mt-0.5 text-2xs text-tertiary">{description}</p>
           )}
@@ -370,21 +382,33 @@ export function Segmented({
  *
  * Plus sobre qu'une carte de mesure : pour les grilles denses de l'écran
  * d'activité, où dix icônes côte à côte deviendraient du bruit.
+ *
+ * La précision (`hint`) porte une donnée (« dont 3 urgences ») ; ce que
+ * mesure la valeur va dans la bulle ⓘ du libellé (`info`).
  */
 export function Figure({
   label,
   value,
   hint,
+  info,
   tone,
 }: {
   label: string;
   value: string;
   hint?: React.ReactNode;
+  info?: InfoTipContent;
   tone?: "urgent" | "progress" | "done";
 }) {
   return (
     <div className="min-w-0">
-      <p className="truncate text-2xs text-tertiary">{label}</p>
+      {info ? (
+        <p className="flex min-w-0 items-center text-2xs text-tertiary">
+          <span className="truncate">{label}</span>
+          <InfoTip label={label} {...info} />
+        </p>
+      ) : (
+        <p className="truncate text-2xs text-tertiary">{label}</p>
+      )}
       <p
         className={cn(
           "mt-0.5 text-xl font-semibold tabular-nums",

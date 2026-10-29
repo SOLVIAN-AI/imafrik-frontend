@@ -16,6 +16,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
+import { type GlossaryTerm, HelpContext } from "@/components/help/help-context";
 import { useSession } from "@/components/providers/session-provider";
 import { useTour } from "@/components/tour/tour-provider";
 import {
@@ -70,19 +71,9 @@ const TRAINING_HREF = "/formation";
 
 type View = "page" | "glossary" | "guide";
 
-interface HelpState {
-  open: boolean;
-  toggle: () => void;
-  setOpen: (open: boolean) => void;
-}
-
-const HelpContext = React.createContext<HelpState | null>(null);
-
-/** Ouverture du panneau d'aide, pour son bouton. */
-export function useHelp(): HelpState {
-  const state = React.useContext(HelpContext);
-  if (!state) throw new Error("useHelp hors de HelpProvider");
-  return state;
+/** Terme demandé par une bulle d'information ; un objet neuf par demande. */
+interface TermRequest {
+  term: GlossaryTerm;
 }
 
 /**
@@ -93,13 +84,19 @@ export function useHelp(): HelpState {
  * les termes qu'il emploie, de quoi aller plus loin et les raccourcis. Il
  * ne bloque pas la page : on lit l'aide en regardant l'écran qu'elle
  * décrit. Il suit la navigation, et la recherche mène d'un écran à
- * l'autre sans le fermer.
+ * l'autre sans le fermer. Le lien « En savoir plus » d'une bulle
+ * d'information l'ouvre sur un terme du glossaire (`openTerm`).
  *
  * Monté sous `TourProvider` : il relance la visite de l'écran.
  */
 export function HelpProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
+  const [request, setRequest] = React.useState<TermRequest | null>(null);
   const toggle = React.useCallback(() => setOpen((value) => !value), []);
+  const openTerm = React.useCallback((term: GlossaryTerm) => {
+    setRequest({ term });
+    setOpen(true);
+  }, []);
 
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -114,13 +111,13 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const state = React.useMemo(
-    () => ({ open, toggle, setOpen }),
-    [open, toggle],
+    () => ({ open, toggle, setOpen, openTerm }),
+    [open, toggle, openTerm],
   );
   return (
     <HelpContext.Provider value={state}>
       {children}
-      <HelpPanel open={open} onOpenChange={setOpen} />
+      <HelpPanel open={open} onOpenChange={setOpen} termRequest={request} />
     </HelpContext.Provider>
   );
 }
@@ -128,9 +125,11 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
 function HelpPanel({
   open,
   onOpenChange,
+  termRequest,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  termRequest: TermRequest | null;
 }) {
   const t = useMessages();
   const text = t.help.panel;
@@ -163,13 +162,30 @@ function HelpPanel({
   );
   const guide = guideKey ? roleGuides[guideKey] : undefined;
 
-  // Un terme choisi dans la recherche s'ouvre dans le glossaire, à sa place.
+  // « En savoir plus » d'une bulle d'information : le glossaire, ouvert sur
+  // son terme. Chaque demande est un objet neuf, traité une seule fois.
+  const [handled, setHandled] = React.useState(termRequest);
+  if (termRequest !== handled) {
+    setHandled(termRequest);
+    if (termRequest) {
+      setQuery("");
+      setFocusTerm(termRequest.term);
+      setView("glossary");
+    }
+  }
+
+  // Un terme choisi dans la recherche, ou demandé par une bulle, s'ouvre
+  // dans le glossaire, à sa place. Une image plus tard : le panneau qui
+  // s'ouvre à l'instant n'a pas encore monté son contenu.
   React.useEffect(() => {
-    if (view !== "glossary" || !focusTerm) return;
-    document
-      .getElementById(`aide-terme-${focusTerm}`)
-      ?.scrollIntoView({ block: "start" });
-  }, [view, focusTerm]);
+    if (!open || view !== "glossary" || !focusTerm) return;
+    const frame = requestAnimationFrame(() =>
+      document
+        .getElementById(`aide-terme-${focusTerm}`)
+        ?.scrollIntoView({ block: "start" }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [open, view, focusTerm, handled]);
 
   const close = () => onOpenChange(false);
   const openGlossary = (term: string | null = null) => {

@@ -2,7 +2,7 @@
 
 import { CircleHelp } from "lucide-react";
 
-import { useHelp } from "@/components/help/help-panel";
+import { useHelp } from "@/components/help/help-context";
 import { Button } from "@/components/ui/button";
 import { useMessages } from "@/i18n/client";
 
