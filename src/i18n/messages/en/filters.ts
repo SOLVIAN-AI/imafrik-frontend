@@ -37,6 +37,8 @@ export const filters: AppMessages["filters"] = {
   allRoles: "All roles",
   account: "Account",
   allAccounts: "All accounts",
+  mute: "Silent",
+  noPlan: "Without a plan",
   mfa: "Two-factor authentication",
   withoutMfa: "Without two-factor authentication",
   radiologist: "Radiologist",
@@ -72,6 +74,10 @@ export const filters: AppMessages["filters"] = {
   allPriorities: "All priorities",
   urgent: "Urgent",
   nouns: {
+    gateways: (count: number) =>
+      count === 1 ? "1 gateway" : `${count} gateways`,
+    statements: (count: number) =>
+      count === 1 ? "1 statement" : `${count} statements`,
     accounts: (count: number) =>
       count === 1 ? "1 account" : `${count} accounts`,
     studies: (count: number) =>
@@ -81,6 +87,8 @@ export const filters: AppMessages["filters"] = {
       count === 1 ? "1 organisation" : `${count} organisations`,
   },
   empty: {
+    gateways: "No gateway matches these filters",
+    statements: "No statement matches these filters",
     studies: "No examination matches these filters",
     reports: "No report matches these filters",
     accounts: "No account matches these filters",

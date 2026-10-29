@@ -316,7 +316,7 @@ export const pages: typeof fr = {
         "The platform’s activity in three sections, one click from the header: an overview of a period, each radiologist’s performance over a month, activity by clinic. Each section has its own address, to share as it is.",
       steps: [
         "Choose the section: “Overview”, “By radiologist” or “By clinic”; “Billing” opens the month’s statements.",
-        "Keep “Whole network” or choose a clinic; the period (7 d to 1 year) applies to the overview, the month to radiologists.",
+        "Keep “All clinics” or choose one; the period (7 d to 1 year) applies to the overview, the month to radiologists.",
         "Under “By radiologist”, sort the columns; a heading’s ⓘ button tells what the indicator measures, the title’s what the arrows mean.",
         "From “Accounts”, “See their performance” opens this section on the radiologist’s row, highlighted.",
         "With no signed report in the month, the table says so: its turnaround stays empty until the first signed procedure.",
@@ -334,7 +334,7 @@ export const pages: typeof fr = {
       purpose:
         "Follows the latest examinations received, from acquisition to report delivery, with their receiving throughput and the duration of each stage. Open it when a clinic reports a delay: you can see whether the cause is the link, the queue or the reading.",
       steps: [
-        "Pick a clinic from the “Whole network” list to follow its examinations only.",
+        "Filter by clinic, modality, status or urgency: the service filters before keeping the last 100 examinations.",
         "Read the summary: “Median throughput”, “Median transmission”, “Volume received” and “In queue”.",
         "Go through the list, most recent first: clinic, throughput, stage timeline, status and radiologist.",
         "Find the longest stage on the timeline using the legend: Transmission, Transfer, Queue, Reading, Delivery.",
@@ -382,7 +382,7 @@ export const pages: typeof fr = {
         "Overview of the gateways of every clinic: status, address, certificate, heartbeat. The screen also shows what prevents the server from enrolling, the task that applies trust to the PACS, and the installation kit.",
       steps: [
         "Read the banners at the top first: what the server is missing to enrol, then the alerts.",
-        "Filter by status, for example “Awaiting approval”, to see the workstations waiting for a decision.",
+        "Filter by clinic, status (“Awaiting approval”: to decide) or “Silent”: no sign of life for 30 minutes.",
         "Click “Approve” or “Reject” on the row, or the workstation name to open its page.",
         "In “Applying trust to the PACS”, check that the last cycle is “Up to date” or “Applied” and that nothing is waiting.",
         "Click “Download the kit”, then “Copy the fingerprint”. On the workstation, `certutil -hashfile kit-passerelle.zip SHA256` must give the same one, or do not install it.",
@@ -473,7 +473,7 @@ export const pages: typeof fr = {
       steps: [
         "Change the month with the arrows on either side of the month shown.",
         "Read the totals: “Total excl. tax”, “Procedures billed”, “Without a signed report” and “Without a plan”.",
-        "A clinic “Without a plan” has neither subscription nor total: open its page and set its “Subscription”.",
+        "Filter by clinic or “Without a plan”: those clinics have neither subscription nor total; open their page and set the “Subscription”.",
         "Once the month is over, check the statements, then click “Close the month”: this cannot be undone.",
         "Click “Export as CSV” to download the month’s statements.",
       ],

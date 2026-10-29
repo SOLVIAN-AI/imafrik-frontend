@@ -321,7 +321,7 @@ export const pages = {
         "L’activité de la plateforme en trois rubriques, à un clic dès l’en-tête : vue d’ensemble d’une période, performances de chaque radiologue sur un mois, activité par clinique. Chaque rubrique a son adresse, à partager telle quelle.",
       steps: [
         "Choisissez la rubrique : « Vue d’ensemble », « Par radiologue » ou « Par clinique » ; « Facturation » ouvre les relevés du mois.",
-        "Gardez « Tout le réseau » ou choisissez une clinique ; la période (7 j à 1 an) vaut pour la vue d’ensemble, le mois pour les radiologues.",
+        "Gardez « Toutes les cliniques » ou choisissez-en une ; la période (7 j à 1 an) vaut pour la vue d’ensemble, le mois pour les radiologues.",
         "Dans « Par radiologue », triez les colonnes ; le bouton ⓘ d’un intitulé dit ce que mesure l’indicateur, celui du titre ce que disent les flèches.",
         "Depuis « Comptes », « Voir ses performances » ouvre cette rubrique sur la ligne du radiologue, mise en évidence.",
         "Sans compte-rendu signé dans le mois, le tableau le dit : ses délais restent vides jusqu’au premier acte signé.",
@@ -339,7 +339,7 @@ export const pages = {
       purpose:
         "Suit les derniers examens reçus, de l’acquisition à la remise du compte-rendu, avec leur débit de réception et la durée de chaque étape. Ouvrez-le quand une clinique signale un retard : vous voyez si la cause est la liaison, la file ou la lecture.",
       steps: [
-        "Choisissez une clinique dans la liste « Tout le réseau » pour ne suivre que ses examens.",
+        "Filtrez par clinique, modalité, état ou urgence : le service filtre avant de retenir les 100 derniers examens.",
         "Lisez la synthèse : « Débit médian », « Acheminement médian », « Volume reçu » et « En file ».",
         "Parcourez la liste, les plus récents en tête : clinique, débit, frise des étapes, statut et radiologue.",
         "Repérez dans la frise l’étape la plus longue, à l’aide de la légende : Acheminement, Transfert, File, Lecture, Remise.",
@@ -387,7 +387,7 @@ export const pages = {
         "Vue d’ensemble des passerelles de toutes les cliniques : statut, adresse, certificat, signe de vie. L’écran montre aussi ce qui empêche le serveur d’enrôler, la tâche qui applique la confiance au PACS et le kit d’installation.",
       steps: [
         "Lisez d’abord les bandeaux en tête : ce qui manque au serveur pour enrôler, puis les alertes.",
-        "Filtrez par statut, par exemple « En attente d’approbation », pour voir les postes qui attendent une décision.",
+        "Filtrez par clinique, statut (« En attente d’approbation » : à décider) ou « Muettes » : aucun signe de vie depuis 30 minutes.",
         "Cliquez sur « Approuver » ou « Rejeter » sur la ligne, ou sur le nom du poste pour ouvrir sa fiche.",
         "Dans « Application de la confiance au PACS », vérifiez que le dernier cycle est « À jour » ou « Appliqué » et que rien n’attend.",
         "Cliquez sur « Télécharger le kit », puis « Copier l’empreinte ». Sur le poste, `certutil -hashfile kit-passerelle.zip SHA256` doit donner la même, sinon ne l’installez pas.",
@@ -478,7 +478,7 @@ export const pages = {
       steps: [
         "Changez de mois avec les flèches placées de part et d’autre du mois affiché.",
         "Lisez les totaux : « Total HT », « Actes facturés », « Sans compte-rendu signé » et « Sans formule ».",
-        "Une clinique « Sans formule » n’a ni abonnement ni total : ouvrez sa fiche et renseignez son « Abonnement ».",
+        "Filtrez par clinique ou « Sans formule » : ces cliniques n’ont ni abonnement ni total ; ouvrez leur fiche et renseignez l’« Abonnement ».",
         "Le mois fini, vérifiez les relevés puis cliquez sur « Clore le mois » : ce geste est définitif.",
         "Cliquez sur « Exporter en CSV » pour télécharger les relevés du mois.",
       ],

@@ -1,5 +1,8 @@
 import {
+  BellOff,
   Building2,
+  FileX,
+  Router,
   Cable,
   CircleCheck,
   Shapes,
@@ -28,8 +31,11 @@ export const DIMENSION_ICONS: Record<DimensionKey, LucideIcon> = {
   state: CircleDot,
   standing: CircleCheck,
   link: Cable,
+  gatewayStatus: Router,
   account: UserCheck,
   urgency: Siren,
+  mute: BellOff,
+  noPlan: FileX,
   mfa: ShieldAlert,
   period: CalendarRange,
 };

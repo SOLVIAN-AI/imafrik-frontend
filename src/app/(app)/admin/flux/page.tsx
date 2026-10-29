@@ -1,15 +1,20 @@
 import { Activity } from "lucide-react";
 import type { Metadata } from "next";
 
-import { ClinicFilter } from "@/components/admin/clinic-filter";
 import { ControlBody, Figure, Section } from "@/components/admin/control-ui";
 import { FlowList, SegmentLegend } from "@/components/admin/flow-list";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
-import { parseClinic } from "@/lib/admin-params";
 import { quantile } from "@/lib/charts";
 import { listOrganizations } from "@/lib/data/admin";
 import { type PipelineStudy, getPipeline } from "@/lib/data/control";
+import { type BarDimension, STUDY_STATES } from "@/lib/filters/dimensions";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { studyQuery } from "@/lib/filters/studies";
+import { hasFilters, readFilters } from "@/lib/filters/url";
+import { MODALITY_GROUPS } from "@/lib/modalities";
 import {
   formatBytes,
   formatCount,
@@ -50,21 +55,53 @@ export default async function FlowPage({
   const clinics = (await listOrganizations())
     .filter((org) => org.kind === "clinic")
     .map((org) => ({ id: org.id, name: org.name }));
-  const clinicId = parseClinic(
-    params.clinique,
-    clinics.map((clinic) => clinic.id),
-  );
-  const studies = await getPipeline(LIMIT, clinicId);
+  const keys = LIST_FILTERS.flux;
+  const filters = readFilters(params, keys, {
+    clinic: clinics.map((clinic) => clinic.id),
+  });
+  // Filtrés par le service avant sa limite : « les cent derniers scanners
+  // urgents », pas un filtre sur les cent derniers examens.
+  const query = studyQuery(filters);
+  const studies = await getPipeline(LIMIT, filters.clinic ?? null, {
+    modalityGroup: query.modalityGroup,
+    priority: query.priority,
+    statuses: query.status,
+  });
+  // Sans nombres : le flux ne compte pas au-delà de ce qu'il montre.
+  const bar: BarDimension[] = [
+    {
+      key: "clinic",
+      options: clinics.map((clinic) => ({
+        value: clinic.id,
+        label: clinic.name,
+      })),
+    },
+    {
+      key: "modality",
+      options: MODALITY_GROUPS.map((value) => ({ value })),
+    },
+    { key: "state", options: STUDY_STATES.map((value) => ({ value })) },
+    { key: "urgency" },
+  ];
 
   return (
     <>
       <PageHeader
         title={t.nav.items.flow}
         description={text.description(studies.length)}
-        actions={<ClinicFilter clinics={clinics} active={clinicId ?? null} />}
+      />
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{ count: studies.length, noun: "studies" }}
+        className="shrink-0 px-4 pb-3 sm:px-6"
       />
       <ControlBody>
-        {studies.length === 0 ? (
+        {studies.length === 0 && hasFilters(filters) ? (
+          <Section title={t.admin.shared.examinations}>
+            <FilteredEmpty dimensions={bar} active={filters} />
+          </Section>
+        ) : studies.length === 0 ? (
           <Section title={t.admin.shared.examinations}>
             <EmptyState
               icon={Activity}

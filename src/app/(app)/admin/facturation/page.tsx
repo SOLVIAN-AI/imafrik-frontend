@@ -7,11 +7,18 @@ import { CsvButton } from "@/components/admin/csv-button";
 import { BillingStatement } from "@/components/domain/billing-statement";
 import { DateTime } from "@/components/domain/date-time";
 import { MonthNav } from "@/components/domain/month-nav";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { parseMonth } from "@/lib/admin-params";
 import { statementCsvRows, sumStatements } from "@/lib/billing";
 import { getBillingMonth } from "@/lib/data/activity";
+import type { Statement } from "@/lib/billing";
+import type { BarDimension } from "@/lib/filters/dimensions";
+import { countOptions, filterRows, type RowValues } from "@/lib/filters/facets";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { hasFilters, readFilters } from "@/lib/filters/url";
 import { formatCount, formatFcfa, formatMonth } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
@@ -44,7 +51,39 @@ export default async function BillingPage({
   const month = parseMonth(params.mois);
   const current = parseMonth(undefined);
   const billing = await getBillingMonth(month);
-  const totals = sumStatements(billing.statements);
+  // Les relevés filtrés sur la page : un par clinique, toutes renvoyées.
+  const keys = LIST_FILTERS.facturation;
+  const filters = readFilters(params, keys, {
+    clinic: billing.statements.map((statement) => statement.clinicId),
+  });
+  const values: RowValues<Statement> = {
+    clinic: (statement) => [statement.clinicId],
+    noPlan: (statement) => (statement.plan === null ? ["none"] : []),
+  };
+  const statements = filterRows(billing.statements, values, filters);
+  const bar: BarDimension[] = [
+    {
+      key: "clinic",
+      ...countOptions(
+        billing.statements,
+        values,
+        filters,
+        "clinic",
+        billing.statements.map((statement) => ({
+          value: statement.clinicId,
+          label: statement.clinic,
+        })),
+      ),
+    },
+    {
+      key: "noPlan",
+      options: countOptions(billing.statements, values, filters, "noPlan", [
+        { value: "none" },
+      ]).options,
+    },
+  ];
+  // Totaux et export : ce que la page montre.
+  const totals = sumStatements(statements);
   const label = formatMonth(month, locale);
 
   return (
@@ -58,13 +97,20 @@ export default async function BillingPage({
               month={month}
               current={current}
               path="/admin/facturation"
+              query={Object.fromEntries(
+                Object.entries(params).flatMap(([key, value]) =>
+                  key !== "mois" && typeof value === "string"
+                    ? [[key, value]]
+                    : [],
+                ),
+              )}
               locale={locale}
               labels={text}
             />
             <CsvButton
               filename={text.csvFilename(month)}
               headers={text.csvHeaders}
-              rows={billing.statements.flatMap((statement) =>
+              rows={statements.flatMap((statement) =>
                 statementCsvRows(
                   statement,
                   t.clinic.activity.billing,
@@ -72,13 +118,19 @@ export default async function BillingPage({
                   true,
                 ),
               )}
-              disabled={billing.statements.length === 0}
+              disabled={statements.length === 0}
             />
             {billing.closable && (
               <CloseMonthButton month={month} monthLabel={label} />
             )}
           </>
         }
+      />
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{ count: statements.length, noun: "statements" }}
+        className="shrink-0 px-4 pb-3 sm:px-6"
       />
 
       <ControlBody>
@@ -135,7 +187,15 @@ export default async function BillingPage({
           </div>
         </section>
 
-        {billing.statements.length === 0 ? (
+        {statements.length === 0 && hasFilters(filters) ? (
+          <Section title={text.totals}>
+            <FilteredEmpty
+              dimensions={bar}
+              active={filters}
+              noun="statements"
+            />
+          </Section>
+        ) : billing.statements.length === 0 ? (
           <Section title={text.totals}>
             <EmptyState
               icon={Receipt}
@@ -145,7 +205,7 @@ export default async function BillingPage({
           </Section>
         ) : (
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {billing.statements.map((statement) => (
+            {statements.map((statement) => (
               <Section
                 key={statement.clinicId}
                 title={statement.clinic}

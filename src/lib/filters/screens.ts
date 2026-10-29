@@ -42,6 +42,11 @@ export const LIST_FILTERS = {
   comptes: ["organization", "role", "modality", "account", "mfa"],
   // « Organisations » : filtrées et comptées sur la page.
   organisations: ["kind", "standing", "link"],
+  // Pilotage de l'équipe : flux d'images (filtré par le service avant sa
+  // limite), relevés du mois et passerelles (filtrés sur la page).
+  flux: [...NETWORK, "modality", "state", "urgency"],
+  facturation: [...NETWORK, "noPlan"],
+  passerelles: [...NETWORK, "gatewayStatus", "mute"],
   "comptes-rendus-equipe": [
     ...NETWORK,
     "radiologist",

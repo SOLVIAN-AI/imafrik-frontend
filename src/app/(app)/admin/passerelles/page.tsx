@@ -2,20 +2,21 @@ import { AlertTriangle, Router } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import {
-  AlertList,
-  ControlBody,
-  Section,
-  Segmented,
-} from "@/components/admin/control-ui";
+import { AlertList, ControlBody, Section } from "@/components/admin/control-ui";
 import { GatewayList } from "@/components/admin/gateways/gateway-list";
 import { KitPanel } from "@/components/admin/gateways/kit-panel";
 import { PkiAgentPanel } from "@/components/admin/gateways/pki-agent-panel";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getGatewayOverview } from "@/lib/data/gateways";
+import { type Gateway, getGatewayOverview } from "@/lib/data/gateways";
 import { isDemoMode } from "@/lib/demo/mode";
-import { GATEWAY_STATUSES, isGatewayStatus } from "@/lib/gateways";
+import type { BarDimension } from "@/lib/filters/dimensions";
+import { countOptions, filterRows, type RowValues } from "@/lib/filters/facets";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { hasFilters, readFilters } from "@/lib/filters/url";
+import { GATEWAY_STATUSES, type GatewayStatus, isMute } from "@/lib/gateways";
 import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
 
@@ -41,27 +42,57 @@ export default async function GatewaysPage({
   const { t, locale } = await getMessages();
   const text = t.gateways;
   const params = await searchParams;
-  const status = isGatewayStatus(params.statut) ? params.statut : null;
+  const keys = LIST_FILTERS.passerelles;
+  const draft = readFilters(params, keys);
+  // Le statut : filtré et compté par le service. La clinique et le
+  // silence : sur la page, la liste tient en quelques dizaines de postes.
+  const status = (draft.gatewayStatus as GatewayStatus | undefined) ?? null;
   const overview = await getGatewayOverview(status);
   const total = Object.values(overview.counts).reduce(
     (sum, count) => sum + (count ?? 0),
     0,
   );
-
-  const options = [
+  const clinics = [
+    ...new Map(
+      overview.gateways.map((gateway) => [
+        gateway.clinicId,
+        gateway.clinicName,
+      ]),
+    ),
+  ];
+  const filters = readFilters(params, keys, {
+    clinic: clinics.map(([id]) => id),
+  });
+  const values: RowValues<Gateway> = {
+    clinic: (gateway) => [gateway.clinicId],
+    mute: (gateway) => (isMute(gateway) ? ["mute"] : []),
+  };
+  const gateways = filterRows(overview.gateways, values, filters);
+  const bar: BarDimension[] = [
     {
-      label: `${text.filters.all} · ${total}`,
-      href: "/admin/passerelles",
-      active: status === null,
+      key: "clinic",
+      ...countOptions(
+        overview.gateways,
+        values,
+        filters,
+        "clinic",
+        clinics.map(([value, label]) => ({ value, label })),
+      ),
     },
-    ...GATEWAY_STATUSES.filter(
-      (candidate) =>
-        (overview.counts[candidate] ?? 0) > 0 || candidate === status,
-    ).map((candidate) => ({
-      label: `${text.status[candidate]} · ${overview.counts[candidate] ?? 0}`,
-      href: `/admin/passerelles?statut=${candidate}`,
-      active: candidate === status,
-    })),
+    {
+      key: "gatewayStatus",
+      options: GATEWAY_STATUSES.map((value) => ({
+        value,
+        count: overview.counts[value] ?? 0,
+      })),
+      total,
+    },
+    {
+      key: "mute",
+      options: countOptions(overview.gateways, values, filters, "mute", [
+        { value: "mute" },
+      ]).options,
+    },
   ];
 
   return (
@@ -106,16 +137,24 @@ export default async function GatewaysPage({
           description={
             status ? text.statusHelp[status] : text.sectionDescription
           }
-          aside={<Segmented label={text.filters.label} options={options} />}
           flush
         >
-          {overview.gateways.length === 0 ? (
+          <FilterBar
+            dimensions={bar}
+            active={filters}
+            result={{ count: gateways.length, noun: "gateways" }}
+            className="px-4 py-3 sm:px-5"
+          />
+          {gateways.length === 0 &&
+          hasFilters({ ...filters, gatewayStatus: undefined }) ? (
+            <FilteredEmpty dimensions={bar} active={filters} noun="gateways" />
+          ) : gateways.length === 0 ? (
             <EmptyState
               icon={Router}
               title={status ? text.emptyForFilter : text.empty}
             />
           ) : (
-            <GatewayList gateways={overview.gateways} t={t} showClinic />
+            <GatewayList gateways={gateways} t={t} showClinic />
           )}
         </Section>
 

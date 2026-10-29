@@ -185,6 +185,24 @@ export function heartbeatFreshness(
     : "fresh";
 }
 
+/**
+ * Une passerelle active qui se tait : aucun signe de vie depuis trente
+ * minutes, ou jamais. Le filtre « Muettes » de la liste ; une passerelle
+ * qui n'est pas active n'a rien à dire.
+ *
+ * @param gateway Passerelle.
+ * @param now     Instant présent, en millisecondes.
+ */
+export function isMute(
+  gateway: { status: GatewayStatus; lastHeartbeatAt: Date | null },
+  now: number = Date.now(),
+): boolean {
+  return (
+    gateway.status === "active" &&
+    heartbeatFreshness(gateway.lastHeartbeatAt, now) !== "fresh"
+  );
+}
+
 /** État d'un certificat épinglé, pour la fiche d'une passerelle. */
 export type CertificateState = "inForce" | "waiting" | "overlap" | "retired";
 

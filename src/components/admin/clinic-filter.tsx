@@ -8,7 +8,7 @@ import { useMessages } from "@/i18n/client";
  * qui ne comptent pas d'examens par clinique (activité, flux d'images).
  *
  * La même liste déroulante que celle des examens (`ClinicDropdown`) :
- * « Tout le réseau », puis les cliniques par ordre alphabétique, avec une
+ * « Toutes les cliniques », puis les cliniques par ordre alphabétique, avec une
  * recherche quand elles sont nombreuses. L'adresse plutôt qu'un état
  * local : une vue filtrée se partage, se met en favori, et survit à un
  * rechargement. Les autres paramètres (la période, la rubrique) restent.
@@ -30,7 +30,7 @@ export function ClinicFilter({
   return (
     <ClinicDropdown
       label={t.worklist.filters.clinic}
-      allLabel={t.admin.shared.wholeNetwork}
+      allLabel={t.filters.allClinics}
       clinics={clinics}
       active={active}
       param={param}

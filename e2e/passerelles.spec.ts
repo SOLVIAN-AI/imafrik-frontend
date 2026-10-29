@@ -41,10 +41,10 @@ test("la vue d'ensemble liste les passerelles, leurs alertes, la tâche d'hôte 
   ).toBeVisible();
   await expect(table.getByText("Révoquée", { exact: true })).toBeVisible();
 
-  // Filtre par statut, porté par l'adresse.
+  // Filtre par statut, porté par l'adresse, sur la barre commune.
   await page
-    .getByRole("navigation", { name: "Filtrer par statut" })
-    .getByRole("link", { name: /En attente d’approbation/ })
+    .getByRole("group", { name: "Statut" })
+    .getByRole("link", { name: /^En attente d’approbation/ })
     .click();
   await expect(page).toHaveURL(/statut=awaiting_approval/);
   await expect(table.getByRole("link", { name: /ESPERANCE-01/ })).toBeVisible();

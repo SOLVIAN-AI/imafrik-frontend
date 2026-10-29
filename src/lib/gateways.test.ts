@@ -14,6 +14,7 @@ import {
   secondsLeft,
   shortFingerprint,
   statusTone,
+  isMute,
 } from "@/lib/gateways";
 
 const FINGERPRINT =
@@ -193,5 +194,30 @@ describe("cycles marquants de la tâche d’hôte", () => {
 
   it("rend une liste vide pour aucun cycle", () => {
     expect(groupCycles([])).toEqual([]);
+  });
+});
+
+describe("passerelles muettes", () => {
+  const NOW = Date.parse("2026-10-29T12:00:00Z");
+  it("une passerelle active sans signe de vie récent est muette", () => {
+    expect(
+      isMute(
+        { status: "active", lastHeartbeatAt: new Date(NOW - 60 * 60_000) },
+        NOW,
+      ),
+    ).toBe(true);
+    expect(isMute({ status: "active", lastHeartbeatAt: null }, NOW)).toBe(true);
+    expect(
+      isMute(
+        { status: "active", lastHeartbeatAt: new Date(NOW - 60_000) },
+        NOW,
+      ),
+    ).toBe(false);
+  });
+
+  it("une passerelle qui n’est pas active n’est jamais muette", () => {
+    expect(isMute({ status: "pending", lastHeartbeatAt: null }, NOW)).toBe(
+      false,
+    );
   });
 });

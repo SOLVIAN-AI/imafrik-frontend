@@ -575,7 +575,7 @@ function Clinics({
             {data.byClinic.map((clinic) => (
               <li key={clinic.id} className="px-4 py-3">
                 <Link
-                  href={`/admin/activite?jours=${days}&clinique=${clinic.id}`}
+                  href={`/admin/activite?onglet=cliniques&jours=${days}&clinique=${clinic.id}`}
                   className="text-sm font-medium hover:underline"
                 >
                   {clinic.name}
@@ -668,7 +668,7 @@ function Clinics({
                   >
                     <td className="max-w-[16rem] truncate">
                       <Link
-                        href={`/admin/activite?jours=${days}&clinique=${clinic.id}`}
+                        href={`/admin/activite?onglet=cliniques&jours=${days}&clinique=${clinic.id}`}
                         className="font-medium hover:underline"
                       >
                         {clinic.name}
