@@ -9,7 +9,9 @@ import {
   demoSystem,
   demoUsers,
   credentialReviewDue,
+  demoAssignment,
   demoAssignmentRules,
+  demoEligibility,
 } from "@/lib/demo/control";
 import { overlaps, toAssignmentRules } from "@/lib/assignment-rules";
 import { DEMO_STUDIES } from "@/lib/demo/studies";
@@ -191,5 +193,42 @@ describe("dossiers à examiner en démonstration", () => {
       clinic.radiologists.length,
     );
     expect(demoAssignmentRules("org-kara", false).slots).toEqual([]);
+  });
+});
+
+describe("attribution en démonstration", () => {
+  /** Un examen du jeu, par sa modalité. */
+  const studyOf = (modality: string) =>
+    DEMO_STUDIES.find((study) => study.modality === modality)!;
+
+  it("ne propose que les radiologues qui lisent la modalité, comme « Comptes »", () => {
+    const users = demoUsers(NOW);
+    const reads = (id: string) =>
+      users
+        .find((user) => user.id === id)!
+        .memberships.find((m) => m.role === "radiologist")!.read_modalities;
+    for (const study of DEMO_STUDIES) {
+      const state = demoAssignment(study.id)!;
+      for (const candidate of state.candidates)
+        expect(reads(candidate.profile_id)).not.toBeNull();
+    }
+    // Dr Diallo lit le scanner, pas l'échographie.
+    const names = (modality: string) =>
+      demoAssignment(studyOf(modality).id)!.candidates.map((c) => c.name);
+    expect(names("CT")).toContain("Dr Fatou Diallo");
+    expect(names("US")).not.toContain("Dr Fatou Diallo");
+  });
+
+  it("montre un examen que personne ne peut recevoir, et pourquoi", () => {
+    const mammography = studyOf("MG");
+    expect(mammography.status).toBe("received");
+    expect(mammography.assignedTo).toBeNull();
+    expect(demoAssignment(mammography.id)!.candidates).toEqual([]);
+    expect(demoEligibility(mammography.id)).toEqual({
+      candidates: 0,
+      reason: "modality_not_read",
+    });
+    expect(demoEligibility(studyOf("CT").id)).toMatchObject({ reason: null });
+    expect(demoEligibility("inconnu")).toBeNull();
   });
 });

@@ -179,6 +179,7 @@ export async function StudySheetScreen({
             messages={t.assignment}
             locale={locale}
             portal={consultation ? "team" : "clinic"}
+            clinic={{ id: study.clinicId, name: study.clinic }}
           />
 
           {canEditClinical && (

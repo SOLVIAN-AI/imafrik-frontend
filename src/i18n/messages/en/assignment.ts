@@ -18,10 +18,6 @@ export const assignment: AppMessages["assignment"] = {
     candidates: "Radiologists who can receive it",
     candidatesHint: (modality: string) =>
       `Approved, and reading the ${modality} modality.`,
-    noCandidatesClinic:
-      "None of your radiologists can receive this examination: check their modalities in “Team”, or ask the IMAFRIK team to assign it to a network radiologist.",
-    noCandidatesTeam:
-      "No approved radiologist can receive this examination: check the affiliations, the service contract and the modalities.",
     pool: "IMAFRIK network",
     clinicRadiologist: "Clinic radiologist",
     load: (count: number) =>
@@ -47,6 +43,60 @@ export const assignment: AppMessages["assignment"] = {
     unshared: "Prior examination withdrawn.",
     signed: "Report signed: the examination can no longer be assigned.",
     loading: "Loading radiologists…",
+  },
+  blocked: {
+    title: "Nobody can receive this examination",
+    short: "Nobody can receive it",
+    candidates: (count: number) =>
+      count === 1 ? "1 possible radiologist" : `${count} possible radiologists`,
+    compact: "Nobody eligible",
+    candidatesCompact: (count: number) => `${count} eligible`,
+    reasons: {
+      clinic_inactive:
+        "The clinic is suspended: its examinations can no longer be assigned.",
+      no_reader:
+        "No radiologist reads for this clinic: it has none of its own, and no network group has a contract with it.",
+      not_credentialed:
+        "The radiologists who read for this clinic are not credentialed yet: their supporting document has not been approved.",
+      modality_not_read:
+        "No credentialed radiologist reads this modality for this clinic.",
+    },
+    modalityNotRead: (group: string) =>
+      `No credentialed radiologist reads “${group}” for this clinic.`,
+    unknown:
+      "No credentialed radiologist who reads for this clinic and this modality can receive it.",
+    clinic: "None of your radiologists can receive this examination.",
+    whatToDo: "To be able to assign it",
+    remedies: {
+      reactivate: {
+        text: "Reactivate the clinic from its record.",
+        link: "Clinic record",
+      },
+      openToPool: {
+        text: "Check on its record that it is open to the pool, with an active service contract.",
+        link: "Clinic record",
+      },
+      attachRadiologist: {
+        text: "Or attach a credentialed radiologist to it, from “Accounts”.",
+        link: "Accounts",
+      },
+      validateCredentials: {
+        text: "Approve the supporting document of a radiologist who reads for the clinic: they become credentialed.",
+        link: "Documents to review",
+      },
+      setModalities: {
+        text: "Tick this modality for a credentialed radiologist: “Modalities” button on their row, in “Accounts”.",
+        link: "Accounts",
+      },
+      checkTeam: {
+        text: "Check in “Team” that your radiologists are approved and read this modality.",
+        link: "Team",
+      },
+      askTeam: {
+        text: "Otherwise, ask the IMAFRIK team to assign it to a network radiologist.",
+        link: "",
+      },
+    },
   },
   priors: {
     title: "The patient’s prior examinations",
@@ -92,6 +142,7 @@ export const assignment: AppMessages["assignment"] = {
     filterLabel: "Show",
     radiologist: "Radiologist",
     unassigned: "To assign",
+    action: "Assignment",
     modalityLabel: "Modalities",
     allModalities: "All",
     modalityCount: (label: string, count: number) =>

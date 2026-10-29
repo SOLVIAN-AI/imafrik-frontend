@@ -2,8 +2,9 @@ import { AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { ClinicTabs } from "@/components/admin/clinic-tabs";
 import { AssignDialog } from "@/components/domain/assign-dialog";
+import { ClinicDropdown } from "@/components/domain/clinic-dropdown";
+import { EligibilityNote } from "@/components/domain/eligibility-note";
 import { Segmented } from "@/components/admin/control-ui";
 import { StudyAge } from "@/components/domain/study-age";
 import {
@@ -15,12 +16,15 @@ import { ListPagination } from "@/components/domain/list-pagination";
 import { ListToolbar } from "@/components/domain/list-toolbar";
 import { ModalityTabs } from "@/components/domain/modality-tabs";
 import { CLINIC_PARAM, parseClinic } from "@/lib/admin-params";
+import { getEligibility } from "@/lib/data/eligibility";
+import type { Eligibility } from "@/lib/assignment-blocker";
 import {
   getClinicCounts,
   getModalityCounts,
   listStudyPage,
   listStudyPageAt,
   STUDY_LIST_PAGE_SIZE,
+  type Study,
 } from "@/lib/data/studies";
 import {
   MODALITY_PARAM,
@@ -53,9 +57,16 @@ export async function generateMetadata(): Promise<Metadata> {
  * qu'un examen « n'est pas arrivé », il faut pouvoir répondre sans
  * ouvrir un client SQL.
  *
- * Elle se classe par clinique (`?clinique=`) et par groupe de modalités
- * (`?modalite=`), chaque choix avec son nombre d'examens compté par le
- * service ; les deux se combinent avec les urgences et la recherche.
+ * Elle se classe par clinique (`?clinique=`, une liste déroulante) et par
+ * groupe de modalités (`?modalite=`, des onglets), chaque choix avec son
+ * nombre d'examens compté par le service ; les deux se combinent avec les
+ * urgences et la recherche.
+ *
+ * **Chaque examen non signé porte « Attribuer »** (ou « Réattribuer »),
+ * libellé, dans sa colonne : la même fenêtre que « À lire ». Quand
+ * personne ne peut recevoir un examen, la ligne le dit (lu pour toute la
+ * page en un appel, `POST /admin/studies/eligibility`) et le bouton reste :
+ * la fenêtre explique pourquoi, et mène à l'écran qui le règle.
  *
  * Elle est réservée au rôle `platform_admin` : c'est la policy RLS
  * `study_select_admin` qui ouvre ce périmètre, sur la même route
@@ -123,6 +134,12 @@ export default async function AdminStudiesPage({
     ),
     getModalityCounts({ ...filters, clinic: clinic ?? undefined }),
   ]);
+  // Qui peut recevoir chaque examen à attribuer de la page, en un appel.
+  const eligibility = await getEligibility(
+    studies
+      .filter((study) => isAssignable(study.status) && !study.assignedTo)
+      .map((study) => study.id),
+  );
   // Le filtre des urgences garde le groupe de modalités et la clinique, et
   // inversement.
   const modality = {
@@ -175,22 +192,26 @@ export default async function AdminStudiesPage({
         </div>
       )}
 
-      <ClinicTabs
-        counts={clinicCounts}
-        active={clinic}
-        pathname="/admin/examens"
-        params={params}
-        labels={{ label: text.clinicFilter, all: text.allClinics }}
-        locale={locale}
-      />
-      <ModalityTabs
-        counts={counts}
-        active={modalityGroup}
-        pathname="/admin/examens"
-        params={params}
-        labels={t.assignment}
-        locale={locale}
-      />
+      {/* Téléphone : la clinique, puis les modalités en dessous. */}
+      <div className="flex shrink-0 flex-col gap-2 px-4 pb-3 sm:flex-row sm:items-center sm:gap-3 sm:px-6">
+        <ClinicDropdown
+          label={text.clinicFilter}
+          allLabel={text.allClinics}
+          clinics={clinicCounts.clinics}
+          total={clinicCounts.total}
+          active={clinic}
+          param={CLINIC_PARAM}
+        />
+        <ModalityTabs
+          counts={counts}
+          active={modalityGroup}
+          pathname="/admin/examens"
+          params={params}
+          labels={t.assignment}
+          locale={locale}
+          className="min-w-0 px-0 pb-0 sm:px-0"
+        />
+      </div>
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
         <Panel className="flex min-h-0 flex-col overflow-hidden">
@@ -200,7 +221,7 @@ export default async function AdminStudiesPage({
               <li
                 key={study.id}
                 className={cn(
-                  "flex items-start gap-3 px-4 py-3",
+                  "flex flex-wrap items-start gap-x-3 gap-y-2 px-4 py-3",
                   study.urgent && "rail-urgent",
                 )}
               >
@@ -224,8 +245,12 @@ export default async function AdminStudiesPage({
                     </span>
                     {study.bodyPart && ` · ${study.bodyPart}`} · {study.clinic}
                   </p>
-                  <p className="mt-0.5 truncate text-2xs text-tertiary">
-                    {study.assignedToName ?? t.admin.shared.unassigned}
+                  <p className="mt-0.5 flex min-w-0 text-2xs text-tertiary">
+                    <Reader
+                      study={study}
+                      eligibility={eligibility}
+                      unassigned={t.assignment.list.unassigned}
+                    />
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -234,38 +259,45 @@ export default async function AdminStudiesPage({
                     muted={study.status === "delivered"}
                   />
                   <StudyStatusChip status={study.status} />
-                  {isAssignable(study.status) && (
+                </div>
+                {isAssignable(study.status) && (
+                  // Sous la carte, à pleine vue : l'action de la ligne.
+                  <div className="flex basis-full justify-end">
                     <AssignDialog
                       portal="team"
                       studyId={study.id}
                       patient={formatPatientName(study.patientName)}
                       assigned={study.assignedTo !== null}
-                      compact
+                      clinic={{ id: study.clinicId, name: study.clinic }}
                     />
-                  )}
-                </div>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
 
           <div className="hidden min-h-0 flex-1 overflow-auto lg:block">
-            <table className="w-full border-separate border-spacing-0 text-sm">
-              <thead className="sticky top-0 z-10">
+            {/* Une largeur minimale : à 1024 px, le tableau défile dans son
+                conteneur plutôt que d'écraser ses colonnes, et la colonne
+                d'attribution, collée à droite, reste visible. Mise en page
+                automatique : un intitulé ne déborde jamais de sa cellule. */}
+            <table className="w-full min-w-[62rem] border-separate border-spacing-0 text-sm">
+              <thead className="sticky top-0 z-20">
                 <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
-                  <th scope="col" className="w-[22%]">
+                  <th scope="col" className="w-[20%]">
                     <span className="label-eyebrow">
                       {text.columns.patient}
                     </span>
                   </th>
-                  <th scope="col" className="w-[14%]">
+                  <th scope="col" className="w-[12%]">
                     <span className="label-eyebrow">{text.columns.study}</span>
                   </th>
-                  <th scope="col" className="w-[20%]">
+                  <th scope="col" className="w-[16%]">
                     <span className="label-eyebrow">
                       {text.columns.facility}
                     </span>
                   </th>
-                  <th scope="col" className="w-[14%]">
+                  <th scope="col" className="w-[12%]">
                     <span className="label-eyebrow">{text.columns.status}</span>
                   </th>
                   <th scope="col" className="w-[16%]">
@@ -273,12 +305,17 @@ export default async function AdminStudiesPage({
                       {text.columns.radiologist}
                     </span>
                   </th>
-                  <th scope="col" className="w-[14%]">
+                  <th scope="col" className="w-[10%]">
                     <span className="label-eyebrow">{text.columns.uid}</span>
                   </th>
-                  <th scope="col" className="w-[8%] text-right">
+                  <th scope="col" className="w-[6%] text-right">
                     <span className="label-eyebrow">
                       {text.columns.waiting}
+                    </span>
+                  </th>
+                  <th scope="col" className="sticky right-0 w-36 !text-right">
+                    <span className="label-eyebrow">
+                      {t.assignment.list.action}
                     </span>
                   </th>
                 </tr>
@@ -330,21 +367,12 @@ export default async function AdminStudiesPage({
                     </td>
 
                     <td>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="truncate text-secondary">
-                          {study.assignedToName ?? (
-                            <span className="text-tertiary">—</span>
-                          )}
-                        </span>
-                        {isAssignable(study.status) && (
-                          <AssignDialog
-                            portal="team"
-                            studyId={study.id}
-                            patient={formatPatientName(study.patientName)}
-                            assigned={study.assignedTo !== null}
-                            compact
-                          />
-                        )}
+                      <div className="flex min-w-0">
+                        <Reader
+                          study={study}
+                          eligibility={eligibility}
+                          unassigned={t.assignment.list.unassigned}
+                        />
                       </div>
                     </td>
 
@@ -363,6 +391,18 @@ export default async function AdminStudiesPage({
                         muted={study.status === "delivered"}
                       />
                     </td>
+
+                    <td className="sticky right-0 bg-surface-raised text-right">
+                      {isAssignable(study.status) && (
+                        <AssignDialog
+                          portal="team"
+                          studyId={study.id}
+                          patient={formatPatientName(study.patientName)}
+                          assigned={study.assignedTo !== null}
+                          clinic={{ id: study.clinicId, name: study.clinic }}
+                        />
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -378,5 +418,33 @@ export default async function AdminStudiesPage({
         </Panel>
       </div>
     </>
+  );
+}
+
+/**
+ * Qui lit l'examen ; sans titulaire, qu'il est à attribuer, ou que
+ * personne ne peut le recevoir.
+ */
+function Reader({
+  study,
+  eligibility,
+  unassigned,
+}: {
+  study: Study;
+  eligibility: Record<string, Eligibility>;
+  unassigned: string;
+}) {
+  if (study.assignedToName)
+    return (
+      <span className="truncate text-secondary">{study.assignedToName}</span>
+    );
+  if (!isAssignable(study.status))
+    return <span className="text-tertiary">—</span>;
+  return (
+    <EligibilityNote
+      found={eligibility[study.id]}
+      modality={study.modality}
+      fallback={unassigned}
+    />
   );
 }

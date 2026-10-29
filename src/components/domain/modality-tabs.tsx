@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
  * @param params   Paramètres de l'adresse courante.
  * @param labels   Textes de la liste et noms des groupes.
  * @param locale   Langue, pour le format des nombres.
+ * @param className Marges, quand la rangée en partage une autre.
  */
 export function ModalityTabs({
   counts,
@@ -40,6 +41,7 @@ export function ModalityTabs({
   params,
   labels,
   locale,
+  className,
 }: {
   counts: ModalityCounts;
   active: ModalityGroup | undefined;
@@ -47,6 +49,7 @@ export function ModalityTabs({
   params: SearchParamsRecord;
   labels: AppMessages["assignment"];
   locale: Locale;
+  className?: string;
 }) {
   const others = Object.fromEntries(
     Object.entries(params).filter(([key]) => key !== MODALITY_PARAM),
@@ -76,7 +79,10 @@ export function ModalityTabs({
     <nav
       aria-label={labels.list.modalityLabel}
       data-testid="modality-tabs"
-      className="flex shrink-0 gap-1 overflow-x-auto px-4 pb-3 sm:px-6"
+      className={cn(
+        "flex shrink-0 gap-1 overflow-x-auto px-4 pb-3 sm:px-6",
+        className,
+      )}
     >
       {tabs.map((tab) => (
         <Link

@@ -70,3 +70,53 @@ test("un examen signé ne propose pas d'attribution", async ({ page }) => {
     signe.getByRole("button", { name: /ttribuer l’examen/ }),
   ).toHaveCount(0);
 });
+
+test.describe("le bouton d’attribution", () => {
+  for (const largeur of [1440, 390]) {
+    test.describe(`à ${largeur} px`, () => {
+      test.use({ viewport: { width: largeur, height: 900 } });
+
+      test("est libellé sur chaque examen non signé de « Examens »", async ({
+        page,
+      }) => {
+        await page.goto("/admin/examens");
+        const boutons = page
+          .locator("main")
+          .getByRole("button", { name: /^(Ré)?[aA]ttribuer l’examen de/ })
+          .filter({ visible: true });
+        expect(await boutons.count()).toBeGreaterThan(0);
+        for (const texte of await boutons.allInnerTexts())
+          expect(texte.trim()).toMatch(/^(Attribuer|Réattribuer)$/);
+        if (largeur === 1440)
+          await expect(
+            page.getByRole("columnheader", { name: "Attribution" }),
+          ).toBeVisible();
+      });
+    });
+  }
+});
+
+test.describe("le responsable de la clinique", () => {
+  test.use({ membership: "m-clinic" });
+
+  for (const largeur of [1440, 390]) {
+    test(`voit « Attribuer », libellé, sur les examens à attribuer, à ${largeur} px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: largeur, height: 900 });
+      await page.goto("/examens?vue=a-attribuer");
+      const bouton = page
+        .getByRole("button", { name: "Attribuer l’examen de KOFFI Ama" })
+        .filter({ visible: true });
+      await expect(bouton).toHaveText("Attribuer");
+      if (largeur === 1440)
+        await expect(
+          page.getByRole("columnheader", { name: "Attribution" }),
+        ).toBeVisible();
+      await bouton.click();
+      await expect(
+        page.getByRole("dialog", { name: "Attribuer l’examen" }),
+      ).toBeVisible();
+    });
+  }
+});

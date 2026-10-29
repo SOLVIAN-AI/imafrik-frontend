@@ -253,7 +253,7 @@ export const admin = {
       `${count} examen${count > 1 ? "s" : ""}`,
     openUrgent: "Urgences en cours",
     /** Choix de la clinique, en tête de la liste. */
-    clinicFilter: "Cliniques",
+    clinicFilter: "Clinique",
     allClinics: "Toutes les cliniques",
     openImages: (patient: string) => `Ouvrir les images de ${patient}`,
     stuck: (count: number) =>

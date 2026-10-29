@@ -61,7 +61,7 @@ export default async function FlowPage({
       <PageHeader
         title={t.nav.items.flow}
         description={text.description(studies.length)}
-        actions={<ClinicFilter clinics={clinics} />}
+        actions={<ClinicFilter clinics={clinics} active={clinicId ?? null} />}
       />
       <ControlBody>
         {studies.length === 0 ? (

@@ -9,6 +9,11 @@ import { expect, test } from "./support/fixtures";
  * reste celle de la file. L'entrée « À lire » compte ce qui attend une
  * attribution, en rouge s'il y a une urgence.
  *
+ * Le bouton reste quand personne ne peut recevoir l'examen (la
+ * mammographie de BOKO Essi, que personne ne lit dans le jeu) : la ligne le
+ * dit, et la fenêtre explique pourquoi et mène à l'écran qui le règle.
+ * Replié, le bloc « Lectures » garde le compteur de « À lire ».
+ *
  * La démonstration ne réserve rien : valider la fenêtre aboutit au message
  * « indisponible en démonstration ». Le passage aussitôt de la ligne d'une
  * section à l'autre est éprouvé par `lib/worklist.test.ts`, l'éligibilité
@@ -96,6 +101,100 @@ test.describe("l’équipe IMAFRIK", () => {
       .getByRole("button", { name: /^Attribuer l’examen de/ })
       .count();
     await expect(badge).toHaveText(String(attendus));
+  });
+});
+
+test.describe("quand personne ne peut recevoir un examen", () => {
+  test.use({ membership: "m-admin", langue: "fr" });
+
+  test("garde « Attribuer », et la fenêtre dit pourquoi et quoi faire", async ({
+    page,
+    checkA11y,
+  }) => {
+    await page.goto("/worklist");
+    const ligne = page
+      .locator("main table tbody tr")
+      .filter({ hasText: "BOKO Essi" });
+    await expect(ligne.getByTestId("nobody-eligible")).toHaveText(
+      /^Personne d’éligible/,
+    );
+    // Les autres lignes disent combien de radiologues peuvent les recevoir.
+    await expect(
+      page
+        .locator("main table tbody tr")
+        .filter({ hasText: "KOFFI Ama" })
+        .getByText(/^\d+ éligibles?$/)
+        .filter({ visible: true }),
+    ).toBeVisible();
+
+    const bouton = ligne.getByRole("button", {
+      name: "Attribuer l’examen de BOKO Essi",
+    });
+    await expect(bouton).toHaveText("Attribuer");
+    await bouton.click();
+    const fenetre = page.getByRole("dialog", { name: "Attribuer l’examen" });
+    await expect(
+      fenetre.getByRole("heading", {
+        name: "Personne ne peut recevoir cet examen",
+      }),
+    ).toBeVisible();
+    await expect(fenetre).toContainText(
+      "Aucun radiologue habilité ne lit « Mammographie » pour cette clinique.",
+    );
+    await expect(fenetre.getByRole("radio")).toHaveCount(0);
+    await expect(
+      fenetre.getByRole("button", { name: "Attribuer", exact: true }),
+    ).toBeDisabled();
+    await expect(
+      fenetre.getByRole("link", { name: "Fiche de la clinique" }),
+    ).toHaveAttribute("href", "/admin/organisations/org-pka");
+    await page.waitForFunction(() => document.getAnimations().length === 0);
+    await checkA11y();
+
+    // Le geste mène à l'écran qui le règle : les modalités, dans « Comptes ».
+    await fenetre.getByRole("link", { name: "Comptes" }).click();
+    await expect(page).toHaveURL(/\/admin\/utilisateurs$/);
+    await expect(fenetre).toHaveCount(0);
+  });
+
+  test("le dit aussi dans « Examens » et dans la vue des cliniques", async ({
+    page,
+  }) => {
+    for (const adresse of [
+      "/admin/examens",
+      "/admin/vue-clinique/org-pka/examens",
+    ]) {
+      await page.goto(adresse);
+      const ligne = page
+        .locator("main tbody tr")
+        .filter({ hasText: "BOKO Essi" });
+      await expect(ligne.getByTestId("nobody-eligible")).toBeVisible();
+      await expect(
+        ligne.getByRole("button", { name: "Attribuer l’examen de BOKO Essi" }),
+      ).toHaveText("Attribuer");
+    }
+  });
+});
+
+test.describe("la navigation de l’équipe", () => {
+  test.use({ membership: "m-admin", langue: "fr" });
+
+  test("compte « À lire » sur « Lectures » replié", async ({ page }) => {
+    await page.goto("/admin");
+    const nav = page.getByRole("navigation", { name: "Navigation principale" });
+    const lectures = nav.getByRole("button", { name: /^Lectures/ });
+    await expect(lectures).toHaveAttribute("aria-expanded", "false");
+    const compteur = lectures.getByLabel(/^À lire : \d+, dont des urgences$/);
+    await expect(compteur).toBeVisible();
+
+    // Ouvert, le compteur revient sur l'entrée.
+    await lectures.click();
+    await expect(compteur).toHaveCount(0);
+    await expect(
+      nav
+        .getByRole("link", { name: /^À lire/ })
+        .getByLabel(/, dont des urgences$/),
+    ).toBeVisible();
   });
 });
 

@@ -34,7 +34,10 @@ test.describe("l’équipe IMAFRIK", () => {
       .locator("li")
       .filter({ hasText: "Adjo Kponton" })
       .getByTestId("reading-row");
-    await expect(kponton.getByText("Toutes les modalités")).toBeVisible();
+    // Personne ne lit la mammographie dans le jeu de démonstration.
+    await expect(
+      kponton.getByText("Radiographie, Échographie, Scanner, IRM, Autres"),
+    ).toBeVisible();
     await expect(
       kponton.getByText("Liste d’urgence : Clinique Saint-Joseph"),
     ).toBeVisible();
@@ -47,12 +50,22 @@ test.describe("l’équipe IMAFRIK", () => {
     ).toBeVisible();
     await page.keyboard.press("Escape");
 
-    // Filtrer par modalité lue : la mammographie, Dr Diallo ne la lit pas.
+    // Filtrer par modalité lue : l'échographie, Dr Diallo ne la lit pas.
+    await page
+      .getByLabel("Modalité lue")
+      .selectOption({ label: "Échographie" });
+    await expect(page).toHaveURL(/modalite=echographie/);
+    await expect(page.getByText("Adjo Kponton").first()).toBeVisible();
+    await expect(page.getByText("Fatou Diallo")).toHaveCount(0);
+
+    // La mammographie, aucun radiologue habilité ne la lit : seuls restent
+    // ceux dont le dossier attend encore sa validation.
     await page
       .getByLabel("Modalité lue")
       .selectOption({ label: "Mammographie" });
     await expect(page).toHaveURL(/modalite=mammographie/);
-    await expect(page.getByText("Adjo Kponton").first()).toBeVisible();
+    await expect(page.getByText("Kossi Amegah").first()).toBeVisible();
+    await expect(page.getByText("Adjo Kponton")).toHaveCount(0);
     await expect(page.getByText("Fatou Diallo")).toHaveCount(0);
   });
 

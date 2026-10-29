@@ -412,13 +412,10 @@ function NavLink({
 }) {
   const t = useMessages();
   const Icon = NAV_ICONS[item.icon];
-  const count = item.count && counts ? counts[item.count] : 0;
   // Intention d'ouvrir la page : survol, focus clavier ou premier contact
   // tactile. C'est alors seulement qu'elle se précharge en entier.
   const [intent, setIntent] = React.useState(false);
   const showIntent = () => setIntent(true);
-  const urgent =
-    item.urgentCount && counts ? counts[item.urgentCount] > 0 : false;
 
   return (
     <Link
@@ -462,18 +459,42 @@ function NavLink({
         aria-hidden
       />
       <span className="flex-1 truncate">{t.nav.items[item.key]}</span>
-      {count > 0 && (
-        <span
-          className={cn(
-            "rounded px-1.5 py-0.5 text-2xs font-medium tabular-nums",
-            urgent ? "bg-urgent-muted text-urgent" : "text-tertiary",
-          )}
-          aria-label={urgent ? t.nav.countWithUrgent(count) : String(count)}
-        >
-          {count}
-        </span>
-      )}
+      <CountBadge item={item} counts={counts} />
     </Link>
+  );
+}
+
+/**
+ * Le compteur d'une entrée, en rouge s'il compte une urgence.
+ *
+ * @param named Sur le titre d'un bloc replié : le nom de l'entrée précède
+ *              le nombre, pour les lecteurs d'écran (« À lire : 4 »).
+ */
+function CountBadge({
+  item,
+  counts,
+  named = false,
+}: {
+  item: NavItem;
+  counts: NavCounts | null;
+  named?: boolean;
+}) {
+  const t = useMessages();
+  const count = item.count && counts ? counts[item.count] : 0;
+  if (count <= 0) return null;
+  const urgent =
+    item.urgentCount && counts ? counts[item.urgentCount] > 0 : false;
+  const label = urgent ? t.nav.countWithUrgent(count) : String(count);
+  return (
+    <span
+      className={cn(
+        "rounded px-1.5 py-0.5 text-2xs font-medium tracking-normal normal-case tabular-nums",
+        urgent ? "bg-urgent-muted text-urgent" : "text-tertiary",
+      )}
+      aria-label={named ? `${t.nav.items[item.key]} : ${label}` : label}
+    >
+      {count}
+    </span>
   );
 }
 
@@ -564,6 +585,15 @@ function NavBlockView({
     setChoice({ open: !open, path: pathname });
     if (block.key) writeFold(block.key, !open);
   };
+  // Replié, le bloc garde le compteur de ses entrées : l'équipe IMAFRIK
+  // voit depuis le cockpit qu'un examen attend sa répartition dans « À
+  // lire », sans avoir à ouvrir « Lectures ».
+  const hidden =
+    block.collapsible && !open && counts
+      ? block.sections
+          .flat()
+          .filter((item) => item.count && counts[item.count] > 0)
+      : [];
 
   return (
     <div>
@@ -575,9 +605,12 @@ function NavBlockView({
             aria-controls={listId}
             onClick={toggle}
             data-tour={block.key ? `nav-group-${block.key}` : undefined}
-            className="label-eyebrow mb-1 flex w-full items-center justify-between rounded-md px-2.5 py-0.5 text-left transition-colors hover:text-secondary"
+            className="label-eyebrow mb-1 flex w-full items-center gap-2 rounded-md px-2.5 py-0.5 text-left transition-colors hover:text-secondary"
           >
-            {title}
+            <span className="flex-1">{title}</span>
+            {hidden.map((item) => (
+              <CountBadge key={item.href} item={item} counts={counts} named />
+            ))}
             <ChevronDown
               className={cn(
                 "size-3 shrink-0 transition-transform duration-150",

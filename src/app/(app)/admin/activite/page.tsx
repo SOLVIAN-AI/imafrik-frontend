@@ -170,7 +170,7 @@ export default async function ActivityPage({
                 }))}
               />
             )}
-            <ClinicFilter clinics={clinics} />
+            <ClinicFilter clinics={clinics} active={clinicId ?? null} />
           </>
         }
       />

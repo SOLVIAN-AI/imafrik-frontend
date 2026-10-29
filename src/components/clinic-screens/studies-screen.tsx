@@ -6,6 +6,7 @@ import { ModalityTabs } from "@/components/domain/modality-tabs";
 import { StudyList } from "@/components/domain/study-list";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { type ClinicConsultation, clinicHref } from "@/lib/clinic-view";
+import { getEligibility } from "@/lib/data/eligibility";
 import {
   getModalityCounts,
   listStudyPageAt,
@@ -89,6 +90,16 @@ export async function StudiesScreen({
     ),
     getModalityCounts(filters, consultation?.clinicId),
   ]);
+  // L'équipe IMAFRIK voit sur la ligne quand personne ne peut recevoir un
+  // examen (un appel pour la page) ; le responsable n'a pas cette lecture,
+  // sa fenêtre lui dit quoi vérifier.
+  const eligibility = consultation
+    ? await getEligibility(
+        studies
+          .filter((study) => study.status === "received" && !study.assignedTo)
+          .map((study) => study.id),
+      )
+    : {};
   const { t, locale } = await getMessages();
   const views = t.assignment.list;
   // Changer de vue garde le groupe de modalités, et inversement.
@@ -157,6 +168,7 @@ export async function StudiesScreen({
             studies={studies}
             filtered={Boolean(search) || toAssign || Boolean(modalityGroup)}
             assignable
+            eligibility={eligibility}
           />
           <ListPagination
             pathname={pathname}

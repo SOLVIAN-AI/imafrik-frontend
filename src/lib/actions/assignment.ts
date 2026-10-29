@@ -17,6 +17,8 @@ import {
   assignmentStateSchema,
   priorCandidateSchema,
 } from "@/lib/api/contracts";
+import type { NoCandidateReason } from "@/lib/assignment-blocker";
+import { getEligibility } from "@/lib/data/eligibility";
 import { demoAssignment, demoPriorCandidates } from "@/lib/demo/control";
 import { isDemoMode } from "@/lib/demo/mode";
 import { getMessages } from "@/i18n/server";
@@ -81,6 +83,11 @@ export interface AssignmentState {
   priorShares: PriorShare[];
   /** Après une attribution : le radiologue a-t-il été prévenu ? */
   notified: boolean | null;
+  /**
+   * Sans aucun candidat, pourquoi : lu pour l'équipe IMAFRIK seulement
+   * (`POST /admin/studies/eligibility`) ; `null` sinon, ou si inconnu.
+   */
+  noCandidateReason: NoCandidateReason | null;
 }
 
 /** Examen antérieur du patient, proposé au partage. */
@@ -127,7 +134,36 @@ function toState(row: ApiAssignmentState): AssignmentState {
       sharedAt: share.shared_at,
     })),
     notified: row.notified ?? null,
+    noCandidateReason: null,
   };
+}
+
+/** Statuts d'un examen qui s'attribue encore. */
+const OPEN_STATUSES: ReadonlySet<AssignmentState["status"]> = new Set([
+  "received",
+  "assigned",
+  "in_progress",
+]);
+
+/**
+ * L'état, avec la raison qui empêche toute attribution quand personne ne
+ * peut recevoir l'examen : l'équipe IMAFRIK la lit du service, en un
+ * appel. Le responsable ne la reçoit pas : il ne choisit que parmi ses
+ * radiologues, et sa fenêtre lui dit quoi vérifier.
+ */
+async function withReason(
+  portal: AssignmentPortal,
+  studyId: string,
+  state: AssignmentState,
+): Promise<AssignmentState> {
+  if (
+    portal !== "team" ||
+    state.candidates.length > 0 ||
+    !OPEN_STATUSES.has(state.status)
+  )
+    return state;
+  const found = (await getEligibility([studyId]))[studyId];
+  return { ...state, noCandidateReason: found?.reason ?? null };
 }
 
 function toCandidate(row: ApiPriorCandidate): PriorCandidate {
@@ -178,16 +214,20 @@ export async function getAssignment(
   if (isDemoMode()) {
     const demo = demoAssignment(studyId);
     return demo
-      ? { ok: true, data: toState(demo) }
+      ? { ok: true, data: await withReason(portal, studyId, toState(demo)) }
       : { ok: false, error: t.common.errors.unexpected, status: 404 };
   }
   const invalid = await rejectInvalidIds(studyId);
   if (invalid) return invalid;
   return run(async () =>
-    toState(
-      await apiGet(
-        `${base(portal, studyId)}/assignment`,
-        assignmentStateSchema,
+    withReason(
+      portal,
+      studyId,
+      toState(
+        await apiGet(
+          `${base(portal, studyId)}/assignment`,
+          assignmentStateSchema,
+        ),
       ),
     ),
   );
