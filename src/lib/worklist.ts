@@ -153,6 +153,46 @@ export function splitWorklist(
   return sections;
 }
 
+// ─── Répartition ──────────────────────────────────────────────────────
+
+/** Ce qu'une attribution, ou son retrait, faite depuis la file change à un examen. */
+export interface AssignmentChange {
+  status: Study["status"];
+  assignedTo: string | null;
+  assignedToName: string | null;
+}
+
+/**
+ * La file, avec les attributions faites à l'instant depuis l'écran.
+ *
+ * Une ligne attribuée passe aussitôt de « À attribuer » à « Chez un
+ * radiologue » (et l'inverse pour un retrait), sans attendre la relecture
+ * du service : celle-ci suit, et fait foi. Un examen rendu entre-temps
+ * (signé) n'est pas dans la file ; un changement sur un examen absent est
+ * ignoré.
+ *
+ * @param sections La file découpée, telle que le service l'a lue.
+ * @param changes  Les changements faits depuis, par examen.
+ * @param userId   Utilisateur connecté, pour le découpage.
+ * @returns La file découpée de nouveau ; la même si rien n'a changé.
+ */
+export function withAssignments(
+  sections: WorklistSections,
+  changes: ReadonlyMap<string, AssignmentChange>,
+  userId: string,
+): WorklistSections {
+  if (changes.size === 0) return sections;
+  const studies = [
+    ...sections.mine,
+    ...sections.open,
+    ...sections.colleagues,
+  ].map((study) => {
+    const change = changes.get(study.id);
+    return change ? { ...study, ...change } : study;
+  });
+  return splitWorklist(studies, userId);
+}
+
 // ─── Filtres ──────────────────────────────────────────────────────────
 
 /** Filtres de la file, tels que l'adresse les porte. */

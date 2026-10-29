@@ -2,6 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ClinicTabs } from "@/components/admin/clinic-tabs";
 import { AssignDialog } from "@/components/domain/assign-dialog";
 import { Segmented } from "@/components/admin/control-ui";
 import { StudyAge } from "@/components/domain/study-age";
@@ -13,7 +14,9 @@ import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { ListPagination } from "@/components/domain/list-pagination";
 import { ListToolbar } from "@/components/domain/list-toolbar";
 import { ModalityTabs } from "@/components/domain/modality-tabs";
+import { CLINIC_PARAM, parseClinic } from "@/lib/admin-params";
 import {
+  getClinicCounts,
   getModalityCounts,
   listStudyPage,
   listStudyPageAt,
@@ -50,6 +53,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * qu'un examen « n'est pas arrivé », il faut pouvoir répondre sans
  * ouvrir un client SQL.
  *
+ * Elle se classe par clinique (`?clinique=`) et par groupe de modalités
+ * (`?modalite=`), chaque choix avec son nombre d'examens compté par le
+ * service ; les deux se combinent avec les urgences et la recherche.
+ *
  * Elle est réservée au rôle `platform_admin` : c'est la policy RLS
  * `study_select_admin` qui ouvre ce périmètre, sur la même route
  * `GET /studies` que tout le monde. Le nom du patient ouvre l'écran de
@@ -72,7 +79,8 @@ export default async function AdminStudiesPage({
   const urgentOnly = params.urgent === "1";
   // `?modalite=scanner` : un groupe de modalités, compté par onglet.
   const modalityGroup = readModalityGroup(params[MODALITY_PARAM]);
-  // Les filtres de la liste, groupe mis à part : ceux des comptes.
+  // Les filtres de la liste, groupe et clinique mis à part : ceux des
+  // comptes de chaque choix.
   const filters = {
     search,
     ...(urgentOnly && {
@@ -84,11 +92,23 @@ export default async function AdminStudiesPage({
       ],
     }),
   };
+  // `?clinique=` : une clinique de la plateforme, comptée par le service.
+  // Les comptes d'abord : un identifiant inconnu ou mal formé, tapé à la
+  // main, revient à toutes les cliniques au lieu d'une erreur du service.
+  const clinicCounts = await getClinicCounts({ ...filters, modalityGroup });
+  const clinic = parseClinic(
+    params[CLINIC_PARAM],
+    clinicCounts.clinics.map((row) => row.id),
+  );
+  const clinicName = clinicCounts.clinics.find(
+    (row) => row.id === clinic,
+  )?.name;
   const [{ studies, total, nextCursor }, stuck, counts] = await Promise.all([
     listStudyPageAt(
       {
         ...filters,
         modalityGroup,
+        clinic: clinic ?? undefined,
         limit: STUDY_LIST_PAGE_SIZE,
         cursor: readCursor(params),
         // Les plus anciennes, donc les plus en retard, d'abord.
@@ -101,21 +121,26 @@ export default async function AdminStudiesPage({
     listStudyPage({ status: ["received"], priority: "urgent", limit: 1 }).then(
       (page) => page.total,
     ),
-    getModalityCounts(filters),
+    getModalityCounts({ ...filters, clinic: clinic ?? undefined }),
   ]);
-  // Le filtre des urgences garde le groupe de modalités, et inversement.
-  const modality = modalityGroup
-    ? { [MODALITY_PARAM]: MODALITY_SLUGS[modalityGroup] }
-    : {};
+  // Le filtre des urgences garde le groupe de modalités et la clinique, et
+  // inversement.
+  const modality = {
+    ...(modalityGroup && { [MODALITY_PARAM]: MODALITY_SLUGS[modalityGroup] }),
+    ...(clinic && { [CLINIC_PARAM]: clinic }),
+  };
 
   return (
     <>
       <PageHeader
         title={t.admin.shared.examinations}
         description={
-          urgentOnly
+          (urgentOnly
             ? text.urgentDescription(total)
-            : text.allDescription(total)
+            : clinicName
+              ? text.clinicDescription(total)
+              : text.allDescription(total)) +
+          (clinicName ? ` · ${clinicName}` : "")
         }
         actions={
           <>
@@ -150,6 +175,14 @@ export default async function AdminStudiesPage({
         </div>
       )}
 
+      <ClinicTabs
+        counts={clinicCounts}
+        active={clinic}
+        pathname="/admin/examens"
+        params={params}
+        labels={{ label: text.clinicFilter, all: text.allClinics }}
+        locale={locale}
+      />
       <ModalityTabs
         counts={counts}
         active={modalityGroup}

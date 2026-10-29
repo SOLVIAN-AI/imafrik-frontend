@@ -443,7 +443,7 @@ export const pages = {
       purpose:
         "Liste les examens de toute la plateforme, toutes organisations confondues, pour répondre vite à une clinique. Le nom du patient ouvre les images et le compte-rendu en consultation seule, et chaque ouverture est tracée.",
       steps: [
-        "Choisissez un groupe de modalités dans les onglets (Radiographie, Scanner, IRM…) : chacun dit combien d’examens il compte.",
+        "Choisissez une clinique et un groupe de modalités en tête de liste : chaque choix dit combien d’examens il compte, et les deux se combinent.",
         "Cherchez un examen par patient, identifiant ou modalité, ou cliquez sur « Urgences en cours », les plus en retard en tête.",
         "Cliquez sur le nom du patient pour ouvrir les images et le compte-rendu, sans pouvoir rédiger ni signer.",
         "Pour un examen non signé, cliquez sur le bouton d’attribution, choisissez un radiologue qui lit sa modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
@@ -661,17 +661,23 @@ export const pages = {
       ],
     },
     worklist: {
-      title: "À lire",
+      title: "À lire : la répartition",
       purpose:
-        "La file de lecture de toute la plateforme, en consultation : examens à attribuer et examens chez un radiologue, par ordre d’échéance. L’équipe la surveille sans rien prendre en charge.",
+        "Le poste de répartition de l’équipe IMAFRIK : la file de toute la plateforme, par échéance. Vous y attribuez d’affilée chaque examen en attente et réattribuez ceux qui sont chez un radiologue. « Examens » reste le registre complet, où l’attribution reste possible.",
       steps: [
-        "Lisez les indicateurs : « À attribuer », « Urgences à prendre », « En retard » et « Prochaine échéance ».",
-        "Affinez la file avec la recherche, « Urgences seulement », les pastilles de modalité ou la liste « Toutes les cliniques ».",
-        "Repérez dans « Chez un radiologue » les examens attribués ou en lecture, avec le nom du radiologue dans la colonne « Suivi ».",
-        "Ouvrez un examen d’un clic, ou avec j, k et Entrée, pour le consulter : vous ne pouvez ni le prendre en charge ni le signer.",
-        "Laissez l’écran ouvert : la file se met à jour toutes les 30 secondes et signale chaque nouvelle urgence.",
+        "Filtrez par modalité, clinique, urgence ou recherche : par exemple tous les scanners d’une clinique, à répartir d’affilée.",
+        "Dans « À attribuer », cliquez sur « Attribuer », choisissez un radiologue qui lit la modalité et les antériorités utiles : la ligne passe aussitôt « Chez un radiologue ».",
+        "« Aucun radiologue » : personne ne peut recevoir l’examen. Survolez la mention pour la raison : modalité non couverte, aucun habilité, clinique sans contrat.",
+        "Dans « Chez un radiologue », « Réattribuer » confie l’examen à un autre ou retire l’attribution, tant que le compte-rendu n’est pas signé.",
+        "Le nombre sur « À lire » dans la navigation compte les examens à attribuer, en rouge si une urgence attend. La file se met à jour toutes les 30 secondes.",
       ],
-      terms: ["consultation", "urgence", "delaiPromis", "priseEnCharge"],
+      terms: [
+        "attribution",
+        "anteriorite",
+        "urgence",
+        "modalitesLues",
+        "habilitation",
+      ],
     },
     reports: {
       title: "Comptes-rendus",

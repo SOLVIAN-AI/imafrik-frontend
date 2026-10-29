@@ -438,7 +438,7 @@ export const pages: typeof fr = {
       purpose:
         "Lists the examinations of the whole platform, across all organisations, to answer a clinic quickly. The patient’s name opens the images and the report in view-only mode, and every opening is logged.",
       steps: [
-        "Choose a modality group in the tabs (Radiography, CT, MRI…): each one shows how many examinations it holds.",
+        "Choose a clinic and a modality group at the top of the list: each choice shows how many examinations it holds, and the two combine.",
         "Search for an examination by patient, ID or modality, or click “Open urgent cases”, the most overdue first.",
         "Click the patient’s name to open the images and the report, without being able to write or sign.",
         "For an unsigned examination, click the assign button, choose a radiologist who reads its modality, tick the useful prior examinations, then click “Assign”.",
@@ -656,17 +656,23 @@ export const pages: typeof fr = {
       ],
     },
     worklist: {
-      title: "To read",
+      title: "To read: dispatching",
       purpose:
-        "The whole platform’s worklist, read-only: examinations to assign and examinations with a radiologist, by deadline. The team monitors it without taking anything on.",
+        "The IMAFRIK team’s dispatch desk: the whole platform’s worklist, by deadline. Here you assign each waiting examination one after another and reassign those held by a radiologist. “Examinations” remains the full register, where assigning is still possible.",
       steps: [
-        "Read the indicators: “To assign”, “Urgent to take”, “Overdue” and “Next deadline”.",
-        "Narrow the worklist with the search, “Urgent only”, the modality chips or the “All clinics” list.",
-        "Under “With a radiologist”, find the examinations assigned or being read, with the radiologist’s name in the “Status” column.",
-        "Open an examination with a click, or with j, k and Enter, to view it: you can neither claim nor sign it.",
-        "Leave the screen open: the worklist refreshes every 30 seconds and flags each new urgent examination.",
+        "Filter by modality, clinic, urgency or search: for example every CT of a clinic, to dispatch one after another.",
+        "Under “To assign”, click “Assign”, choose a radiologist who reads the modality and the useful priors: the row moves at once to “With a radiologist”.",
+        "“No radiologist”: nobody can receive the examination. Hover the mention for the reason: modality not covered, nobody credentialed, clinic without contract.",
+        "Under “With a radiologist”, “Reassign” hands the examination to someone else or withdraws the assignment, until the report is signed.",
+        "The number on “To read” in the navigation counts the examinations to assign, in red when an urgent one waits. The worklist refreshes every 30 seconds.",
       ],
-      terms: ["consultation", "urgence", "delaiPromis", "priseEnCharge"],
+      terms: [
+        "attribution",
+        "anteriorite",
+        "urgence",
+        "modalitesLues",
+        "habilitation",
+      ],
     },
     reports: {
       title: "Reports",

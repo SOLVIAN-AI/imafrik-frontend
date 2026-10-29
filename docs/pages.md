@@ -325,7 +325,7 @@ attend des comptes-rendus.
 
 | Route | Écran | Phase |
 | --- | --- | --- |
-| `/worklist` | File de travail commune. **Fait.** | V1 |
+| `/worklist` | File de travail du radiologue : ce qu'on lui confie et les urgences de sa liste. Pour l'équipe IMAFRIK (« Lectures › À lire »), le **poste de répartition** : « Attribuer » sur chaque examen à attribuer, « Réattribuer » chez un radiologue, « Aucun radiologue » avec sa raison quand personne ne peut le recevoir (`/admin/studies/eligibility`, en un appel) ; badge des examens à attribuer dans la navigation. **Fait.** | V1 |
 | `/lecture/[id]` | Écran de lecture : images et compte-rendu en écran scindé. **Fait.** | V1 |
 | `/mes-examens` | Ce que le radiologue a pris en charge et n'a pas encore rendu. | V1 |
 | `/comptes-rendus` | Ses comptes-rendus signés. | V1 |
@@ -352,7 +352,7 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | `/admin/organisations` | Volumes sur 30 jours, dernier envoi, suspension, invitation. | Fait |
 | `/admin/organisations/[id]` | Mise en service d'une clinique, activité, liste d'urgence, **règles d'attribution**, **durée de conservation des images**, état du contrat et **fin de contrat**. | Fait |
 | `/admin/utilisateurs` | Comptes : rattachement, **validation des numéros d'ordre** (filtre « À valider », `?validation=attente`), double authentification, réinitialisation, **anonymisation** (droit à l'effacement : nom saisi, retrait des appartenances confirmé pour un membre actif). Pour chaque radiologue, ses **modalités lues** en clair avec le bouton « Modalités », ses listes d'urgence et « Voir ses performances » ; filtre « Modalité lue » (`?modalite=`). | Fait |
-| `/admin/examens` | Recherche globale, urgences en cours, onglets par groupe de modalités avec leur nombre (`?modalite=`), comptés par le service. | Fait |
+| `/admin/examens` | Recherche globale, urgences en cours, choix de la clinique (`?clinique=`) et onglets par groupe de modalités (`?modalite=`), chacun avec son nombre compté par le service, combinables. La fiche d'une clinique y mène. | Fait |
 | `/admin/demandes` | Demandes reçues par le site (établissement ou radiologue, numéro d'ordre déclaré), suivi et notes. | Fait |
 | `/admin/facturation` | Relevé du mois de chaque clinique, le même que celui de son responsable (un seul calcul, dans le service) ; totaux, cliniques sans formule, « Clore le mois » qui fige les relevés ; export CSV protégé contre l'injection de formules. La formule d'abonnement se renseigne sur la fiche de la clinique. | Fait |
 | `/admin/systeme` | Dépendances, PACS, version, filets de sécurité (sauvegardes, exercices, réconciliation, conservation). | Fait |
