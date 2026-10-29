@@ -14,6 +14,7 @@ import {
 } from "@/lib/i18n/routes";
 import { isDemoMode } from "@/lib/demo/mode";
 import { homeFor, isPublicRoute, isRouteAllowed } from "@/lib/navigation";
+import { LEGACY_SEARCH_PARAM } from "@/lib/search/list-search";
 import { contentSecurityPolicy, createNonce } from "@/lib/security/csp";
 import { clearRevokedSession, isRevokedSession } from "@/lib/session/revoked";
 import type { UserRole } from "@/lib/session/types";
@@ -121,6 +122,19 @@ export async function proxy(request: NextRequest) {
     const redirect = NextResponse.redirect(clean);
     if (isLocale(requested)) rememberLocale(redirect, requested, secure);
     return withCsp(redirect);
+  }
+  // Une recherche ne voyage jamais dans l'adresse : elle porte un nom de
+  // patient, de médecin, une adresse électronique. Un ancien lien ou un
+  // favori qui en contient une (`?q=`) est ramené à la même liste sans
+  // elle ; la recherche se refait depuis le champ, qui la range dans un
+  // cookie lié au compte (`lib/search/list-search.ts`).
+  if (
+    request.nextUrl.searchParams.has(LEGACY_SEARCH_PARAM) &&
+    !isPublicRoute(requestPath)
+  ) {
+    const clean = request.nextUrl.clone();
+    clean.searchParams.delete(LEGACY_SEARCH_PARAM);
+    return withCsp(NextResponse.redirect(clean));
   }
   const next = () =>
     NextResponse.next({ request: { headers: requestHeaders } });

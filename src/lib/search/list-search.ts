@@ -1,8 +1,9 @@
 /**
- * Recherche d'une liste d'examens, hors de l'adresse.
+ * Recherche d'une liste, hors de l'adresse.
  *
- * Une recherche dans une liste d'examens porte presque toujours un nom de
- * patient. Placée dans l'adresse (`?q=KOFFI`), elle finissait dans
+ * Une recherche porte presque toujours le nom d'une personne : un patient
+ * dans une liste d'examens, un médecin ou son adresse électronique dans la
+ * liste des comptes. Placée dans l'adresse (`?q=KOFFI`), elle finissait dans
  * l'historique du navigateur — sur un poste partagé de clinique, lisible
  * du suivant —, dans les journaux d'accès de l'hébergeur et dans tout
  * lien copié. Elle vit donc dans un cookie :
@@ -19,7 +20,7 @@
  * lecture vit dans `server.ts`, l'écriture dans l'action `setListSearch`.
  */
 
-/** Listes d'examens dont la recherche est tenue hors de l'adresse. */
+/** Listes dont la recherche est tenue hors de l'adresse. */
 export const LIST_SEARCH_SCOPES = [
   "worklist",
   "examens",
@@ -29,9 +30,18 @@ export const LIST_SEARCH_SCOPES = [
   // responsable sans filtrer les siennes.
   "vue-clinique-examens",
   "vue-clinique-comptes-rendus",
+  // Comptes de la plateforme : noms et adresses électroniques.
+  "admin-comptes",
 ] as const;
 
-/** Une liste d'examens recherchable. */
+/**
+ * Ancien paramètre d'adresse d'une recherche (`?q=`). Plus aucun écran ne
+ * l'écrit ; le proxy le retire d'un ancien lien ou d'un favori, pour qu'un
+ * nom ne reste ni dans la barre d'adresse ni dans l'historique.
+ */
+export const LEGACY_SEARCH_PARAM = "q";
+
+/** Une liste recherchable. */
 export type ListSearchScope = (typeof LIST_SEARCH_SCOPES)[number];
 
 /** Longueur maximale d'une recherche, alignée sur la limite du service. */

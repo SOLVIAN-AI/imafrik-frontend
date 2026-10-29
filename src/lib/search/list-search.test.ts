@@ -15,10 +15,11 @@ const owner = {
   membershipId: "0b9e8d7c-6f5a-4e3d-8c2b-1a0f9e8d7c6b",
 };
 
-describe("recherche des listes d'examens", () => {
+describe("recherche des listes", () => {
   it("ne reconnaît que les listes déclarées", () => {
     expect(isListSearchScope("worklist")).toBe(true);
     expect(isListSearchScope("admin-examens")).toBe(true);
+    expect(isListSearchScope("admin-comptes")).toBe(true);
     expect(isListSearchScope("utilisateurs")).toBe(false);
     expect(isListSearchScope(42)).toBe(false);
   });

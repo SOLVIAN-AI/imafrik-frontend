@@ -73,20 +73,20 @@ describe("filtre de la liste des comptes", () => {
   it("lit l’adresse ouverte par l’information des signatures à vérifier", () => {
     expect(parseUserFilter({ signature: "attente" })).toBe("signing");
     expect(parseUserFilter({ signature: "autre" })).toBe("all");
-    expect(userListHref("signing", "agbeko")).toBe(
-      "/admin/utilisateurs?q=agbeko&signature=attente",
+    expect(userListHref("signing")).toBe(
+      "/admin/utilisateurs?signature=attente",
     );
   });
 
-  it("garde la recherche d’un filtre à l’autre", () => {
-    expect(userListHref("all", undefined, "ct")).toBe(
+  it("garde la modalité d’un filtre à l’autre, jamais une recherche", () => {
+    expect(userListHref("all", "ct")).toBe(
       "/admin/utilisateurs?modalite=scanner",
     );
     expect(userListHref("unverified")).toBe(
       "/admin/utilisateurs?validation=attente",
     );
-    expect(userListHref("pending", "kossi")).toBe(
-      "/admin/utilisateurs?q=kossi&attente=1",
+    expect(userListHref("pending", "mri")).toBe(
+      "/admin/utilisateurs?modalite=irm&attente=1",
     );
     expect(userListHref("all")).toBe("/admin/utilisateurs");
     // Aller-retour : l'adresse produite se relit en le même filtre.

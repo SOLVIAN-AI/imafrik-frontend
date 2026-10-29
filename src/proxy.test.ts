@@ -99,3 +99,26 @@ describe("ailleurs, la vérification reste locale", () => {
     expect(auth.getUserCalls).toBe(0);
   });
 });
+
+describe("une recherche ne reste jamais dans l'adresse", () => {
+  it("un ancien lien avec ?q= revient à la même liste sans elle", async () => {
+    const response = await visit(
+      "/admin/utilisateurs?q=agbeko&validation=attente",
+    );
+    expect(response.status).toBe(307);
+    const target = new URL(response.headers.get("location") ?? "");
+    expect(target.pathname).toBe("/admin/utilisateurs");
+    expect(target.searchParams.has("q")).toBe(false);
+    expect(target.searchParams.get("validation")).toBe("attente");
+  });
+
+  it("vaut pour toutes les listes de l'application", async () => {
+    const response = await visit("/worklist?q=KOFFI");
+    expect(new URL(response.headers.get("location") ?? "").search).toBe("");
+  });
+
+  it("le site public n'est pas concerné", async () => {
+    const response = await visit("/securite?q=x");
+    expect(response.headers.get("location")).toBeNull();
+  });
+});
