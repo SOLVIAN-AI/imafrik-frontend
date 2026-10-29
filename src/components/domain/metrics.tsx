@@ -36,7 +36,7 @@ export interface MetricTrend {
  *
  * @property label   Ce que compte la mesure, en langage d'utilisateur.
  * @property value   La valeur, déjà formatée.
- * @property hint    Précision facultative — comparaison, seuil, unité :
+ * @property hint    Précision facultative (comparaison, seuil, unité) :
  *                   une donnée, pas une définition.
  * @property info    Ce que compte la mesure, quand le libellé ne suffit
  *                   pas : une bulle ⓘ à côté du libellé.
