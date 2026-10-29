@@ -347,7 +347,7 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | Route | Écran | État |
 | --- | --- | --- |
 | `/admin` | **Cockpit** : alertes, files en direct, délais promis tenus, réseau, exploitation. | Fait |
-| `/admin/activite` | Trois rubriques à un clic (`?onglet=`) : vue d'ensemble (volumes, délais, étapes du parcours, heures d'arrivée, modalités), **par radiologue** (performances du mois choisi, le même tableau que le responsable, chaque indicateur expliqué en info-bulle et en légende ; `?radiologue=` met une ligne en évidence, depuis « Comptes »), par clinique (débit) ; lien vers la facturation. Rubrique, période, mois et clinique dans l'adresse. | Fait |
+| `/admin/activite` | Trois rubriques à un clic (`?onglet=`) : vue d'ensemble (volumes, délais, étapes du parcours, heures d'arrivée, modalités), **par radiologue** (performances du mois choisi, le même tableau que le responsable, chaque indicateur expliqué dans la bulle ⓘ de son intitulé, les flèches de tendance dans celle du titre ; `?radiologue=` met une ligne en évidence, depuis « Comptes »), par clinique (débit) ; lien vers la facturation. Rubrique, période, mois et clinique dans l'adresse. | Fait |
 | `/admin/flux` | Flux d'images examen par examen : débit de réception, frise acquisition → remise. | Fait |
 | `/admin/organisations` | Volumes sur 30 jours, dernier envoi, suspension, invitation. | Fait |
 | `/admin/organisations/[id]` | Mise en service d'une clinique, activité, liste d'urgence, **règles d'attribution**, **durée de conservation des images**, état du contrat et **fin de contrat**. | Fait |

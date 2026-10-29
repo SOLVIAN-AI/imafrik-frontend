@@ -11,6 +11,8 @@ export const clinic = {
     metrics: {
       toAssign: "À attribuer",
       toAssignHint: "aucun radiologue ne les voit encore",
+      toAssignInfo:
+        "Examens reçus qui n’ont pas encore de radiologue : aucun ne les voit, sauf une urgence, ouverte aux radiologues de votre liste d’urgence.",
       urgentWaiting: (count: number) =>
         count > 1
           ? `dont ${count} urgences, ouvertes à votre liste d’urgence`
@@ -291,23 +293,20 @@ export const clinic = {
     performance: {
       title: "Performances par radiologue",
       description:
-        "Examens reçus dans le mois : délais, délais promis tenus, tendance par rapport au mois précédent. Cliquez sur un intitulé pour trier.",
+        "Examens reçus dans le mois : délais, délais promis tenus, tendance par rapport au mois précédent. Cliquez sur un intitulé pour trier ; ⓘ dit ce qu’il mesure.",
       emptyTitle: "Aucune activité de radiologue ce mois-ci",
       emptyDetail:
         "Les performances s’affichent dès qu’un examen reçu dans le mois est confié à un radiologue habilité, puis signé.",
       noSigned:
         "Aucun compte-rendu signé ce mois-ci : les délais restent vides jusqu’au premier acte signé. Les examens en cours et rendus sont déjà comptés.",
-      legendTitle: "Ce que mesure chaque colonne",
-      /** Une phrase par indicateur : info-bulle de l'intitulé et légende. */
-      legend: {
+      /**
+       * Ce que mesure chaque colonne, en une phrase : la bulle ⓘ de son
+       * intitulé. Les délais (médian, moyen, 90e centile, dans les délais)
+       * sont dans `common.measures`.
+       */
+      info: {
         signed:
           "Comptes-rendus signés des examens reçus dans le mois, urgences comprises.",
-        median:
-          "La moitié des examens est rendue plus vite, de la réception à la signature ; un examen exceptionnellement long ne le déforme pas.",
-        mean: "La moyenne des délais de la réception à la signature, qu’un seul examen très long tire vers le haut.",
-        p90: "Neuf examens sur dix sont rendus plus vite : il montre les plus longues attentes.",
-        withinSla: (routine: string, urgent: string) =>
-          `Part signée dans le délai promis à la clinique : ${routine} en routine, ${urgent} en urgence.`,
         pickup:
           "Délai médian entre l’attribution de l’examen et le début de sa lecture.",
         reading:
@@ -317,6 +316,8 @@ export const clinic = {
         urgentClaimed:
           "Urgences prises sans attribution sur la liste d’urgence, dans le mois.",
         open: "À l’instant : examens attribués pas encore commencés, puis examens en lecture.",
+        /** Bulle de l'intitulé de la section : les flèches des délais. */
+        trendTitle: "Flèches de tendance",
         trend:
           "Flèche sous un chiffre : l’écart avec le mois précédent, en vert s’il s’améliore.",
       },

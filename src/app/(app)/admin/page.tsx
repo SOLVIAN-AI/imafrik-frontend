@@ -17,6 +17,7 @@ import {
 } from "@/components/domain/metrics";
 import { PageHeader } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
+import { ColumnLabel } from "@/components/ui/info-tip";
 import {
   type ControlOverview,
   type PrioritySla,
@@ -186,7 +187,7 @@ const volumeSeries = (t: AppMessages) => [
  * @param locale   Langue de l'utilisateur.
  */
 function liveMetrics(
-  { live }: ControlOverview,
+  { live, targets }: ControlOverview,
   t: AppMessages,
   locale: Locale,
 ): Metric[] {
@@ -210,6 +211,13 @@ function liveMetrics(
       label: text.overdue,
       value: formatCount(overdue, locale),
       hint: text.overdueHint(live.urgentOverdue, live.routineOverdue),
+      info: {
+        text: text.overdueInfo(
+          formatDuration(targets.urgent, locale),
+          formatDuration(targets.routine, locale),
+        ),
+        term: "delaiPromis",
+      },
       icon: METRIC_ICONS.urgent,
       tone:
         live.urgentOverdue > 0 ? "urgent" : overdue > 0 ? "progress" : "done",
@@ -262,11 +270,23 @@ function SlaRow({
             {text.promised(formatDuration(target, locale))}
           </span>
         </dt>
-        <dt className="text-tertiary">{text.median}</dt>
+        <dt className="flex min-w-0 items-center text-tertiary">
+          <ColumnLabel
+            label={text.median}
+            info={{ text: t.common.measures.median, term: "delaiMedian" }}
+            textClass="truncate"
+          />
+        </dt>
         <dd className="text-right tabular-nums">
           {formatMinutes(sla.medianMinutes, locale)}
         </dd>
-        <dt className="text-tertiary">{text.p90}</dt>
+        <dt className="flex min-w-0 items-center text-tertiary">
+          <ColumnLabel
+            label={text.p90}
+            info={{ text: t.common.measures.p90, term: "centile90" }}
+            textClass="truncate"
+          />
+        </dt>
         <dd className="text-right tabular-nums">
           {formatMinutes(sla.p90Minutes, locale)}
         </dd>

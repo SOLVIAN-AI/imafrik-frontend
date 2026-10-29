@@ -11,6 +11,8 @@ export const clinic: AppMessages["clinic"] = {
     metrics: {
       toAssign: "To assign",
       toAssignHint: "no radiologist can see them yet",
+      toAssignInfo:
+        "Examinations received that have no radiologist yet: none can see them, except an urgent one, open to the radiologists on your urgent list.",
       urgentWaiting: (count: number) =>
         count > 1
           ? `including ${count} urgent ones, open to your urgent list`
@@ -257,22 +259,15 @@ export const clinic: AppMessages["clinic"] = {
     performance: {
       title: "Performance by radiologist",
       description:
-        "Examinations received during the month: turnaround, promised times met, trend against the previous month. Click a heading to sort.",
+        "Examinations received during the month: turnaround, promised times met, trend against the previous month. Click a heading to sort; ⓘ tells what it measures.",
       emptyTitle: "No radiologist activity this month",
       emptyDetail:
         "Performance appears as soon as an examination received during the month is handed to a credentialed radiologist, then signed.",
       noSigned:
         "No report signed this month: turnaround stays empty until the first signed procedure. Examinations in progress and returned are already counted.",
-      legendTitle: "What each column measures",
-      legend: {
+      info: {
         signed:
           "Signed reports for examinations received during the month, urgent ones included.",
-        median:
-          "Half the examinations are reported faster, from receipt to signing; one exceptionally long examination does not distort it.",
-        mean: "The average time from receipt to signing, which a single very long examination pulls up.",
-        p90: "Nine examinations out of ten are reported faster: it shows the longest waits.",
-        withinSla: (routine: string, urgent: string) =>
-          `Share signed within the time promised to the clinic: ${routine} for routine, ${urgent} for urgent.`,
         pickup:
           "Median time between the examination’s assignment and the start of its reading.",
         reading:
@@ -282,6 +277,7 @@ export const clinic: AppMessages["clinic"] = {
         urgentClaimed:
           "Urgent examinations taken from the urgent list without assignment, during the month.",
         open: "Right now: examinations assigned but not started, then examinations being read.",
+        trendTitle: "Trend arrows",
         trend:
           "Arrow under a figure: the change from the previous month, green when it improves.",
       },

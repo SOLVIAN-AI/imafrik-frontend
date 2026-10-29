@@ -33,6 +33,12 @@ export const worklist = {
     mineHint: (count: number) => `dont ${count} en cours`,
     urgentOpen: "Urgences à prendre",
     urgentHint: "la première prise vous revient",
+    /** Bulle de « Urgences à prendre », pour le radiologue. */
+    urgentOpenInfo:
+      "Urgences des cliniques dont vous êtes sur la liste d’urgence, dans les modalités que vous lisez, que personne n’a encore prises : la première prise vous revient.",
+    /** La même, pour l'équipe IMAFRIK qui consulte la file. */
+    urgentOpenInfoSupervision:
+      "Urgences reçues que personne n’a encore prises : les radiologues de la liste d’urgence de leur clinique peuvent les prendre sans attribution.",
     overdue: "En retard",
     overdueHint: "délai dépassé",
     nextDeadline: "Prochaine échéance",
@@ -75,6 +81,16 @@ export const worklist = {
       study: "Examen",
       follow: "Suivi",
       received: "Reçu",
+    },
+    /** Bulles des intitulés qui ne se lisent pas d'eux-mêmes. */
+    info: {
+      deadline:
+        "Temps restant avant la fin du délai promis à la clinique, compté depuis la réception : en ambre dans son dernier quart, en rouge une fois dépassé.",
+      /** `assigned` et `inProgress` : les états, tels que les montre la colonne. */
+      follow: (assigned: string, inProgress: string) =>
+        `État de l’examen : « ${assigned} » tant que sa lecture n’a pas commencé, « ${inProgress} » une fois pris en charge, jusqu’à la signature.`,
+      followSupervision:
+        "Le radiologue qui détient l’examen ; pour un examen à attribuer, combien de radiologues peuvent le recevoir, selon les modalités qu’ils lisent.",
     },
     clinicalInfo: (text: string) => `Renseignements cliniques : ${text}`,
     colleague: "Un confrère",

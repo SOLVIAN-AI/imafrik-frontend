@@ -102,12 +102,27 @@ test.describe("le responsable de la clinique", () => {
       .getByRole("button", { name: "Trier par Délai médian" })
       .click();
     expect(await premier()).toBe(avant);
-    // Chaque indicateur expliqué en une phrase, sous le tableau.
+    // Chaque indicateur expliqué en une phrase, dans la bulle ⓘ de son
+    // intitulé ; un clic sur ⓘ ne trie pas.
+    await performances
+      .getByRole("button", { name: "À propos de « Délai médian »" })
+      .click();
     await expect(
-      page
-        .getByRole("region", { name: "Ce que mesure chaque colonne" })
-        .getByText(/un examen exceptionnellement long ne le déforme pas/),
-    ).toBeVisible();
+      page.getByRole("dialog", { name: "Délai médian" }),
+    ).toContainText("un examen exceptionnellement long ne le déforme pas");
+    await expect(medianes).toHaveAttribute("aria-sort", "ascending");
+    await page.keyboard.press("Escape");
+    await expect(
+      page.getByRole("dialog", { name: "Délai médian" }),
+    ).toBeHidden();
+    // Les délais de l'activité aussi, avec les délais promis du mois.
+    await page
+      .getByRole("button", { name: "À propos de « Dans les délais promis »" })
+      .click();
+    await expect(
+      page.getByRole("dialog", { name: "Dans les délais promis" }),
+    ).toContainText(/en routine, .* en urgence/);
+    await page.keyboard.press("Escape");
 
     // Le relevé du mois en cours : provisoire, formule Pro.
     await expect(page.getByText(/^Relevé provisoire/)).toBeVisible();
@@ -159,6 +174,18 @@ test.describe("le responsable de la clinique, en anglais", () => {
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Sort by Median turnaround" }),
+    ).toBeVisible();
+    await page
+      .getByRole("table")
+      .filter({ has: page.getByRole("columnheader", { name: /Radiologist/ }) })
+      .getByRole("button", { name: "About “Median turnaround”" })
+      .click();
+    const bubble = page.getByRole("dialog", { name: "Median turnaround" });
+    await expect(bubble).toContainText("Half the examinations");
+    await expect(
+      bubble.getByRole("button", {
+        name: "Learn more about “Median turnaround” in the glossary",
+      }),
     ).toBeVisible();
   });
 });
@@ -229,6 +256,14 @@ test.describe("l'équipe IMAFRIK", () => {
         page.getByText(label, { exact: true }).first(),
       ).toBeVisible();
     }
+    // Ce qui est compté, et ce qui ne l'est pas : la bulle du libellé.
+    await page
+      .getByRole("button", { name: "À propos de « Sans compte-rendu signé »" })
+      .click();
+    await expect(
+      page.getByRole("dialog", { name: "Sans compte-rendu signé" }),
+    ).toContainText("ne sont pas facturés");
+    await page.keyboard.press("Escape");
     // Le panneau d'une clinique : le plus petit bloc qui porte son nom et
     // ses honoraires.
     const panneau = (clinique: string) =>

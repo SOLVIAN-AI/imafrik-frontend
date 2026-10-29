@@ -39,11 +39,13 @@ import { cn } from "@/lib/utils";
  *
  * @param metrics  Indicateurs calculés par le service.
  * @param messages Libellés des mesures, dans la langue de l'utilisateur.
+ * @param median   Ce que mesure le délai médian : la bulle de son libellé.
  * @param locale   Langue de l'utilisateur, pour le format des durées.
  */
 function buildMetrics(
   metrics: Metrics,
   messages: AppMessages["clinic"]["dashboard"]["metrics"],
+  median: string,
   locale: Locale,
 ): Metric[] {
   const inReading = metrics.byStatus.assigned + metrics.byStatus.in_progress;
@@ -52,6 +54,7 @@ function buildMetrics(
       // Ce qu'aucun radiologue ne voit encore : le premier geste du jour.
       label: messages.toAssign,
       value: String(metrics.toAssign),
+      info: { text: messages.toAssignInfo, term: "attribution" },
       hint:
         metrics.urgentToTake > 0
           ? messages.urgentWaiting(metrics.urgentToTake)
@@ -81,6 +84,7 @@ function buildMetrics(
     },
     {
       label: messages.medianTurnaround,
+      info: { text: median, term: "delaiMedian" },
       value:
         metrics.medianTurnaroundMinutes === null
           ? "—"
@@ -141,7 +145,12 @@ export function ClinicDashboardView({
       />
 
       <MetricGrid
-        metrics={buildMetrics(metrics, messages.metrics, locale)}
+        metrics={buildMetrics(
+          metrics,
+          messages.metrics,
+          t.common.measures.median,
+          locale,
+        )}
         className="px-4 pb-4 sm:px-6"
         tour="clinic-stats"
       />

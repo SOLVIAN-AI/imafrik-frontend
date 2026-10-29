@@ -101,6 +101,19 @@ export const admin = {
       reading: "prise en charge → signature",
       delivery: "signature → téléchargement",
     },
+    /** Ce que mesure chaque étape, en une phrase : la bulle de son libellé. */
+    info: {
+      arrival:
+        "Médiane du temps entre l’acquisition de l’examen sur l’appareil de la clinique et la réception de sa dernière image au PACS central.",
+      transfer:
+        "Médiane du temps entre la première et la dernière image reçues au PACS central : la durée de l’envoi, qu’une liaison lente allonge.",
+      queue:
+        "Médiane du temps entre la réception de l’examen et sa prise en charge par un radiologue : l’attente dans la file.",
+      reading:
+        "Médiane du temps entre la prise en charge de l’examen et la signature de son compte-rendu.",
+      delivery:
+        "Médiane du temps entre la signature du compte-rendu et son téléchargement par la clinique.",
+    },
     ongoingSuffix: " (en cours)",
     /** « file en cours » : `stage` est le libellé de l'étape. */
     ongoing: (stage: string) => `${stage.toLowerCase()} en cours`,
@@ -163,6 +176,9 @@ export const admin = {
     overdue: "Hors délai",
     overdueHint: (urgent: number, routine: number) =>
       `${urgent} urgence${urgent > 1 ? "s" : ""} · ${routine} routine`,
+    /** Bulle de « Hors délai » : les délais promis, déjà formatés. */
+    overdueInfo: (urgent: string, routine: string) =>
+      `Examens pas encore rendus dont le délai promis est dépassé : ${urgent} pour une urgence, ${routine} en routine.`,
     inProgress: "En cours de lecture",
     inProgressHint: "pas encore signés",
     signedToday: "Signés aujourd’hui",
@@ -214,8 +230,9 @@ export const admin = {
       "Ce radiologue n’a aucune activité ce mois-ci : aucun examen reçu dans le mois ne lui a été confié.",
     seeAll: "Tous les radiologues",
     byClinic: "Par clinique",
-    byClinicDescription:
-      "Le débit est celui de la liaison entre la passerelle et le PACS central",
+    /** Bulle de « Débit » : `slow` est le seuil d'alerte, déjà formaté. */
+    throughputInfo: (slow: string) =>
+      `Débit médian de la liaison entre la passerelle de la clinique et le PACS central, par examen ; en ambre sous ${slow}.`,
     noClinic: "Aucune clinique sur la période.",
     columns: {
       clinic: "Clinique",
@@ -236,6 +253,8 @@ export const admin = {
     emptyDetail:
       "Les examens apparaissent ici dès que le PACS central les a reçus.",
     medianThroughput: "Débit médian",
+    medianThroughputInfo:
+      "Débit de réception médian des examens listés : le volume de chacun, divisé par le temps entre sa première et sa dernière image reçues au PACS central.",
     slowestTenth: (rate: string) => `10 % sous ${rate}`,
     medianArrival: "Acheminement médian",
     arrivalHint: "acquisition → dernière image",
@@ -267,6 +286,9 @@ export const admin = {
       uid: "UID",
       waiting: "Attente",
     },
+    /** Bulle de « Attente » : `hours` est le seuil de l'ambre. */
+    waitingInfo: (hours: number) =>
+      `Temps écoulé depuis la réception de l’examen, en ambre au-delà de ${hours} heures ; plus signalé une fois le compte-rendu remis.`,
   },
 
   organisations: {
@@ -289,6 +311,12 @@ export const admin = {
       lastSent: "Dernier envoi",
       state: "État",
       actions: "Actions",
+    },
+    /** Bulles des intitulés qui ne se lisent pas d'eux-mêmes. */
+    info: {
+      pacs: "Raccordé : une passerelle de la clinique a reçu son AE Title, et le PACS d’IMAFRIK accepte ses examens. Un groupe de radiologie n’en envoie pas.",
+      days30:
+        "Examens reçus de la clinique sur les trente derniers jours, de date à date ; un groupe de radiologie n’en reçoit pas.",
     },
     totalStudies: (count: number) =>
       `${count} examen${count > 1 ? "s" : ""} au total`,
@@ -803,6 +831,8 @@ export const admin = {
     actsHint: "compte-rendu signé",
     unreported: "Sans compte-rendu signé",
     unreportedHint: "non facturés",
+    unreportedInfo:
+      "Examens reçus dans le mois dont le compte-rendu n’est pas encore signé : ils ne comptent pas comme actes, et ne sont pas facturés.",
     missingPlans: "Sans formule",
     missingPlansHint: "à renseigner sur la fiche de la clinique",
     current: "Mois en cours : les relevés sont provisoires.",

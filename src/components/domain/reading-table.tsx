@@ -16,6 +16,7 @@ import {
   UrgentMarker,
 } from "@/components/domain/study-status";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ColumnLabel, type InfoTipContent } from "@/components/ui/info-tip";
 import { useNow } from "@/hooks/use-now";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { Study } from "@/lib/data/studies";
@@ -261,6 +262,10 @@ function GroupHeading({
  *   bouton, ou dans la fenêtre qu'il ouvre, n'ouvre pas l'examen ; la
  *   navigation au clavier ne parcourt que les liens des lignes.
  *
+ * L'échéance et le suivi portent une bulle ⓘ : ce qu'ils disent ne se lit
+ * pas de soi-même. Le suivi s'explique selon ce qu'il montre : l'état des
+ * examens du radiologue, ou qui détient l'examen pour l'équipe IMAFRIK.
+ *
  * @param groups  Sections, dans l'ordre d'affichage.
  * @param hrefFor Adresse ouverte pour un examen.
  * @param empty   Message quand aucune section n'a d'examen.
@@ -288,6 +293,22 @@ export function ReadingTable({
   const router = useRouter();
   const t = useMessages();
   const labels = t.worklist.table;
+  const deadlineInfo: InfoTipContent = {
+    text: labels.info.deadline,
+    term: "delaiPromis",
+  };
+  // Qui détient l'examen (équipe IMAFRIK), ou son état (radiologue).
+  const followInfo: InfoTipContent = groups.some(
+    (group) => group.follow === "reader",
+  )
+    ? { text: labels.info.followSupervision, term: "modalitesLues" }
+    : {
+        text: labels.info.follow(
+          t.common.studyStatus.assigned,
+          t.common.studyStatus.in_progress,
+        ),
+        term: "priseEnCharge",
+      };
   const container = React.useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = React.useState<ReadonlySet<string>>(
     () => new Set(),
@@ -397,7 +418,10 @@ export function ReadingTable({
           <thead className="sticky top-0 z-20">
             <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
               <th scope="col" className="w-34">
-                <span className="label-eyebrow">{labels.columns.deadline}</span>
+                <ColumnLabel
+                  label={labels.columns.deadline}
+                  info={deadlineInfo}
+                />
               </th>
               <th scope="col" className="w-[28%]">
                 <span className="label-eyebrow">{labels.columns.patient}</span>
@@ -418,7 +442,7 @@ export function ReadingTable({
                   action ? "w-44" : "w-36",
                 )}
               >
-                <span className="label-eyebrow">{labels.columns.follow}</span>
+                <ColumnLabel label={labels.columns.follow} info={followInfo} />
               </th>
               <th scope="col" className="w-20 !text-right">
                 <span className="label-eyebrow">{labels.columns.received}</span>

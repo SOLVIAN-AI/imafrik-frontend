@@ -6,12 +6,13 @@ import { AssignDialog } from "@/components/domain/assign-dialog";
 import { ClinicDropdown } from "@/components/domain/clinic-dropdown";
 import { EligibilityNote } from "@/components/domain/eligibility-note";
 import { Segmented } from "@/components/admin/control-ui";
-import { StudyAge } from "@/components/domain/study-age";
+import { STALE_AFTER_HOURS, StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
   UrgentMarker,
 } from "@/components/domain/study-status";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import { ColumnLabel } from "@/components/ui/info-tip";
 import { ListPagination } from "@/components/domain/list-pagination";
 import { ListToolbar } from "@/components/domain/list-toolbar";
 import { ModalityTabs } from "@/components/domain/modality-tabs";
@@ -309,9 +310,10 @@ export default async function AdminStudiesPage({
                     <span className="label-eyebrow">{text.columns.uid}</span>
                   </th>
                   <th scope="col" className="w-[6%] text-right">
-                    <span className="label-eyebrow">
-                      {text.columns.waiting}
-                    </span>
+                    <ColumnLabel
+                      label={text.columns.waiting}
+                      info={{ text: text.waitingInfo(STALE_AFTER_HOURS) }}
+                    />
                   </th>
                   <th scope="col" className="sticky right-0 w-36 !text-right">
                     <span className="label-eyebrow">

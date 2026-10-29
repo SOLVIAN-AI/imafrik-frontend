@@ -4,6 +4,7 @@ import { Activity, ArrowDown, ArrowUp, ArrowUpDown, Minus } from "lucide-react";
 import * as React from "react";
 
 import { EmptyState } from "@/components/ui/empty-state";
+import { InfoTip, type InfoTipContent } from "@/components/ui/info-tip";
 import { useLocale, useMessages } from "@/i18n/client";
 import { formatCount, formatMinutes, formatPercent } from "@/lib/format";
 import {
@@ -33,10 +34,13 @@ import { cn } from "@/lib/utils";
  * rapport au mois précédent : une flèche, l'écart, et une phrase pour les
  * lecteurs d'écran.
  *
- * Chaque indicateur se dit en une phrase : en info-bulle sur son
- * intitulé, et dans la légende sous le tableau. Un mois sans activité le
- * dit, et un mois sans acte signé explique pourquoi ses délais sont vides
- * (c'est le cas tant qu'aucun radiologue n'est habilité).
+ * Chaque indicateur se dit en une phrase, dans la bulle ⓘ de son
+ * intitulé, à côté du bouton de tri (un clic sur ⓘ ne trie pas) ; la
+ * bulle renvoie au glossaire quand il en dit davantage. Les flèches de
+ * tendance s'expliquent dans la bulle du titre de la section
+ * (`info.trend`, posée par l'écran). Un mois sans activité le dit, et un
+ * mois sans acte signé explique pourquoi ses délais sont vides (c'est le
+ * cas tant qu'aucun radiologue n'est habilité).
  *
  * Le même tableau pour le responsable de la clinique et pour l'équipe
  * IMAFRIK ; un radiologue n'y a jamais accès.
@@ -75,11 +79,22 @@ export function PerformanceTable({
   const minutes = (value: number | null) => formatMinutes(value, locale);
   const percent = (value: number | null) => formatPercent(value, locale);
   const count = (value: number) => formatCount(value, locale);
-  const legend = text.legend;
-  const withinSla = legend.withinSla(
-    minutes(performance.slaRoutineMinutes),
-    minutes(performance.slaUrgentMinutes),
-  );
+  const info = text.info;
+  const measures = t.common.measures;
+  // Ce que mesure chaque colonne : la bulle de son intitulé.
+  const median: InfoTipContent = {
+    text: measures.median,
+    term: "delaiMedian",
+  };
+  const mean: InfoTipContent = { text: measures.mean };
+  const p90: InfoTipContent = { text: measures.p90, term: "centile90" };
+  const withinSla: InfoTipContent = {
+    text: measures.withinSla(
+      minutes(performance.slaRoutineMinutes),
+      minutes(performance.slaUrgentMinutes),
+    ),
+    term: "delaiPromis",
+  };
 
   if (performance.radiologists.length === 0) {
     return (
@@ -98,7 +113,7 @@ export function PerformanceTable({
   const header = (
     key: PerformanceSortKey,
     label: string,
-    options: { hint?: string; rowSpan?: number; first?: boolean } = {},
+    options: { info?: InfoTipContent; rowSpan?: number; first?: boolean } = {},
   ) => {
     const active = sort.key === key;
     const Icon = active
@@ -118,29 +133,33 @@ export function PerformanceTable({
             : "text-right",
         )}
       >
-        <button
-          type="button"
-          onClick={() =>
-            setSort((current) => ({
-              key,
-              direction:
-                current.key === key
-                  ? current.direction === "ascending"
-                    ? "descending"
-                    : "ascending"
-                  : defaultDirection(key),
-            }))
-          }
-          aria-label={text.sortBy(label)}
-          title={options.hint}
-          className={cn(
-            "inline-flex items-center gap-1 rounded py-1 whitespace-nowrap transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
-            active ? "text-primary" : "text-tertiary",
-          )}
-        >
-          <span className="label-eyebrow">{label}</span>
-          <Icon className="size-3 shrink-0" aria-hidden />
-        </button>
+        {/* La bulle à côté du bouton de tri, jamais dedans : un clic sur
+            ⓘ explique la colonne sans la trier. */}
+        <span className="inline-flex items-center">
+          <button
+            type="button"
+            onClick={() =>
+              setSort((current) => ({
+                key,
+                direction:
+                  current.key === key
+                    ? current.direction === "ascending"
+                      ? "descending"
+                      : "ascending"
+                    : defaultDirection(key),
+              }))
+            }
+            aria-label={text.sortBy(label)}
+            className={cn(
+              "inline-flex items-center gap-1 rounded py-1 whitespace-nowrap transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none",
+              active ? "text-primary" : "text-tertiary",
+            )}
+          >
+            <span className="label-eyebrow">{label}</span>
+            <Icon className="size-3 shrink-0" aria-hidden />
+          </button>
+          {options.info && <InfoTip label={label} {...options.info} />}
+        </span>
       </th>
     );
   };
@@ -172,7 +191,7 @@ export function PerformanceTable({
               {header("name", columns.name, { rowSpan: 2, first: true })}
               {header("signed", columns.signed, {
                 rowSpan: 2,
-                hint: legend.signed,
+                info: { text: info.signed },
               })}
               {group(text.groups.overall, 2)}
               {group(text.groups.routine, 4)}
@@ -181,39 +200,37 @@ export function PerformanceTable({
               {group(text.groups.month, 2)}
               {header("open", columns.open, {
                 rowSpan: 2,
-                hint: legend.open,
+                info: { text: info.open },
               })}
             </tr>
             <tr>
-              {header("median", columns.median, { hint: legend.median })}
-              {header("withinSla", columns.withinSla, { hint: withinSla })}
+              {header("median", columns.median, { info: median })}
+              {header("withinSla", columns.withinSla, { info: withinSla })}
               {header("routineMedian", columns.routineMedian, {
-                hint: legend.median,
+                info: median,
               })}
-              {header("routineMean", columns.routineMean, {
-                hint: legend.mean,
-              })}
-              {header("routineP90", columns.routineP90, { hint: legend.p90 })}
+              {header("routineMean", columns.routineMean, { info: mean })}
+              {header("routineP90", columns.routineP90, { info: p90 })}
               {header("routineWithinSla", columns.routineWithinSla, {
-                hint: withinSla,
+                info: withinSla,
               })}
-              {header("urgentMedian", columns.urgentMedian, {
-                hint: legend.median,
-              })}
-              {header("urgentMean", columns.urgentMean, {
-                hint: legend.mean,
-              })}
-              {header("urgentP90", columns.urgentP90, { hint: legend.p90 })}
+              {header("urgentMedian", columns.urgentMedian, { info: median })}
+              {header("urgentMean", columns.urgentMean, { info: mean })}
+              {header("urgentP90", columns.urgentP90, { info: p90 })}
               {header("urgentWithinSla", columns.urgentWithinSla, {
-                hint: withinSla,
+                info: withinSla,
               })}
-              {header("pickup", columns.pickup, { hint: legend.pickup })}
-              {header("reading", columns.reading, { hint: legend.reading })}
+              {header("pickup", columns.pickup, {
+                info: { text: info.pickup, term: "priseEnCharge" },
+              })}
+              {header("reading", columns.reading, {
+                info: { text: info.reading, term: "dureeLecture" },
+              })}
               {header("released", columns.released, {
-                hint: legend.released,
+                info: { text: info.released },
               })}
               {header("urgentClaimed", columns.urgentClaimed, {
-                hint: legend.urgentClaimed,
+                info: { text: info.urgentClaimed },
               })}
             </tr>
           </thead>
@@ -231,36 +248,6 @@ export function PerformanceTable({
           </tbody>
         </table>
       </div>
-      <section
-        aria-label={text.legendTitle}
-        className="border-t border-border-subtle px-4 py-3"
-      >
-        <h3 className="label-eyebrow mb-2">{text.legendTitle}</h3>
-        <dl className="grid gap-x-6 gap-y-1.5 text-2xs leading-relaxed md:grid-cols-2">
-          {(
-            [
-              [columns.signed, legend.signed],
-              [columns.median, legend.median],
-              [columns.routineMean, legend.mean],
-              [columns.routineP90, legend.p90],
-              [columns.withinSla, withinSla],
-              [columns.pickup, legend.pickup],
-              [columns.reading, legend.reading],
-              [columns.released, legend.released],
-              [columns.urgentClaimed, legend.urgentClaimed],
-              [columns.open, legend.open],
-            ] as const
-          ).map(([term, definition]) => (
-            <div key={term} className="flex gap-1.5">
-              <dt className="shrink-0 font-medium text-secondary">{term}</dt>
-              <dd className="text-tertiary">{definition}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-1.5 text-2xs leading-relaxed text-tertiary">
-          {legend.trend}
-        </p>
-      </section>
     </div>
   );
 }

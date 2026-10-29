@@ -6,6 +6,7 @@ import { CreateClinicDialog } from "@/components/admin/gateways/create-clinic-di
 import { OrganizationRowActions } from "@/components/admin/organization-row-actions";
 import { RelativeTime } from "@/components/admin/relative-time";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import { ColumnLabel } from "@/components/ui/info-tip";
 import { type AdminOrganization, listOrganizations } from "@/lib/data/admin";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
@@ -110,7 +111,10 @@ export default async function AdminOrganizationsPage() {
                     <span className="label-eyebrow">{text.columns.kind}</span>
                   </th>
                   <th scope="col" className="w-[13%]">
-                    <span className="label-eyebrow">{text.columns.pacs}</span>
+                    <ColumnLabel
+                      label={text.columns.pacs}
+                      info={{ text: text.info.pacs, term: "pacs" }}
+                    />
                   </th>
                   <th scope="col" className="w-[8%] text-right">
                     <span className="label-eyebrow">
@@ -118,7 +122,10 @@ export default async function AdminOrganizationsPage() {
                     </span>
                   </th>
                   <th scope="col" className="w-[9%] text-right">
-                    <span className="label-eyebrow">{text.columns.days30}</span>
+                    <ColumnLabel
+                      label={text.columns.days30}
+                      info={{ text: text.info.days30 }}
+                    />
                   </th>
                   <th scope="col" className="w-[12%] text-right">
                     <span className="label-eyebrow">

@@ -10,8 +10,9 @@ import {
   HeartbeatAge,
 } from "@/components/admin/gateways/gateway-time";
 import { DateTime } from "@/components/domain/date-time";
+import { ColumnLabel, type InfoTipContent } from "@/components/ui/info-tip";
 import type { Gateway } from "@/lib/data/gateways";
-import { shortFingerprint } from "@/lib/gateways";
+import { SILENCE_MINUTES, shortFingerprint } from "@/lib/gateways";
 import { cn } from "@/lib/utils";
 import type { AppMessages } from "@/i18n";
 
@@ -49,6 +50,14 @@ export function GatewayList({
   showClinic: boolean;
 }) {
   const text = t.gateways;
+  // Ce que disent les colonnes qui ne se lisent pas d'elles-mêmes : la
+  // bulle de leur intitulé, sur le tableau comme sur les cartes.
+  const info = {
+    status: { text: text.columnInfo.status, term: "passerelle" },
+    address: { text: text.columnInfo.address, term: "reseauPrive" },
+    certificate: { text: text.columnInfo.certificate, term: "certificat" },
+    heartbeat: { text: text.columnInfo.heartbeat(SILENCE_MINUTES) },
+  } satisfies Record<string, InfoTipContent>;
   return (
     <>
       <ul className="divide-y divide-border-subtle lg:hidden">
@@ -68,21 +77,41 @@ export function GatewayList({
                 label={text.status[gateway.status]}
               />
             </div>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-2xs">
+            {/* Un peu d'air sous chaque intitulé : le bouton ⓘ déborde de
+                sa ligne sans toucher la valeur. */}
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-2xs [&_dd]:mt-0.5">
               <div className="min-w-0">
-                <dt className="text-tertiary">{text.columns.address}</dt>
+                <dt className="flex min-w-0 items-center text-tertiary">
+                  <ColumnLabel
+                    label={text.columns.address}
+                    info={info.address}
+                    textClass="truncate"
+                  />
+                </dt>
                 <dd>
                   <Address gateway={gateway} t={t} />
                 </dd>
               </div>
               <div className="min-w-0">
-                <dt className="text-tertiary">{text.columns.certificate}</dt>
+                <dt className="flex min-w-0 items-center text-tertiary">
+                  <ColumnLabel
+                    label={text.columns.certificate}
+                    info={info.certificate}
+                    textClass="truncate"
+                  />
+                </dt>
                 <dd>
                   <Certificate gateway={gateway} t={t} />
                 </dd>
               </div>
               <div className="min-w-0">
-                <dt className="text-tertiary">{text.columns.heartbeat}</dt>
+                <dt className="flex min-w-0 items-center text-tertiary">
+                  <ColumnLabel
+                    label={text.columns.heartbeat}
+                    info={info.heartbeat}
+                    textClass="truncate"
+                  />
+                </dt>
                 <dd>
                   <HeartbeatAge
                     lastHeartbeat={gateway.lastHeartbeatAt}
@@ -119,18 +148,22 @@ export function GatewayList({
                 </th>
               )}
               <th scope="col">
-                <span className="label-eyebrow">{text.columns.status}</span>
+                <ColumnLabel label={text.columns.status} info={info.status} />
               </th>
               <th scope="col">
-                <span className="label-eyebrow">{text.columns.address}</span>
+                <ColumnLabel label={text.columns.address} info={info.address} />
               </th>
               <th scope="col">
-                <span className="label-eyebrow">
-                  {text.columns.certificate}
-                </span>
+                <ColumnLabel
+                  label={text.columns.certificate}
+                  info={info.certificate}
+                />
               </th>
               <th scope="col">
-                <span className="label-eyebrow">{text.columns.heartbeat}</span>
+                <ColumnLabel
+                  label={text.columns.heartbeat}
+                  info={info.heartbeat}
+                />
               </th>
               <th scope="col">
                 <span className="label-eyebrow">{text.columns.enrolled}</span>
