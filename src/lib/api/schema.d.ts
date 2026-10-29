@@ -35,6 +35,9 @@ export interface paths {
          * Journal d'audit
          * @description Les entrées du journal, des plus récentes aux plus anciennes.
          *
+         *     Filtrées par action, famille d'actions (le préfixe avant le point :
+         *     ``study``, ``report``, ``gateway``…), auteur, organisation et période.
+         *
          *     Pagination par curseur (``before_id``) : un décalage reprendrait des
          *     lignes déjà vues à mesure que le journal se remplit.
          */
@@ -1263,6 +1266,10 @@ export interface paths {
         /**
          * Flux d'images, examen par examen
          * @description Les derniers examens reçus, avec les instants de leur parcours.
+         *
+         *     Filtrés par clinique, groupe de modalités, priorité et statut, avant la
+         *     limite : « les cent derniers scanners urgents », pas un filtre sur les
+         *     cent derniers examens.
          */
         get: operations["get_pipeline_admin_pipeline_get"];
         put?: never;
@@ -9726,6 +9733,10 @@ export interface operations {
                 action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.auto_assigned" | "study.unassigned" | "study.urgent_alerted" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.assignment_rules_changed" | "organization.plan_changed" | "organization.viewed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "billing.month_closed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
+                /** @description Seulement les actions de cette famille (« report » pour report.*) */
+                family?: string | null;
+                /** @description Seulement les entrées depuis cet instant (ISO 8601) */
+                since?: string | null;
                 before_id?: number | null;
                 limit?: number;
             };
@@ -11625,6 +11636,12 @@ export interface operations {
             query?: {
                 limit?: number;
                 clinic_id?: string | null;
+                /** @description Seulement ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+                /** @description Seulement cette priorité */
+                priority?: ("routine" | "urgent") | null;
+                /** @description Un ou plusieurs statuts ; vide = tous */
+                status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
             };
             header?: {
                 authorization?: string | null;

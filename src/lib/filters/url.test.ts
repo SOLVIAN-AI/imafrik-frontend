@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { messagesFor } from "@/i18n";
-import { DIMENSION_ORDER, DIMENSIONS } from "@/lib/filters/dimensions";
+import {
+  DIMENSION_ORDER,
+  DIMENSIONS,
+  type FilterDimension,
+} from "@/lib/filters/dimensions";
 import { LIST_FILTERS, NETWORK } from "@/lib/filters/screens";
 import {
   clearFiltersHref,
@@ -190,10 +194,23 @@ describe("écriture des filtres", () => {
 });
 
 describe("registre des dimensions", () => {
-  it("un paramètre d’adresse par dimension, jamais celui d’une recherche", () => {
-    const params = DIMENSION_ORDER.map((key) => DIMENSIONS[key].param);
-    expect(new Set(params).size).toBe(params.length);
-    expect(params).not.toContain("q");
+  it("un paramètre d’adresse par dimension d’un écran, jamais celui d’une recherche", () => {
+    for (const keys of Object.values(LIST_FILTERS)) {
+      const params = keys.flatMap((key) => {
+        const definition: FilterDimension = DIMENSIONS[key];
+        // Une dimension à codec compte son paramètre principal une fois.
+        return [
+          ...new Set([
+            definition.param,
+            ...(definition.aliases ?? []),
+            ...(definition.codec?.params ?? []),
+          ]),
+        ];
+      });
+      expect(new Set(params).size).toBe(params.length);
+    }
+    const all = DIMENSION_ORDER.map((key) => DIMENSIONS[key].param);
+    expect(all).not.toContain("q");
   });
 
   it("chaque valeur fixe s’écrit dans l’adresse puis se relit à l’identique", () => {

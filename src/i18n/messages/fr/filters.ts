@@ -43,6 +43,10 @@ export const filters = {
   allRoles: "Tous les rôles",
   account: "Compte",
   allAccounts: "Tous les comptes",
+  /** Passerelles silencieuses : aucun signe de vie depuis trente minutes. */
+  mute: "Muettes",
+  /** Relevés de cliniques sans formule d'abonnement renseignée. */
+  noPlan: "Sans formule",
   mfa: "Double authentification",
   withoutMfa: "Sans double authentification",
   radiologist: "Radiologue",
@@ -81,6 +85,10 @@ export const filters = {
   urgent: "Urgences",
   /** Ce que comptent les options et la liste, en toutes lettres. */
   nouns: {
+    gateways: (count: number) =>
+      count > 1 ? `${count} passerelles` : `${count} passerelle`,
+    statements: (count: number) =>
+      count > 1 ? `${count} relevés` : `${count} relevé`,
     accounts: (count: number) =>
       count > 1 ? `${count} comptes` : `${count} compte`,
     studies: (count: number) =>
@@ -92,6 +100,8 @@ export const filters = {
   },
   /** Liste vide à cause des filtres. */
   empty: {
+    gateways: "Aucune passerelle ne correspond à ces filtres",
+    statements: "Aucun relevé ne correspond à ces filtres",
     studies: "Aucun examen ne correspond à ces filtres",
     reports: "Aucun compte-rendu ne correspond à ces filtres",
     accounts: "Aucun compte ne correspond à ces filtres",

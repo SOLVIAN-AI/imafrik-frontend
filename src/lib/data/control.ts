@@ -34,6 +34,8 @@ import {
 } from "@/lib/demo/control";
 import type { CredentialState, PracticeStatus } from "@/lib/credentials";
 import { isDemoMode } from "@/lib/demo/mode";
+import type { StudyStatus } from "@/components/domain/study-status";
+import { modalityGroupOf } from "@/lib/modalities";
 import type { Locale } from "@/lib/i18n/locale";
 import type { OrgKind, UserRole } from "@/lib/session/types";
 
@@ -368,6 +370,13 @@ export interface PipelineStudy {
 
 const toDate = (value: string | null) => (value ? new Date(value) : null);
 
+/** Filtres du flux d'images, appliqués par le service avant la limite. */
+export interface PipelineFilters {
+  modalityGroup?: ModalityGroup;
+  priority?: "routine" | "urgent";
+  statuses?: StudyStatus[];
+}
+
 /**
  * Derniers examens reçus, avec les instants de leur parcours.
  *
@@ -377,13 +386,28 @@ const toDate = (value: string | null) => (value ? new Date(value) : null);
 export async function getPipeline(
   limit = 100,
   clinicId: string | null = null,
+  filters: PipelineFilters = {},
 ): Promise<PipelineStudy[]> {
   let rows;
   if (isDemoMode()) {
-    rows = demoPipeline(limit, clinicId);
+    // Les filtres avant la limite, comme le service.
+    rows = demoPipeline(1000, clinicId)
+      .filter(
+        (row) =>
+          (!filters.modalityGroup ||
+            modalityGroupOf(row.modality) === filters.modalityGroup) &&
+          (!filters.priority || row.priority === filters.priority) &&
+          (!filters.statuses?.length ||
+            filters.statuses.includes(row.status as StudyStatus)),
+      )
+      .slice(0, limit);
   } else {
     const query = new URLSearchParams({ limit: String(limit) });
     if (clinicId) query.set("clinic_id", clinicId);
+    if (filters.modalityGroup)
+      query.set("modality_group", filters.modalityGroup);
+    if (filters.priority) query.set("priority", filters.priority);
+    for (const status of filters.statuses ?? []) query.append("status", status);
     rows = await apiGet(
       `/admin/pipeline?${query}`,
       z.array(pipelineStudySchema),

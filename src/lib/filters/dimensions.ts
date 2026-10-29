@@ -27,6 +27,7 @@
 
 import type { AppMessages } from "@/i18n";
 import type { ModalityGroup } from "@/lib/api/contracts";
+import { GATEWAY_STATUSES, type GatewayStatus } from "@/lib/gateways";
 import {
   MODALITY_GROUPS,
   MODALITY_SLUGS,
@@ -332,6 +333,19 @@ export const DIMENSIONS = {
     valueLabel: (t, value) =>
       t.filters.links[value as (typeof ORG_LINKS)[number]] ?? value,
   },
+  // Le même paramètre que le statut d'une organisation : les deux ne se
+  // rencontrent sur aucun écran (un paramètre par dimension d'un écran).
+  gatewayStatus: {
+    param: "statut",
+    presentation: "chips",
+    values: GATEWAY_STATUSES,
+    read: (raw) =>
+      (GATEWAY_STATUSES as readonly string[]).includes(raw) ? raw : null,
+    write: (value) => value,
+    text: (t) => ({ name: t.filters.standing, all: t.filters.allStandings }),
+    valueLabel: (t, value) =>
+      t.gateways.status[value as GatewayStatus] ?? value,
+  },
   account: {
     // Le paramètre principal ; les deux autres passent par le codec.
     param: "validation",
@@ -366,6 +380,24 @@ export const DIMENSIONS = {
     write: () => "1",
     text: (t) => ({ name: t.filters.urgency, all: t.filters.allPriorities }),
     valueLabel: (t) => t.filters.urgent,
+  },
+  mute: {
+    param: "muette",
+    presentation: "toggle",
+    values: ["mute"],
+    read: (raw) => (raw === "1" ? "mute" : null),
+    write: () => "1",
+    text: (t) => ({ name: t.filters.mute, all: t.filters.allStandings }),
+    valueLabel: (t) => t.filters.mute,
+  },
+  noPlan: {
+    param: "sans-formule",
+    presentation: "toggle",
+    values: ["none"],
+    read: (raw) => (raw === "1" ? "none" : null),
+    write: () => "1",
+    text: (t) => ({ name: t.filters.noPlan, all: t.filters.allClinics }),
+    valueLabel: (t) => t.filters.noPlan,
   },
   mfa: {
     param: "mfa",
