@@ -9,6 +9,7 @@ import { PerformanceTable } from "@/components/domain/performance-table";
 import { PageHeader } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ColumnLabel, type InfoTipContent } from "@/components/ui/info-tip";
 import { parseMonth } from "@/lib/admin-params";
 import { statementCsvRows } from "@/lib/billing";
 import { type ClinicConsultation, clinicHref } from "@/lib/clinic-view";
@@ -74,6 +75,18 @@ export async function ActivityScreen({
   const duration = (minutes: number | null) => formatMinutes(minutes, locale);
   const percent = (ratio: number | null) => formatPercent(ratio, locale);
   const count = (value: number) => formatCount(value, locale);
+  // Ce que mesurent les délais : la bulle de leur libellé.
+  const medianInfo: InfoTipContent = {
+    text: t.common.measures.median,
+    term: "delaiMedian",
+  };
+  const slaInfo: InfoTipContent = {
+    text: t.common.measures.withinSla(
+      duration(activity.slaRoutineMinutes),
+      duration(activity.slaUrgentMinutes),
+    ),
+    term: "delaiPromis",
+  };
 
   return (
     <>
@@ -170,10 +183,12 @@ export async function ActivityScreen({
               label={text.activity.median}
               value={duration(activity.medianMinutes)}
               hint={text.activity.medianHint}
+              info={medianInfo}
             />
             <Figure
               label={text.activity.withinSla}
               value={percent(activity.withinSla)}
+              info={slaInfo}
               hint={text.activity.slaHint(
                 duration(activity.slaRoutineMinutes),
                 duration(activity.slaUrgentMinutes),
@@ -201,16 +216,18 @@ export async function ActivityScreen({
               <table className="w-full min-w-[32rem] border-separate border-spacing-0 text-sm">
                 <thead>
                   <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:px-4 [&>th]:text-right [&>th]:font-medium [&>th:first-child]:text-left">
-                    {[
-                      columns.modality,
-                      columns.routine,
-                      columns.urgent,
-                      columns.signed,
-                      columns.median,
-                      columns.withinSla,
-                    ].map((label) => (
+                    {(
+                      [
+                        { label: columns.modality },
+                        { label: columns.routine },
+                        { label: columns.urgent },
+                        { label: columns.signed },
+                        { label: columns.median, info: medianInfo },
+                        { label: columns.withinSla, info: slaInfo },
+                      ] satisfies { label: string; info?: InfoTipContent }[]
+                    ).map(({ label, info }) => (
                       <th key={label} scope="col">
-                        <span className="label-eyebrow">{label}</span>
+                        <ColumnLabel label={label} info={info} />
                       </th>
                     ))}
                   </tr>
@@ -244,6 +261,10 @@ export async function ActivityScreen({
           id="performances"
           title={text.performance.title}
           description={text.performance.description}
+          info={{
+            title: text.performance.info.trendTitle,
+            text: text.performance.info.trend,
+          }}
           flush
         >
           <PerformanceTable performance={performance} />

@@ -97,4 +97,26 @@ export const common = {
     fr: "Français",
     en: "English",
   },
+  /** Bulle d'information (ⓘ) posée sur un intitulé ou le libellé d'une mesure. */
+  infoTip: {
+    /** Nom du bouton ⓘ : `label` est l'intitulé qu'il explique. */
+    about: (label: string) => `À propos de « ${label} »`,
+    learnMore: "En savoir plus",
+    /** Nom complet du lien « En savoir plus » : `term` est le terme du glossaire. */
+    learnMoreAbout: (term: string) =>
+      `En savoir plus sur « ${term} » dans le glossaire`,
+  },
+  /**
+   * Ce que mesure un indicateur de délai, en une phrase : la bulle de son
+   * intitulé, partout où il s'affiche (activité, performances, tableaux de
+   * bord, tour de contrôle).
+   */
+  measures: {
+    median:
+      "La moitié des examens est rendue plus vite, de la réception à la signature ; un examen exceptionnellement long ne le déforme pas.",
+    mean: "La moyenne des délais de la réception à la signature, qu’un seul examen très long tire vers le haut.",
+    p90: "Neuf examens sur dix sont rendus plus vite : il montre les plus longues attentes.",
+    withinSla: (routine: string, urgent: string) =>
+      `Part des examens signés dans le délai promis à la clinique : ${routine} en routine, ${urgent} en urgence.`,
+  },
 };

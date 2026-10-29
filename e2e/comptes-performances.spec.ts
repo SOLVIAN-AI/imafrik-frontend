@@ -8,7 +8,8 @@ import { expect, test } from "./support/fixtures";
  * bouton « Modalités » libellé, les listes d'urgence où il figure, et
  * « Voir ses performances », qui ouvre la rubrique « Par radiologue » de
  * l'activité sur sa ligne. Chaque indicateur y est expliqué en une phrase,
- * et un mois sans activité le dit.
+ * dans la bulle ⓘ de son intitulé (clavier, clic, Échap), qui mène au
+ * glossaire quand il en dit davantage ; un mois sans activité le dit.
  */
 
 test.describe("l’équipe IMAFRIK", () => {
@@ -130,14 +131,13 @@ test.describe("l’équipe IMAFRIK", () => {
     await expect(
       page.getByRole("row", { name: /Dr Adjo Kponton/ }),
     ).toHaveAttribute("aria-current", "true");
-    // Chaque indicateur en une phrase : info-bulle et légende.
-    await expect(
-      page.getByRole("button", { name: "Trier par Délai médian" }),
-    ).toHaveAttribute("title", /La moitié des examens est rendue plus vite/);
-    const legende = page.getByRole("region", {
-      name: "Ce que mesure chaque colonne",
+    // Chaque indicateur en une phrase, dans la bulle ⓘ de son intitulé :
+    // plus de légende sous le tableau.
+    const tableau = page.getByRole("table").filter({
+      has: page.getByRole("columnheader", { name: /Radiologue/ }),
     });
-    for (const terme of [
+    for (const colonne of [
+      "Actes signés",
       "Délai médian",
       "Moyen",
       "90e centile",
@@ -145,9 +145,72 @@ test.describe("l’équipe IMAFRIK", () => {
       "Prise en charge",
       "Lecture",
       "Rendus sans signature",
+      "Urgences prises",
+      "En cours",
     ]) {
-      await expect(legende.getByText(terme, { exact: true })).toBeVisible();
+      await expect(
+        tableau
+          .getByRole("button", { name: `À propos de « ${colonne} »` })
+          .first(),
+      ).toBeVisible();
     }
+    await expect(
+      page.getByRole("region", { name: "Ce que mesure chaque colonne" }),
+    ).toHaveCount(0);
+
+    // Au clavier : Tab depuis le bouton de tri ouvre la bulle, sans trier.
+    const info = tableau.getByRole("button", {
+      name: "À propos de « Délai médian »",
+    });
+    const bulle = page.getByRole("dialog", { name: "Délai médian" });
+    const enSavoirPlus = bulle.getByRole("button", {
+      name: "En savoir plus sur « Délai médian » dans le glossaire",
+    });
+    await tableau
+      .getByRole("button", { name: "Trier par Délai médian" })
+      .focus();
+    await page.keyboard.press("Tab");
+    await expect(info).toBeFocused();
+    await expect(bulle).toContainText(
+      "La moitié des examens est rendue plus vite",
+    );
+    // Tab entre dans la bulle, jusqu'au lien ; Échap la ferme et rend le
+    // focus au bouton, sans la rouvrir.
+    await page.keyboard.press("Tab");
+    await expect(enSavoirPlus).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(bulle).toBeHidden();
+    await expect(info).toBeFocused();
+
+    // Au clic : la bulle s'ouvre, la colonne garde son tri.
+    await info.click();
+    await expect(bulle).toBeVisible();
+    await expect(
+      tableau.getByRole("columnheader", { name: /Trier par Délai médian/ }),
+    ).toHaveAttribute("aria-sort", "ascending");
+    // Une bulle qui dit tout ne mène nulle part.
+    await page.keyboard.press("Escape");
+    await tableau
+      .getByRole("button", { name: "À propos de « Rendus sans signature »" })
+      .click();
+    const rendus = page.getByRole("dialog", { name: "Rendus sans signature" });
+    await expect(rendus).toContainText("avant de les signer");
+    await expect(rendus.getByRole("button")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+
+    // « En savoir plus » ouvre l'aide sur le terme, sans quitter l'écran.
+    await info.click();
+    await enSavoirPlus.click();
+    await expect(bulle).toBeHidden();
+    const terme = page
+      .getByRole("dialog", { name: "Aide", exact: true })
+      .locator("#aide-terme-delaiMedian");
+    await expect(terme).toBeInViewport();
+    await expect(terme).toContainText(
+      "Délai en deçà duquel la moitié des examens est rendue",
+    );
+    await expect(page).toHaveURL(/onglet=radiologues/);
+    await page.keyboard.press("Escape");
     // Tous les radiologues, sans la mise en évidence.
     await page.getByRole("link", { name: "Tous les radiologues" }).click();
     await expect(page).not.toHaveURL(/radiologue=/);
@@ -200,8 +263,14 @@ test.describe("le responsable de la clinique", () => {
     await expect(
       page.getByRole("heading", { name: "Performances par radiologue" }),
     ).toBeInViewport();
+    // Les flèches de tendance s'expliquent dans la bulle du titre.
+    await page
+      .getByRole("button", {
+        name: "À propos de « Performances par radiologue »",
+      })
+      .click();
     await expect(
-      page.getByRole("region", { name: "Ce que mesure chaque colonne" }),
-    ).toBeVisible();
+      page.getByRole("dialog", { name: "Flèches de tendance" }),
+    ).toContainText("l’écart avec le mois précédent");
   });
 });

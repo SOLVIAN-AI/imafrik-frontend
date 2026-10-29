@@ -93,6 +93,12 @@ function buildMetrics(
       label: labels.urgentOpen,
       value: String(urgent.length),
       hint: urgent.length > 0 ? labels.urgentHint : undefined,
+      info: {
+        text: supervising
+          ? labels.urgentOpenInfoSupervision
+          : labels.urgentOpenInfo,
+        term: "listeUrgence",
+      },
       icon: METRIC_ICONS.urgent,
       tone: urgent.length > 0 ? "urgent" : "neutral",
     },

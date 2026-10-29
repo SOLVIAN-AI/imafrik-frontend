@@ -87,6 +87,18 @@ export const admin: AppMessages["admin"] = {
       reading: "claim → signature",
       delivery: "signature → download",
     },
+    info: {
+      arrival:
+        "Median time between the examination’s acquisition on the clinic’s device and its last image reaching the central PACS.",
+      transfer:
+        "Median time between the first and the last image received by the central PACS: how long sending takes, longer over a slow link.",
+      queue:
+        "Median time between the examination’s receipt and its claim by a radiologist: the wait in the queue.",
+      reading:
+        "Median time between the examination’s claim and its report’s signature.",
+      delivery:
+        "Median time between the report’s signature and its download by the clinic.",
+    },
     ongoingSuffix: " (in progress)",
     ongoing: (stage: string) => `${stage.toLowerCase()} in progress`,
   },
@@ -144,6 +156,8 @@ export const admin: AppMessages["admin"] = {
     overdue: "Overdue",
     overdueHint: (urgent: number, routine: number) =>
       `${urgent} urgent · ${routine} routine`,
+    overdueInfo: (urgent: string, routine: string) =>
+      `Examinations not yet reported whose promised time has passed: ${urgent} for urgent, ${routine} for routine.`,
     inProgress: "Being read",
     inProgressHint: "not yet signed",
     signedToday: "Signed today",
@@ -194,8 +208,8 @@ export const admin: AppMessages["admin"] = {
       "This radiologist has no activity this month: no examination received in the month was handed to them.",
     seeAll: "All radiologists",
     byClinic: "By clinic",
-    byClinicDescription:
-      "Throughput is measured on the link between the gateway and the central PACS",
+    throughputInfo: (slow: string) =>
+      `Median throughput of the link between the clinic’s gateway and the central PACS, per examination; amber below ${slow}.`,
     noClinic: "No clinics in this period.",
     columns: {
       clinic: "Clinic",
@@ -216,6 +230,8 @@ export const admin: AppMessages["admin"] = {
     emptyDetail:
       "Examinations appear here as soon as the central PACS has received them.",
     medianThroughput: "Median throughput",
+    medianThroughputInfo:
+      "Median receiving throughput of the examinations listed: each one’s volume, divided by the time between its first and last image received by the central PACS.",
     slowestTenth: (rate: string) => `10% below ${rate}`,
     medianArrival: "Median transmission",
     arrivalHint: "acquisition → last image",
@@ -246,6 +262,8 @@ export const admin: AppMessages["admin"] = {
       uid: "UID",
       waiting: "Waiting",
     },
+    waitingInfo: (hours: number) =>
+      `Time since the examination was received, amber after ${hours} hours; no longer flagged once the report is delivered.`,
   },
 
   organisations: {
@@ -268,6 +286,11 @@ export const admin: AppMessages["admin"] = {
       lastSent: "Last sent",
       state: "Status",
       actions: "Actions",
+    },
+    info: {
+      pacs: "Connected: one of the clinic’s gateways has received its AE Title, and the IMAFRIK PACS accepts its examinations. A radiology group sends none.",
+      days30:
+        "Examinations received from the clinic over the last thirty days, to the day; a radiology group receives none.",
     },
     totalStudies: (count: number) =>
       `${count} examination${count === 1 ? "" : "s"} in total`,
@@ -756,6 +779,8 @@ export const admin: AppMessages["admin"] = {
     actsHint: "signed report",
     unreported: "Without a signed report",
     unreportedHint: "not billed",
+    unreportedInfo:
+      "Examinations received during the month whose report is not yet signed: they do not count as procedures, and are not billed.",
     missingPlans: "Without a plan",
     missingPlansHint: "to set on the clinic’s page",
     current: "Current month: statements are provisional.",

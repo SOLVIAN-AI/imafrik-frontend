@@ -42,6 +42,16 @@ export const gateways: AppMessages["gateways"] = {
     enrolled: "Enrolled",
     actions: "Actions",
   },
+  columnInfo: {
+    status:
+      "Where the gateway stands: awaiting approval after enrolment, active once the PACS accepts its examinations, suspended while its sends are refused, rejected or revoked for good.",
+    address:
+      "The only address from which the PACS accepts the workstation’s sends: its node’s address on the private network, read from Tailscale, or a fixed public address.",
+    certificate:
+      "Shortened fingerprint of the certificate in force and its expiry date, amber within 14 days, red once passed.",
+    heartbeat: (minutes: number) =>
+      `Last message from the kit, which sends one every five minutes; amber after ${minutes} minutes, absent from an adopted gateway without the new kit.`,
+  },
   origin: {
     enrolled: "Enrolled with a code",
     adopted: "Adopted: connected before enrolment",

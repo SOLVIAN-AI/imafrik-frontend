@@ -274,7 +274,7 @@ export const pages = {
         "Le bilan de chaque mois en trois parties, à un clic depuis l’en-tête : l’activité, les performances de chaque radiologue, puis le relevé de facturation, le même que celui de l’équipe IMAFRIK. Réservé aux responsables de la clinique.",
       steps: [
         "Changez de mois avec les flèches ; « Activité », « Performances par radiologue » et « Facturation » mènent à chaque partie.",
-        "Dans les performances, triez les colonnes ; survolez un intitulé, ou lisez la légende sous le tableau, pour ce que mesure chaque indicateur.",
+        "Dans les performances, triez les colonnes ; le bouton ⓘ d’un intitulé dit ce que mesure l’indicateur, celui du titre ce que disent les flèches.",
         "Sans compte-rendu signé dans le mois, le tableau le dit : ses délais restent vides jusqu’au premier acte signé.",
         "Dans « Facturation », lisez l’abonnement, les forfaits techniques et le total HT, provisoire jusqu’à la clôture du mois.",
         "Cliquez sur « Exporter en CSV » pour télécharger le relevé du mois.",
@@ -322,7 +322,7 @@ export const pages = {
       steps: [
         "Choisissez la rubrique : « Vue d’ensemble », « Par radiologue » ou « Par clinique » ; « Facturation » ouvre les relevés du mois.",
         "Gardez « Tout le réseau » ou choisissez une clinique ; la période (7 j à 1 an) vaut pour la vue d’ensemble, le mois pour les radiologues.",
-        "Dans « Par radiologue », triez les colonnes ; survolez un intitulé, ou lisez la légende sous le tableau, pour ce que mesure chaque indicateur.",
+        "Dans « Par radiologue », triez les colonnes ; le bouton ⓘ d’un intitulé dit ce que mesure l’indicateur, celui du titre ce que disent les flèches.",
         "Depuis « Comptes », « Voir ses performances » ouvre cette rubrique sur la ligne du radiologue, mise en évidence.",
         "Sans compte-rendu signé dans le mois, le tableau le dit : ses délais restent vides jusqu’au premier acte signé.",
       ],

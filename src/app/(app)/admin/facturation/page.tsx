@@ -112,11 +112,14 @@ export default async function BillingPage({
               label={text.acts}
               value={formatCount(totals.acts, locale)}
               hint={text.actsHint}
+              // La définition du glossaire, en entier : la bulle dit tout.
+              info={{ text: t.help.glossary.acte.definition }}
             />
             <Figure
               label={text.unreported}
               value={formatCount(totals.unreported, locale)}
               hint={text.unreportedHint}
+              info={{ text: text.unreportedInfo }}
               tone={
                 totals.unreported > 0 && billing.closable
                   ? "progress"

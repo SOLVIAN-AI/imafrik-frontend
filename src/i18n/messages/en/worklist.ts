@@ -28,6 +28,10 @@ export const worklist: AppMessages["worklist"] = {
     mineHint: (count: number) => `including ${count} in progress`,
     urgentOpen: "Urgent to take",
     urgentHint: "the first to take it gets it",
+    urgentOpenInfo:
+      "Urgent examinations from clinics whose urgent list you are on, in the modalities you read, not yet taken by anyone: the first to take one gets it.",
+    urgentOpenInfoSupervision:
+      "Urgent examinations received that nobody has taken yet: the radiologists on their clinic’s urgent list can take them without assignment.",
     overdue: "Overdue",
     overdueHint: "turnaround exceeded",
     nextDeadline: "Next deadline",
@@ -63,6 +67,14 @@ export const worklist: AppMessages["worklist"] = {
       study: "Examination",
       follow: "Status",
       received: "Received",
+    },
+    info: {
+      deadline:
+        "Time left before the end of the turnaround promised to the clinic, counted from receipt: amber in its last quarter, red once passed.",
+      follow: (assigned: string, inProgress: string) =>
+        `The examination’s status: “${assigned}” until its reading starts, “${inProgress}” once taken on, until signing.`,
+      followSupervision:
+        "The radiologist holding the examination; for one to assign, how many radiologists can receive it, given the modalities they read.",
     },
     clinicalInfo: (text: string) => `Clinical information: ${text}`,
     colleague: "A colleague",

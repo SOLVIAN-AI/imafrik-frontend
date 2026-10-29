@@ -51,6 +51,17 @@ export const gateways = {
     enrolled: "Enrôlée",
     actions: "Actions",
   },
+  /** Bulles des intitulés qui ne se lisent pas d'eux-mêmes. */
+  columnInfo: {
+    status:
+      "Où en est la passerelle : en attente d’approbation après l’enrôlement, active une fois que le PACS accepte ses examens, suspendue tant que ses envois sont refusés, rejetée ou révoquée pour de bon.",
+    address:
+      "Seule adresse d’où le PACS accepte les envois du poste : celle de son nœud sur le réseau privé, lue dans Tailscale, ou une adresse publique fixe.",
+    certificate:
+      "Empreinte abrégée du certificat en vigueur et sa date d’échéance, en ambre à moins de 14 jours, en rouge une fois passée.",
+    heartbeat: (minutes: number) =>
+      `Dernier message du kit, qui en envoie un toutes les cinq minutes ; en ambre au-delà de ${minutes} minutes, absent d’une passerelle reprise sans le nouveau kit.`,
+  },
   origin: {
     enrolled: "Enrôlée par code",
     adopted: "Reprise : raccordée avant l’enrôlement",

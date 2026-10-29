@@ -269,7 +269,7 @@ export const pages: typeof fr = {
         "Each month in three parts, one click from the header: the activity, each radiologist’s performance, then the billing statement, the same one the IMAFRIK team sees. For the clinic’s managers only.",
       steps: [
         "Change the month with the arrows; “Activity”, “Performance by radiologist” and “Billing” lead to each part.",
-        "In the performance table, sort the columns; hover a heading, or read the legend below the table, for what each indicator measures.",
+        "In the performance table, sort the columns; a heading’s ⓘ button tells what the indicator measures, the title’s what the arrows mean.",
         "With no signed report in the month, the table says so: its turnaround stays empty until the first signed procedure.",
         "Under “Billing”, read the subscription, the technical fees and the total excluding tax, provisional until the month is closed.",
         "Click “Export as CSV” to download the month’s statement.",
@@ -317,7 +317,7 @@ export const pages: typeof fr = {
       steps: [
         "Choose the section: “Overview”, “By radiologist” or “By clinic”; “Billing” opens the month’s statements.",
         "Keep “Whole network” or choose a clinic; the period (7 d to 1 year) applies to the overview, the month to radiologists.",
-        "Under “By radiologist”, sort the columns; hover a heading, or read the legend below the table, for what each indicator measures.",
+        "Under “By radiologist”, sort the columns; a heading’s ⓘ button tells what the indicator measures, the title’s what the arrows mean.",
         "From “Accounts”, “See their performance” opens this section on the radiologist’s row, highlighted.",
         "With no signed report in the month, the table says so: its turnaround stays empty until the first signed procedure.",
       ],

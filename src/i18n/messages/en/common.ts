@@ -82,4 +82,18 @@ export const common: AppMessages["common"] = {
     fr: "Français",
     en: "English",
   },
+  infoTip: {
+    about: (label: string) => `About “${label}”`,
+    learnMore: "Learn more",
+    learnMoreAbout: (term: string) =>
+      `Learn more about “${term}” in the glossary`,
+  },
+  measures: {
+    median:
+      "Half the examinations are reported faster, from receipt to signing; one exceptionally long examination does not distort it.",
+    mean: "The average time from receipt to signing, which a single very long examination pulls up.",
+    p90: "Nine examinations out of ten are reported faster: it shows the longest waits.",
+    withinSla: (routine: string, urgent: string) =>
+      `Share of examinations signed within the time promised to the clinic: ${routine} for routine, ${urgent} for urgent.`,
+  },
 };

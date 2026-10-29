@@ -127,12 +127,14 @@ function Summary({
         label={text.medianThroughput}
         value={formatRate(quantile(rates, 0.5), locale)}
         hint={text.slowestTenth(formatRate(slowest, locale))}
+        info={{ text: text.medianThroughputInfo }}
         tone={slowest !== null && slowest < 1 ? "progress" : undefined}
       />
       <Figure
         label={text.medianArrival}
         value={formatMinutes(quantile(arrivals, 0.5), locale)}
         hint={text.arrivalHint}
+        info={{ text: t.admin.stages.info.arrival, term: "passerelle" }}
       />
       <Figure
         label={t.admin.shared.volumeReceived}

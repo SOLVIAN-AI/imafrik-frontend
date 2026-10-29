@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { ColumnLabel, type InfoTipContent } from "@/components/ui/info-tip";
 import { cn } from "@/lib/utils";
 
 /**
@@ -35,7 +36,10 @@ export interface MetricTrend {
  *
  * @property label   Ce que compte la mesure, en langage d'utilisateur.
  * @property value   La valeur, déjà formatée.
- * @property hint    Précision facultative — comparaison, seuil, unité.
+ * @property hint    Précision facultative (comparaison, seuil, unité) :
+ *                   une donnée, pas une définition.
+ * @property info    Ce que compte la mesure, quand le libellé ne suffit
+ *                   pas : une bulle ⓘ à côté du libellé.
  * @property icon    Repère visuel, secondaire au chiffre.
  * @property tone    Charge sémantique. `urgent` n'est employé que si la
  *                   valeur appelle réellement une action.
@@ -45,6 +49,7 @@ export interface Metric {
   label: string;
   value: string;
   hint?: string;
+  info?: InfoTipContent;
   icon: LucideIcon;
   tone?: "neutral" | "urgent" | "progress" | "accent" | "done";
   trend?: MetricTrend;
@@ -175,12 +180,28 @@ export function MetricCard({ metric }: { metric: Metric }) {
             le nom ne sert à rien. Quatre cartes côte à côte à 1024 px, ou
             deux par rangée sur un téléphone, demandent parfois trois
             lignes (« Comptes-rendus prêts »). */}
-        <p className="label-eyebrow mt-0.5">{metric.label}</p>
+        <p className="label-eyebrow mt-0.5">
+          {metric.info ? (
+            <ColumnLabel
+              label={metric.label}
+              info={metric.info}
+              wrap
+              textClass=""
+            />
+          ) : (
+            metric.label
+          )}
+        </p>
         {/* La précision vient sous le libellé, pas à côté du chiffre : à
-            côté, elle lui disputait la largeur et finissait tronquée. */}
+            côté, elle lui disputait la largeur et finissait tronquée. Avec
+            une bulle, un peu d'air sous le libellé : le bouton ⓘ déborde
+            de sa ligne. */}
         {metric.hint && (
           <p
-            className="line-clamp-2 text-2xs text-tertiary"
+            className={cn(
+              "line-clamp-2 text-2xs text-tertiary",
+              metric.info && "mt-1",
+            )}
             title={metric.hint}
           >
             {metric.hint}

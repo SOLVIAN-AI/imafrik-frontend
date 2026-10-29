@@ -1,5 +1,6 @@
 import type * as React from "react";
 
+import { InfoTip, type InfoTipContent } from "@/components/ui/info-tip";
 import { messagesFor } from "@/i18n";
 import { axisTicks, labelIndices } from "@/lib/charts";
 import { formatPercent } from "@/lib/format";
@@ -538,6 +539,7 @@ export function Ring({
   tone,
   size = 88,
   showLabel = true,
+  info,
 }: {
   value: number | null;
   label: string;
@@ -546,6 +548,8 @@ export function Ring({
   size?: number;
   /** Faux quand le libellé est déjà écrit à côté : il reste lu par l'`aria-label`. */
   showLabel?: boolean;
+  /** Bulle ⓘ à côté du libellé affiché : ce que mesure l'anneau. */
+  info?: InfoTipContent;
 }) {
   const ratio = value ?? 0;
   const resolved: Tone =
@@ -601,7 +605,10 @@ export function Ring({
         </text>
       </svg>
       {showLabel && (
-        <figcaption className="text-xs text-secondary">{label}</figcaption>
+        <figcaption className="text-xs text-secondary">
+          {label}
+          {info && <InfoTip label={label} {...info} />}
+        </figcaption>
       )}
     </figure>
   );

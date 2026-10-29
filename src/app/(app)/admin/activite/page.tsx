@@ -18,8 +18,10 @@ import {
   StackedBars,
 } from "@/components/charts/charts";
 import { MonthNav } from "@/components/domain/month-nav";
+import type { GlossaryTerm } from "@/components/help/help-context";
 import { PerformanceTable } from "@/components/domain/performance-table";
 import { PageHeader } from "@/components/layout/app-shell";
+import { ColumnLabel, type InfoTipContent } from "@/components/ui/info-tip";
 import {
   ANALYTICS_PERIODS,
   parseClinic,
@@ -249,6 +251,10 @@ export default async function ActivityPage({
             description={`${formatMonth(month, locale)} · ${
               clinicName ?? t.admin.shared.wholeNetwork
             } · ${t.clinic.activity.performance.description}`}
+            info={{
+              title: t.clinic.activity.performance.info.trendTitle,
+              text: t.clinic.activity.performance.info.trend,
+            }}
             action={
               radiologistId
                 ? { label: text.seeAll, href: href({ everyone: true }) }
@@ -310,6 +316,7 @@ function Totals({ data, t, locale }: { data: ControlAnalytics } & Lang) {
       <Figure
         label={text.withinSla}
         value={formatPercent(ratio, locale)}
+        info={slaInfo(data, t, locale)}
         tone={
           ratio === null
             ? undefined
@@ -336,6 +343,25 @@ function Totals({ data, t, locale }: { data: ControlAnalytics } & Lang) {
     </section>
   );
 }
+
+/** Bulle de « Dans les délais » : les délais promis de la période. */
+const slaInfo = (
+  data: ControlAnalytics,
+  t: AppMessages,
+  locale: Locale,
+): InfoTipContent => ({
+  text: t.common.measures.withinSla(
+    formatDuration(data.targets.routine, locale),
+    formatDuration(data.targets.urgent, locale),
+  ),
+  term: "delaiPromis",
+});
+
+/** Bulle d'un délai médian, de la réception à la signature. */
+const medianInfo = (t: AppMessages): InfoTipContent => ({
+  text: t.common.measures.median,
+  term: "delaiMedian",
+});
 
 /** Séries de l'histogramme des volumes, de bas en haut. */
 const volumeSeries = (t: AppMessages) => [
@@ -435,6 +461,16 @@ const STAGES: (keyof StageMedians)[] = [
 ];
 
 /**
+ * Terme du glossaire de chaque étape, quand il en dit davantage que sa
+ * bulle.
+ */
+const STAGE_TERMS: Partial<Record<keyof StageMedians, GlossaryTerm>> = {
+  arrival: "passerelle",
+  queue: "priseEnCharge",
+  reading: "dureeLecture",
+};
+
+/**
  * Où se perd le temps : médiane de chaque étape.
  *
  * Le délai total ne dit pas si un examen attend dans le réseau, dans la
@@ -472,7 +508,12 @@ function Stages({ stages, t, locale }: { stages: StageMedians } & Lang) {
                 )}
               >
                 <span className="tabular-nums">{index + 1}.</span>
-                <span className="truncate">{labels.labels[key]}</span>
+                <ColumnLabel
+                  label={labels.labels[key]}
+                  info={{ text: labels.info[key], term: STAGE_TERMS[key] }}
+                  textClass="truncate"
+                  className="min-w-0"
+                />
               </p>
               <p
                 className={cn(
@@ -487,7 +528,6 @@ function Stages({ stages, t, locale }: { stages: StageMedians } & Lang) {
                   "truncate text-2xs",
                   isSlowest ? "text-secondary" : "text-tertiary",
                 )}
-                title={labels.details[key]}
               >
                 {labels.details[key]}
               </p>
@@ -514,8 +554,17 @@ function Clinics({
 }: { data: ControlAnalytics; days: number } & Lang) {
   const text = t.admin.activity;
   const columns = text.columns;
+  // Ce que mesurent les colonnes qui ne se lisent pas d'elles-mêmes : la
+  // bulle de leur intitulé, sur le tableau comme sur les cartes.
+  const info = {
+    median: medianInfo(t),
+    withinSla: slaInfo(data, t, locale),
+    throughput: {
+      text: text.throughputInfo(formatRate(SLOW_LINK_MB_PER_S, locale)),
+    },
+  } satisfies Record<string, InfoTipContent>;
   return (
-    <Section title={text.byClinic} description={text.byClinicDescription} flush>
+    <Section title={text.byClinic} flush>
       {data.byClinic.length === 0 ? (
         <p className="px-4 py-6 text-center text-xs text-tertiary">
           {text.noClinic}
@@ -539,23 +588,28 @@ function Clinics({
                   <Cell
                     label={columns.median}
                     value={formatMinutes(clinic.medianMinutes, locale)}
+                    info={info.median}
                   />
                   <Cell
                     label={columns.withinSla}
                     value={formatPercent(clinic.withinSla, locale)}
+                    info={info.withinSla}
                   />
                   <Cell
                     label={columns.throughput}
                     value={formatRate(clinic.medianMbPerSecond, locale)}
                     warn={isSlow(clinic.medianMbPerSecond)}
+                    info={info.throughput}
                   />
                   <Cell
                     label={columns.volume}
                     value={formatBytes(clinic.bytes, locale)}
                   />
                   <div className="min-w-0">
-                    <dt className="text-tertiary">{columns.lastSent}</dt>
-                    <dd className="truncate">
+                    <dt className="truncate text-tertiary">
+                      {columns.lastSent}
+                    </dt>
+                    <dd className="mt-0.5 truncate">
                       {clinic.lastReceivedAt ? (
                         <RelativeTime
                           date={clinic.lastReceivedAt}
@@ -584,13 +638,19 @@ function Clinics({
                     <span className="label-eyebrow">{columns.signed}</span>
                   </th>
                   <th scope="col">
-                    <span className="label-eyebrow">{columns.median}</span>
+                    <ColumnLabel label={columns.median} info={info.median} />
                   </th>
                   <th scope="col">
-                    <span className="label-eyebrow">{columns.withinSla}</span>
+                    <ColumnLabel
+                      label={columns.withinSla}
+                      info={info.withinSla}
+                    />
                   </th>
                   <th scope="col">
-                    <span className="label-eyebrow">{columns.throughput}</span>
+                    <ColumnLabel
+                      label={columns.throughput}
+                      info={info.throughput}
+                    />
                   </th>
                   <th scope="col">
                     <span className="label-eyebrow">{columns.volume}</span>
@@ -656,20 +716,30 @@ const SLOW_LINK_MB_PER_S = 1.5;
 const isSlow = (rate: number | null) =>
   rate !== null && rate < SLOW_LINK_MB_PER_S;
 
-/** Une valeur étiquetée, dans les cartes du téléphone. */
+/**
+ * Une valeur étiquetée, dans les cartes du téléphone. L'intitulé porte la
+ * même bulle que la colonne du tableau ; un peu d'air sous lui, que le
+ * bouton ⓘ déborde de sa ligne sans toucher la valeur.
+ */
 function Cell({
   label,
   value,
   warn = false,
+  info,
 }: {
   label: string;
   value: string;
   warn?: boolean;
+  info?: InfoTipContent;
 }) {
   return (
     <div className="min-w-0">
-      <dt className="truncate text-tertiary">{label}</dt>
-      <dd className={cn("truncate tabular-nums", warn && "text-progress")}>
+      <dt className="flex min-w-0 items-center text-tertiary">
+        <ColumnLabel label={label} info={info} textClass="truncate" />
+      </dt>
+      <dd
+        className={cn("mt-0.5 truncate tabular-nums", warn && "text-progress")}
+      >
         {value}
       </dd>
     </div>

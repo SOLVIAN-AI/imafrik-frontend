@@ -31,6 +31,7 @@ import {
   formatCount,
   formatDate,
   formatDayShort,
+  formatDuration,
   formatMinutes,
   formatRate,
 } from "@/lib/format";
@@ -211,11 +212,17 @@ export default async function ClinicPage({
                 label={shared.medianTurnaround}
                 value={formatMinutes(activity?.medianMinutes ?? null, locale)}
                 hint={text.receiptToSignature}
+                info={{ text: t.common.measures.median, term: "delaiMedian" }}
               />
               <Figure
                 label={text.throughput}
                 value={formatRate(activity?.medianMbPerSecond ?? null, locale)}
                 hint={text.throughputHint}
+                info={{
+                  text: t.admin.activity.throughputInfo(
+                    formatRate(1.5, locale),
+                  ),
+                }}
                 tone={
                   activity?.medianMbPerSecond != null &&
                   activity.medianMbPerSecond < 1.5
@@ -254,6 +261,13 @@ export default async function ClinicPage({
                   label={text.withinSla}
                   locale={locale}
                   size={80}
+                  info={{
+                    text: t.common.measures.withinSla(
+                      formatDuration(analytics.targets.routine, locale),
+                      formatDuration(analytics.targets.urgent, locale),
+                    ),
+                    term: "delaiPromis",
+                  }}
                 />
               </div>
             </Section>
