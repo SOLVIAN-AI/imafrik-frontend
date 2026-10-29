@@ -54,10 +54,13 @@ export const filters = {
   nouns: {
     studies: (count: number) =>
       count > 1 ? `${count} examens` : `${count} examen`,
+    reports: (count: number) =>
+      count > 1 ? `${count} comptes-rendus` : `${count} compte-rendu`,
   },
   /** Liste vide à cause des filtres. */
   empty: {
     studies: "Aucun examen ne correspond à ces filtres",
+    reports: "Aucun compte-rendu ne correspond à ces filtres",
     detail: (filters: string) =>
       `Filtres retenus : ${filters}. Effacez-en un pour élargir la liste.`,
   },

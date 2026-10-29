@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 
-import { Segmented } from "@/components/admin/control-ui";
 import { ListPagination } from "@/components/domain/list-pagination";
 import { ReportsView } from "@/components/domain/reports-view";
-import { listStudyPageAt, STUDY_LIST_PAGE_SIZE } from "@/lib/data/studies";
-import { pageHref, readCursor } from "@/lib/pagination";
+import { loadReportList } from "@/lib/data/report-list";
 import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
@@ -20,34 +18,21 @@ export async function generateMetadata(): Promise<Metadata> {
  * le contexte (patient, modalité, établissement), et le service le
  * renvoie avec le résumé de son compte-rendu, en un seul appel.
  *
- * Pour un radiologue, seulement ceux qu'il a signés (`mine`) : l'écran
- * l'annonce.
+ * Chaque rôle a sa liste (`lib/filters/reports.ts`) et ses filtres, sur la
+ * barre commune, comptés par le service :
  *
- * Recherche et pagination sont faites par le service, sur tout le
- * périmètre : la liste s'arrêtait auparavant aux deux cents premiers
- * documents, et la recherche ne portait que sur eux.
+ * - **le responsable** : signataire, modalité, « À télécharger » ou
+ *   « Téléchargés », urgence, période ;
+ * - **le radiologue** : seulement ceux qu'il a signés (`mine`), par
+ *   clinique, modalité, urgence, période ;
+ * - **l'équipe IMAFRIK** : tous, en cours de rédaction compris, par
+ *   clinique, radiologue, modalité, état, urgence, période. L'ancienne
+ *   adresse `?etat=draft|signed|delivered` reste lue.
+ *
+ * Triée par date de signature, les derniers d'abord : la liste affiche
+ * cette date, elle était triée par réception. Recherche et pagination
+ * sont faites par le service, sur tout le périmètre.
  */
-/** États proposés à l'équipe IMAFRIK, dans l'ordre du filtre. */
-const ADMIN_STATES = ["all", "draft", "signed", "delivered"] as const;
-type AdminState = (typeof ADMIN_STATES)[number];
-
-/** Statuts d'examen de chaque filtre. Un brouillon est un examen en cours. */
-const STATUSES: Record<
-  AdminState | "signed-or-delivered",
-  ("in_progress" | "reported" | "delivered")[]
-> = {
-  all: ["in_progress", "reported", "delivered"],
-  draft: ["in_progress"],
-  signed: ["reported"],
-  delivered: ["delivered"],
-  "signed-or-delivered": ["reported", "delivered"],
-};
-
-/** Filtre demandé par l'adresse ; tous les comptes-rendus à défaut. */
-function readState(value: string | string[] | undefined): AdminState {
-  return ADMIN_STATES.find((state) => state === value) ?? "all";
-}
-
 export default async function ReportsPage({
   searchParams,
 }: PageProps<"/comptes-rendus">) {
@@ -58,42 +43,27 @@ export default async function ReportsPage({
   ]);
   const search = await readListSearch("comptes-rendus", session);
   const params = await searchParams;
-  const admin = session.active.role === "platform_admin";
-  // L'équipe IMAFRIK voit aussi les comptes-rendus en cours de rédaction,
-  // et filtre par état (`?etat=`) ; les autres, les seuls documents signés.
-  const state = admin ? readState(params.etat) : "signed-or-delivered";
-  const { studies, total, nextCursor } = await listStudyPageAt(
-    {
-      status: STATUSES[state],
-      mine: session.active.role === "radiologist",
-      search,
-      limit: STUDY_LIST_PAGE_SIZE,
-      cursor: readCursor(params),
-    },
-    pageHref("/comptes-rendus", params, null),
-  );
   const { t } = await getMessages();
-  const labels = t.clinic.reports;
+  const reader =
+    session.active.role === "platform_admin"
+      ? "team"
+      : session.active.role === "clinic_staff"
+        ? "clinic"
+        : "radiologist";
+  const { studies, total, nextCursor, filters, bar } = await loadReportList({
+    reader,
+    params,
+    search,
+    pathname: "/comptes-rendus",
+    t,
+  });
   return (
     <ReportsView
       studies={studies}
       search={search}
       total={total}
-      filter={
-        admin ? (
-          <Segmented
-            label={labels.filter}
-            options={ADMIN_STATES.map((option) => ({
-              label: labels.filters[option],
-              href:
-                option === "all"
-                  ? "/comptes-rendus"
-                  : `/comptes-rendus?etat=${option}`,
-              active: state === option,
-            }))}
-          />
-        ) : undefined
-      }
+      bar={bar}
+      filters={filters}
       footer={
         <ListPagination
           pathname="/comptes-rendus"

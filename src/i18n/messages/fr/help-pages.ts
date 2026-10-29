@@ -69,7 +69,7 @@ export const pages = {
       purpose:
         "Les comptes-rendus que vous avez signés. Chacun s’ouvre tel qu’il a été signé, avec son PDF, son lien de vérification et ses addenda.",
       steps: [
-        "Tapez un nom de patient, un identifiant ou une modalité dans la recherche.",
+        "Cherchez un patient, ou filtrez par clinique, modalité, urgence ou période : les plus récemment signés en tête.",
         "Cliquez sur une ligne pour ouvrir le compte-rendu tel qu’il a été signé.",
         "Sur le compte-rendu ouvert, téléchargez le PDF ou ajoutez un addendum.",
         "Cliquez sur « Page suivante » en bas de la liste pour voir les comptes-rendus suivants.",
@@ -211,8 +211,8 @@ export const pages = {
       purpose:
         "Les comptes-rendus signés et transmis à votre établissement. Vous y retrouvez un document par patient et téléchargez son PDF.",
       steps: [
-        "Cherchez un patient par son nom, son identifiant ou la modalité, puis appuyez sur Entrée.",
-        "Repérez la mention « À télécharger » : ce compte-rendu n’a pas encore été récupéré par votre clinique.",
+        "Cherchez un patient, ou filtrez par signataire, modalité, urgence ou période : les plus récemment signés en tête.",
+        "Choisissez l’état « À télécharger » : les comptes-rendus que votre clinique n’a pas encore récupérés, avec leur nombre.",
         "Cliquez sur « PDF » au bout de la ligne pour le télécharger. Il passe alors en « Téléchargé ».",
         "Cliquez sur une ligne pour ouvrir le compte-rendu, par exemple pour télécharger de nouveau un PDF déjà récupéré.",
       ],
@@ -595,8 +595,8 @@ export const pages = {
       purpose:
         "Les comptes-rendus signés et remis de la clinique consultée, ceux que voit son responsable. « À télécharger » dit que la clinique ne l’a pas encore récupéré : un téléchargement par l’équipe n’y change rien.",
       steps: [
-        "Cherchez un patient par son nom, son identifiant ou la modalité, puis appuyez sur Entrée.",
-        "Repérez la mention « À télécharger » : la clinique n’a pas encore récupéré ce compte-rendu.",
+        "Cherchez un patient, ou filtrez par signataire, modalité, urgence ou période : les plus récemment signés en tête.",
+        "Choisissez l’état « À télécharger » : les comptes-rendus que la clinique n’a pas encore récupérés, avec leur nombre.",
         "Cliquez sur une ligne pour ouvrir le compte-rendu signé.",
         "Le PDF que vous téléchargez est tracé à votre nom, sans marquer le compte-rendu remis.",
       ],
@@ -686,7 +686,7 @@ export const pages = {
       purpose:
         "Tous les comptes-rendus de la plateforme, toutes cliniques confondues, en cours de rédaction compris. En consultation : l’équipe les suit et télécharge les PDF signés, sans rédiger ni signer.",
       steps: [
-        "Choisissez l’état : « Tous », « En cours de rédaction », « Signés » ou « Remis ».",
+        "Filtrez par clinique, radiologue, modalité, état (« En cours de rédaction », « Signés », « Remis »), urgence ou période.",
         "Cherchez un patient, un identifiant ou une modalité dans la barre de recherche.",
         "Lisez sur chaque ligne l’examen, la clinique, le radiologue qui rédige ou a signé, et la date de signature.",
         "Ouvrez un brouillon pour suivre sa rédaction dans l’écran de lecture, ou un compte-rendu signé pour sa fiche.",

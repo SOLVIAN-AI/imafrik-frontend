@@ -93,16 +93,46 @@ export function facetsFor(keys: readonly DimensionKey[]): StudyFacet[] {
 }
 
 /**
+ * Les états qu'une liste propose, quand elle ne les propose pas tous : ses
+ * statuts possibles, et le nom de chaque état sur cet écran.
+ */
+export interface ScreenStates {
+  /** États proposés, dans l'ordre du registre. */
+  values: readonly StudyState[];
+  /** Statuts que la liste peut montrer ; les autres ne se comptent pas. */
+  statuses: readonly StudyStatus[];
+  /** Nom de chaque état sur cet écran (« À télécharger »). */
+  labels?: Partial<Record<StudyState, string>>;
+}
+
+/**
+ * Les statuts d'un état, parmi ceux que la liste peut montrer.
+ *
+ * @param state   État retenu, ou aucun.
+ * @param allowed Statuts de la liste.
+ */
+export function stateStatuses(
+  state: string | undefined,
+  allowed: readonly StudyStatus[],
+): StudyStatus[] {
+  if (!state) return [...allowed];
+  return STATE_STATUSES[state as StudyState].filter((status) =>
+    allowed.includes(status),
+  );
+}
+
+/**
  * Les dimensions de la barre, tirées des comptes du service.
  *
- * @param keys   Dimensions de l'écran, dans l'ordre du registre.
- * @param counts Comptes du service (`getStudyFacets`).
- * @param labels Nom propre à l'écran d'une bascule (« Urgences en cours »).
+ * @param keys    Dimensions de l'écran, dans l'ordre du registre.
+ * @param counts  Comptes du service (`getStudyFacets`).
+ * @param options Nom propre à l'écran d'une bascule (« Urgences en
+ *                cours ») ; états de l'écran, s'il ne les propose pas tous.
  */
 export function facetDimensions(
   keys: readonly DimensionKey[],
   counts: StudyFacets,
-  labels: { urgency?: string } = {},
+  options: { urgency?: string; states?: ScreenStates } = {},
 ): BarDimension[] {
   const sum = (rows: { count: number }[] = []) =>
     rows.reduce((total, row) => total + row.count, 0);
@@ -144,20 +174,25 @@ export function facetDimensions(
       }
       case "state": {
         const statuses = byValue("status");
+        const screen = options.states;
+        const allowed = (status: StudyStatus) =>
+          !screen || screen.statuses.includes(status);
+        const countOf = (list: readonly StudyStatus[]) =>
+          list
+            .filter(allowed)
+            .reduce((total, status) => total + (statuses.get(status) ?? 0), 0);
         return {
           key,
-          options: STUDY_STATES.map((state) => ({
+          options: (screen?.values ?? STUDY_STATES).map((state) => ({
             value: state,
-            count: STATE_STATUSES[state].reduce(
-              (total, status) => total + (statuses.get(status) ?? 0),
-              0,
-            ),
+            label: screen?.labels?.[state],
+            count: countOf(STATE_STATUSES[state]),
           })),
-          total: sum(counts.facets.status),
+          total: countOf([...statuses.keys()] as StudyStatus[]),
         };
       }
       case "urgency":
-        return { key, label: labels.urgency };
+        return { key, label: options.urgency };
       case "period":
         return { key, options: PERIODS.map((value) => ({ value })) };
     }

@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import type { StudyFacets } from "@/lib/data/studies";
 import { LIST_FILTERS } from "@/lib/filters/screens";
+import { REPORT_LISTS } from "@/lib/filters/reports";
 import {
   facetDimensions,
   facetsFor,
   STATE_STATUSES,
+  stateStatuses,
   studyQuery,
 } from "@/lib/filters/studies";
 
@@ -113,5 +115,56 @@ describe("barre tirée des comptes du service", () => {
       "90",
       "365",
     ]);
+  });
+});
+
+describe("listes de comptes-rendus", () => {
+  it("un état ne montre que ce que la liste peut montrer", () => {
+    const equipe = REPORT_LISTS.team.statuses;
+    expect(stateStatuses(undefined, equipe)).toEqual([
+      "in_progress",
+      "reported",
+      "delivered",
+    ]);
+    // « En cours de rédaction » : les examens commencés, pas les attribués.
+    expect(stateStatuses("reading", equipe)).toEqual(["in_progress"]);
+    expect(stateStatuses("ready", REPORT_LISTS.clinic.statuses)).toEqual([
+      "reported",
+    ]);
+  });
+
+  it("ne compte que les états et les statuts de la liste, nommés pour l’écran", () => {
+    const counts: StudyFacets = {
+      total: 6,
+      facets: {
+        status: [
+          { value: "received", count: 4 },
+          { value: "assigned", count: 2 },
+          { value: "in_progress", count: 1 },
+          { value: "reported", count: 3 },
+          { value: "delivered", count: 2 },
+        ],
+      },
+    };
+    const [state] = facetDimensions(["state"], counts, {
+      states: {
+        values: REPORT_LISTS.clinic.states,
+        statuses: REPORT_LISTS.clinic.statuses,
+        labels: { ready: "À télécharger", delivered: "Téléchargés" },
+      },
+    });
+    expect(state.options).toEqual([
+      { value: "ready", label: "À télécharger", count: 3 },
+      { value: "delivered", label: "Téléchargés", count: 2 },
+    ]);
+    expect(state.total).toBe(5);
+    const [equipe] = facetDimensions(["state"], counts, {
+      states: {
+        values: REPORT_LISTS.team.states,
+        statuses: REPORT_LISTS.team.statuses,
+      },
+    });
+    expect(equipe.options?.map((option) => option.count)).toEqual([1, 3, 2]);
+    expect(equipe.total).toBe(6);
   });
 });

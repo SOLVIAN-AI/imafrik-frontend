@@ -26,6 +26,25 @@ export const LIST_FILTERS = {
   // « Examens » du responsable, et de la vue des cliniques : sa clinique
   // est celle de l'écran.
   examens: ["radiologist", "modality", "state", "urgency", "period"],
+  // « Comptes-rendus » : le responsable (et la vue des cliniques) filtre
+  // par signataire et par « À télécharger » ; le radiologue, ses propres
+  // comptes-rendus, par clinique ; l'équipe, tout.
+  "comptes-rendus-clinique": [
+    "radiologist",
+    "modality",
+    "state",
+    "urgency",
+    "period",
+  ],
+  "comptes-rendus-radiologue": ["clinic", "modality", "urgency", "period"],
+  "comptes-rendus-equipe": [
+    ...NETWORK,
+    "radiologist",
+    "modality",
+    "state",
+    "urgency",
+    "period",
+  ],
   // « À lire » : la file d'un radiologue, ou toute la plateforme pour
   // l'équipe IMAFRIK ; la clinique ne s'affiche que s'il y en a plusieurs.
   worklist: [...NETWORK, "modality", "urgency"],
