@@ -316,7 +316,7 @@ export const pages: typeof fr = {
         "The platform’s activity in three sections, one click from the header: an overview of a period, each radiologist’s performance over a month, activity by clinic. Each section has its own address, to share as it is.",
       steps: [
         "Choose the section: “Overview”, “By radiologist” or “By clinic”; “Billing” opens the month’s statements.",
-        "Keep “All clinics” or choose one; the period (7 d to 1 year) applies to the overview, the month to radiologists.",
+        "Filter by clinic, and by modality outside “By radiologist”; the period (7 d to 1 year) applies to the overview, the month to radiologists.",
         "Under “By radiologist”, sort the columns; a heading’s ⓘ button tells what the indicator measures, the title’s what the arrows mean.",
         "From “Accounts”, “See their performance” opens this section on the radiologist’s row, highlighted.",
         "With no signed report in the month, the table says so: its turnaround stays empty until the first signed procedure.",

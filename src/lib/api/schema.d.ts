@@ -9699,6 +9699,8 @@ export interface operations {
             query?: {
                 days?: number;
                 clinic_id?: string | null;
+                /** @description Seulement ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
             };
             header?: {
                 authorization?: string | null;

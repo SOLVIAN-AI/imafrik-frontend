@@ -611,15 +611,22 @@ export function demoOverview(
   };
 }
 
-/** Activité d'une période, éventuellement d'une seule clinique. */
+/**
+ * Activité d'une période, éventuellement d'une seule clinique ou d'un seul
+ * groupe de modalités, comme le service (`public.modality_group`).
+ */
 export function demoAnalytics(
   days: number,
   clinicId: string | null = null,
   now = Date.now(),
+  modalityGroup: ModalityGroup | null = null,
 ): ApiControlAnalytics {
   const today = epochDay(now) * DAY;
   const since = today - (days - 1) * DAY;
-  const flows = demoFlows(since, now, clinicId);
+  const flows = demoFlows(since, now, clinicId).filter(
+    (flow) =>
+      !modalityGroup || modalityGroupOf(flow.modality.code) === modalityGroup,
+  );
   const signed = flows.filter((flow) => flow.signedAt !== null);
 
   const daily = Array.from({ length: days }, (_, index) => {
