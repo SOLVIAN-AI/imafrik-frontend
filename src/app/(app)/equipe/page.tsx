@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** L'équipe de la clinique, gérée par son responsable. */
-export default async function TeamPage() {
+export default async function TeamPage({ searchParams }: PageProps<"/equipe">) {
   await requireSession(["clinic_staff"]);
-  return <TeamScreen consultation={null} />;
+  return <TeamScreen consultation={null} params={await searchParams} />;
 }

@@ -251,6 +251,55 @@ const REQUESTER_SLUGS: Record<RequesterKind, string> = {
   radiologist: "radiologue",
 };
 
+/** Origine d'un modèle de compte-rendu : fourni par IMAFRIK, ou par l'organisation. */
+export const TEMPLATE_ORIGINS = ["imafrik", "organization"] as const;
+
+/** Une origine de modèle. */
+export type TemplateOrigin = (typeof TEMPLATE_ORIGINS)[number];
+
+/** L'origine d'un modèle dans l'adresse, en français. */
+const TEMPLATE_ORIGIN_SLUGS: Record<TemplateOrigin, string> = {
+  imafrik: "imafrik",
+  organization: "organisation",
+};
+
+/** États d'un exercice de formation, dans l'ordre du parcours. */
+export const TRAINING_STATES = ["todo", "draft", "submitted"] as const;
+
+/** Un état d'exercice. */
+export type TrainingState = (typeof TRAINING_STATES)[number];
+
+/** L'état d'un exercice dans l'adresse, en français. */
+const TRAINING_STATE_SLUGS: Record<TrainingState, string> = {
+  todo: "a-faire",
+  draft: "en-cours",
+  submitted: "signe",
+};
+
+/**
+ * Tâches d'exploitation (filets de sécurité), de la plus grave à perdre
+ * à la plus fréquente : l'ordre de l'écran « Système ».
+ */
+export const OPS_TASKS = [
+  "backup",
+  "restore_drill",
+  "reconciliation",
+  "retention",
+  "host_watch",
+] as const;
+
+/** Une tâche d'exploitation. */
+export type OpsTask = (typeof OPS_TASKS)[number];
+
+/** La tâche dans l'adresse, en français. */
+const OPS_TASK_SLUGS: Record<OpsTask, string> = {
+  backup: "sauvegarde",
+  restore_drill: "restauration",
+  reconciliation: "reconciliation",
+  retention: "conservation",
+  host_watch: "surveillance",
+};
+
 /** Périodes proposées, en jours : la réception depuis 24 h, 7 jours… */
 export const PERIODS = ["1", "7", "30", "90", "365"] as const;
 
@@ -329,6 +378,20 @@ export const DIMENSIONS = {
     valueLabel: (t, value) =>
       t.common.roles[value as (typeof ROLES)[number]] ?? value,
   },
+  // Modèles de comptes-rendus : ceux d'IMAFRIK, ceux de l'organisation.
+  origin: {
+    param: "origine",
+    presentation: "chips",
+    values: TEMPLATE_ORIGINS,
+    read: (raw) =>
+      TEMPLATE_ORIGINS.find(
+        (origin) => TEMPLATE_ORIGIN_SLUGS[origin] === raw,
+      ) ?? null,
+    write: (value) => TEMPLATE_ORIGIN_SLUGS[value as TemplateOrigin] ?? value,
+    text: (t) => ({ name: t.filters.origin, all: t.filters.allOrigins }),
+    valueLabel: (t, value) =>
+      t.filters.origins[value as TemplateOrigin] ?? value,
+  },
   modality: {
     param: "modalite",
     presentation: "chips",
@@ -353,6 +416,20 @@ export const DIMENSIONS = {
     write: (value) => STATE_SLUGS[value as StudyState] ?? value,
     text: (t) => ({ name: t.filters.state, all: t.filters.allStates }),
     valueLabel: (t, value) => t.filters.states[value as StudyState] ?? value,
+  },
+  // Le même paramètre que l'état d'un examen : ils ne se rencontrent sur
+  // aucun écran.
+  trainingState: {
+    param: "etat",
+    presentation: "chips",
+    values: TRAINING_STATES,
+    read: (raw) =>
+      TRAINING_STATES.find((state) => TRAINING_STATE_SLUGS[state] === raw) ??
+      null,
+    write: (value) => TRAINING_STATE_SLUGS[value as TrainingState] ?? value,
+    text: (t) => ({ name: t.filters.state, all: t.filters.allStates }),
+    valueLabel: (t, value) =>
+      t.training.states[value as TrainingState] ?? value,
   },
   standing: {
     param: "statut",
@@ -427,6 +504,16 @@ export const DIMENSIONS = {
       matches: t.filters.actionMatches,
     }),
   },
+  task: {
+    param: "tache",
+    presentation: "chips",
+    values: OPS_TASKS,
+    read: (raw) =>
+      OPS_TASKS.find((task) => OPS_TASK_SLUGS[task] === raw) ?? null,
+    write: (value) => OPS_TASK_SLUGS[value as OpsTask] ?? value,
+    text: (t) => ({ name: t.filters.task, all: t.filters.allTasks }),
+    valueLabel: (t, value) => t.admin.ops.labels[value as OpsTask] ?? value,
+  },
   requester: {
     param: "demandeur",
     presentation: "chips",
@@ -492,6 +579,16 @@ export const DIMENSIONS = {
     text: (t) => ({ name: t.filters.urgency, all: t.filters.allPriorities }),
     valueLabel: (t) => t.filters.urgent,
   },
+  // Radiologues qui prennent une urgence sans attribution.
+  urgentReader: {
+    param: "liste-urgence",
+    presentation: "toggle",
+    values: ["listed"],
+    read: (raw) => (raw === "1" ? "listed" : null),
+    write: () => "1",
+    text: (t) => ({ name: t.filters.urgentList, all: t.filters.allMembers }),
+    valueLabel: (t) => t.filters.onUrgentList,
+  },
   mute: {
     param: "muette",
     presentation: "toggle",
@@ -518,6 +615,15 @@ export const DIMENSIONS = {
     write: () => "absente",
     text: (t) => ({ name: t.filters.mfa, all: t.filters.allAccounts }),
     valueLabel: (t) => t.filters.withoutMfa,
+  },
+  failed: {
+    param: "echecs",
+    presentation: "toggle",
+    values: ["failed"],
+    read: (raw) => (raw === "1" ? "failed" : null),
+    write: () => "1",
+    text: (t) => ({ name: t.filters.failures, all: t.filters.allRuns }),
+    valueLabel: (t) => t.filters.failuresOnly,
   },
   // Une liste courte, mais un filtre d'appoint : une liste déroulante, pour
   // que la barre tienne sur une ligne à 1 440 px.

@@ -101,6 +101,21 @@ export const filters = {
   urgency: "Urgence",
   allPriorities: "Toutes les priorités",
   urgent: "Urgences",
+  origin: "Origine",
+  allOrigins: "Toutes les origines",
+  /** Origine d'un modèle de compte-rendu. */
+  origins: { imafrik: "IMAFRIK", organization: "Organisation" },
+  task: "Tâche",
+  allTasks: "Toutes les tâches",
+  /** Radiologues qui prennent une urgence sans attribution. */
+  urgentList: "Liste d’urgence",
+  onUrgentList: "Sur la liste d’urgence",
+  allMembers: "Tous les membres",
+  failures: "Échecs",
+  allRuns: "Toutes les exécutions",
+  failuresOnly: "Échecs seulement",
+  memberSearch: "Rechercher un membre",
+  memberSearchPlaceholder: "Nom, adresse électronique…",
   /** Ce que comptent les options et la liste, en toutes lettres. */
   nouns: {
     entries: (count: number) =>
@@ -119,6 +134,13 @@ export const filters = {
       count > 1 ? `${count} comptes-rendus` : `${count} compte-rendu`,
     organizations: (count: number) =>
       count > 1 ? `${count} organisations` : `${count} organisation`,
+    members: (count: number) =>
+      count > 1 ? `${count} membres` : `${count} membre`,
+    templates: (count: number) =>
+      count > 1 ? `${count} modèles` : `${count} modèle`,
+    cases: (count: number) => `${count} cas`,
+    runs: (count: number) =>
+      count > 1 ? `${count} exécutions` : `${count} exécution`,
   },
   /** Liste vide à cause des filtres. */
   empty: {
@@ -130,7 +152,14 @@ export const filters = {
     reports: "Aucun compte-rendu ne correspond à ces filtres",
     accounts: "Aucun compte ne correspond à ces filtres",
     organizations: "Aucune organisation ne correspond à ces filtres",
+    members: "Aucun membre ne correspond à ces filtres",
+    templates: "Aucun modèle ne correspond à ces filtres",
+    cases: "Aucun cas ne correspond à ces filtres",
+    runs: "Aucune exécution ne correspond à ces filtres",
     detail: (filters: string) =>
       `Filtres retenus : ${filters}. Effacez-en un pour élargir la liste.`,
+    /** Liste vide à cause de la recherche seule. */
+    searchTitle: "Aucun résultat pour cette recherche",
+    searchDetail: "Vérifiez l’orthographe, ou cherchez par un autre mot.",
   },
 };

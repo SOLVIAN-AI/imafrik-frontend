@@ -11,7 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
 /** L'équipe d'une clinique, consultée par l'équipe IMAFRIK. */
 export default async function ClinicViewTeamPage({
   params,
+  searchParams,
 }: PageProps<"/admin/vue-clinique/[clinicId]/equipe">) {
   const consultation = await requireConsultation((await params).clinicId);
-  return <TeamScreen consultation={consultation} />;
+  return <TeamScreen consultation={consultation} params={await searchParams} />;
 }

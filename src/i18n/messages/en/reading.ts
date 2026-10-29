@@ -436,7 +436,6 @@ export const reading: AppMessages["reading"] = {
     search: "Search for a template",
     searchPlaceholder: "Name, region…",
     modality: "Modality",
-    allModalities: "All",
     noMatch: "No template matches this search.",
     allRegions: "All regions",
     anyModality: "All modalities",

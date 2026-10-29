@@ -20,6 +20,9 @@ import { clearFiltersHref } from "@/lib/filters/url";
  * et propose de les effacer, plutôt qu'une liste vide qui laisserait
  * croire que rien n'est arrivé.
  *
+ * Sans filtre retenu, c'est la recherche qui vide la liste : la page le
+ * dit, sans bouton (le champ de recherche a le sien pour l'effacer).
+ *
  * @param dimensions Dimensions de l'écran, comme la barre les reçoit.
  * @param active     Filtres lus par la page.
  * @param noun       Ce que la liste montre (« examens », par défaut).
@@ -36,13 +39,21 @@ export function FilteredEmpty({
   const t = useMessages();
   const pathname = usePathname();
   const params = useSearchParams();
+  const retained = describeFilters(dimensions, active, t);
+  if (retained.length === 0) {
+    return (
+      <EmptyState
+        icon={SearchX}
+        title={t.filters.empty.searchTitle}
+        detail={t.filters.empty.searchDetail}
+      />
+    );
+  }
   return (
     <EmptyState
       icon={SearchX}
       title={t.filters.empty[noun]}
-      detail={t.filters.empty.detail(
-        describeFilters(dimensions, active, t).join(", "),
-      )}
+      detail={t.filters.empty.detail(retained.join(", "))}
       action={
         <Button asChild variant="secondary" size="sm">
           <Link
