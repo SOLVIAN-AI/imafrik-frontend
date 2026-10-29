@@ -2,16 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import type { Study } from "@/lib/data/studies";
 import {
-  applyFilters,
   byDeadline,
   deadlineOf,
-  filterOptions,
-  filtersToQuery,
   formatDuration,
-  hasFilters,
   newUrgentArrivals,
-  NO_FILTERS,
-  parseFilters,
   shortDemographics,
   splitWorklist,
   withAssignments,
@@ -128,65 +122,6 @@ describe("splitWorklist", () => {
     const a = study("a", { ago: 30, sla: 60 });
     const b = study("b", { ago: 60, sla: 90 });
     expect([a, b].sort(byDeadline).map((s) => s.id)).toEqual(["b", "a"]);
-  });
-});
-
-describe("filtres", () => {
-  it("relit l'adresse en ignorant les valeurs mal formées", () => {
-    expect(
-      parseFilters({
-        modalite: ["ct,mr", "<script>"],
-        clinique: "org-a",
-        urgent: "1",
-      }),
-    ).toEqual({
-      modalities: ["CT", "MR"],
-      clinicId: "org-a",
-      urgentOnly: true,
-    });
-    expect(parseFilters({})).toEqual(NO_FILTERS);
-    expect(hasFilters(NO_FILTERS)).toBe(false);
-  });
-
-  it("se sérialise sans rien de nominatif", () => {
-    expect(
-      filtersToQuery({
-        modalities: ["CT", "MR"],
-        clinicId: null,
-        urgentOnly: true,
-      }),
-    ).toBe("modalite=CT%2CMR&urgent=1");
-  });
-
-  it("filtre par modalité, clinique et urgence", () => {
-    const studies = [
-      study("ct-a", { modality: "CT" }),
-      study("mr-b", { modality: "MR", clinicId: "org-b", clinic: "B" }),
-      study("ct-b-urgent", {
-        modality: "CT",
-        clinicId: "org-b",
-        clinic: "B",
-        urgent: true,
-      }),
-    ];
-    const ids = (filters: Partial<typeof NO_FILTERS>) =>
-      applyFilters(studies, { ...NO_FILTERS, ...filters }).map((s) => s.id);
-    expect(ids({ modalities: ["CT"] })).toEqual(["ct-a", "ct-b-urgent"]);
-    expect(ids({ clinicId: "org-b" })).toEqual(["mr-b", "ct-b-urgent"]);
-    expect(ids({ urgentOnly: true })).toEqual(["ct-b-urgent"]);
-  });
-
-  it("propose les options présentes, les plus fréquentes d'abord", () => {
-    const options = filterOptions([
-      study("1", { modality: "MR" }),
-      study("2", { modality: "CT" }),
-      study("3", { modality: "CT", clinicId: "org-b", clinic: "B" }),
-    ]);
-    expect(options.modalities).toEqual([
-      { value: "CT", label: "CT", count: 2 },
-      { value: "MR", label: "MR", count: 1 },
-    ]);
-    expect(options.clinics.map((c) => c.label)).toEqual(["Clinique A", "B"]);
   });
 });
 

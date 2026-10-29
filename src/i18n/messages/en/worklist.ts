@@ -40,8 +40,8 @@ export const worklist: AppMessages["worklist"] = {
     many: (count: number) => `${count} new urgent examinations to take`,
     one: (study: string) => `New urgent examination to take: ${study}`,
   },
-  truncated:
-    "The worklist holds more examinations than this screen shows: only those closest to their deadline are listed. Narrow it down with the search or the filters.",
+  truncated: (shown: number, total: number) =>
+    `The worklist holds ${total} examinations; the screen shows the ${shown} closest to their deadline. The indicators only cover these, the filter counts cover the whole worklist. Narrow it with the search or the filters.`,
   groups: {
     mine: { title: "Assigned to you", hint: "by deadline" },
     open: {
@@ -105,8 +105,6 @@ export const worklist: AppMessages["worklist"] = {
   toolbar: {
     searchLabel: "Search for a patient or a modality",
     searchPlaceholder: "Patient, ID, modality…",
-    urgentShort: "Urgent",
-    urgentOnly: "Urgent only",
     invalidSearch: "Invalid search.",
   },
 };

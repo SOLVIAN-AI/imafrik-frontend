@@ -27,8 +27,8 @@ import {
 } from "@/lib/data/studies";
 import type { ModalityGroup } from "@/lib/api/contracts";
 import { LIST_FILTERS } from "@/lib/filters/screens";
+import { clinicDimension, modalityDimension } from "@/lib/filters/studies";
 import { hasFilters, readFilters } from "@/lib/filters/url";
-import { MODALITY_GROUPS } from "@/lib/modalities";
 import { pageHref, readCursor } from "@/lib/pagination";
 import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
@@ -146,23 +146,8 @@ export default async function AdminStudiesPage({
   // La barre : chaque choix avec son nombre d'examens, compté par le
   // service avec tous les autres filtres.
   const bar: BarDimension[] = [
-    {
-      key: "clinic",
-      options: clinicCounts.clinics.map((row) => ({
-        value: row.id,
-        label: row.name,
-        count: row.count,
-      })),
-      total: clinicCounts.total,
-    },
-    {
-      key: "modality",
-      options: MODALITY_GROUPS.map((group) => ({
-        value: group,
-        count: counts.byGroup[group],
-      })),
-      total: counts.total,
-    },
+    clinicDimension(clinicCounts),
+    modalityDimension(counts),
     { key: "urgency", label: text.openUrgent },
   ];
   const filteredEmpty = studies.length === 0 && hasFilters(filters);

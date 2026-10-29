@@ -12,34 +12,16 @@ import type { AppMessages } from "@/i18n";
 import { useMessages } from "@/i18n/client";
 import {
   type ActiveFilters,
-  type DimensionKey,
+  type BarDimension,
   dimension,
 } from "@/lib/filters/dimensions";
 import { clearFiltersHref } from "@/lib/filters/url";
 import { cn } from "@/lib/utils";
 
+export type { BarDimension } from "@/lib/filters/dimensions";
+
 /** Ce que comptent une liste et ses options (« examens »). */
 export type FilterNoun = keyof AppMessages["filters"]["nouns"];
-
-/** Une valeur proposée, avec le nombre de lignes qu'elle retient. */
-export interface FilterOption {
-  value: string;
-  /** Nom affiché ; celui du registre pour une valeur fixe. */
-  label?: string;
-  /** Lignes retenues ; absent quand l'écran ne compte pas. */
-  count?: number;
-}
-
-/** Une dimension de la barre, telle que la page la décrit. */
-export interface BarDimension {
-  key: DimensionKey;
-  /** Valeurs proposées : toutes pour des puces, celles des données sinon. */
-  options?: readonly FilterOption[];
-  /** Lignes de toutes les valeurs, pour l'option par défaut. */
-  total?: number;
-  /** Nom propre à l'écran d'une bascule (« Urgences en cours »). */
-  label?: string;
-}
 
 /** Au-delà de ce nombre de puces, un téléphone les remplace par une liste. */
 const CHIPS_ON_PHONE = 3;
@@ -96,16 +78,19 @@ export function describeFilters(
  * @param dimensions Dimensions de l'écran, dans l'ordre du registre.
  * @param active     Filtres lus par la page.
  * @param result     Lignes de la liste filtrée, et ce qu'elles sont.
+ * @param tour       Repère de la visite guidée (`data-tour`).
  */
 export function FilterBar({
   dimensions,
   active,
   result,
+  tour,
   className,
 }: {
   dimensions: readonly BarDimension[];
   active: ActiveFilters;
   result: { count: number; noun: FilterNoun };
+  tour?: string;
   className?: string;
 }) {
   const t = useMessages();
@@ -121,6 +106,9 @@ export function FilterBar({
       role="group"
       aria-label={text.bar}
       data-testid="filter-bar"
+      data-tour={tour}
+      // La barre porte la marge de la page : la visite montre les filtres.
+      data-tour-fit={tour ? "content" : undefined}
       className={cn("flex min-w-0 flex-wrap items-center gap-2", className)}
     >
       {dimensions.map((entry) => {

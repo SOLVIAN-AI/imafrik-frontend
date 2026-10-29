@@ -15,7 +15,7 @@ import {
   type Metric,
 } from "@/components/domain/metrics";
 import { ReadingTable } from "@/components/domain/reading-table";
-import { WorklistFilterBar } from "@/components/domain/worklist-filters";
+import { FilterBar } from "@/components/filters/filter-bar";
 import { useSession } from "@/components/providers/session-provider";
 import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 import { useLocale, useMessages } from "@/i18n/client";
@@ -24,6 +24,8 @@ import { useNow } from "@/hooks/use-now";
 import type { AssignmentState } from "@/lib/actions/assignment";
 import type { Eligibility } from "@/lib/assignment-blocker";
 import type { Study } from "@/lib/data/studies";
+import type { ActiveFilters, BarDimension } from "@/lib/filters/dimensions";
+import { hasFilters } from "@/lib/filters/url";
 import { formatPatientName } from "@/lib/format";
 import { INTL_LOCALE, type Locale } from "@/lib/i18n/locale";
 import {
@@ -32,8 +34,6 @@ import {
   formatDuration,
   newUrgentArrivals,
   withAssignments,
-  type FilterOption,
-  type WorklistFilters,
   type WorklistSections,
 } from "@/lib/worklist";
 
@@ -123,16 +123,14 @@ function buildMetrics(
  * des examens.
  */
 function describeScope(
-  studies: Study[],
+  names: readonly string[],
   t: AppMessages,
   locale: Locale,
   supervising: boolean,
 ): string {
   const scope = supervising ? t.worklist.supervision.scope : t.worklist.scope;
   const intl = INTL_LOCALE[locale];
-  const clinics = [...new Set(studies.map((study) => study.clinic))].sort(
-    (a, b) => a.localeCompare(b, intl),
-  );
+  const clinics = [...new Set(names)].sort((a, b) => a.localeCompare(b, intl));
   if (clinics.length === 0) return scope.empty;
   if (clinics.length <= 3)
     return scope.clinics(
@@ -188,32 +186,35 @@ function useUrgentArrivals(open: Study[]) {
 /**
  * File de lecture du radiologue.
  *
- * @param sections   La file filtrée, découpée en sections.
- * @param all        La file avant filtres, pour le périmètre affiché.
+ * @param sections   La file filtrée par le service, découpée en sections.
+ * @param scope      Établissements dont la file contient des examens.
+ * @param bar        Dimensions de la barre de filtres, avec leurs nombres.
  * @param filters    Filtres actifs.
- * @param options    Valeurs de filtre proposées.
  * @param search     Recherche en cours.
- * @param truncated  Vrai si le service avait plus d'examens qu'il n'en a
- *                   renvoyé : l'écran le dit au lieu de laisser croire la
- *                   file complète.
+ * @param shown      Examens renvoyés par le service.
+ * @param total      Examens de la file filtrée : au-delà de `shown`,
+ *                   l'écran dit ce qu'il n'affiche pas, nombres compris,
+ *                   au lieu de laisser croire la file complète.
  * @param eligibility Équipe IMAFRIK : qui peut recevoir chaque examen à
  *                   attribuer, lu par la page pour toute la file affichée.
  */
 export function WorklistView({
   sections: served,
-  all,
+  scope,
+  bar,
   filters,
-  options,
   search,
-  truncated,
+  shown,
+  total,
   eligibility = {},
 }: {
   sections: WorklistSections;
-  all: Study[];
-  filters: WorklistFilters;
-  options: { modalities: FilterOption[]; clinics: FilterOption[] };
+  scope: readonly string[];
+  bar: readonly BarDimension[];
+  filters: ActiveFilters;
   search?: string;
-  truncated: boolean;
+  shown: number;
+  total: number;
   eligibility?: Record<string, Eligibility>;
 }) {
   const now = useNow();
@@ -251,11 +252,7 @@ export function WorklistView({
   useUrgentArrivals(sections.open);
   const assign = labels.supervision.assign;
 
-  const filtered =
-    Boolean(search) ||
-    filters.urgentOnly ||
-    filters.clinicId !== null ||
-    filters.modalities.length > 0;
+  const filtered = Boolean(search) || hasFilters(filters);
 
   return (
     // Téléphone : la page entière défile. Une liste qui défilerait seule
@@ -265,8 +262,8 @@ export function WorklistView({
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden">
       <PageHeader
         title={t.nav.items.worklist}
-        description={describeScope(all, t, locale, supervising)}
-        actions={<ListToolbar scope="worklist" search={search} urgentFilter />}
+        description={describeScope(scope, t, locale, supervising)}
+        actions={<ListToolbar scope="worklist" search={search} />}
       />
       {/* Numéro d'ordre non validé : la file est vide, le bandeau dit pourquoi. */}
       <CredentialsBanner className="mx-4 mb-4 sm:mx-6" />
@@ -275,14 +272,16 @@ export function WorklistView({
         className="px-4 pb-4 sm:px-6"
         tour="worklist-metrics"
       />
-      <WorklistFilterBar
-        filters={filters}
-        options={options}
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{ count: total, noun: "studies" }}
         tour="worklist-filters"
+        className="shrink-0 px-4 pb-3 sm:px-6"
       />
-      {truncated && (
-        <p className="px-4 pb-3 text-xs text-progress sm:px-6">
-          {labels.truncated}
+      {total > shown && (
+        <p role="status" className="px-4 pb-3 text-xs text-progress sm:px-6">
+          {labels.truncated(shown, total)}
         </p>
       )}
       {/* Compressible à partir de 1024 px seulement : sur téléphone, la

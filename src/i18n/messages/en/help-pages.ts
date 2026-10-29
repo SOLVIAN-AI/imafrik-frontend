@@ -9,7 +9,7 @@ export const pages: typeof fr = {
         "The examinations entrusted to you, sorted by deadline: those assigned to you and, if you are on a clinic’s urgent list, the urgent examinations to take. You see neither other radiologists’ examinations nor their reports.",
       steps: [
         "Check the indicators: “Assigned to you”, “Urgent to take”, “Overdue” and “Next deadline”.",
-        "Filter by modality or clinic, click “Urgent only”, or search for a patient.",
+        "Filter by clinic, modality or “Urgent”: each choice shows its number of examinations, across the whole worklist. Or search for a patient.",
         "Read “Assigned to you” first, by deadline. An examination under “Urgent to take” goes to the first radiologist who takes it.",
         "Click a row (or J, K then Enter) to open the examination, then click “Take on” on the reading screen.",
         "Keep the page open: the worklist refreshes automatically every 30 seconds and flags each new urgent examination to take.",
@@ -27,7 +27,7 @@ export const pages: typeof fr = {
       purpose:
         "The examinations you have claimed that are still to be reported, sorted by deadline. You find them here without searching the worklist.",
       steps: [
-        "Spot the most pressing ones: the “Deadline” column shows the time left, closest first.",
+        "Spot the most pressing ones: the “Deadline” column shows the time left. Filter by clinic, modality or “Urgent”, or search for a patient.",
         "Click a row to reopen the examination on the reading screen and continue its report.",
         "Sign the report: the examination leaves this list and moves to your “Reports”.",
         "If the list is empty, open an examination assigned to you, from the “To read” worklist, to take it on.",
