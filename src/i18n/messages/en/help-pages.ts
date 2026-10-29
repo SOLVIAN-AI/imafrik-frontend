@@ -420,7 +420,7 @@ export const pages: typeof fr = {
       purpose:
         "Lists every account on the platform. Here you attach new sign-ups, review radiologists’ files, set the modalities each one reads, check two-factor authentication and handle erasure requests.",
       steps: [
-        "Use the “To review”, “Signature to review” and “Pending” filters, “Modality read”, or search for an account by name or email.",
+        "Filter by organisation, role, modality read, account (“To review”, “Signature to review”, “Pending”) or without two-factor authentication.",
         "For an account “Not attached to any organisation”, click “Attach”, then choose the organisation and the role.",
         "Click “Review the file” or “Signature to review”, open the documents, then accept or refuse with a reason.",
         "On a radiologist’s row, read their modalities and urgent lists; “Modalities” sets them, “See their performance” opens their figures.",

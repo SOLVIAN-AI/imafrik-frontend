@@ -32,10 +32,11 @@ test.describe("tour de contrôle", () => {
     await alerte.click();
     await expect(page).toHaveURL("/admin/utilisateurs?validation=attente");
 
-    const filtre = page.getByRole("navigation", { name: "Filtre" });
-    await expect(
-      filtre.getByRole("link", { name: "À valider · 3" }),
-    ).toHaveAttribute("aria-current", "page");
+    // La barre de filtres commune : l'état du compte, compté.
+    const filtre = page.getByRole("group", { name: "Compte" });
+    const aValider = filtre.getByRole("link", { name: /^À valider/ });
+    await expect(aValider).toHaveAttribute("aria-current", "true");
+    await expect(aValider.locator("span[aria-hidden]")).toHaveText("3");
     await expect(
       page.getByText("Dossiers à examiner", { exact: true }),
     ).toBeVisible();
@@ -106,8 +107,8 @@ test.describe("tour de contrôle", () => {
   }) => {
     await page.goto("/admin/utilisateurs?validation=attente");
     await page
-      .getByRole("navigation", { name: "Filtre" })
-      .getByRole("link", { name: "Tous" })
+      .getByRole("group", { name: "Compte" })
+      .getByRole("link", { name: /^Tous les comptes/ })
       .click();
     await expect(page).toHaveURL("/admin/utilisateurs");
     const kponton = page.locator("li", { hasText: "Dr Adjo Kponton" });

@@ -59,6 +59,17 @@ export interface FilterDimension {
    * dès qu'on change le filtre : `?vue=a-attribuer` devient `?etat=…`.
    */
   aliases?: readonly string[];
+  /**
+   * Une valeur portée par un paramètre à elle (`?validation=attente`,
+   * `?attente=1`) : la lecture et l'écriture de toute l'adresse, à la
+   * place de `param`, `read` et `write`. Pour garder les adresses que des
+   * liens existants ouvrent, le cockpit par exemple.
+   */
+  codec?: {
+    params: readonly string[];
+    read(search: URLSearchParams): string | null;
+    write(value: string): readonly [param: string, value: string];
+  };
   presentation: Presentation;
   /** Valeurs fixes, dans l'ordre d'affichage ; absentes si tirées des données. */
   values?: readonly string[];
@@ -136,6 +147,35 @@ const LEGACY_STATES: Record<string, StudyState> = {
   delivered: "delivered",
 };
 
+/** Rôles d'un compte, dans l'ordre de l'écran. */
+export const ROLES = ["radiologist", "clinic_staff", "platform_admin"] as const;
+
+/** Le rôle dans l'adresse : un mot court, en français. */
+const ROLE_SLUGS: Record<(typeof ROLES)[number], string> = {
+  radiologist: "radiologue",
+  clinic_staff: "responsable",
+  platform_admin: "equipe",
+};
+
+/**
+ * États d'un compte à traiter par l'équipe IMAFRIK : justificatif à
+ * valider, signature ou cachet à vérifier, compte rattaché à rien.
+ */
+export const ACCOUNT_STATES = ["unverified", "signing", "pending"] as const;
+
+/** Un état de compte. */
+export type AccountState = (typeof ACCOUNT_STATES)[number];
+
+/**
+ * Le paramètre de chaque état de compte, tel que le cockpit et les liens
+ * l'écrivent depuis toujours.
+ */
+const ACCOUNT_PARAMS: Record<AccountState, readonly [string, string]> = {
+  unverified: ["validation", "attente"],
+  signing: ["signature", "attente"],
+  pending: ["attente", "1"],
+};
+
 /** Périodes proposées, en jours : la réception depuis 24 h, 7 jours… */
 export const PERIODS = ["1", "7", "30", "90", "365"] as const;
 
@@ -162,6 +202,21 @@ export const DIMENSIONS = {
       matches: t.filters.clinicMatches,
     }),
   },
+  organization: {
+    param: "organisation",
+    presentation: "dropdown",
+    read: (raw) => (ID_PATTERN.test(raw) ? raw : null),
+    write: (value) => value,
+    text: (t) => ({
+      name: t.filters.organization,
+      all: t.filters.allOrganizations,
+    }),
+    searchText: (t) => ({
+      search: t.filters.organizationSearch,
+      noMatch: t.filters.organizationNoMatch,
+      matches: t.filters.organizationMatches,
+    }),
+  },
   radiologist: {
     param: "radiologue",
     presentation: "dropdown",
@@ -176,6 +231,16 @@ export const DIMENSIONS = {
       noMatch: t.filters.radiologistNoMatch,
       matches: t.filters.radiologistMatches,
     }),
+  },
+  role: {
+    param: "role",
+    presentation: "chips",
+    values: ROLES,
+    read: (raw) => ROLES.find((role) => ROLE_SLUGS[role] === raw) ?? null,
+    write: (value) => ROLE_SLUGS[value as (typeof ROLES)[number]] ?? value,
+    text: (t) => ({ name: t.filters.role, all: t.filters.allRoles }),
+    valueLabel: (t, value) =>
+      t.common.roles[value as (typeof ROLES)[number]] ?? value,
   },
   modality: {
     param: "modalite",
@@ -202,6 +267,32 @@ export const DIMENSIONS = {
     text: (t) => ({ name: t.filters.state, all: t.filters.allStates }),
     valueLabel: (t, value) => t.filters.states[value as StudyState] ?? value,
   },
+  account: {
+    // Le paramètre principal ; les deux autres passent par le codec.
+    param: "validation",
+    presentation: "chips",
+    values: ACCOUNT_STATES,
+    codec: {
+      params: ["validation", "signature", "attente"],
+      // L'ordre de toujours : la validation l'emporte, puis la signature.
+      read: (search) =>
+        ACCOUNT_STATES.find((state) => {
+          const [param, value] = ACCOUNT_PARAMS[state];
+          return search.get(param) === value;
+        }) ?? null,
+      write: (value) => ACCOUNT_PARAMS[value as AccountState],
+    },
+    read: () => null,
+    write: (value) => value,
+    text: (t) => ({ name: t.filters.account, all: t.filters.allAccounts }),
+    // Les noms de toujours de l'écran des comptes.
+    valueLabel: (t, value) =>
+      ({
+        unverified: t.admin.users.unverifiedFilter,
+        signing: t.admin.users.signingFilter,
+        pending: t.admin.users.pendingFilter,
+      })[value as AccountState] ?? value,
+  },
   urgency: {
     param: "urgent",
     presentation: "toggle",
@@ -210,6 +301,15 @@ export const DIMENSIONS = {
     write: () => "1",
     text: (t) => ({ name: t.filters.urgency, all: t.filters.allPriorities }),
     valueLabel: (t) => t.filters.urgent,
+  },
+  mfa: {
+    param: "mfa",
+    presentation: "toggle",
+    values: ["missing"],
+    read: (raw) => (raw === "absente" ? "missing" : null),
+    write: () => "absente",
+    text: (t) => ({ name: t.filters.mfa, all: t.filters.allAccounts }),
+    valueLabel: (t) => t.filters.withoutMfa,
   },
   // Une liste courte, mais un filtre d'appoint : une liste déroulante, pour
   // que la barre tienne sur une ligne à 1 440 px.

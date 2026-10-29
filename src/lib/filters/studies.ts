@@ -195,6 +195,9 @@ export function facetDimensions(
         return { key, label: options.urgency };
       case "period":
         return { key, options: PERIODS.map((value) => ({ value })) };
+      // Dimensions d'autres listes (les comptes) : rien à compter ici.
+      default:
+        return { key };
     }
   });
 }

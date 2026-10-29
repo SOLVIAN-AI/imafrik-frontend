@@ -1,4 +1,4 @@
-import { expect, test } from "./support/fixtures";
+import { expect, settle, test } from "./support/fixtures";
 
 /**
  * Modalités lues dans « Comptes », et performances à un clic
@@ -52,18 +52,15 @@ test.describe("l’équipe IMAFRIK", () => {
     await page.keyboard.press("Escape");
 
     // Filtrer par modalité lue : l'échographie, Dr Diallo ne la lit pas.
-    await page
-      .getByLabel("Modalité lue")
-      .selectOption({ label: "Échographie" });
+    const modalites = page.getByRole("group", { name: "Modalité" });
+    await modalites.getByRole("link", { name: /^Échographie/ }).click();
     await expect(page).toHaveURL(/modalite=echographie/);
     await expect(page.getByText("Adjo Kponton").first()).toBeVisible();
     await expect(page.getByText("Fatou Diallo")).toHaveCount(0);
 
     // La mammographie, aucun radiologue habilité ne la lit : seuls restent
     // ceux dont le dossier attend encore sa validation.
-    await page
-      .getByLabel("Modalité lue")
-      .selectOption({ label: "Mammographie" });
+    await modalites.getByRole("link", { name: /^Mammographie/ }).click();
     await expect(page).toHaveURL(/modalite=mammographie/);
     await expect(page.getByText("Kossi Amegah").first()).toBeVisible();
     await expect(page.getByText("Adjo Kponton")).toHaveCount(0);
@@ -87,18 +84,13 @@ test.describe("l’équipe IMAFRIK", () => {
     expect(page.url()).not.toContain("diallo");
 
     // Un filtre garde la recherche, sans qu'elle passe par l'adresse.
-    await page
-      .getByRole("navigation", { name: "Filtre" })
-      .getByRole("link", { name: /^En attente/ })
-      .click();
+    const comptes = page.getByRole("group", { name: "Compte" });
+    await comptes.getByRole("link", { name: /^En attente/ }).click();
     await expect(page).toHaveURL("/admin/utilisateurs?attente=1");
     await expect(champ).toHaveValue("diallo");
 
     // Effacer la recherche rend toute la liste.
-    await page
-      .getByRole("navigation", { name: "Filtre" })
-      .getByRole("link", { name: "Tous", exact: true })
-      .click();
+    await comptes.getByRole("link", { name: /^Tous les comptes/ }).click();
     await expect(page).toHaveURL("/admin/utilisateurs");
     await expect(champ).toHaveValue("diallo");
     await champ.fill("");
@@ -272,5 +264,69 @@ test.describe("le responsable de la clinique", () => {
     await expect(
       page.getByRole("dialog", { name: "Flèches de tendance" }),
     ).toContainText("l’écart avec le mois précédent");
+  });
+});
+
+/**
+ * « Comptes » sur la barre de filtres commune : organisation, rôle,
+ * modalité lue, état du compte, double authentification ; chaque option
+ * comptée avec les autres filtres.
+ */
+test.describe("les filtres des comptes", () => {
+  test.use({ membership: "m-admin", langue: "fr" });
+
+  test("combine rôle et organisation, chaque option comptée", async ({
+    page,
+    checkA11y,
+  }) => {
+    await page.goto("/admin/utilisateurs");
+    const filtres = page.getByRole("group", { name: "Filtres" });
+    const roles = filtres.getByRole("group", { name: "Rôle" });
+    await expect(roles.getByRole("link")).toHaveText([
+      /^Tous les rôles/,
+      /^Radiologue/,
+      /^Responsable/,
+      /^Administrateur IMAFRIK/,
+    ]);
+    const radiologues = roles.getByRole("link", { name: /^Radiologue/ });
+    const attendu = Number(
+      await radiologues.locator("span[aria-hidden]").innerText(),
+    );
+    await radiologues.click();
+    await expect(page).toHaveURL(/[?&]role=radiologue(&|$)/);
+    await expect(page.getByText(`${attendu} compte`).first()).toBeVisible();
+
+    // L'organisation, depuis sa liste triée : la clinique Saint-Joseph.
+    await filtres.getByRole("button", { name: /^Organisation / }).click();
+    await page
+      .getByRole("listbox", { name: "Organisation" })
+      .getByRole("option", { name: /^Clinique Saint-Joseph/ })
+      .click();
+    await expect(page).toHaveURL(/[?&]organisation=org-stj(&|$)/);
+    await expect(page).toHaveURL(/[?&]role=radiologue(&|$)/);
+    await expect(
+      filtres.getByRole("link", { name: "Effacer les filtres" }),
+    ).toBeVisible();
+    await settle(page);
+    await checkA11y();
+  });
+
+  test("isole les comptes sans double authentification", async ({ page }) => {
+    await page.goto("/admin/utilisateurs");
+    const bascule = page
+      .getByRole("group", { name: "Filtres" })
+      .getByRole("link", { name: /^Sans double authentification/ });
+    const attendu = Number(
+      await bascule.locator("span[aria-hidden]").innerText(),
+    );
+    expect(attendu).toBeGreaterThan(0);
+    await bascule.click();
+    await expect(page).toHaveURL(/[?&]mfa=absente(&|$)/);
+    await expect(
+      page.getByText(/MFA manquante|Jamais connecté/).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByText(`${attendu} compte`, { exact: false }).first(),
+    ).toBeVisible();
   });
 });

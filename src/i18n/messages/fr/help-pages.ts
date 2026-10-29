@@ -425,7 +425,7 @@ export const pages = {
       purpose:
         "Liste tous les comptes de la plateforme. Vous y rattachez les inscrits, examinez les dossiers des radiologues, réglez les modalités que chacun lit, vérifiez la double authentification et traitez les demandes d’effacement.",
       steps: [
-        "Utilisez les filtres « À valider », « Signature à vérifier » et « En attente », « Modalité lue », ou cherchez un compte par nom ou adresse.",
+        "Filtrez par organisation, rôle, modalité lue, compte (« À valider », « Signature à vérifier », « En attente ») ou sans double authentification.",
         "Pour un compte « Rattaché à aucune organisation », cliquez sur « Rattacher », puis choisissez l’organisation et le rôle.",
         "Cliquez sur « Examiner le dossier » ou « Signature à vérifier », ouvrez les pièces, puis acceptez ou refusez avec un motif.",
         "Sur la ligne d’un radiologue, lisez ses modalités et ses listes d’urgence ; « Modalités » les règle, « Voir ses performances » ouvre ses chiffres.",

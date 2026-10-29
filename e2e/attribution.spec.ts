@@ -84,6 +84,9 @@ test.describe("le bouton d’attribution", () => {
           .locator("main")
           .getByRole("button", { name: /^(Ré)?[aA]ttribuer l’examen de/ })
           .filter({ visible: true });
+        // Attendre le premier bouton avant de compter : `count()` ne se
+        // répète pas, et une CI lente lisait la page avant sa peinture.
+        await expect(boutons.first()).toBeVisible();
         expect(await boutons.count()).toBeGreaterThan(0);
         for (const texte of await boutons.allInnerTexts())
           expect(texte.trim()).toMatch(/^(Attribuer|Réattribuer)$/);
