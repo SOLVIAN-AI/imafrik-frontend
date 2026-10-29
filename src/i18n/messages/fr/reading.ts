@@ -431,6 +431,32 @@ export const reading = {
     reopenFailed:
       "Les images ne peuvent plus être affichées. Actualisez la page pour rouvrir l’examen.",
   },
+  /** Ouverture de l'examen dans Weasis, installé sur l'ordinateur. */
+  weasis: {
+    open: "Ouvrir dans Weasis",
+    openHint: "Ouvrir l’examen dans Weasis, installé sur cet ordinateur",
+    /** Ce qui est indisponible en démonstration. */
+    name: "L’ouverture dans Weasis",
+    opening: "Ouverture de l’examen dans Weasis…",
+    help: "Aide sur Weasis",
+    dialogTitle: "Ouvrir l’examen dans Weasis",
+    dialogIntro:
+      "Weasis est un visualiseur DICOM libre, installé sur votre ordinateur, avec ses reconstructions natives (MPR, MIP, MinIP). Le viewer d’IMAFRIK reste à côté, inchangé.",
+    notOpened:
+      "Weasis ne s’est pas ouvert ? Il n’est peut-être pas installé sur cet ordinateur.",
+    stepsTitle: "Installer Weasis, une fois par ordinateur",
+    steps: [
+      "Téléchargez Weasis sur son site officiel : Windows (.msi), macOS (.pkg, puce Apple ou Intel) ou Linux.",
+      "Installez-le avec les options par défaut ; sur un poste géré, votre service informatique peut avoir à le faire.",
+      "Revenez ici, cliquez de nouveau sur « Ouvrir dans Weasis » et acceptez la demande du navigateur d’ouvrir Weasis.",
+    ],
+    download: "Télécharger Weasis (site officiel)",
+    oneAtATime:
+      "Weasis n’affiche qu’un examen à la fois : chaque ouverture remplace le précédent. Le lien vaut cinq minutes et ne sert qu’une fois.",
+    privacy:
+      "Weasis garde les images de l’examen sur cet ordinateur tant qu’il est ouvert et les efface à sa fermeture : fermez-le après chaque lecture, et ne l’utilisez que sur un poste à session personnelle, verrouillée en votre absence.",
+    close: "Fermer",
+  },
   /** Coupe simulée de la démonstration. */
   scan: {
     label: (slice: number, total: number) =>

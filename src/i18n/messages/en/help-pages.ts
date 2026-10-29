@@ -120,7 +120,7 @@ export const pages: typeof fr = {
       purpose:
         "Where you read an examination and write its report: the images in the viewer on the left, the report on the right. Once signed, the report goes to the clinic and can no longer be edited.",
       steps: [
-        "Read the “Clinical information” and go through the images; a shared prior examination opens read-only, in a new tab.",
+        "Read the “Clinical information” and go through the images, or, on a computer, “Open in Weasis”; a shared prior examination opens read-only.",
         "Click “Take on”: the examination is reserved for you until you sign it, or until “Return the examination”, which deletes the draft and notifies the clinic.",
         "Write the sections, using “Template” to fill those still empty; the text is saved automatically.",
         "Click “Sign”, check the flagged points, enter your personal code, then click “Sign and send”.",
@@ -133,6 +133,7 @@ export const pages: typeof fr = {
         "anteriorite",
         "codePersonnel",
       ],
+      guides: ["weasis"],
     },
   },
   clinic: {
@@ -743,7 +744,7 @@ export const pages: typeof fr = {
       purpose:
         "Read-only view of an examination: images, clinical information and the report as it stands, drafts included. The team can neither claim, write nor sign; every opening is logged in its name in the audit log.",
       steps: [
-        "View the images in the viewer, on the left; “Full screen” enlarges them.",
+        "View the images in the viewer, on the left, or, on a computer, with “Open in Weasis”; “Full screen” enlarges them.",
         "Read the “Clinical information” sent by the clinic, above the report.",
         "For a draft, read the “Unsigned draft” banner: the screen follows the writing and refreshes by itself.",
         "If the pane shows “Report in preparation”, wait for the radiologist to sign: nothing is written here.",
@@ -756,6 +757,7 @@ export const pages: typeof fr = {
         "renseignementClinique",
         "annulation",
       ],
+      guides: ["weasis"],
     },
     settings: {
       title: "Settings",

@@ -232,6 +232,16 @@ const _viewerRenewed: Matches<
   Schemas["ViewerTokenRenewed"]
 > = true;
 
+/** Adresse `weasis://`, vérifiée ensuite par `isWeasisLaunchUrl`. */
+export const weasisLaunchSchema = z.object({
+  launch_url: z.string(),
+  expires_in: z.number().int(),
+});
+const _weasisLaunch: Matches<
+  z.input<typeof weasisLaunchSchema>,
+  Schemas["WeasisLaunch"]
+> = true;
+
 export const pdfLinkSchema = z.object({
   url: browserUrl,
   expires_in: z.number().int(),
@@ -1711,6 +1721,7 @@ export const CONTRACT_CHECKS = [
   _report,
   _viewer,
   _viewerRenewed,
+  _weasisLaunch,
   _pdf,
   _trainingSource,
   _trainingCase,

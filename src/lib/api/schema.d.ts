@@ -1392,6 +1392,32 @@ export interface paths {
         patch: operations["update_settings_admin_settings_patch"];
         trace?: never;
     };
+    "/admin/studies/eligibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Qui peut recevoir ces examens
+         * @description Combien de radiologues peuvent recevoir chaque examen, et sinon pourquoi.
+         *
+         *     Pour la file de répartition (« À lire », dans les lectures) : la page affichée
+         *     en un appel, pour dire sur la ligne d'un examen qu'aucun radiologue ne
+         *     peut le recevoir, sans ouvrir la fenêtre d'attribution. Une lecture,
+         *     malgré le verbe : la liste des examens tient dans le corps, pas dans
+         *     l'adresse.
+         */
+        post: operations["get_eligibility_admin_studies_eligibility_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/studies/{study_id}/assignment": {
         parameters: {
             query?: never;
@@ -3546,6 +3572,8 @@ export interface paths {
          *         q: Recherche libre, insensible à la casse. Le nom se cherche tel
          *             qu'il s'affiche (voir :func:`search_text`).
          *         modality_group: Restreint à un groupe de modalités.
+         *         clinic_id: Restreint à une clinique (dans le périmètre de
+         *             l'appelant).
          *         mine: Restreint aux examens que l'appelant a pris en charge.
          *         order: Ordre de tri, voir :data:`StudyOrder`.
          *         limit: Nombre maximal d'examens renvoyés.
@@ -3561,6 +3589,32 @@ export interface paths {
          *         Unprocessable: Curseur illisible, ou émis pour un autre ordre.
          */
         get: operations["list_studies_studies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/studies/clinic-counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Examens visibles par clinique
+         * @description Combien d'examens de chaque clinique la liste montrerait.
+         *
+         *     Les mêmes filtres que ``GET /studies`` (groupe de modalités compris),
+         *     clinique mise à part, dans le même périmètre : chaque clinique que
+         *     l'appelant voit, avec le total de la liste filtrée sur elle. Pour
+         *     l'équipe IMAFRIK, toutes les cliniques ; pour un responsable, la
+         *     sienne.
+         */
+        get: operations["count_by_clinic_studies_clinic_counts_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3888,6 +3942,73 @@ export interface paths {
          *         Conflict: Images archivées depuis l'ouverture.
          */
         post: operations["renew_viewer_token_studies__study_id__viewer_token_renew_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/studies/{study_id}/weasis-launch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ouvrir dans Weasis
+         * @description Prépare l'ouverture d'une étude dans Weasis.
+         *
+         *     Le droit de voir l'étude est vérifié sous RLS et l'ouverture tracée,
+         *     comme pour OHIF. Le jeton émis est propre à Weasis (deux heures, sans
+         *     prolongation) ; il n'est remis qu'avec le manifeste.
+         *
+         *     Args:
+         *         study_id: Examen à ouvrir.
+         *         principal: Radiologue, ou membre de l'équipe IMAFRIK.
+         *
+         *     Returns:
+         *         L'adresse ``weasis://`` et la durée de validité de son code.
+         *
+         *     Raises:
+         *         NotFound: Examen inexistant ou hors du périmètre de l'appelant.
+         *         Conflict: Images archivées au terme de la conservation.
+         */
+        post: operations["weasis_launch_studies__study_id__weasis_launch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/studies/{study_id}/weasis-manifest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Manifeste Weasis
+         * @description Manifeste de l'étude, remis une fois à Weasis contre son code.
+         *
+         *     Le code est consommé à la première lecture. Il ne mène qu'à l'étude
+         *     pour laquelle il a été émis, et seulement tant que le jeton de Weasis
+         *     n'a pas été révoqué. Tout refus a la même réponse : rien n'y distingue
+         *     un code inconnu d'un code d'une autre étude.
+         *
+         *     Args:
+         *         study_id: Étude demandée.
+         *         code: Code d'ouverture lu dans l'adresse ``weasis://``.
+         *
+         *     Returns:
+         *         Le manifeste XML, ou un refus en texte brut que Weasis affiche.
+         */
+        get: operations["weasis_manifest_studies__study_id__weasis_manifest_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -5222,6 +5343,21 @@ export interface components {
             within_sla: number | null;
         };
         /**
+         * ClinicCount
+         * @description Examens d'une clinique.
+         */
+        ClinicCount: {
+            /**
+             * Clinic Id
+             * Format: uuid
+             */
+            clinic_id: string;
+            /** Clinic Name */
+            clinic_name: string;
+            /** Count */
+            count: number;
+        };
+        /**
          * ClinicCreate
          * @description Nouvelle clinique, avec son équipe.
          *
@@ -6026,6 +6162,14 @@ export interface components {
             expires_in: number;
             /** Url */
             url: string;
+        };
+        /**
+         * EligibilityRequest
+         * @description Les examens d'une page de la file de répartition.
+         */
+        EligibilityRequest: {
+            /** Study Ids */
+            study_ids: string[];
         };
         /**
          * EnrollmentCodeInfo
@@ -8538,6 +8682,49 @@ export interface components {
             study_instance_uid: string;
         };
         /**
+         * StudyClinicCounts
+         * @description Combien d'examens de chaque clinique une liste montrerait.
+         *
+         *     Comptés par la base, avec les mêmes filtres que la liste (statut,
+         *     priorité, recherche, groupe de modalités) et dans le périmètre de
+         *     l'appelant, clinique mise à part : de quoi nommer chaque choix du
+         *     sélecteur de clinique.
+         *
+         *     Attributes:
+         *         total: Toutes cliniques confondues.
+         *         clinics: Chaque clinique que l'appelant voit, par nom, zéro compris.
+         */
+        StudyClinicCounts: {
+            /** Clinics */
+            clinics: components["schemas"]["ClinicCount"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * StudyEligibility
+         * @description Qui peut recevoir un examen.
+         *
+         *     Attributes:
+         *         study_id: Examen.
+         *         candidates: Radiologues qui peuvent le recevoir.
+         *         reason: Sans aucun candidat, pourquoi : ``clinic_inactive``
+         *             (clinique suspendue), ``no_reader`` (ni radiologue de la
+         *             clinique, ni contrat avec le réseau), ``not_credentialed``
+         *             (aucun lecteur habilité), ``modality_not_read`` (aucun habilité
+         *             ne lit la modalité).
+         */
+        StudyEligibility: {
+            /** Candidates */
+            candidates: number;
+            /** Reason */
+            reason: ("clinic_inactive" | "no_reader" | "not_credentialed" | "modality_not_read") | null;
+            /**
+             * Study Id
+             * Format: uuid
+             */
+            study_id: string;
+        };
+        /**
          * StudyModalityCounts
          * @description Combien d'examens de chaque groupe de modalités une liste montrerait.
          *
@@ -9301,6 +9488,22 @@ export interface components {
         ViewerTokenRenewed: {
             /** Expires In */
             expires_in: number;
+        };
+        /**
+         * WeasisLaunch
+         * @description Adresse d'ouverture d'une étude dans Weasis.
+         *
+         *     Attributes:
+         *         launch_url: Adresse ``weasis://`` à ouvrir depuis le navigateur.
+         *             Elle ne porte que l'identifiant IMAFRIK de l'étude et un code à
+         *             usage unique, jamais le jeton ni une donnée du patient.
+         *         expires_in: Durée de validité du code, en secondes.
+         */
+        WeasisLaunch: {
+            /** Expires In */
+            expires_in: number;
+            /** Launch Url */
+            launch_url: string;
         };
     };
     responses: never;
@@ -11475,6 +11678,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlatformSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_eligibility_admin_studies_eligibility_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EligibilityRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyEligibility"][];
                 };
             };
             /** @description Validation Error */
@@ -14139,6 +14377,8 @@ export interface operations {
                 q?: string | null;
                 /** @description Seulement les examens de ce groupe de modalités */
                 modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+                /** @description Seulement les examens de cette clinique */
+                clinic_id?: string | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
                 /** @description recent : urgences ouvertes puis plus récents ; received : plus récents ; deadline : échéance */
@@ -14175,6 +14415,48 @@ export interface operations {
             };
         };
     };
+    count_by_clinic_studies_clinic_counts_get: {
+        parameters: {
+            query?: {
+                /** @description Un ou plusieurs statuts ; vide = tous */
+                status?: ("received" | "assigned" | "in_progress" | "reported" | "delivered")[];
+                /** @description Seulement les examens de cette priorité */
+                priority?: ("routine" | "urgent") | null;
+                /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
+                q?: string | null;
+                /** @description Seulement les examens de ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+                /** @description Seulement les examens pris en charge par l'appelant */
+                mine?: boolean;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyClinicCounts"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     count_by_modality_studies_modality_counts_get: {
         parameters: {
             query?: {
@@ -14184,6 +14466,8 @@ export interface operations {
                 priority?: ("routine" | "urgent") | null;
                 /** @description Recherche sur le nom ou l'identifiant du patient, ou la modalité */
                 q?: string | null;
+                /** @description Seulement les examens de cette clinique */
+                clinic_id?: string | null;
                 /** @description Seulement les examens pris en charge par l'appelant */
                 mine?: boolean;
             };
@@ -14516,6 +14800,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    weasis_launch_studies__study_id__weasis_launch_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeasisLaunch"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    weasis_manifest_studies__study_id__weasis_manifest_get: {
+        parameters: {
+            query?: {
+                code?: string;
+            };
+            header?: never;
+            path: {
+                study_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Manifeste Weasis 2.5 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/xml": unknown;
+                };
+            };
+            /** @description Code inconnu, expiré ou utilisé */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description PACS injoignable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": unknown;
                 };
             };
         };

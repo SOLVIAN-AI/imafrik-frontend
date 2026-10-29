@@ -310,6 +310,16 @@ export const glossary = {
   viewer: {
     term: "Viewer (visionneuse)",
     definition:
-      "Outil d’affichage des images médicales intégré à IMAFRIK : défilement des coupes, fenêtrage, mesures et reconstructions.",
+      "Outil d’affichage des images médicales intégré à IMAFRIK : défilement des coupes, fenêtrage, mesures et reconstructions. Sur ordinateur, l’examen peut aussi s’ouvrir dans Weasis.",
+  },
+  weasis: {
+    term: "Weasis",
+    definition:
+      "Visualiseur DICOM libre (Hôpitaux universitaires de Genève), installé sur l’ordinateur, proposé à côté du viewer pour ses reconstructions (MPR, MIP, MinIP). Il s’ouvre depuis l’écran de lecture avec le même accès que le viewer : cet examen seul, ouverture tracée. Il garde les images sur le poste jusqu’à sa fermeture.",
+  },
+  mpr: {
+    term: "MPR, MIP, MinIP",
+    definition:
+      "Reconstructions d’un examen en coupes : MPR, le volume recoupé dans les trois plans (axial, coronal, sagittal) ; MIP et MinIP, la projection de l’intensité maximale ou minimale d’une épaisseur choisie, pour les vaisseaux ou les voies aériennes.",
   },
 };

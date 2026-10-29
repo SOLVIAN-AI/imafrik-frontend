@@ -954,9 +954,14 @@ export function ReadingWorkspace({
   draftKey,
   ...workspace
 }: ReadingWorkspaceProps) {
-  const { isDemo } = useSession();
+  const { isDemo, active } = useSession();
   const { study } = workspace;
   const { groupRef, onLayoutChanged } = usePersistedLayout();
+  // Weasis : pour le radiologue, et l'équipe IMAFRIK en consultation ;
+  // jamais dans un exercice de formation, qui a son propre viewer.
+  const weasis =
+    !workspace.adapter &&
+    (active.role === "radiologist" || active.role === "platform_admin");
   // Côte à côte à partir de 1024 px ; en dessous, chaque volet aurait
   // moins de 340 px — ni l'image ni le texte n'y sont exploitables.
   // Inconnu au rendu serveur (`null`) : une forme neutre, juste à toute
@@ -991,6 +996,7 @@ export function ReadingWorkspace({
       viewerUrl={kept.url}
       demo={isDemo}
       session={viewerSession}
+      weasis={weasis}
     />
   );
   const reportSlot = <div ref={setReport} className="h-full min-h-0" />;

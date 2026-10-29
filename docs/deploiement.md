@@ -58,7 +58,7 @@ chaque environnement où elles s'appliquent.
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | staging | production | Publique. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | staging | production | Publique ; encadrée par RLS. |
-| `NEXT_PUBLIC_API_URL` | API de staging | API de production | Sans elle, jeu de démonstration, et une production refuse de servir. |
+| `NEXT_PUBLIC_API_URL` | API de staging | API de production | Sans elle, jeu de démonstration, et une production refuse de servir. C'est aussi la seule origine dont l'écran de lecture fait ouvrir un manifeste à Weasis (`src/lib/weasis.ts`). |
 | `NEXT_PUBLIC_SITE_URL` | URL du déploiement | domaine final | Liens des courriels et lien de vérification. |
 | `NEXT_PUBLIC_VIEWER_URL` | viewer de staging | viewer de production | Seul cadre autorisé par la CSP ; sans elle, pas d'images. Doit être une **autre origine** que le site (`viewer.imafrik.tech`), sans quoi la production refuse de servir. |
 | `REPORT_BACKUP_SECRET` | secret de staging | secret de production | **Serveur uniquement.** Chiffre les copies de secours des brouillons sur le poste ; 32 caractères au moins (`openssl rand -base64 48`), un secret distinct par environnement. |

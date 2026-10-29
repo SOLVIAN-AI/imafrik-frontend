@@ -305,6 +305,16 @@ export const glossary: typeof fr = {
   viewer: {
     term: "Viewer",
     definition:
-      "The medical image display built into IMAFRIK: scrolling through slices, windowing, measurements and reconstructions.",
+      "The medical image display built into IMAFRIK: scrolling through slices, windowing, measurements and reconstructions. On a computer, the examination can also be opened in Weasis.",
+  },
+  weasis: {
+    term: "Weasis",
+    definition:
+      "Free DICOM viewer (Geneva University Hospitals), installed on the computer, offered alongside the viewer for its reconstructions (MPR, MIP, MinIP). It opens from the reading screen with the same access as the viewer: this examination only, opening logged. It keeps the images on the computer until it is closed.",
+  },
+  mpr: {
+    term: "MPR, MIP, MinIP",
+    definition:
+      "Reconstructions of a cross-sectional examination: MPR, the volume resliced in the three planes (axial, coronal, sagittal); MIP and MinIP, the maximum or minimum intensity projection over a chosen thickness, for vessels or airways.",
   },
 };

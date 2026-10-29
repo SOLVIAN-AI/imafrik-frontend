@@ -393,6 +393,30 @@ export const reading: AppMessages["reading"] = {
     reopenFailed:
       "The images can no longer be displayed. Reload the page to reopen the examination.",
   },
+  /** Opening the examination in Weasis, installed on the computer. */
+  weasis: {
+    open: "Open in Weasis",
+    openHint: "Open the examination in Weasis, installed on this computer",
+    name: "Opening in Weasis",
+    opening: "Opening the examination in Weasis…",
+    help: "Weasis help",
+    dialogTitle: "Open the examination in Weasis",
+    dialogIntro:
+      "Weasis is a free DICOM viewer installed on your computer, with native reconstructions (MPR, MIP, MinIP). The IMAFRIK viewer stays alongside it, unchanged.",
+    notOpened: "Weasis didn’t open? It may not be installed on this computer.",
+    stepsTitle: "Install Weasis, once per computer",
+    steps: [
+      "Download Weasis from its official site: Windows (.msi), macOS (.pkg, Apple silicon or Intel) or Linux.",
+      "Install it with the default options; on a managed computer, your IT department may need to do it.",
+      "Come back here, click “Open in Weasis” again and accept the browser’s request to open Weasis.",
+    ],
+    download: "Download Weasis (official site)",
+    oneAtATime:
+      "Weasis shows one examination at a time: each opening replaces the previous one. The link is valid for five minutes and works once.",
+    privacy:
+      "Weasis keeps the examination’s images on this computer while it is open and deletes them when it closes: close it after each read, and only use it on a computer with your own user session, locked when you are away.",
+    close: "Close",
+  },
   scan: {
     label: (slice: number, total: number) =>
       `Simulated slice ${slice} of ${total} (demo)`,
