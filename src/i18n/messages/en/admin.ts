@@ -267,6 +267,7 @@ export const admin: AppMessages["admin"] = {
   },
 
   organisations: {
+    searchPlaceholder: "Name or city…",
     clinicCount: (count: number) =>
       `${count} ${count === 1 ? "clinic" : "clinics"}`,
     groupCount: (count: number) =>

@@ -350,7 +350,7 @@ export const pages: typeof fr = {
         "Click “New clinic”, then enter the facility name, the city and the language of its reports and invitations.",
         "Enter its managers, at least one, then who reads its examinations: its own radiologists, to be invited too, or the “IMAFRIK network radiologists”.",
         "Click “Create and invite the team”: everyone receives their invitation, and the page opens to connect the gateway.",
-        "Look for “PACS not connected” and any “Last sent” shown in colour, older than 24 hours: the gateway may have stopped.",
+        "Filter “Not connected” or “Silent for 24 h”: the gateway may have stopped. Search for an organisation by name or city.",
         "On a row, use the icons to invite someone or set the AI features, or click “Suspend” to cut off access for its members.",
       ],
       terms: ["responsable", "groupe", "pool", "contratService", "pacs"],

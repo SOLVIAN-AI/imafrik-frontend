@@ -5,9 +5,24 @@ import Link from "next/link";
 import { CreateClinicDialog } from "@/components/admin/gateways/create-clinic-dialog";
 import { OrganizationRowActions } from "@/components/admin/organization-row-actions";
 import { RelativeTime } from "@/components/admin/relative-time";
+import { SearchBox } from "@/components/admin/search-box";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { ColumnLabel } from "@/components/ui/info-tip";
 import { type AdminOrganization, listOrganizations } from "@/lib/data/admin";
+import { matchChoices } from "@/lib/filters/choice";
+import {
+  type BarDimension,
+  ORG_KINDS,
+  ORG_LINKS,
+  ORG_STANDINGS,
+} from "@/lib/filters/dimensions";
+import { countOptions, filterRows, type RowValues } from "@/lib/filters/facets";
+import { linkOf } from "@/lib/filters/organizations";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { hasFilters, readFilters } from "@/lib/filters/url";
+import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
 import { getMessages } from "@/i18n/server";
@@ -33,15 +48,69 @@ type Text = AppMessages["admin"]["organisations"];
  * un code d'enrôlement, saisi dans le kit sur le poste, où naît la clé
  * de la passerelle ; l'équipe approuve ensuite le poste. Aucune clé
  * privée ne transite par la console.
+ *
+ * La liste se filtre par la barre commune (nature, statut, raccordement,
+ * « silencieuse depuis 24 h ») et se cherche par nom ou ville, sur la
+ * page : le service renvoie toutes les organisations.
  */
-export default async function AdminOrganizationsPage() {
-  await requireSession(["platform_admin"]);
+export default async function AdminOrganizationsPage({
+  searchParams,
+}: PageProps<"/admin/organisations">) {
+  const session = await requireSession(["platform_admin"]);
   const { t } = await getMessages();
   const text = t.admin.organisations;
-  const organizations = await listOrganizations();
-  const clinics = organizations.filter((org) => org.kind === "clinic");
-  const groups = organizations.length - clinics.length;
-  const radiologyGroups = organizations
+  const params = await searchParams;
+  const search = await readListSearch("admin-organisations", session);
+  const all = await listOrganizations();
+  const keys = LIST_FILTERS.organisations;
+  const filters = readFilters(params, keys);
+  const values: RowValues<AdminOrganization> = {
+    kind: (org) => [org.kind],
+    standing: (org) => [org.active ? "active" : "suspended"],
+    link: (org) => linkOf(org),
+  };
+  const found = search
+    ? matchChoices(
+        all.map((org) => ({ ...org, name: `${org.name} ${org.city}` })),
+        search,
+      ).map((match) => all.find((org) => org.id === match.id)!)
+    : all;
+  const organizations = filterRows(found, values, filters);
+  const bar: BarDimension[] = [
+    {
+      key: "kind",
+      ...countOptions(
+        found,
+        values,
+        filters,
+        "kind",
+        ORG_KINDS.map((value) => ({ value })),
+      ),
+    },
+    {
+      key: "standing",
+      ...countOptions(
+        found,
+        values,
+        filters,
+        "standing",
+        ORG_STANDINGS.map((value) => ({ value })),
+      ),
+    },
+    {
+      key: "link",
+      ...countOptions(
+        found,
+        values,
+        filters,
+        "link",
+        ORG_LINKS.map((value) => ({ value })),
+      ),
+    },
+  ];
+  const clinics = all.filter((org) => org.kind === "clinic");
+  const groups = all.length - clinics.length;
+  const radiologyGroups = all
     .filter((org) => org.kind === "radiology_group" && org.active)
     .map((org) => ({ id: org.id, name: org.name }));
 
@@ -53,150 +122,188 @@ export default async function AdminOrganizationsPage() {
       <PageHeader
         title={t.nav.items.organisations}
         description={`${text.clinicCount(clinics.length)} · ${text.groupCount(groups)}`}
-        actions={<CreateClinicDialog groups={radiologyGroups} />}
+        actions={
+          <>
+            <SearchBox
+              scope="admin-organisations"
+              search={search}
+              label={t.filters.organizationSearch}
+              placeholder={text.searchPlaceholder}
+            />
+            <CreateClinicDialog groups={radiologyGroups} />
+          </>
+        }
+      />
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{ count: organizations.length, noun: "organizations" }}
+        className="shrink-0 px-4 pb-3 sm:px-6"
       />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
         <Panel className="flex min-h-0 flex-col overflow-hidden">
-          {/* Téléphone : une carte par organisation, actions comprises —
+          {organizations.length === 0 && (search || hasFilters(filters)) ? (
+            <FilteredEmpty
+              dimensions={bar}
+              active={filters}
+              noun="organizations"
+            />
+          ) : (
+            <>
+              {/* Téléphone : une carte par organisation, actions comprises —
               dans un tableau rogné, elles devenaient inaccessibles. */}
-          <ul className="min-h-0 divide-y divide-border-subtle overflow-auto md:hidden">
-            {organizations.map((org) => (
-              <li key={org.id} className="flex flex-col gap-3 px-4 py-3.5">
-                <div className="flex items-start gap-3">
-                  <OrgIcon kind={org.kind} />
-                  <div className="min-w-0 flex-1">
-                    <OrgName org={org} />
-                    <p className="truncate text-2xs text-tertiary">
-                      {text.kind[org.kind]} · {org.city} ·{" "}
-                      {text.memberCount(org.memberCount)}
-                      {org.kind === "clinic" && (
-                        <>
-                          {" · "}
-                          {text.received30d(org.received30d)}
-                        </>
-                      )}
-                    </p>
-                    {org.kind === "clinic" && (
-                      <p className="text-2xs text-tertiary">
-                        {text.lastSent}{" "}
-                        <LastReceived org={org} never={t.admin.shared.never} />
-                      </p>
-                    )}
-                  </div>
-                  <ActiveState active={org.active} text={text} />
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <PacsState
-                    kind={org.kind}
-                    connected={org.connected}
-                    text={text}
-                  />
-                  <OrganizationRowActions organization={org} />
-                </div>
-              </li>
-            ))}
-          </ul>
-
-          <div className="hidden min-h-0 overflow-auto md:block">
-            <table className="w-full min-w-[60rem] border-separate border-spacing-0 text-sm">
-              <thead className="sticky top-0 z-10">
-                <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
-                  <th scope="col" className="w-[26%]">
-                    <span className="label-eyebrow">
-                      {text.columns.organisation}
-                    </span>
-                  </th>
-                  <th scope="col" className="w-[10%]">
-                    <span className="label-eyebrow">{text.columns.kind}</span>
-                  </th>
-                  <th scope="col" className="w-[13%]">
-                    <ColumnLabel
-                      label={text.columns.pacs}
-                      info={{ text: text.info.pacs, term: "pacs" }}
-                    />
-                  </th>
-                  <th scope="col" className="w-[8%] text-right">
-                    <span className="label-eyebrow">
-                      {text.columns.members}
-                    </span>
-                  </th>
-                  <th scope="col" className="w-[9%] text-right">
-                    <ColumnLabel
-                      label={text.columns.days30}
-                      info={{ text: text.info.days30 }}
-                    />
-                  </th>
-                  <th scope="col" className="w-[12%] text-right">
-                    <span className="label-eyebrow">
-                      {text.columns.lastSent}
-                    </span>
-                  </th>
-                  <th scope="col" className="w-[10%] text-right">
-                    <span className="label-eyebrow">{text.columns.state}</span>
-                  </th>
-                  <th scope="col" className="w-[12%] text-right">
-                    <span className="sr-only">{text.columns.actions}</span>
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
+              <ul className="min-h-0 divide-y divide-border-subtle overflow-auto md:hidden">
                 {organizations.map((org) => (
-                  <tr
-                    key={org.id}
-                    className={cn(
-                      "[&>td]:h-12 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4",
-                      "last:[&>td]:border-b-0",
-                    )}
-                  >
-                    <td>
-                      <div className="flex items-center gap-2.5">
-                        <OrgIcon kind={org.kind} />
-                        <div className="min-w-0">
-                          <OrgName org={org} />
-                          <p className="truncate text-2xs text-tertiary">
-                            {org.city}
+                  <li key={org.id} className="flex flex-col gap-3 px-4 py-3.5">
+                    <div className="flex items-start gap-3">
+                      <OrgIcon kind={org.kind} />
+                      <div className="min-w-0 flex-1">
+                        <OrgName org={org} />
+                        <p className="truncate text-2xs text-tertiary">
+                          {text.kind[org.kind]} · {org.city} ·{" "}
+                          {text.memberCount(org.memberCount)}
+                          {org.kind === "clinic" && (
+                            <>
+                              {" · "}
+                              {text.received30d(org.received30d)}
+                            </>
+                          )}
+                        </p>
+                        {org.kind === "clinic" && (
+                          <p className="text-2xs text-tertiary">
+                            {text.lastSent}{" "}
+                            <LastReceived
+                              org={org}
+                              never={t.admin.shared.never}
+                            />
                           </p>
-                        </div>
+                        )}
                       </div>
-                    </td>
-
-                    <td className="text-secondary">{text.kind[org.kind]}</td>
-
-                    <td>
+                      <ActiveState active={org.active} text={text} />
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
                       <PacsState
                         kind={org.kind}
                         connected={org.connected}
                         text={text}
                       />
-                    </td>
-
-                    <td className="text-right text-secondary tabular-nums">
-                      {org.memberCount}
-                    </td>
-                    <td
-                      className="text-right text-secondary tabular-nums"
-                      title={text.totalStudies(org.studyCount)}
-                    >
-                      {org.kind === "clinic" ? org.received30d : "—"}
-                    </td>
-                    <td className="text-right text-2xs whitespace-nowrap text-tertiary">
-                      <LastReceived org={org} never={t.admin.shared.never} />
-                    </td>
-
-                    <td className="text-right">
-                      <ActiveState active={org.active} text={text} />
-                    </td>
-
-                    <td>
                       <OrganizationRowActions organization={org} />
-                    </td>
-                  </tr>
+                    </div>
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </ul>
+
+              <div className="hidden min-h-0 overflow-auto md:block">
+                <table className="w-full min-w-[60rem] border-separate border-spacing-0 text-sm">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="[&>th]:h-9 [&>th]:border-b [&>th]:border-border-subtle [&>th]:bg-surface-raised [&>th]:px-4 [&>th]:text-left [&>th]:font-medium">
+                      <th scope="col" className="w-[26%]">
+                        <span className="label-eyebrow">
+                          {text.columns.organisation}
+                        </span>
+                      </th>
+                      <th scope="col" className="w-[10%]">
+                        <span className="label-eyebrow">
+                          {text.columns.kind}
+                        </span>
+                      </th>
+                      <th scope="col" className="w-[13%]">
+                        <ColumnLabel
+                          label={text.columns.pacs}
+                          info={{ text: text.info.pacs, term: "pacs" }}
+                        />
+                      </th>
+                      <th scope="col" className="w-[8%] text-right">
+                        <span className="label-eyebrow">
+                          {text.columns.members}
+                        </span>
+                      </th>
+                      <th scope="col" className="w-[9%] text-right">
+                        <ColumnLabel
+                          label={text.columns.days30}
+                          info={{ text: text.info.days30 }}
+                        />
+                      </th>
+                      <th scope="col" className="w-[12%] text-right">
+                        <span className="label-eyebrow">
+                          {text.columns.lastSent}
+                        </span>
+                      </th>
+                      <th scope="col" className="w-[10%] text-right">
+                        <span className="label-eyebrow">
+                          {text.columns.state}
+                        </span>
+                      </th>
+                      <th scope="col" className="w-[12%] text-right">
+                        <span className="sr-only">{text.columns.actions}</span>
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {organizations.map((org) => (
+                      <tr
+                        key={org.id}
+                        className={cn(
+                          "[&>td]:h-12 [&>td]:border-b [&>td]:border-border-subtle [&>td]:px-4",
+                          "last:[&>td]:border-b-0",
+                        )}
+                      >
+                        <td>
+                          <div className="flex items-center gap-2.5">
+                            <OrgIcon kind={org.kind} />
+                            <div className="min-w-0">
+                              <OrgName org={org} />
+                              <p className="truncate text-2xs text-tertiary">
+                                {org.city}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="text-secondary">
+                          {text.kind[org.kind]}
+                        </td>
+
+                        <td>
+                          <PacsState
+                            kind={org.kind}
+                            connected={org.connected}
+                            text={text}
+                          />
+                        </td>
+
+                        <td className="text-right text-secondary tabular-nums">
+                          {org.memberCount}
+                        </td>
+                        <td
+                          className="text-right text-secondary tabular-nums"
+                          title={text.totalStudies(org.studyCount)}
+                        >
+                          {org.kind === "clinic" ? org.received30d : "—"}
+                        </td>
+                        <td className="text-right text-2xs whitespace-nowrap text-tertiary">
+                          <LastReceived
+                            org={org}
+                            never={t.admin.shared.never}
+                          />
+                        </td>
+
+                        <td className="text-right">
+                          <ActiveState active={org.active} text={text} />
+                        </td>
+
+                        <td>
+                          <OrganizationRowActions organization={org} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </Panel>
       </div>
     </>

@@ -13,6 +13,8 @@ export interface ChoiceOption {
   name: string;
   /** Lignes que la liste montrerait ; absent quand l'écran ne compte pas. */
   count?: number;
+  /** Seconde ligne, discrète : la ville d'une clinique. */
+  detail?: string;
 }
 
 /** À partir de ce nombre d'options, la liste s'ouvre sur une recherche. */

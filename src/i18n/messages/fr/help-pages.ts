@@ -355,7 +355,7 @@ export const pages = {
         "Cliquez sur « Nouvelle clinique », puis saisissez le nom de l’établissement, la ville et la langue des comptes-rendus et des invitations.",
         "Indiquez ses responsables, un au moins, puis qui lit ses examens : ses propres radiologues, à inviter aussi, ou les « Radiologues du réseau IMAFRIK ».",
         "Cliquez sur « Créer et inviter l’équipe » : chacun reçoit son invitation, et la fiche s’ouvre pour raccorder la passerelle.",
-        "Repérez « PACS non raccordé » et tout « Dernier envoi » en couleur, plus ancien que 24 heures : la passerelle est peut-être à l’arrêt.",
+        "Filtrez « Non raccordée » ou « Silencieuse depuis 24 h » : la passerelle est peut-être à l’arrêt. Cherchez une organisation par nom ou ville.",
         "Sur une ligne, invitez une personne ou réglez les fonctions d’IA par les icônes, ou cliquez sur « Suspendre » pour couper l’accès de ses membres.",
       ],
       terms: ["responsable", "groupe", "pool", "contratService", "pacs"],

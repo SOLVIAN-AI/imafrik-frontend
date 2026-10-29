@@ -56,6 +56,7 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       "/admin/organisations/org-stj",
       // Barre de filtres commune, filtres actifs : rien ne défile en largeur.
       "/admin/examens?clinique=org-stj&modalite=scanner&urgent=1",
+      "/admin/organisations?type=clinique&raccordement=raccordee",
       // Passerelles : vue d'ensemble et fiche, gestes compris.
       "/admin/passerelles",
       "/admin/passerelles/gw-pka-radio",

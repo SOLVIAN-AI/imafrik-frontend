@@ -176,6 +176,34 @@ const ACCOUNT_PARAMS: Record<AccountState, readonly [string, string]> = {
   pending: ["attente", "1"],
 };
 
+/** Natures d'une organisation : clinique, ou groupe de radiologie. */
+export const ORG_KINDS = ["clinic", "radiology_group"] as const;
+
+const ORG_KIND_SLUGS: Record<(typeof ORG_KINDS)[number], string> = {
+  clinic: "clinique",
+  radiology_group: "groupe",
+};
+
+/** Statut d'une organisation : active, ou suspendue (fin de contrat comprise). */
+export const ORG_STANDINGS = ["active", "suspended"] as const;
+
+const ORG_STANDING_SLUGS: Record<(typeof ORG_STANDINGS)[number], string> = {
+  active: "active",
+  suspended: "suspendue",
+};
+
+/**
+ * Raccordement d'une clinique : son PACS raccordé ou non, et, raccordée,
+ * silencieuse depuis plus de 24 heures (aucun examen reçu).
+ */
+export const ORG_LINKS = ["connected", "not_connected", "silent"] as const;
+
+const ORG_LINK_SLUGS: Record<(typeof ORG_LINKS)[number], string> = {
+  connected: "raccordee",
+  not_connected: "non-raccordee",
+  silent: "silencieuse",
+};
+
 /** Périodes proposées, en jours : la réception depuis 24 h, 7 jours… */
 export const PERIODS = ["1", "7", "30", "90", "365"] as const;
 
@@ -201,6 +229,18 @@ export const DIMENSIONS = {
       noMatch: t.filters.clinicNoMatch,
       matches: t.filters.clinicMatches,
     }),
+  },
+  kind: {
+    param: "type",
+    presentation: "chips",
+    values: ORG_KINDS,
+    read: (raw) =>
+      ORG_KINDS.find((kind) => ORG_KIND_SLUGS[kind] === raw) ?? null,
+    write: (value) =>
+      ORG_KIND_SLUGS[value as (typeof ORG_KINDS)[number]] ?? value,
+    text: (t) => ({ name: t.filters.kind, all: t.filters.allKinds }),
+    valueLabel: (t, value) =>
+      t.filters.kinds[value as (typeof ORG_KINDS)[number]] ?? value,
   },
   organization: {
     param: "organisation",
@@ -266,6 +306,31 @@ export const DIMENSIONS = {
     write: (value) => STATE_SLUGS[value as StudyState] ?? value,
     text: (t) => ({ name: t.filters.state, all: t.filters.allStates }),
     valueLabel: (t, value) => t.filters.states[value as StudyState] ?? value,
+  },
+  standing: {
+    param: "statut",
+    presentation: "chips",
+    values: ORG_STANDINGS,
+    read: (raw) =>
+      ORG_STANDINGS.find((standing) => ORG_STANDING_SLUGS[standing] === raw) ??
+      null,
+    write: (value) =>
+      ORG_STANDING_SLUGS[value as (typeof ORG_STANDINGS)[number]] ?? value,
+    text: (t) => ({ name: t.filters.standing, all: t.filters.allStandings }),
+    valueLabel: (t, value) =>
+      t.filters.standings[value as (typeof ORG_STANDINGS)[number]] ?? value,
+  },
+  link: {
+    param: "raccordement",
+    presentation: "chips",
+    values: ORG_LINKS,
+    read: (raw) =>
+      ORG_LINKS.find((link) => ORG_LINK_SLUGS[link] === raw) ?? null,
+    write: (value) =>
+      ORG_LINK_SLUGS[value as (typeof ORG_LINKS)[number]] ?? value,
+    text: (t) => ({ name: t.filters.link, all: t.filters.allLinks }),
+    valueLabel: (t, value) =>
+      t.filters.links[value as (typeof ORG_LINKS)[number]] ?? value,
   },
   account: {
     // Le paramètre principal ; les deux autres passent par le codec.
