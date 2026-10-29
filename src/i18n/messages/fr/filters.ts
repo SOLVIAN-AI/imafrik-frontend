@@ -16,6 +16,35 @@ export const filters = {
       : count > 1
         ? `${count} cliniques`
         : "1 clinique",
+  radiologist: "Radiologue",
+  allRadiologists: "Tous les radiologues",
+  radiologistSearch: "Rechercher un radiologue",
+  radiologistNoMatch: "Aucun radiologue ne correspond.",
+  radiologistMatches: (count: number) =>
+    count === 0
+      ? "Aucun radiologue"
+      : count > 1
+        ? `${count} radiologues`
+        : "1 radiologue",
+  state: "État",
+  allStates: "Tous les états",
+  /** États d'un examen, dans une liste. */
+  states: {
+    to_assign: "À attribuer",
+    reading: "En lecture",
+    ready: "Prêt",
+    delivered: "Remis",
+  },
+  period: "Période",
+  allDates: "Toutes les dates",
+  /** Périodes, par date de réception. */
+  periods: {
+    "1": "24 h",
+    "7": "7 jours",
+    "30": "30 jours",
+    "90": "90 jours",
+    "365": "12 mois",
+  },
   modality: "Modalité",
   allModalities: "Toutes les modalités",
   urgency: "Urgence",

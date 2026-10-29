@@ -173,8 +173,8 @@ export const pages = {
       purpose:
         "Tous les examens envoyés par votre clinique, avec le radiologue qui les lit et l’état de leur compte-rendu. C’est ici que vous attribuez vos examens à vos radiologues, modalité par modalité si vous le souhaitez.",
       steps: [
-        "Cliquez sur « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore, les plus pressés en tête.",
-        "Choisissez un groupe de modalités dans les onglets (Radiographie, Scanner…) : chacun dit combien d’examens il compte.",
+        "Cliquez sur l’état « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore, les plus pressés en tête.",
+        "Filtrez par radiologue, modalité, état, urgence ou période : chaque choix dit son nombre d’examens, et ils se combinent.",
         "Sur une ligne, cliquez sur « Attribuer », choisissez un radiologue parmi ceux qui lisent la modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
         "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
         "Cliquez sur une ligne pour ouvrir la fiche de l’examen, ou sur « Envoyer » pour transmettre un nouvel examen.",
@@ -444,7 +444,7 @@ export const pages = {
       purpose:
         "Liste les examens de toute la plateforme, toutes organisations confondues, pour répondre vite à une clinique. Le nom du patient ouvre les images et le compte-rendu en consultation seule, et chaque ouverture est tracée.",
       steps: [
-        "Filtrez par clinique (tapez son nom si elles sont nombreuses), par modalité ou par « Urgences en cours » : chaque choix dit son nombre d’examens, et ils se combinent.",
+        "Filtrez par clinique ou radiologue (tapez un nom s’ils sont nombreux), modalité, état, « Urgences en cours » ou période : chaque choix dit son nombre d’examens.",
         "Cherchez un examen par patient, identifiant ou modalité. « Effacer les filtres » rend toute la liste ; l’adresse garde vos filtres, à partager.",
         "Cliquez sur le nom du patient pour ouvrir les images et le compte-rendu, sans pouvoir rédiger ni signer.",
         "Pour un examen non signé, cliquez sur « Attribuer » en fin de ligne, choisissez un radiologue qui lit sa modalité, cochez les antériorités utiles, puis validez.",
@@ -564,7 +564,7 @@ export const pages = {
       purpose:
         "Les examens de la clinique consultée, tels que les voit son responsable, avec le radiologue de chacun. L’équipe y attribue un examen par son propre portail ; elle n’envoie aucun examen au nom de la clinique.",
       steps: [
-        "Cliquez sur « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore ; les onglets de modalités les classent.",
+        "Cliquez sur l’état « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore ; les autres filtres s’y ajoutent.",
         "Sur une ligne, cliquez sur « Attribuer » : la fenêtre de l’équipe propose aussi les radiologues du réseau qui lisent la clinique.",
         "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
         "Cliquez sur une ligne pour ouvrir la fiche de l’examen.",

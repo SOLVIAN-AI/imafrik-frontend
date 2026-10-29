@@ -97,19 +97,19 @@ test.describe("clinique", () => {
   });
 
   /**
-   * La vue « À attribuer » ne garde que ce qu'aucun radiologue ne voit
-   * encore : l'urgence de Saint-Joseph, sans titulaire.
+   * L'état « À attribuer » ne garde que ce qu'aucun radiologue ne voit
+   * encore : l'urgence de Saint-Joseph, sans titulaire. Sa puce le compte.
    */
-  test("la vue « À attribuer » ne garde que ce qui attend un radiologue", async ({
+  test("l’état « À attribuer » ne garde que ce qui attend un radiologue", async ({
     page,
   }) => {
     await page.goto("/examens");
-    const vues = page.getByRole("navigation", { name: "Afficher" });
-    await vues.getByRole("link", { name: "À attribuer" }).click();
-    await expect(page).toHaveURL(/[?&]vue=a-attribuer(&|$)/);
-    await expect(
-      vues.getByRole("link", { name: "À attribuer" }),
-    ).toHaveAttribute("aria-current", "page");
+    const etats = page.getByRole("group", { name: "État" });
+    const aAttribuer = etats.getByRole("link", { name: /^À attribuer/ });
+    await expect(aAttribuer.locator("span[aria-hidden]")).toHaveText("1");
+    await aAttribuer.click();
+    await expect(page).toHaveURL(/[?&]etat=a-attribuer(&|$)/);
+    await expect(aAttribuer).toHaveAttribute("aria-current", "true");
     await expect(
       page.getByText("1 examen · Clinique Saint-Joseph"),
     ).toBeVisible();

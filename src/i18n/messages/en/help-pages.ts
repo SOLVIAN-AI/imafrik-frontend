@@ -168,8 +168,8 @@ export const pages: typeof fr = {
       purpose:
         "All the examinations your clinic has sent, with the radiologist reading them and the status of their report. This is where you assign your examinations to your radiologists, modality by modality if you wish.",
       steps: [
-        "Click “To assign” to see only the examinations no radiologist can see yet, the most pressing first.",
-        "Choose a modality group in the tabs (Radiography, CT…): each one shows how many examinations it holds.",
+        "Click the “To assign” status to see only the examinations no radiologist can see yet, the most pressing first.",
+        "Filter by radiologist, modality, status, urgency or period: each choice shows its number of examinations, and they combine.",
         "On a row, click “Assign”, choose a radiologist among those reading the modality, tick the useful prior examinations, then click “Assign”.",
         "Type a patient name, an ID or a modality in the search box, then press Enter.",
         "Click a row to open the examination page, or “Send” to send a new examination.",
@@ -439,7 +439,7 @@ export const pages: typeof fr = {
       purpose:
         "Lists the examinations of the whole platform, across all organisations, to answer a clinic quickly. The patient’s name opens the images and the report in view-only mode, and every opening is logged.",
       steps: [
-        "Filter by clinic (type its name when there are many), by modality or by “Open urgent cases”: each choice shows its number of examinations, and they combine.",
+        "Filter by clinic or radiologist (type a name when there are many), modality, status, “Open urgent cases” or period: each choice shows its number of examinations.",
         "Search for an examination by patient, ID or modality. “Clear filters” brings back the whole list; the address keeps your filters, to share.",
         "Click the patient’s name to open the images and the report, without being able to write or sign.",
         "For an unsigned examination, click “Assign” at the end of the row, choose a radiologist who reads its modality, tick the useful prior examinations, then confirm.",
@@ -559,7 +559,7 @@ export const pages: typeof fr = {
       purpose:
         "The viewed clinic’s examinations, as its manager sees them, with each one’s radiologist. The team assigns an examination through its own portal; it never sends an examination on the clinic’s behalf.",
       steps: [
-        "Click “To assign” to see only the examinations no radiologist sees yet; the modality tabs sort them.",
+        "Click the “To assign” status to see only the examinations no radiologist sees yet; the other filters add up.",
         "On a row, click “Assign”: the team’s window also offers the network radiologists who read for the clinic.",
         "Type a patient name, an ID or a modality in the search, then press Enter.",
         "Click a row to open the examination’s page.",

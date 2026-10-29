@@ -16,7 +16,8 @@
  * - ses textes : son nom et son option par défaut, « Tous » ou « Toutes ».
  *
  * L'ordre de ce registre est celui de la barre, le même sur tous les
- * écrans : où (la clinique), quoi (la modalité), où en est-on (l'urgence).
+ * écrans : où (la clinique), qui (le radiologue), quoi (la modalité), où
+ * en est-on (l'état, l'urgence), quand (la période).
  * Chaque écran choisit ses dimensions dans `screens.ts` ; la requête au
  * service se construit à partir des filtres lus (`readFilters`).
  *
@@ -53,6 +54,11 @@ export interface SearchText {
 export interface FilterDimension {
   /** Paramètre d'adresse. */
   param: string;
+  /**
+   * Anciens paramètres d'adresse, encore lus (liens, favoris), retirés
+   * dès qu'on change le filtre : `?vue=a-attribuer` devient `?etat=…`.
+   */
+  aliases?: readonly string[];
   presentation: Presentation;
   /** Valeurs fixes, dans l'ordre d'affichage ; absentes si tirées des données. */
   values?: readonly string[];
@@ -98,6 +104,35 @@ function legacyModality(raw: string): ModalityGroup | null {
 }
 
 /**
+ * État d'un examen, tel qu'une liste le filtre : à attribuer (reçu,
+ * aucun radiologue ne le voit), en lecture (attribué ou commencé),
+ * compte-rendu prêt (signé, pas encore téléchargé), remis.
+ */
+export const STUDY_STATES = [
+  "to_assign",
+  "reading",
+  "ready",
+  "delivered",
+] as const;
+
+/** Un état de la liste. */
+export type StudyState = (typeof STUDY_STATES)[number];
+
+/** L'état dans l'adresse : un mot court, en français. */
+const STATE_SLUGS: Record<StudyState, string> = {
+  to_assign: "a-attribuer",
+  reading: "en-lecture",
+  ready: "pret",
+  delivered: "remis",
+};
+
+/** Périodes proposées, en jours : la réception depuis 24 h, 7 jours… */
+export const PERIODS = ["1", "7", "30", "90", "365"] as const;
+
+/** Une période. */
+export type Period = (typeof PERIODS)[number];
+
+/**
  * Forme d'un identifiant venu de l'adresse : celui du service (UUID) ou de
  * la démonstration (`org-stj`). Rien d'autre n'est transmis au service.
  */
@@ -117,6 +152,21 @@ export const DIMENSIONS = {
       matches: t.filters.clinicMatches,
     }),
   },
+  radiologist: {
+    param: "radiologue",
+    presentation: "dropdown",
+    read: (raw) => (ID_PATTERN.test(raw) ? raw : null),
+    write: (value) => value,
+    text: (t) => ({
+      name: t.filters.radiologist,
+      all: t.filters.allRadiologists,
+    }),
+    searchText: (t) => ({
+      search: t.filters.radiologistSearch,
+      noMatch: t.filters.radiologistNoMatch,
+      matches: t.filters.radiologistMatches,
+    }),
+  },
   modality: {
     param: "modalite",
     presentation: "chips",
@@ -129,6 +179,17 @@ export const DIMENSIONS = {
     valueLabel: (t, value) =>
       t.assignment.modalities[value as ModalityGroup] ?? value,
   },
+  state: {
+    param: "etat",
+    aliases: ["vue"],
+    presentation: "chips",
+    values: STUDY_STATES,
+    read: (raw) =>
+      STUDY_STATES.find((state) => STATE_SLUGS[state] === raw) ?? null,
+    write: (value) => STATE_SLUGS[value as StudyState] ?? value,
+    text: (t) => ({ name: t.filters.state, all: t.filters.allStates }),
+    valueLabel: (t, value) => t.filters.states[value as StudyState] ?? value,
+  },
   urgency: {
     param: "urgent",
     presentation: "toggle",
@@ -137,6 +198,17 @@ export const DIMENSIONS = {
     write: () => "1",
     text: (t) => ({ name: t.filters.urgency, all: t.filters.allPriorities }),
     valueLabel: (t) => t.filters.urgent,
+  },
+  // Une liste courte, mais un filtre d'appoint : une liste déroulante, pour
+  // que la barre tienne sur une ligne à 1 440 px.
+  period: {
+    param: "jours",
+    presentation: "dropdown",
+    values: PERIODS,
+    read: (raw) => ((PERIODS as readonly string[]).includes(raw) ? raw : null),
+    write: (value) => value,
+    text: (t) => ({ name: t.filters.period, all: t.filters.allDates }),
+    valueLabel: (t, value) => t.filters.periods[value as Period] ?? value,
   },
 } as const satisfies Record<string, FilterDimension>;
 

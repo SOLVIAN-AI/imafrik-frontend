@@ -78,6 +78,38 @@ describe("lecture des filtres", () => {
   });
 });
 
+describe("état, radiologue, période", () => {
+  const EXAMENS = LIST_FILTERS.examens;
+
+  it("lit l’état, le radiologue et la période", () => {
+    expect(
+      readFilters(
+        { etat: "en-lecture", radiologue: "prof-diallo", jours: "7" },
+        EXAMENS,
+      ),
+    ).toEqual({ state: "reading", radiologist: "prof-diallo", period: "7" });
+    expect(readFilters({ etat: "lu", jours: "8" }, EXAMENS)).toEqual({});
+  });
+
+  it("lit encore l’ancienne vue « À attribuer », puis la remplace", () => {
+    expect(readFilters({ vue: "a-attribuer" }, EXAMENS)).toEqual({
+      state: "to_assign",
+    });
+    // Le paramètre d'aujourd'hui l'emporte.
+    expect(readFilters({ vue: "a-attribuer", etat: "remis" }, EXAMENS)).toEqual(
+      {
+        state: "delivered",
+      },
+    );
+    expect(
+      filterHref("/examens", { vue: "a-attribuer" }, { state: "ready" }),
+    ).toBe("/examens?etat=pret");
+    expect(
+      clearFiltersHref("/examens", { vue: "a-attribuer", x: "1" }, EXAMENS),
+    ).toBe("/examens?x=1");
+  });
+});
+
 describe("écriture des filtres", () => {
   it("garde les autres paramètres et repart de la première page", () => {
     expect(

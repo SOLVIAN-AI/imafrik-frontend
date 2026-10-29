@@ -58,9 +58,13 @@ export function readFilters(
   const search = toSearchParams(params);
   const filters: ActiveFilters = {};
   for (const key of keys) {
-    const raw = search.get(dimension(key).param)?.trim();
+    const { param, aliases = [], read } = dimension(key);
+    // Le paramètre d'aujourd'hui d'abord, puis ceux d'avant (favoris).
+    const raw = [param, ...aliases]
+      .map((name) => search.get(name)?.trim())
+      .find(Boolean);
     if (!raw) continue;
-    const value = dimension(key).read(raw);
+    const value = read(raw);
     if (value === null) continue;
     if (known[key] && !known[key].includes(value)) continue;
     filters[key] = value;
@@ -114,7 +118,8 @@ export function filterHref(
   for (const key of reset) next.delete(key);
   for (const key of DIMENSION_ORDER) {
     if (!(key in changes)) continue;
-    const { param, write } = dimension(key);
+    const { param, aliases = [], write } = dimension(key);
+    for (const alias of aliases) next.delete(alias);
     const value = changes[key];
     if (value) next.set(param, write(value));
     else next.delete(param);
