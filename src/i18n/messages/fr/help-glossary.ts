@@ -65,7 +65,7 @@ export const glossary = {
   attribution: {
     term: "Attribution",
     definition:
-      "Réservation d’un examen à un radiologue précis, par le responsable de la clinique ou, pour les radiologues du réseau, par l’équipe IMAFRIK, souvent en confirmant le radiologue que prévoit le planning d’attribution. Lui seul le voit et peut le prendre en charge ; il en est prévenu par courriel, sans aucune donnée du patient.",
+      "Réservation d’un examen à un radiologue précis, par le responsable de la clinique ou, pour les radiologues du réseau, par l’équipe IMAFRIK, ou d’office à son arrivée par une règle d’attribution. Lui seul le voit et peut le prendre en charge ; il en est prévenu par courriel, sans aucune donnée du patient.",
   },
   brouillon: {
     term: "Brouillon",
@@ -275,7 +275,7 @@ export const glossary = {
   planning: {
     term: "Planning d’attribution",
     definition:
-      "Ce que prévoit le responsable de la clinique, ou l’équipe IMAFRIK : quel radiologue lit, quels jours, à quelles heures, pour quelle modalité, chaque semaine ou pour une période. Il propose le radiologue d’un examen à attribuer ; il n’attribue rien sans confirmation.",
+      "Lignes fixées par le responsable de la clinique, ou l’équipe IMAFRIK : quel radiologue, quels jours, à quelles heures, pour quelle modalité, chaque semaine ou pour une période. À son arrivée, un examen va d’office au radiologue de la ligne la plus précise qui le couvre ; deux lignes aussi précises le laissent à attribuer.",
   },
   pool: {
     term: "Réseau IMAFRIK (pool)",
@@ -287,11 +287,6 @@ export const glossary = {
     definition:
       "Geste par lequel un radiologue commence la lecture d’un examen qui lui est attribué, ou prend une urgence de sa liste d’urgence. Tant qu’il n’a pas signé, il peut le rendre : l’examen redevient « à attribuer ».",
   },
-  radiologuePrevu: {
-    term: "Radiologue prévu",
-    definition:
-      "Celui que le planning d’attribution désigne pour un examen à attribuer, d’après son heure d’arrivée : la ligne la plus précise l’emporte (modalité, puis période, puis heures). « Confirmer » le lui attribue ; deux lignes aussi précises ne prévoient personne.",
-  },
   renseignementClinique: {
     term: "Renseignement clinique",
     definition:
@@ -300,7 +295,7 @@ export const glossary = {
   regleAttribution: {
     term: "Règle d’attribution",
     definition:
-      "Jusqu’au 30 octobre 2026, consigne qui confiait d’office un examen à son arrivée : au radiologue de sa modalité, ou au radiologue de garde. Remplacée par le planning d’attribution, qui propose sans attribuer ; le journal et la fiche des examens confiés ainsi le disent encore.",
+      "Consigne fixée à l’avance par le responsable de la clinique, ou l’équipe IMAFRIK, dans le planning d’attribution. À l’arrivée d’un examen, elle le confie au radiologue prévu s’il peut le lire. Elle ne reprend jamais un examen déjà attribué.",
   },
   reseauPrive: {
     term: "Réseau privé",

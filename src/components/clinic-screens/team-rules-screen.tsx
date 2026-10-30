@@ -12,8 +12,9 @@ import { getMessages } from "@/i18n/server";
 /**
  * Planning d'attribution de la clinique, réglé par son responsable.
  *
- * Le planning propose, il n'attribue rien : sur chaque examen à attribuer,
- * le radiologue prévu s'affiche, et le responsable le confirme d'un geste.
+ * À l'arrivée d'un examen, le service l'attribue d'office au radiologue de
+ * la ligne la plus précise qui le couvre ; ce que le planning ne couvre
+ * pas reste à attribuer, et l'attribution directe sur l'examen corrige.
  * Le responsable n'y place que ses propres radiologues ; ceux du réseau
  * que l'équipe IMAFRIK y a placés restent visibles, et il peut retirer
  * leurs lignes.

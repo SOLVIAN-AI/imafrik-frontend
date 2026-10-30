@@ -27,8 +27,9 @@ import { isDemoMode } from "@/lib/demo/mode";
 import { getMessages } from "@/i18n/server";
 
 /**
- * Planning d'attribution d'une clinique : il propose le radiologue de
- * chaque examen à attribuer, une personne confirme.
+ * Planning d'attribution d'une clinique : à l'arrivée d'un examen, le
+ * service l'attribue au radiologue de la ligne la plus précise qui le
+ * couvre.
  *
  * Le responsable règle celui de sa clinique active, avec ses propres
  * radiologues (`clinicId` nul) ; l'équipe IMAFRIK celui de toute
@@ -67,18 +68,14 @@ const body = (line: PlanLineInput) => ({
   ends_on: line.endsOn,
 });
 
-/** Les écrans qui montrent le planning, ou le radiologue prévu des examens. */
+/** Les écrans qui montrent le planning. */
 function revalidate(clinicId: string | null) {
   if (clinicId === null) {
     revalidatePath("/equipe/regles");
-    revalidatePath("/examens");
   } else {
     revalidatePath(`/admin/organisations/${clinicId}`);
     // La vue de la clinique, où l'équipe règle aussi son planning.
     revalidatePath(clinicViewPath(clinicId, "/equipe/regles"));
-    revalidatePath(clinicViewPath(clinicId, "/examens"));
-    revalidatePath("/admin/examens");
-    revalidatePath("/worklist");
   }
 }
 

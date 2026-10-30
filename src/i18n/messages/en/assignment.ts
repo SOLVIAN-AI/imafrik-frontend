@@ -197,11 +197,11 @@ export const assignment: AppMessages["assignment"] = {
   plan: {
     title: "Assignment schedule",
     trigger: "Assignment schedule",
-    description: "Who is planned to read the clinic’s examinations.",
+    description: "Who receives the clinic’s examinations, on arrival.",
     adminDescription:
-      "Who is planned to read this clinic’s examinations, network radiologists included.",
+      "Who receives this clinic’s examinations on arrival, network radiologists included.",
     howItWorks:
-      "The schedule suggests, it assigns nothing: on each examination to assign, the planned radiologist is shown and you confirm in one click. When several lines cover an examination, the most precise wins: the modality, then the period, then the hours.",
+      "On arrival, an examination goes automatically to the radiologist of the line that covers it. When several lines cover it, the most precise wins: the modality, then the period, then the hours. What the schedule does not cover stays to assign, and you can always reassign from the examination.",
     timeZone: (zone: string) => `Clinic hours and dates (${zone}).`,
     previousWeek: "Previous week",
     nextWeek: "Following week",
@@ -222,9 +222,9 @@ export const assignment: AppMessages["assignment"] = {
     dated: (from: string, to: string) => `From ${from} to ${to}`,
     conflictBadge: "Conflict",
     conflictInfo:
-      "Two lines as precise as each other, for two radiologists, overlap: during that time nobody is planned and you choose on the examination.",
+      "Two lines as precise as each other, for two radiologists, overlap: during that time the schedule does not decide and the examination stays to assign.",
     conflict: (first: string, second: string, days: string) =>
-      `${first} and ${second} are planned at the same time (${days}), as precisely as each other: nobody is planned, you will choose on the examination. Add a modality, a period or hours.`,
+      `${first} and ${second} are planned at the same time (${days}), as precisely as each other: the schedule does not decide, and an examination arriving then will stay to assign. Add a modality, a period or hours.`,
     cannotReceive: (name: string) =>
       `${name} cannot receive examinations yet (credentials or affiliation): their lines do not count.`,
     notReading: (name: string, modality: string) =>
@@ -236,7 +236,7 @@ export const assignment: AppMessages["assignment"] = {
     linesInfo:
       "The lines that apply during the week shown: the weekly ones, and those whose period touches it.",
     noLines:
-      "No line this week: examinations arrive without a planned radiologist, and you assign them yourself.",
+      "No line this week: examinations arrive to assign, and you assign them yourself.",
     add: "Add a line",
     edit: "Edit",
     editLabel: (line: string) => `Edit the line: ${line}`,
@@ -244,7 +244,7 @@ export const assignment: AppMessages["assignment"] = {
     removeLabel: (line: string) => `Remove the line: ${line}`,
     removeTitle: "Remove this line?",
     removeDescription: (line: string) =>
-      `${line}. The examinations it covered will no longer have this radiologist planned; nothing already assigned changes.`,
+      `${line}. Examinations arriving from now on will no longer be assigned by this line; nothing already assigned changes.`,
     removed: "Line removed.",
     updatedBy: (name: string, date: string) => `${name}, on ${date}`,
     copy: "Copy the previous week",
@@ -329,7 +329,7 @@ export const assignment: AppMessages["assignment"] = {
     back: "Team",
     summary: (weekly: number, dated: number) =>
       weekly === 0 && dated === 0
-        ? "No line: examinations arrive without a planned radiologist."
+        ? "No line: examinations arrive to assign."
         : [
             weekly > 0 && `${weekly} weekly line${weekly > 1 ? "s" : ""}`,
             dated > 0 && `${dated} dated line${dated > 1 ? "s" : ""}`,
@@ -338,40 +338,9 @@ export const assignment: AppMessages["assignment"] = {
             .join(" · "),
     byRule: {
       modality: "radiologist for the modality",
-      schedule: "weekly schedule",
+      schedule: "assignment schedule",
     },
     assignedBy: (rule: string) => `Assigned by the rule: ${rule}`,
-  },
-  planned: {
-    column: "Planned",
-    info: "The radiologist the clinic’s schedule plans for this examination, from its arrival time. Nothing is assigned until someone confirms.",
-    by: (name: string) => `Planned: ${name}`,
-    conflict: (names: string) => `The schedule hesitates: ${names}`,
-    confirm: "Confirm",
-    confirmLabel: (patient: string, name: string) =>
-      `Confirm: ${name} for ${patient}’s examination`,
-    confirmAll: (count: number) => `Confirm all (${count})`,
-    confirmAllLabel: (count: number) =>
-      count > 1
-        ? `Confirm all (${count}): the examinations of the page to their planned radiologist`
-        : "Confirm all (1): the examination of the page to its planned radiologist",
-    confirmAllInfo:
-      "Assigns each examination of the page that has a planned radiologist. An examination assigned in the meantime, or whose schedule changed, is left as it is.",
-    confirmed: (count: number) =>
-      count > 1
-        ? `${count} examinations assigned to their planned radiologist.`
-        : count === 1
-          ? "Examination assigned to the planned radiologist."
-          : "No examination assigned.",
-    left: (count: number) =>
-      count > 1
-        ? `${count} examinations left: assigned in the meantime, or the schedule changed.`
-        : "1 examination left: assigned in the meantime, or the schedule changed.",
-    dialogBadge: "Planned",
-    dialogHint: (name: string) =>
-      `${name} is preselected: the schedule plans them for this examination.`,
-    dialogConflict: (names: string) =>
-      `The schedule plans ${names} as precisely as each other: choose.`,
   },
   demoAction: "Assigning examinations",
 };

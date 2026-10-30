@@ -1709,53 +1709,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/studies/plan": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Radiologue prévu par le planning, pour ces examens
-         * @description Le radiologue que le planning de leur clinique prévoit, pour chaque examen.
-         *
-         *     Pour une page de « À lire », « Examens » ou de la vue des cliniques :
-         *     en un appel. Une lecture, malgré le verbe : la liste des examens tient
-         *     dans le corps.
-         */
-        post: operations["get_plan_admin_studies_plan_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/studies/plan/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Attribuer ces examens au radiologue que le planning prévoit
-         * @description « Confirmer » et « Tout confirmer » : le radiologue prévu reçoit l'examen.
-         *
-         *     Un examen attribué ou pris entre-temps, ou dont le planning ne prévoit
-         *     plus ce radiologue, est laissé tel quel, sans empêcher les autres.
-         */
-        post: operations["confirm_plan_admin_studies_plan_confirm_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/admin/studies/{study_id}/assignment": {
         parameters: {
             query?: never;
@@ -2327,53 +2280,6 @@ export interface paths {
          *             de la liste : les trois cas sont confondus volontairement.
          */
         post: operations["give_feedback_assist_runs__run_id__feedback_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/clinic/studies/plan": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Radiologue prévu par le planning, pour ces examens de la clinique
-         * @description Le radiologue que le planning de la clinique prévoit, pour chaque examen.
-         *
-         *     Un examen d'une autre clinique est rendu sans radiologue prévu, comme
-         *     un examen inexistant.
-         */
-        post: operations["get_plan_clinic_studies_plan_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/clinic/studies/plan/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Attribuer ces examens de la clinique au radiologue que le planning prévoit
-         * @description « Confirmer » et « Tout confirmer » : le radiologue prévu reçoit l'examen.
-         *
-         *     Un examen d'une autre clinique est rendu ``not_found``. Un examen
-         *     attribué ou pris entre-temps, ou dont le planning ne prévoit plus ce
-         *     radiologue, est laissé tel quel, sans empêcher les autres.
-         */
-        post: operations["confirm_plan_clinic_studies_plan_confirm_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5949,13 +5855,9 @@ export interface components {
          *         assigned_to_name: Son nom.
          *         assigned_at: Instant de l'attribution ; nul quand le radiologue a
          *             pris une urgence lui-même sans attribution préalable.
-         *         assigned_by_rule: Règle d'attribution qui l'avait confié d'office,
-         *             avant le 30 octobre 2026 (``modality``, ``schedule``) ; nul pour
-         *             une attribution faite par une personne. Plus aucune règle
-         *             n'attribue : le planning propose, une personne confirme.
-         *         planned: Radiologues que le planning prévoit, pour un examen à
-         *             attribuer : un seul, il est prévu (la fenêtre le présélectionne) ;
-         *             plusieurs, le planning hésite ; aucun, rien n'est prévu.
+         *         assigned_by_rule: Règle d'attribution de la clinique qui l'a confié
+         *             (``modality``, ``schedule``) ; nul pour une attribution faite
+         *             par une personne.
          *         draft_in_progress: Vrai si le titulaire a commencé à rédiger : une
          *             réattribution effacerait son texte.
          *         candidates: Radiologues éligibles, les moins chargés d'abord.
@@ -5980,8 +5882,6 @@ export interface components {
             modality: string | null;
             /** Notified */
             notified?: boolean | null;
-            /** Planned */
-            planned?: components["schemas"]["PlannedRadiologist"][];
             /** Prior Shares */
             prior_shares: components["schemas"]["PriorShareOut"][];
             /**
@@ -8737,75 +8637,6 @@ export interface components {
             trusted_certificates: components["schemas"]["TrustedCertificate"][];
         };
         /**
-         * PlanConfirmItem
-         * @description Un examen à confirmer, et le radiologue prévu que l'écran montrait.
-         */
-        PlanConfirmItem: {
-            /**
-             * Radiologist Id
-             * Format: uuid
-             */
-            radiologist_id: string;
-            /**
-             * Study Id
-             * Format: uuid
-             */
-            study_id: string;
-        };
-        /**
-         * PlanConfirmRequest
-         * @description Les examens à attribuer au radiologue que le planning prévoit.
-         *
-         *     Attributes:
-         *         items: Un examen par ligne confirmée ; tous ceux de la page pour
-         *             « Tout confirmer ». Un examen n'y figure qu'une fois.
-         */
-        PlanConfirmRequest: {
-            /** Items */
-            items: components["schemas"]["PlanConfirmItem"][];
-        };
-        /**
-         * PlanConfirmResult
-         * @description Ce qu'a donné la confirmation d'un examen.
-         *
-         *     Attributes:
-         *         study_id: Examen.
-         *         outcome: ``assigned`` (attribué au radiologue prévu),
-         *             ``already_assigned`` (quelqu'un l'a attribué ou pris entre-temps),
-         *             ``plan_changed`` (le planning ne prévoit plus ce radiologue),
-         *             ``not_found`` (examen inconnu, ou d'une autre clinique).
-         */
-        PlanConfirmResult: {
-            /**
-             * Outcome
-             * @enum {string}
-             */
-            outcome: "assigned" | "already_assigned" | "plan_changed" | "not_found";
-            /**
-             * Study Id
-             * Format: uuid
-             */
-            study_id: string;
-        };
-        /**
-         * PlanConfirmation
-         * @description Ce qu'a donné « Confirmer » ou « Tout confirmer ».
-         *
-         *     Attributes:
-         *         results: Une issue par examen, dans l'ordre demandé.
-         *         assigned: Examens attribués.
-         *         notified: Radiologues prévenus par courriel (un seul courriel par
-         *             radiologue, qui compte ses examens).
-         */
-        PlanConfirmation: {
-            /** Assigned */
-            assigned: number;
-            /** Notified */
-            notified: number;
-            /** Results */
-            results: components["schemas"]["PlanConfirmResult"][];
-        };
-        /**
          * PlanLine
          * @description Une ligne du planning, telle qu'elle est.
          *
@@ -8910,27 +8741,6 @@ export interface components {
             read_modalities: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other")[] | null;
             /** Via Pool */
             via_pool: boolean;
-        };
-        /**
-         * PlanRequest
-         * @description Les examens d'une page, dont on veut le radiologue prévu.
-         */
-        PlanRequest: {
-            /** Study Ids */
-            study_ids: string[];
-        };
-        /**
-         * PlannedRadiologist
-         * @description Un radiologue que le planning de la clinique prévoit pour un examen.
-         */
-        PlannedRadiologist: {
-            /** Name */
-            name: string;
-            /**
-             * Profile Id
-             * Format: uuid
-             */
-            profile_id: string;
         };
         /**
          * PlatformSettings
@@ -10252,26 +10062,6 @@ export interface components {
             next_cursor?: string | null;
             /** Total */
             total: number;
-        };
-        /**
-         * StudyPlan
-         * @description Le radiologue que le planning prévoit pour un examen.
-         *
-         *     Attributes:
-         *         study_id: Examen.
-         *         planned: Un seul : il est prévu, l'examen se confirme d'un geste.
-         *             Plusieurs : le planning hésite (deux lignes aussi précises),
-         *             le responsable choisit. Aucun : rien n'est prévu, ou l'examen
-         *             n'est plus à attribuer.
-         */
-        StudyPlan: {
-            /** Planned */
-            planned: components["schemas"]["PlannedRadiologist"][];
-            /**
-             * Study Id
-             * Format: uuid
-             */
-            study_id: string;
         };
         /**
          * StudyStableEvent
@@ -13745,76 +13535,6 @@ export interface operations {
             };
         };
     };
-    get_plan_admin_studies_plan_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlanRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StudyPlan"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    confirm_plan_admin_studies_plan_confirm_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlanConfirmRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanConfirmation"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_assignment_admin_studies__study_id__assignment_get: {
         parameters: {
             query?: never;
@@ -14496,76 +14216,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_plan_clinic_studies_plan_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlanRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StudyPlan"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    confirm_plan_clinic_studies_plan_confirm_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PlanConfirmRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PlanConfirmation"];
-                };
             };
             /** @description Validation Error */
             422: {

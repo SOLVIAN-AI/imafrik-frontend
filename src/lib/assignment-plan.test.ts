@@ -4,7 +4,6 @@ import {
   type PlanLineInput,
   addDays,
   conflictsOfWeek,
-  covers,
   isCalendarDay,
   isOvernight,
   lineIntervals,
@@ -12,7 +11,6 @@ import {
   linesOfWeek,
   localParts,
   mondayOf,
-  plannedFor,
   precisionOf,
   startsOnDay,
   toAssignmentPlan,
@@ -96,8 +94,6 @@ describe("une ligne du planning", () => {
       endsOn: "2026-11-01",
     });
     expect(isOvernight(nuit)).toBe(true);
-    expect(covers(nuit, LUNDI, 7 * 60)).toBe(true);
-    expect(covers(nuit, LUNDI, 21 * 60)).toBe(false);
     expect(lineIntervals(nuit, "2026-10-26")).toEqual([
       [6 * 1440 + 1200, 7 * 1440 + 480],
     ]);
@@ -233,47 +229,6 @@ describe("recopier la semaine précédente", () => {
     expect(
       weekCopyPreview([precedente, longue, cetteSemaine, chaque], LUNDI),
     ).toEqual({ sources: [precedente], replaced: [cetteSemaine] });
-  });
-});
-
-describe("le radiologue prévu d'un examen", () => {
-  const plan = {
-    timeZone: "Africa/Lome",
-    lines: [
-      ligne("a", [1, 2, 3, 4, 5]),
-      ligne("b", [1], { startsOn: LUNDI, endsOn: "2026-11-08" }),
-      ligne("c", [1, 2, 3, 4, 5, 6, 7], { modality: "mri" }),
-    ],
-  };
-  const lundi9h = new Date("2026-11-02T09:00:00Z");
-
-  it("est celui de la ligne la plus précise qui couvre son arrivée", () => {
-    expect(plannedFor(plan, lundi9h, "CT", () => true)).toEqual(["b"]);
-    expect(plannedFor(plan, lundi9h, "MR", () => true)).toEqual(["c"]);
-    expect(
-      plannedFor(plan, new Date("2026-11-03T09:00:00Z"), "CT", () => true),
-    ).toEqual(["a"]);
-  });
-
-  it("passe un radiologue qui ne peut pas le recevoir", () => {
-    expect(plannedFor(plan, lundi9h, "MR", (id) => id !== "c")).toEqual(["b"]);
-  });
-
-  it("hésite entre deux lignes aussi précises, et n'existe pas hors du planning", () => {
-    const deux = {
-      ...plan,
-      lines: [
-        ...plan.lines,
-        ligne("d", [1, 2, 3, 4, 5, 6, 7], { modality: "mri" }),
-      ],
-    };
-    expect(plannedFor(deux, lundi9h, "MR", () => true).sort()).toEqual([
-      "c",
-      "d",
-    ]);
-    expect(
-      plannedFor(plan, new Date("2026-11-07T09:00:00Z"), "CT", () => true),
-    ).toEqual([]);
   });
 });
 

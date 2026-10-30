@@ -15,7 +15,6 @@ import {
   type ApiAssignmentState,
   type ApiPriorCandidate,
   assignmentStateSchema,
-  planConfirmationSchema,
   priorCandidateSchema,
 } from "@/lib/api/contracts";
 import type { NoCandidateReason } from "@/lib/assignment-blocker";
@@ -55,12 +54,6 @@ export interface AssignmentCandidate {
   openStudies: number;
 }
 
-/** Un radiologue que le planning de la clinique prévoit pour un examen. */
-export interface PlannedRadiologist {
-  profileId: string;
-  name: string;
-}
-
 /** Antériorité partagée avec le titulaire, pour cet examen. */
 export interface PriorShare {
   id: string;
@@ -82,16 +75,8 @@ export interface AssignmentState {
   assignedToName: string | null;
   /** Instant de l'attribution ; `null` sans titulaire. */
   assignedAt: string | null;
-  /**
-   * Règle qui l'avait confié d'office, avant le planning qui propose
-   * (30 octobre 2026) ; `null` pour une personne.
-   */
+  /** Règle d'attribution qui l'a confié ; `null` pour une personne. */
   assignedByRule: "modality" | "schedule" | null;
-  /**
-   * Radiologues que le planning prévoit, pour un examen à attribuer : un
-   * seul, la fenêtre le présélectionne ; plusieurs, le planning hésite.
-   */
-  planned: PlannedRadiologist[];
   /** Le titulaire a commencé à rédiger : le réattribuer efface son texte. */
   draftInProgress: boolean;
   candidates: AssignmentCandidate[];
@@ -130,10 +115,6 @@ function toState(row: ApiAssignmentState): AssignmentState {
     assignedToName: row.assigned_to_name,
     assignedAt: row.assigned_at,
     assignedByRule: row.assigned_by_rule ?? null,
-    planned: (row.planned ?? []).map((one) => ({
-      profileId: one.profile_id,
-      name: one.name,
-    })),
     draftInProgress: row.draft_in_progress,
     candidates: row.candidates.map((candidate) => ({
       profileId: candidate.profile_id,
@@ -412,75 +393,5 @@ export async function revokePriorShare(
     ),
   );
   if (result.ok) revalidateScreens(studyId);
-  return result;
-}
-
-/** Ce que devient un examen à la confirmation du planning. */
-export type ConfirmOutcome =
-  "assigned" | "already_assigned" | "plan_changed" | "not_found";
-
-/** Ce qu'a donné « Confirmer » ou « Tout confirmer ». */
-export interface PlanConfirmation {
-  /** L'issue de chaque examen, dans l'ordre demandé. */
-  outcomes: Record<string, ConfirmOutcome>;
-  assigned: number;
-  /** Radiologues prévenus (un courriel chacun). */
-  notified: number;
-}
-
-/** Au plus, comme le service : une page d'examens. */
-const MAX_CONFIRM = 200;
-
-/**
- * Attribue des examens au radiologue que le planning prévoit : le geste
- * de « Confirmer » et de « Tout confirmer ».
- *
- * Le radiologue confirmé est celui que l'écran montrait. Le service ne
- * confirme un examen que s'il est encore sans titulaire et que le
- * planning prévoit toujours ce radiologue ; il laisse les autres tels
- * quels (le premier geste l'emporte) sans empêcher la suite.
- *
- * @param portal Portail de l'appelant.
- * @param items  Examens et radiologues prévus.
- */
-export async function confirmPlanned(
-  portal: AssignmentPortal,
-  items: { studyId: string; radiologistId: string }[],
-): Promise<ActionResult<PlanConfirmation>> {
-  const { t } = await getMessages();
-  if (isDemoMode()) return demoUnavailable(t.assignment.demoAction);
-  const unique = [
-    ...new Map(items.map((item) => [item.studyId, item])).values(),
-  ].slice(0, MAX_CONFIRM);
-  if (unique.length === 0) {
-    return { ok: false, error: t.common.errors.unexpected, status: 422 };
-  }
-  const invalid = await rejectInvalidIds(
-    ...unique.flatMap((item) => [item.studyId, item.radiologistId]),
-  );
-  if (invalid) return invalid;
-  const result = await run(async () => {
-    const done = await apiSend(
-      `/${portal === "clinic" ? "clinic" : "admin"}/studies/plan/confirm`,
-      "POST",
-      {
-        items: unique.map((item) => ({
-          study_id: item.studyId,
-          radiologist_id: item.radiologistId,
-        })),
-      },
-      planConfirmationSchema,
-    );
-    return {
-      outcomes: Object.fromEntries(
-        done.results.map((one) => [one.study_id, one.outcome]),
-      ),
-      assigned: done.assigned,
-      notified: done.notified,
-    };
-  });
-  if (result.ok) {
-    for (const item of unique) revalidateScreens(item.studyId);
-  }
   return result;
 }

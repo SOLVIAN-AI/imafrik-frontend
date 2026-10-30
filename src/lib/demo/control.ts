@@ -28,13 +28,7 @@ import { demoIdeas } from "@/lib/demo/ideas";
 import { DEMO_SIGNING_REVIEW_PROFILE } from "@/lib/demo/signing";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 import { MODALITY_GROUPS, modalityGroupOf } from "@/lib/modalities";
-import {
-  addDays,
-  localParts,
-  mondayOf,
-  plannedFor,
-  toAssignmentPlan,
-} from "@/lib/assignment-plan";
+import { addDays, localParts, mondayOf } from "@/lib/assignment-plan";
 
 /**
  * Réseau de démonstration de la tour de contrôle.
@@ -1492,8 +1486,8 @@ const DEMO_TIME_ZONE = "Africa/Lome";
  * nuits, le week-end, les scanners chaque semaine, les IRM cette semaine
  * et les scanners de la semaine prochaine. Dr Kponton, de jour en semaine
  * comme Afi Mensah, montre un conflit. La Polyclinique de Kara confie
- * tout à Dr Bakari, et ses IRM à deux radiologues à la fois : son IRM
- * urgente n'a personne de prévu.
+ * tout à Dr Bakari, et ses IRM à deux radiologues à la fois (un autre
+ * conflit).
  *
  * Le responsable voit les radiologues du réseau du planning, sans pouvoir
  * en ajouter ; l'équipe IMAFRIK choisit parmi tous ceux du groupe.
@@ -1603,46 +1597,6 @@ export function demoAssignmentPlan(
   };
 }
 
-/** Radiologues prévus d'un examen de démonstration, comme le service. */
-function demoPlannedOf(studyId: string): { profileId: string; name: string }[] {
-  const study = DEMO_STUDIES.find((candidate) => candidate.id === studyId);
-  if (!study || study.status !== "received" || study.assignedTo !== null) {
-    return [];
-  }
-  const plan = toAssignmentPlan(demoAssignmentPlan(study.clinicId, false));
-  const receivers = new Set<string>(
-    READERS.filter((reader) =>
-      READS[reader.id].includes(modalityGroupOf(study.modality)),
-    ).map((reader) => reader.id),
-  );
-  const names = new Map(plan.radiologists.map((r) => [r.profileId, r.name]));
-  return plannedFor(plan, study.receivedAt, study.modality, (id) =>
-    receivers.has(id),
-  ).map((profileId) => ({
-    profileId,
-    name: names.get(profileId) ?? profileId,
-  }));
-}
-
-/**
- * Radiologues que le planning prévoit pour des examens de démonstration :
- * Dr Bakari pour le scanner urgent de Saint-Joseph et la radiographie de
- * Kara ; deux radiologues pour l'IRM de Kara ; personne pour la
- * mammographie, que nul ne lit.
- *
- * @param studyIds Examens de la page.
- */
-export function demoPlanned(
-  studyIds: readonly string[],
-): Record<string, { profileId: string; name: string }[]> {
-  return Object.fromEntries(
-    studyIds.flatMap((id) => {
-      const planned = demoPlannedOf(id);
-      return planned.length > 0 ? [[id, planned]] : [];
-    }),
-  );
-}
-
 /**
  * Antériorités de démonstration d'un examen : les autres examens du même
  * patient dans la même clinique, comme les propose le service. Le jeu de
@@ -1732,10 +1686,6 @@ export function demoAssignment(studyId: string): ApiAssignmentState | null {
     assigned_at: holder
       ? new Date(study.receivedAt.getTime() + 5 * 60_000).toISOString()
       : null,
-    planned: demoPlannedOf(study.id).map((one) => ({
-      profile_id: one.profileId,
-      name: one.name,
-    })),
     draft_in_progress: study.status === "in_progress",
     candidates: READERS.filter((reader) =>
       READS[reader.id].includes(modalityGroupOf(study.modality)),

@@ -12,7 +12,6 @@ import {
   demoAssignment,
   demoAssignmentPlan,
   demoEligibility,
-  demoPlanned,
 } from "@/lib/demo/control";
 import {
   conflictsOfWeek,
@@ -225,29 +224,6 @@ describe("dossiers à examiner en démonstration", () => {
       clinic.radiologists.length,
     );
     expect(demoAssignmentPlan("org-autre", false, NOW).lines).toEqual([]);
-  });
-
-  it("prévoit un radiologue pour les examens à attribuer, ou en hésite", () => {
-    const open = DEMO_STUDIES.filter(
-      (study) => study.status === "received" && study.assignedTo === null,
-    );
-    const planned = demoPlanned(open.map((study) => study.id));
-    const of = (modality: string, clinic: string) =>
-      planned[
-        open.find((s) => s.modality === modality && s.clinicId === clinic)!.id
-      ]?.map((one) => one.name) ?? [];
-    expect(of("CT", "org-stj")).toEqual(["Dr Ibrahim Bakari"]);
-    expect(of("CR", "org-pka")).toEqual(["Dr Ibrahim Bakari"]);
-    expect(of("MR", "org-pka").sort()).toEqual([
-      "Dr Fatou Diallo",
-      "Pr Mawuli Agbeko",
-    ]);
-    expect(of("MG", "org-pka")).toEqual([]);
-    // La fenêtre d'attribution nomme le même.
-    const ct = open.find((s) => s.modality === "CT")!;
-    expect(demoAssignment(ct.id)!.planned).toEqual([
-      { profile_id: "demo-bakari", name: "Dr Ibrahim Bakari" },
-    ]);
   });
 });
 

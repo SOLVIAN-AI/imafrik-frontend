@@ -5,11 +5,12 @@ import { expect, test } from "./support/fixtures";
  *
  * Le responsable de la clinique compose, depuis « Équipe », le planning
  * de la semaine : des lignes par radiologue, avec au besoin une modalité,
- * des heures et une période. Le planning propose, il n'attribue rien :
- * sur chaque examen à attribuer, le radiologue prévu s'affiche, avec
- * « Confirmer » et « Tout confirmer ». L'équipe IMAFRIK règle le même
- * planning depuis la fiche de la clinique, radiologues du réseau compris.
- * En démonstration, chaque écriture s'arrête sur le message qui le dit.
+ * des heures et une période. À l'arrivée d'un examen, le service
+ * l'attribue d'office au radiologue de la ligne la plus précise ; l'écran
+ * signale les conflits, où le planning ne tranche pas. L'équipe IMAFRIK
+ * règle le même planning depuis la fiche de la clinique, radiologues du
+ * réseau compris. En démonstration, chaque écriture s'arrête sur le
+ * message qui le dit.
  *
  * Le planning de Saint-Joseph (`demoAssignmentPlan`) : Afi Mensah et Adjo
  * Kponton de jour en semaine (un conflit), Fatou Diallo la nuit, Mawuli
@@ -44,7 +45,7 @@ test.describe("le responsable de la clinique", () => {
     await expect(lignes.filter({ hasText: "IRM" })).toContainText(
       "Pr Mawuli Agbeko",
     );
-    // Deux radiologues de jour, aussi précisément : personne n'est prévu.
+    // Deux radiologues de jour, aussi précisément : le planning ne tranche pas.
     await expect(
       page.getByTestId("plan-warnings").getByText(/sont prévus en même temps/),
     ).toContainText("Dr Afi Mensah et Dr Adjo Kponton");
@@ -163,41 +164,13 @@ test.describe("le responsable de la clinique", () => {
     ).toBe(true);
   });
 
-  test("confirme le radiologue prévu sur ses examens", async ({ page }) => {
-    await page.goto("/examens?etat=a-attribuer");
-    const ligne = page.getByRole("row").filter({ hasText: "KOFFI" });
-    await expect(ligne.getByTestId("planned-radiologist")).toContainText(
-      "Dr Ibrahim Bakari",
-    );
-    await expect(
-      page.getByRole("button", { name: /^Tout confirmer \(1\)/ }),
-    ).toBeVisible();
-    await ligne.getByRole("button", { name: /^Confirmer :/ }).click();
-    await expect(page.getByText(DEMO)).toBeVisible();
-
-    // La fenêtre présélectionne le radiologue prévu.
-    await ligne
-      .getByRole("button", {
-        name: "Attribuer l’examen de KOFFI Ama",
-        exact: true,
-      })
-      .click();
-    const fenetre = page.getByRole("dialog");
-    await expect(fenetre.getByTestId("planned-hint")).toContainText(
-      "Dr Ibrahim Bakari est présélectionné",
-    );
-    await expect(
-      fenetre.getByRole("radio", { name: /Dr Ibrahim Bakari/ }),
-    ).toBeChecked();
-  });
-
   test("trouve l'aide de l'écran", async ({ page }) => {
     await page.goto("/equipe/regles");
     await page.getByRole("button", { name: "Aide" }).click();
     const aide = page.getByRole("dialog", { name: "Aide" });
     await expect(aide).toContainText("Planning d’attribution");
     await expect(aide).toContainText("Recopier la semaine précédente");
-    await expect(aide).toContainText("Radiologue prévu");
+    await expect(aide).toContainText("Règle d’attribution");
   });
 });
 
@@ -238,26 +211,6 @@ test.describe("l'équipe IMAFRIK", () => {
         .getByLabel("Radiologue")
         .locator("option", { hasText: "Ibrahim Bakari" }),
     ).toHaveCount(1);
-  });
-
-  test("confirme depuis « À lire », sauf quand le planning hésite", async ({
-    page,
-  }) => {
-    await page.goto("/worklist");
-    await expect(
-      page.getByRole("button", { name: /^Tout confirmer \(2\)/ }),
-    ).toBeVisible();
-    const irm = page.getByRole("row").filter({ hasText: "TETTEH" });
-    await expect(irm.getByTestId("planned-conflict")).toContainText(
-      "Le planning hésite",
-    );
-    await expect(irm.getByRole("button", { name: /^Confirmer :/ })).toHaveCount(
-      0,
-    );
-    const radio = page.getByRole("row").filter({ hasText: "SOGLO" });
-    await expect(radio.getByTestId("planned-radiologist")).toContainText(
-      "Dr Ibrahim Bakari",
-    );
   });
 
   test("voit en rouge une urgence que personne n'a prise", async ({ page }) => {

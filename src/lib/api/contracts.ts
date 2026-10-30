@@ -137,47 +137,6 @@ const _priorCandidate: Matches<
   Schemas["PriorCandidateOut"]
 > = true;
 
-/** Un radiologue que le planning de la clinique prévoit pour un examen. */
-export const plannedRadiologistSchema = z.object({
-  profile_id: uuid,
-  name: z.string(),
-});
-const _plannedRadiologist: Matches<
-  z.input<typeof plannedRadiologistSchema>,
-  Schemas["PlannedRadiologist"]
-> = true;
-
-/** Le radiologue prévu d'un examen : un seul, plusieurs (conflit) ou aucun. */
-export const studyPlanSchema = z.object({
-  study_id: uuid,
-  planned: z.array(plannedRadiologistSchema),
-});
-const _studyPlan: Matches<
-  z.input<typeof studyPlanSchema>,
-  Schemas["StudyPlan"]
-> = true;
-
-/** Ce qu'a donné « Confirmer » ou « Tout confirmer ». */
-export const planConfirmationSchema = z.object({
-  results: z.array(
-    z.object({
-      study_id: uuid,
-      outcome: z.enum([
-        "assigned",
-        "already_assigned",
-        "plan_changed",
-        "not_found",
-      ]),
-    }),
-  ),
-  assigned: z.number().int(),
-  notified: z.number().int(),
-});
-const _planConfirmation: Matches<
-  z.input<typeof planConfirmationSchema>,
-  Schemas["PlanConfirmation"]
-> = true;
-
 export const assignmentStateSchema = z.object({
   study_id: uuid,
   status: studyStatusSchema,
@@ -187,7 +146,6 @@ export const assignmentStateSchema = z.object({
   assigned_to_name: z.string().nullable(),
   assigned_at: isoDate.nullable(),
   assigned_by_rule: z.enum(["modality", "schedule"]).nullable().optional(),
-  planned: z.array(plannedRadiologistSchema).optional(),
   draft_in_progress: z.boolean(),
   candidates: z.array(
     z.object({
@@ -2120,9 +2078,6 @@ export const CONTRACT_CHECKS = [
   _planLine,
   _assignmentPlan,
   _weekCopy,
-  _plannedRadiologist,
-  _studyPlan,
-  _planConfirmation,
   _adminUser,
   _clinicDetail,
   _clinicLogo,

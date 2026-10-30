@@ -6,11 +6,6 @@ import { useRouter } from "next/navigation";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
 import { EligibilityNote } from "@/components/domain/eligibility-note";
-import {
-  ConfirmPlannedButton,
-  PlannedNote,
-} from "@/components/domain/planned-assignee";
-import type { PlannedRadiologist } from "@/lib/actions/assignment";
 import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
@@ -59,22 +54,17 @@ import { cn } from "@/lib/utils";
  * @param assignable  Le responsable de la clinique attribue depuis la liste.
  * @param eligibility Équipe IMAFRIK : qui peut recevoir chaque examen à
  *                    attribuer, lu par l'écran pour la page.
- * @param planned     Le radiologue que le planning de la clinique prévoit
- *                    pour chaque examen à attribuer : nommé sur la ligne,
- *                    avec « Confirmer ».
  */
 export function StudyList({
   studies,
   filtered = false,
   assignable = false,
   eligibility = {},
-  planned = {},
 }: {
   studies: Study[];
   filtered?: boolean;
   assignable?: boolean;
   eligibility?: Record<string, Eligibility>;
-  planned?: Record<string, PlannedRadiologist[]>;
 }) {
   const router = useRouter();
   const href = useClinicHref();
@@ -155,28 +145,17 @@ export function StudyList({
                   muted={study.status === "delivered"}
                 />
                 <StudyStatusChip status={study.status} />
-                {reader(study) === null &&
-                  (planned[study.id] ? (
-                    <PlannedNote planned={planned[study.id]} />
-                  ) : (
-                    <EligibilityNote
-                      found={eligibility[study.id]}
-                      modality={study.modality}
-                      fallback={views.unassigned}
-                    />
-                  ))}
+                {reader(study) === null && (
+                  <EligibilityNote
+                    found={eligibility[study.id]}
+                    modality={study.modality}
+                    fallback={views.unassigned}
+                  />
+                )}
               </div>
             </Link>
             {assignable && open(study) && (
-              <div className="flex flex-wrap justify-end gap-1.5 px-4 pb-3">
-                {!study.assignedTo && (
-                  <ConfirmPlannedButton
-                    portal={portal}
-                    studyId={study.id}
-                    patient={formatPatientName(study.patientName)}
-                    planned={planned[study.id]}
-                  />
-                )}
+              <div className="flex justify-end px-4 pb-3">
                 <AssignDialog
                   portal={portal}
                   studyId={study.id}
@@ -215,7 +194,7 @@ export function StudyList({
               {assignable && (
                 // Collée à droite : l'action reste visible si le tableau
                 // défile en largeur.
-                <th scope="col" className="sticky right-0 w-56 !text-right">
+                <th scope="col" className="sticky right-0 w-36 !text-right">
                   <span className="label-eyebrow">{views.action}</span>
                 </th>
               )}
@@ -275,15 +254,11 @@ export function StudyList({
                 <td>
                   <div className="flex min-w-0">
                     {reader(study) === null ? (
-                      planned[study.id] ? (
-                        <PlannedNote planned={planned[study.id]} />
-                      ) : (
-                        <EligibilityNote
-                          found={eligibility[study.id]}
-                          modality={study.modality}
-                          fallback={views.unassigned}
-                        />
-                      )
+                      <EligibilityNote
+                        found={eligibility[study.id]}
+                        modality={study.modality}
+                        fallback={views.unassigned}
+                      />
                     ) : (
                       <span className="truncate text-secondary">
                         {reader(study)}
@@ -324,23 +299,13 @@ export function StudyList({
                 {assignable && (
                   <td className="sticky right-0 bg-surface-raised text-right">
                     {open(study) && (
-                      <span className="inline-flex items-center justify-end gap-1">
-                        {!study.assignedTo && (
-                          <ConfirmPlannedButton
-                            portal={portal}
-                            studyId={study.id}
-                            patient={formatPatientName(study.patientName)}
-                            planned={planned[study.id]}
-                          />
-                        )}
-                        <AssignDialog
-                          portal={portal}
-                          studyId={study.id}
-                          patient={formatPatientName(study.patientName)}
-                          assigned={study.assignedTo !== null}
-                          clinic={{ id: study.clinicId, name: study.clinic }}
-                        />
-                      </span>
+                      <AssignDialog
+                        portal={portal}
+                        studyId={study.id}
+                        patient={formatPatientName(study.patientName)}
+                        assigned={study.assignedTo !== null}
+                        clinic={{ id: study.clinicId, name: study.clinic }}
+                      />
                     )}
                   </td>
                 )}

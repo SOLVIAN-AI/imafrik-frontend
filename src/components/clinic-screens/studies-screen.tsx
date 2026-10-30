@@ -6,9 +6,6 @@ import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { type ClinicConsultation, clinicHref } from "@/lib/clinic-view";
 import { getEligibility } from "@/lib/data/eligibility";
-import { getPlanned } from "@/lib/data/plan";
-import { confirmable } from "@/lib/assignment-plan";
-import { ConfirmAllPlannedButton } from "@/components/domain/planned-assignee";
 import { loadStudyFilters } from "@/lib/data/study-filters";
 import { listStudyPageAt, STUDY_LIST_PAGE_SIZE } from "@/lib/data/studies";
 import { LIST_FILTERS } from "@/lib/filters/screens";
@@ -90,16 +87,13 @@ export async function StudiesScreen({
   // L'équipe IMAFRIK voit sur la ligne quand personne ne peut recevoir un
   // examen (un appel pour la page) ; le responsable n'a pas cette lecture,
   // sa fenêtre lui dit quoi vérifier.
-  const open = studies
-    .filter((study) => study.status === "received" && !study.assignedTo)
-    .map((study) => study.id);
-  // Le radiologue que le planning prévoit, pour le responsable comme pour
-  // l'équipe : chacun par son portail.
-  const [eligibility, planned] = await Promise.all([
-    consultation ? getEligibility(open) : {},
-    getPlanned(consultation ? "team" : "clinic", open),
-  ]);
-  const toConfirm = confirmable(open, planned);
+  const eligibility = consultation
+    ? await getEligibility(
+        studies
+          .filter((study) => study.status === "received" && !study.assignedTo)
+          .map((study) => study.id),
+      )
+    : {};
   const { t } = await getMessages();
   const clinicName = consultation?.name ?? session.active.organizationName;
   const bar = facetDimensions(keys, counts);
@@ -113,17 +107,12 @@ export async function StudiesScreen({
         actions={<ClinicStudiesActions search={search} />}
       />
 
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-4 pb-3 sm:px-6">
-        <FilterBar
-          dimensions={bar}
-          active={filters}
-          result={{ count: total, noun: "studies" }}
-        />
-        <ConfirmAllPlannedButton
-          portal={consultation ? "team" : "clinic"}
-          items={toConfirm}
-        />
-      </div>
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{ count: total, noun: "studies" }}
+        className="shrink-0 px-4 pb-3 sm:px-6"
+      />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
         <Panel className="flex min-h-0 flex-col overflow-hidden">
@@ -135,7 +124,6 @@ export async function StudiesScreen({
               filtered={Boolean(search) || hasFilters(filters)}
               assignable
               eligibility={eligibility}
-              planned={planned}
             />
           )}
           <ListPagination

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  AlertTriangle,
-  ArrowRight,
-  CalendarCheck,
-  FileCheck2,
-  UserCheck,
-} from "lucide-react";
+import { AlertTriangle, ArrowRight, FileCheck2, UserCheck } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { toast } from "sonner";
@@ -120,19 +114,6 @@ export function AssignDialog({
         return;
       }
       setState(result.data);
-      // Le radiologue que le planning prévoit est présélectionné : le
-      // confirmer tient en un clic. S'il hésite, personne ne l'est.
-      const [planned, ...others] = result.data.planned;
-      if (
-        result.data.assignedTo === null &&
-        planned &&
-        others.length === 0 &&
-        result.data.candidates.some(
-          (candidate) => candidate.profileId === planned.profileId,
-        )
-      ) {
-        setChoice(planned.profileId);
-      }
       // Les antériorités se lisent pour le titulaire : ce qui lui est déjà
       // partagé s'affiche comme tel.
       const found = await getPriorCandidates(
@@ -430,17 +411,7 @@ function CandidateList({
   choice: string | null;
   onChoose: (id: string) => void;
 }) {
-  const messages = useMessages().assignment;
-  const text = messages.dialog;
-  // Le planning ne propose que pour un examen sans titulaire.
-  const planned =
-    state.assignedTo === null ? state.planned : ([] as typeof state.planned);
-  const plannedIds = new Set(planned.map((one) => one.profileId));
-  // Le radiologue prévu en tête : c'est lui qu'on confirme.
-  const candidates = [...state.candidates].sort(
-    (a, b) =>
-      Number(plannedIds.has(b.profileId)) - Number(plannedIds.has(a.profileId)),
-  );
+  const text = useMessages().assignment.dialog;
   return (
     <fieldset className="flex flex-col gap-1.5">
       <legend className="label-eyebrow mb-1.5">{text.candidates}</legend>
@@ -449,25 +420,8 @@ function CandidateList({
           {text.candidatesHint(state.modality)}
         </p>
       )}
-      {planned.length === 1 && plannedIds.has(choice ?? "") && (
-        <p
-          className="-mt-0.5 mb-1 flex items-start gap-1.5 text-xs text-accent"
-          data-testid="planned-hint"
-        >
-          <CalendarCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-          {messages.planned.dialogHint(planned[0].name)}
-        </p>
-      )}
-      {planned.length > 1 && (
-        <p className="-mt-0.5 mb-1 flex items-start gap-1.5 text-xs text-progress">
-          <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-          {messages.planned.dialogConflict(
-            planned.map((one) => one.name).join(", "),
-          )}
-        </p>
-      )}
       <div className="flex max-h-56 flex-col gap-1.5 overflow-auto">
-        {candidates.map((candidate) => {
+        {state.candidates.map((candidate) => {
           const holder = candidate.profileId === state.assignedTo;
           const selected = choice === candidate.profileId;
           return (
@@ -491,13 +445,8 @@ function CandidateList({
                 className="size-3.5 shrink-0 accent-[var(--accent)]"
               />
               <span className="min-w-0 flex-1">
-                <span className="flex min-w-0 items-center gap-1.5 text-sm font-medium">
-                  <span className="truncate">{candidate.name}</span>
-                  {plannedIds.has(candidate.profileId) && (
-                    <span className="shrink-0 rounded-full bg-accent-muted px-1.5 text-2xs font-medium text-accent">
-                      {messages.planned.dialogBadge}
-                    </span>
-                  )}
+                <span className="block truncate text-sm font-medium">
+                  {candidate.name}
                 </span>
                 <span className="block truncate text-xs text-secondary">
                   {candidate.viaPool ? text.pool : text.clinicRadiologist}

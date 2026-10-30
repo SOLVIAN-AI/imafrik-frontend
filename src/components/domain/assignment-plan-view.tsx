@@ -102,7 +102,7 @@ function byStart(a: PlanLine, b: PlanLine): number {
  *   partage et survit au rechargement. « Cette semaine » est celle de la
  *   clinique, à son heure.
  * - **Les conflits sont signalés** : deux lignes aussi précises pour deux
- *   radiologues, qui se recouvrent, ne proposent personne.
+ *   radiologues, qui se recouvrent, laissent l'examen à attribuer.
  * - **Recopier la semaine précédente** reprend ses lignes datées.
  *
  * Partagé par le responsable (« Équipe › Planning d'attribution », ses

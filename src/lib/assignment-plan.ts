@@ -3,19 +3,18 @@ import type {
   ApiPlanLine,
   ModalityGroup,
 } from "@/lib/api/contracts";
-import { modalityGroupOf } from "@/lib/modalities";
 
 /**
  * Planning d'attribution d'une clinique : le vocabulaire de l'interface, et
  * ce que l'écran calcule seul (semaines, gardes de nuit, conflits).
  *
- * Le planning **propose**, il n'attribue rien. Une ligne porte un
- * radiologue, des jours, et au besoin des heures, une modalité et une
- * période ; sans période, elle vaut chaque semaine. Pour un examen à
- * attribuer, le service désigne le radiologue prévu (la ligne la plus
- * précise : modalité, puis période, puis heures) ; le responsable le
- * confirme d'un geste. Deux lignes aussi précises pour deux radiologues
- * ne proposent personne : l'écran le signale comme un conflit.
+ * Une ligne porte un radiologue, des jours, et au besoin des heures, une
+ * modalité et une période ; sans période, elle vaut chaque semaine. À
+ * l'arrivée d'un examen, le service l'attribue, sans confirmation, au
+ * radiologue de la ligne la plus précise qui le couvre : la modalité,
+ * puis la période, puis les heures. Deux lignes aussi précises pour deux
+ * radiologues laissent l'examen à attribuer : l'écran le signale comme un
+ * conflit.
  *
  * Les dates sont des jours du calendrier de la clinique (`AAAA-MM-JJ`),
  * jamais des instants : « cette semaine » est celle de la clinique, pas
@@ -339,7 +338,7 @@ export interface Conflict {
  * Conflits du planning pendant une semaine : deux lignes aussi précises,
  * pour la même modalité (ou toutes deux pour toutes), pour deux
  * radiologues qui peuvent recevoir les examens, qui se recouvrent. Pendant
- * ce temps, personne n'est prévu : le responsable choisit.
+ * ce temps, le planning ne tranche pas : l'examen reste à attribuer.
  *
  * Une ligne plus précise ne fait pas conflit : elle l'emporte. Une ligne
  * dont le radiologue ne peut pas recevoir d'examen ne compte pas.
@@ -408,7 +407,7 @@ export function weekCopyPreview<T extends PlanLineInput>(
   };
 }
 
-// ─── Le radiologue prévu d'un examen ────────────────────────────
+// ─── L'heure de la clinique ─────────────────────────────────────
 
 /** Jour, jour de la semaine et heure d'un instant, à l'heure de la clinique. */
 export function localParts(
@@ -432,64 +431,6 @@ export function localParts(
     day: `${parts.year}-${parts.month}-${parts.day}`,
     minutes: Number(parts.hour) * 60 + Number(parts.minute),
   };
-}
-
-/** Vrai si la ligne couvre cet instant local : comme `slot_covers` en base. */
-export function covers(
-  line: PlanLineInput,
-  day: CalendarDay,
-  minutes: number,
-): boolean {
-  if (line.startsAt === null || line.endsAt === null) {
-    return startsOnDay(line, day);
-  }
-  const start = minutesOf(line.startsAt);
-  const end = minutesOf(line.endsAt);
-  if (start < end) {
-    return startsOnDay(line, day) && minutes >= start && minutes < end;
-  }
-  return (
-    (startsOnDay(line, day) && minutes >= start) ||
-    (startsOnDay(line, addDays(day, -1)) && minutes < end)
-  );
-}
-
-/**
- * Radiologues que le planning prévoit pour un examen, comme
- * `public.planned_assignees` : les lignes qui couvrent son arrivée, à
- * l'heure de la clinique, pour sa modalité, d'un radiologue qui peut le
- * recevoir ; parmi elles, les plus précises. Sert la démonstration ; en
- * service, la base décide.
- *
- * @param plan       Planning de la clinique.
- * @param receivedAt Arrivée de l'examen.
- * @param modality   Code DICOM de sa modalité.
- * @param canReceive Vrai si ce radiologue peut recevoir l'examen.
- * @returns Les radiologues prévus, sans doublon : un seul, il est prévu ;
- *          plusieurs, conflit ; aucun, personne.
- */
-export function plannedFor(
-  plan: { timeZone: string; lines: readonly PlanLineInput[] },
-  receivedAt: Date,
-  modality: string | null,
-  canReceive: (radiologistId: string) => boolean,
-): string[] {
-  const { day, minutes } = localParts(receivedAt, plan.timeZone);
-  const group = modalityGroupOf(modality);
-  const matching = plan.lines.filter(
-    (line) =>
-      (line.modality === null || line.modality === group) &&
-      covers(line, day, minutes) &&
-      canReceive(line.radiologistId),
-  );
-  const best = Math.max(-1, ...matching.map(precisionOf));
-  return [
-    ...new Set(
-      matching
-        .filter((line) => precisionOf(line) === best)
-        .map((line) => line.radiologistId),
-    ),
-  ];
 }
 
 // ─── En clair ───────────────────────────────────────────────────
@@ -525,31 +466,4 @@ export function daysSummary(
         : run.map((day) => names[day - 1]),
     )
     .join(", ");
-}
-
-// ─── Confirmer ──────────────────────────────────────────────────
-
-/** Un examen à confirmer, et le radiologue que l'écran montre prévu. */
-export interface PlannedItem {
-  studyId: string;
-  radiologistId: string;
-}
-
-/**
- * Les examens qu'un « Tout confirmer » attribuerait : ceux qui ont un seul
- * radiologue prévu. Un examen où le planning hésite attend un choix.
- *
- * @param studyIds Examens à attribuer de la page, dans son ordre.
- * @param planned  Radiologues prévus, par examen.
- */
-export function confirmable(
-  studyIds: readonly string[],
-  planned: Readonly<Record<string, readonly { profileId: string }[]>>,
-): PlannedItem[] {
-  return studyIds.flatMap((studyId) => {
-    const found = planned[studyId] ?? [];
-    return found.length === 1
-      ? [{ studyId, radiologistId: found[0].profileId }]
-      : [];
-  });
 }

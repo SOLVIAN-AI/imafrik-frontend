@@ -214,17 +214,17 @@ export const assignment = {
     loading: "Chargement des radiologues…",
   },
   /**
-   * Planning d'attribution d'une clinique : il propose le radiologue de
-   * chaque examen à attribuer, une personne confirme.
+   * Planning d'attribution d'une clinique : à l'arrivée d'un examen, il
+   * l'attribue au radiologue de la ligne la plus précise qui le couvre.
    */
   plan: {
     title: "Planning d’attribution",
     trigger: "Planning d’attribution",
-    description: "Qui est prévu pour lire les examens de la clinique.",
+    description: "Qui reçoit les examens de la clinique, à leur arrivée.",
     adminDescription:
-      "Qui est prévu pour lire les examens de cette clinique, radiologues du réseau compris.",
+      "Qui reçoit les examens de cette clinique à leur arrivée, radiologues du réseau compris.",
     howItWorks:
-      "Le planning propose, il n’attribue rien : sur chaque examen à attribuer, le radiologue prévu s’affiche et vous le confirmez d’un geste. Si plusieurs lignes couvrent un examen, la plus précise l’emporte : la modalité, puis la période, puis les heures.",
+      "À son arrivée, un examen va d’office au radiologue de la ligne qui le couvre. Si plusieurs lignes le couvrent, la plus précise l’emporte : la modalité, puis la période, puis les heures. Ce que le planning ne couvre pas reste à attribuer, et vous pouvez toujours réattribuer depuis l’examen.",
     timeZone: (zone: string) => `Heures et dates de la clinique (${zone}).`,
     previousWeek: "Semaine précédente",
     nextWeek: "Semaine suivante",
@@ -245,9 +245,9 @@ export const assignment = {
     dated: (from: string, to: string) => `Du ${from} au ${to}`,
     conflictBadge: "Conflit",
     conflictInfo:
-      "Deux lignes aussi précises l’une que l’autre, pour deux radiologues, se recouvrent : pendant ce temps, personne n’est prévu et vous choisissez sur l’examen.",
+      "Deux lignes aussi précises l’une que l’autre, pour deux radiologues, se recouvrent : pendant ce temps, le planning ne tranche pas et l’examen reste à attribuer.",
     conflict: (first: string, second: string, days: string) =>
-      `${first} et ${second} sont prévus en même temps (${days}), aussi précisément l’un que l’autre : personne n’est prévu, vous choisirez sur l’examen. Précisez une modalité, une période ou des heures.`,
+      `${first} et ${second} sont prévus en même temps (${days}), aussi précisément l’un que l’autre : le planning ne tranche pas, un examen arrivé pendant ce temps restera à attribuer. Précisez une modalité, une période ou des heures.`,
     cannotReceive: (name: string) =>
       `${name} ne peut pas encore recevoir d’examen (habilitation ou rattachement) : ses lignes ne comptent pas.`,
     notReading: (name: string, modality: string) =>
@@ -259,7 +259,7 @@ export const assignment = {
     linesInfo:
       "Les lignes qui valent pendant la semaine affichée : celles de chaque semaine, et celles dont la période la touche.",
     noLines:
-      "Aucune ligne cette semaine : les examens arrivent sans radiologue prévu, vous les attribuez vous-même.",
+      "Aucune ligne cette semaine : les examens arrivent à attribuer, vous les attribuez vous-même.",
     add: "Ajouter une ligne",
     edit: "Modifier",
     editLabel: (line: string) => `Modifier la ligne : ${line}`,
@@ -267,7 +267,7 @@ export const assignment = {
     removeLabel: (line: string) => `Retirer la ligne : ${line}`,
     removeTitle: "Retirer cette ligne ?",
     removeDescription: (line: string) =>
-      `${line}. Les examens qu’elle couvrait n’auront plus ce radiologue de prévu ; rien de ce qui est déjà attribué ne change.`,
+      `${line}. Les examens qui arriveront ne lui seront plus attribués par cette ligne ; rien de ce qui est déjà attribué ne change.`,
     removed: "Ligne retirée.",
     updatedBy: (name: string, date: string) => `${name}, le ${date}`,
     copy: "Recopier la semaine précédente",
@@ -352,7 +352,7 @@ export const assignment = {
     back: "Équipe",
     summary: (weekly: number, dated: number) =>
       weekly === 0 && dated === 0
-        ? "Aucune ligne : les examens arrivent sans radiologue prévu."
+        ? "Aucune ligne : les examens arrivent à attribuer."
         : [
             weekly > 0 &&
               `${weekly} ligne${weekly > 1 ? "s" : ""} chaque semaine`,
@@ -361,44 +361,12 @@ export const assignment = {
           ]
             .filter(Boolean)
             .join(" · "),
-    /** Règle qui avait confié un examen d'office, avant le planning qui propose. */
+    /** Règle qui a confié un examen d'office, nommée sur sa fiche. */
     byRule: {
       modality: "radiologue de la modalité",
-      schedule: "planning de la semaine",
+      schedule: "planning d’attribution",
     },
     assignedBy: (rule: string) => `Attribué par la règle : ${rule}`,
-  },
-  /** Le radiologue que le planning prévoit, sur un examen à attribuer. */
-  planned: {
-    column: "Prévu",
-    info: "Le radiologue que le planning de la clinique prévoit pour cet examen, d’après son heure d’arrivée. Rien n’est attribué tant que personne ne confirme.",
-    by: (name: string) => `Prévu : ${name}`,
-    conflict: (names: string) => `Le planning hésite : ${names}`,
-    confirm: "Confirmer",
-    confirmLabel: (patient: string, name: string) =>
-      `Confirmer : ${name} pour l’examen de ${patient}`,
-    confirmAll: (count: number) => `Tout confirmer (${count})`,
-    confirmAllLabel: (count: number) =>
-      count > 1
-        ? `Tout confirmer (${count}) : les examens de la page à leur radiologue prévu`
-        : "Tout confirmer (1) : l’examen de la page à son radiologue prévu",
-    confirmAllInfo:
-      "Attribue chaque examen de la page qui a un radiologue prévu. Un examen attribué entre-temps, ou dont le planning a changé, est laissé tel quel.",
-    confirmed: (count: number) =>
-      count > 1
-        ? `${count} examens attribués à leur radiologue prévu.`
-        : count === 1
-          ? "Examen attribué au radiologue prévu."
-          : "Aucun examen attribué.",
-    left: (count: number) =>
-      count > 1
-        ? `${count} examens laissés : attribués entre-temps, ou le planning a changé.`
-        : "1 examen laissé : attribué entre-temps, ou le planning a changé.",
-    dialogBadge: "Prévu",
-    dialogHint: (name: string) =>
-      `${name} est présélectionné : le planning le prévoit pour cet examen.`,
-    dialogConflict: (names: string) =>
-      `Le planning prévoit ${names} aussi précisément l’un que l’autre : choisissez.`,
   },
   demoAction: "L’attribution des examens",
 };
