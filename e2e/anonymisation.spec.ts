@@ -90,10 +90,16 @@ test.describe("tour de contrôle", () => {
   });
 
   test("le journal d’audit sait nommer l’anonymisation", async ({ page }) => {
-    for (const action of ["user.anonymized", "user.anonymization_requested"]) {
+    for (const [action, nom] of [
+      ["user.anonymized", "Compte anonymisé"],
+      ["user.anonymization_requested", "Anonymisation d’un compte demandée"],
+    ]) {
       await page.goto(`/admin/audit?action=${action}`);
       await expect(
-        page.getByText("Aucune entrée pour cette action."),
+        page.getByRole("heading", { level: 2, name: nom }),
+      ).toBeVisible();
+      await expect(
+        page.getByText("Aucune entrée ne correspond à ces filtres"),
       ).toBeVisible();
     }
   });

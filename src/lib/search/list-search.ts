@@ -35,6 +35,8 @@ export const LIST_SEARCH_SCOPES = [
   "admin-comptes",
   // Organisations : nom ou ville.
   "admin-organisations",
+  // Demandes reçues : nom, adresse, établissement.
+  "admin-demandes",
 ] as const;
 
 /**

@@ -66,6 +66,12 @@ test("la zone de danger exige le nom exact de la clinique", async ({
 test("le journal d’audit sait nommer la fin de contrat", async ({ page }) => {
   await page.goto("/admin/audit?action=organization.contract_ended");
   await expect(
-    page.getByText("Aucune entrée pour cette action."),
+    page.getByRole("heading", {
+      level: 2,
+      name: "Contrat de la clinique terminé",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Aucune entrée ne correspond à ces filtres"),
   ).toBeVisible();
 });

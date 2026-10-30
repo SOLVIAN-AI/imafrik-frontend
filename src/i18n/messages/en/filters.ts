@@ -23,6 +23,24 @@ export const filters: AppMessages["filters"] = {
     not_connected: "Not connected",
     silent: "Silent for 24 h",
   },
+  author: "Author",
+  allAuthors: "All authors",
+  authorSearch: "Search for an author",
+  authorNoMatch: "No author matches.",
+  authorMatches: (count: number) =>
+    count === 0 ? "No author" : count === 1 ? "1 author" : `${count} authors`,
+  family: "Family",
+  allFamilies: "All families",
+  action: "Action",
+  actionSearch: "Search for an action",
+  actionNoMatch: "No action matches.",
+  actionMatches: (count: number) =>
+    count === 0 ? "No action" : count === 1 ? "1 action" : `${count} actions`,
+  allRequesters: "All requesters",
+  requestSearch: "Search for a request",
+  requestSearchPlaceholder: "Name, email, facility…",
+  stage: "Stage",
+  allStages: "All stages",
   organization: "Organisation",
   allOrganizations: "All organisations",
   organizationSearch: "Search for an organisation",
@@ -74,6 +92,9 @@ export const filters: AppMessages["filters"] = {
   allPriorities: "All priorities",
   urgent: "Urgent",
   nouns: {
+    entries: (count: number) => (count === 1 ? "1 entry" : `${count} entries`),
+    requests: (count: number) =>
+      count === 1 ? "1 request" : `${count} requests`,
     gateways: (count: number) =>
       count === 1 ? "1 gateway" : `${count} gateways`,
     statements: (count: number) =>
@@ -87,6 +108,8 @@ export const filters: AppMessages["filters"] = {
       count === 1 ? "1 organisation" : `${count} organisations`,
   },
   empty: {
+    entries: "No entry matches these filters",
+    requests: "No request matches these filters",
     gateways: "No gateway matches these filters",
     statements: "No statement matches these filters",
     studies: "No examination matches these filters",
