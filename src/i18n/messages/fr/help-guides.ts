@@ -53,7 +53,7 @@ export const guides = {
   weasis: {
     title: "Lire un examen dans Weasis",
     intro:
-      "Weasis, visualiseur DICOM libre des Hôpitaux universitaires de Genève, s’installe sur l’ordinateur et s’ouvre depuis l’écran de lecture, à côté du viewer. Il reçoit cet examen seul, avec le même accès que le viewer, sans export ni envoi, et garde ses images sur le poste jusqu’à sa fermeture.",
+      "Weasis, visualiseur DICOM libre des Hôpitaux universitaires de Genève, s’installe sur l’ordinateur et s’ouvre depuis l’écran de lecture, à côté du viewer. Il reçoit cet examen seul, avec le même accès que le viewer, sans import, export ni envoi, et garde ses images sur le poste jusqu’à sa fermeture.",
     sections: [
       {
         title: "Installer Weasis, une fois par ordinateur",
@@ -69,6 +69,8 @@ export const guides = {
           "Dans l’écran de lecture, sous les images, cliquez sur « Ouvrir dans Weasis » (l’icône d’écran, sur un écran étroit).",
           "Acceptez la demande du navigateur d’ouvrir Weasis ; vous pouvez l’autoriser pour toujours sur ce site.",
           "Weasis s’ouvre dans un profil IMAFRIK, à part de votre Weasis habituel : il ferme l’examen qu’il affichait, ouvre celui-ci et télécharge ses images. Le lien vaut cinq minutes et ne sert qu’une fois.",
+          "Weasis ouvert depuis IMAFRIK n’importe rien, ni fichier, ni CD, ni autre image : n’y déposez aucun fichier ni dossier, pour ne jamais mêler les images d’un autre patient à l’examen lu.",
+          "Weasis ne reçoit que les images : le son, les documents (PDF), la vidéo et les comptes rendus structurés se consultent dans le visualiseur d’IMAFRIK, et un examen sans image ne s’ouvre pas dans Weasis.",
           "Si rien ne s’ouvre, l’aide s’affiche : Weasis n’est sans doute pas installé sur cet ordinateur.",
         ],
       },
@@ -85,7 +87,7 @@ export const guides = {
         steps: [
           "Ouvrez Weasis sur un ordinateur au disque chiffré, dans une session personnelle que nul autre n’utilise.",
           "Un examen à la fois, et Weasis fermé à la fin de chaque lecture.",
-          "Aucune copie : ni capture ou photo de l’écran, ni impression, ni copie du dossier temporaire où Weasis garde les images. Weasis ouvert depuis IMAFRIK n’offre d’ailleurs ni export, ni envoi.",
+          "Aucune copie : ni capture ou photo de l’écran, ni impression, ni copie du dossier temporaire où Weasis garde les images. Weasis ouvert depuis IMAFRIK n’offre d’ailleurs ni import, ni export, ni envoi.",
           "L’accès remis à Weasis est le vôtre, pour cet examen : ne le copiez pas et ne le confiez à aucun autre logiciel.",
           "Chaque ouverture est tracée à votre nom et peut être contrôlée ; un manquement suspend vos accès (article 9 du contrat).",
         ],

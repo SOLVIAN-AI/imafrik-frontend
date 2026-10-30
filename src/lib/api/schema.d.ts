@@ -4039,7 +4039,9 @@ export interface paths {
          *
          *     Raises:
          *         NotFound: Examen inexistant ou hors du périmètre de l'appelant.
-         *         Conflict: Images archivées au terme de la conservation.
+         *         Conflict: Images archivées au terme de la conservation, ou examen
+         *             sans aucune image (documents, son, comptes rendus structurés).
+         *         ServiceUnavailable: Le PACS ne répond pas.
          */
         post: operations["weasis_launch_studies__study_id__weasis_launch_post"];
         delete?: never;
@@ -4592,7 +4594,7 @@ export interface paths {
          * Configuration de Weasis
          * @description Configuration que Weasis lit à son démarrage, quand IMAFRIK l'ouvre.
          *
-         *     Le profil d'IMAFRIK et les sorties coupées (:data:`LOCKDOWN`). Elle est
+         *     Le profil d'IMAFRIK, les entrées et sorties coupées (:data:`LOCKDOWN`). Elle est
          *     publique : elle ne contient aucune donnée, et Weasis la lit avant
          *     toute authentification. Voir l'en-tête du module.
          *
@@ -15167,6 +15169,15 @@ export interface operations {
             };
             /** @description Code inconnu, expiré ou utilisé */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": unknown;
+                };
+            };
+            /** @description Aucune image dans l'examen */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

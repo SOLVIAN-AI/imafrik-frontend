@@ -413,7 +413,7 @@ export const reading: AppMessages["reading"] = {
     ],
     download: "Download Weasis (official site)",
     oneAtATime:
-      "Weasis opens in an IMAFRIK profile, separate from your usual Weasis, and shows one examination at a time there: each opening replaces the previous one. The link is valid for five minutes and works once.",
+      "Weasis opens in an IMAFRIK profile, separate from your usual Weasis, and shows only the examination sent by IMAFRIK there, one at a time: it imports no files, CDs or other images, and you drop no files into it. Each opening replaces the previous one. The link is valid for five minutes and works once.",
     privacy:
       "Opened from IMAFRIK, Weasis offers no export, no sending to another PACS, and no saving or copying of images. It keeps the images on this computer while it is open and deletes them when it closes: close it after each read, make no copies (screenshot or photo of the screen, printing, copy of its temporary folder), and only use it on a computer with your own user session and an encrypted disk, as the practice agreement requires.",
     close: "Close",

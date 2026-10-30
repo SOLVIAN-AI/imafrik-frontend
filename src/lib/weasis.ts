@@ -52,10 +52,12 @@ export function isDesktopComputer(hints: DeviceHints): boolean {
 export const WEASIS_PROFILE = "imafrik";
 
 /**
- * Sorties de Weasis que chaque ouverture depuis IMAFRIK doit couper
- * (`LOCKDOWN` du service, `app/routers/weasis.py`) : export DICOM, CD et
- * images, envoi, récupération sur un autre PACS, annotations, capture,
- * barre de menus. Une adresse qui en omet une n'est pas ouverte.
+ * Entrées et sorties de Weasis que chaque ouverture depuis IMAFRIK doit
+ * couper (`LOCKDOWN` du service, `app/routers/weasis.py`) : export DICOM,
+ * CD et images, envoi, récupération sur un autre PACS, annotations,
+ * capture, barre de menus ; import de fichiers, de CD et d'images, barre
+ * d'import, module d'acquisition. Une adresse qui en omet une n'est pas
+ * ouverte.
  */
 export const WEASIS_LOCKDOWN = [
   "weasis.export.dicom",
@@ -64,6 +66,10 @@ export const WEASIS_LOCKDOWN = [
   "weasis.export.annotations",
   "weasis.all.screenshottoolbar.enable",
   "weasis.menu.menubar",
+  "weasis.import.dicom",
+  "weasis.import.images",
+  "weasis.all.importtoolbar.enable",
+  "org.weasis.acquire.explorer.MediaImporterFactory",
 ] as const;
 
 /**
