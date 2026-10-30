@@ -5,12 +5,7 @@ import { z } from "zod";
 
 import { apiSend } from "@/lib/api/client";
 import { type ClinicRole, ROLES_BY_KIND } from "@/lib/roles";
-import {
-  memberSchema,
-  modalityGroupSchema,
-  organizationSchema,
-  type ModalityGroup,
-} from "@/lib/api/contracts";
+import { memberSchema, organizationSchema } from "@/lib/api/contracts";
 import {
   type ActionResult,
   demoUnavailable,
@@ -137,33 +132,28 @@ export async function removeMember(
 }
 
 /**
- * Règle la lecture d'un radiologue de la clinique : les modalités qu'il
- * lit, et sa place sur la liste d'urgence.
+ * Place un radiologue de la clinique sur la liste d'urgence, ou l'en
+ * retire.
  *
- * Les modalités bornent ce qu'on peut lui attribuer ; la liste d'urgence
- * lui permet de prendre une urgence sans attendre qu'on la lui confie (le
- * premier qui la prend l'obtient). Un réglage par radiologue : il
- * n'écrase ni celui d'un autre responsable, ni les radiologues du réseau
- * que l'équipe IMAFRIK a mis sur la liste.
+ * La liste d'urgence lui permet de prendre une urgence sans attendre qu'on
+ * la lui confie (le premier qui la prend l'obtient). Un réglage par
+ * radiologue : il n'écrase ni celui d'un autre responsable, ni les
+ * radiologues du réseau que l'équipe IMAFRIK a mis sur la liste. Les
+ * modalités qu'il lit ne se règlent plus ici : l'équipe IMAFRIK seule les
+ * règle, dans « Comptes ».
  *
- * @param membershipId   Appartenance du radiologue à la clinique.
- * @param readModalities Groupes lus ; `null` pour tous.
- * @param urgentReader   Sur la liste d'urgence.
+ * @param membershipId Appartenance du radiologue à la clinique.
+ * @param urgentReader Sur la liste d'urgence.
  */
 export async function updateMemberReading(
   membershipId: string,
-  readModalities: ModalityGroup[] | null,
   urgentReader: boolean,
 ): Promise<ActionResult<Member>> {
   const { t } = await getMessages();
   if (isDemoMode()) return demoUnavailable(t.assignment.demoAction);
   const invalid = await rejectInvalidIds(membershipId);
   if (invalid) return invalid;
-  const modalities =
-    readModalities === null
-      ? null
-      : z.array(modalityGroupSchema).min(1).safeParse(readModalities);
-  if (modalities !== null && !modalities.success) {
+  if (typeof urgentReader !== "boolean") {
     return { ok: false, error: t.common.errors.unexpected, status: 422 };
   }
   const result = await run(async () =>
@@ -171,10 +161,7 @@ export async function updateMemberReading(
       await apiSend(
         `/organization/members/${encodeURIComponent(membershipId)}/reading`,
         "PUT",
-        {
-          read_modalities: modalities === null ? null : modalities.data,
-          urgent_reader: urgentReader,
-        },
+        { urgent_reader: urgentReader },
         memberSchema,
       ),
     ),

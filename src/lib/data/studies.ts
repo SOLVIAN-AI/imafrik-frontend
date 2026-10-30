@@ -1,4 +1,9 @@
 import "server-only";
+import {
+  type AppliedPlanLine,
+  type PlanOutcome,
+  toAppliedLine,
+} from "@/lib/assignment-plan";
 
 import { redirect } from "next/navigation";
 
@@ -90,6 +95,17 @@ export interface Study {
    * vigueur.
    */
   dueAt: Date;
+  /**
+   * Règle qui a attribué l'examen à son arrivée : `schedule`, le planning ;
+   * `modality`, l'ancienne règle par modalité. Absente pour une personne.
+   */
+  assignedByRule?: "modality" | "schedule" | null;
+  /** La ligne du planning appliquée, telle qu'elle était. */
+  assignedByLine?: AppliedPlanLine | null;
+  /** Examen à attribuer : pourquoi le planning ne l'a pas attribué. */
+  planOutcome?: PlanOutcome | null;
+  /** En conflit : les radiologues entre lesquels le planning n'a pas tranché. */
+  planConflictNames?: string[] | null;
 }
 
 /** Traduit la forme de l'API vers celle de l'interface. */
@@ -122,6 +138,12 @@ function toStudy(row: ApiStudy): Study {
       : null,
     dueAt: new Date(row.due_at),
     reportLanguage: row.report_language,
+    assignedByRule: row.assigned_by_rule ?? null,
+    assignedByLine: row.assigned_by_line
+      ? toAppliedLine(row.assigned_by_line)
+      : null,
+    planOutcome: row.plan_outcome ?? null,
+    planConflictNames: row.plan_conflict_names ?? null,
   };
 }
 

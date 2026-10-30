@@ -179,9 +179,11 @@ export const assignment = {
   reading: {
     title: (name: string) => `Lecture de ${name}`,
     description:
-      "Les modalités qu’il lit bornent ce qu’on peut lui attribuer ; la liste d’urgence lui permet de prendre une urgence sans attendre qu’on la lui confie.",
-    trigger: "Modalités et urgences",
-    triggerLabel: (name: string) => `Modalités et urgences de ${name}`,
+      "Sur la liste d’urgence, il peut prendre une urgence sans attendre qu’on la lui confie. Les modalités qu’il lit sont réglées par l’équipe IMAFRIK.",
+    trigger: "Liste d’urgence",
+    triggerLabel: (name: string) => `Liste d’urgence : ${name}`,
+    urgentTitle: (name: string) => `${name} et la liste d’urgence`,
+    urgentSaved: (name: string) => `Liste d’urgence de ${name} enregistrée.`,
     /** Bouton libellé des modalités, sur la ligne d'un compte. */
     button: "Modalités",
     buttonLabel: (name: string) => `Modalités lues par ${name}`,
@@ -212,33 +214,98 @@ export const assignment = {
     loading: "Chargement des radiologues…",
   },
   /**
-   * Règles d'attribution d'une clinique : le radiologue de chaque
-   * modalité, puis le planning de la semaine.
+   * Planning d'attribution d'une clinique : à l'arrivée d'un examen, il
+   * l'attribue au radiologue de la ligne la plus précise qui le couvre.
    */
-  rules: {
-    title: "Règles d’attribution",
-    trigger: "Règles d’attribution",
-    description:
-      "Qui reçoit d’office les examens de la clinique, à leur arrivée.",
+  plan: {
+    title: "Planning d’attribution",
+    trigger: "Planning d’attribution",
+    description: "Qui reçoit les examens de la clinique, à leur arrivée.",
     adminDescription:
-      "Qui reçoit d’office les examens de cette clinique à leur arrivée, radiologues du réseau compris.",
+      "Qui reçoit les examens de cette clinique à leur arrivée, radiologues du réseau compris.",
     howItWorks:
-      "À l’arrivée d’un examen, le radiologue de sa modalité le reçoit ; sinon, le seul radiologue de garde qui peut le lire. Sinon il reste à attribuer. Une règle ne reprend jamais un examen déjà attribué : vous pouvez toujours réattribuer.",
-    modalitiesTitle: "Radiologue par modalité",
-    modalitiesHint:
-      "Il reçoit tous les examens de cette modalité, à toute heure, s’il peut les lire.",
-    nobody: "Personne",
-    notReading: (name: string) => `${name} ne lit pas cette modalité`,
-    scheduleTitle: "Planning de la semaine",
-    scheduleHint: (zone: string) =>
-      `Les examens qu’aucun radiologue de modalité ne reçoit vont au radiologue de garde. Heures de la clinique (${zone}).`,
-    noSlots:
-      "Aucun créneau : en dehors des modalités désignées, les examens restent à attribuer.",
-    addSlot: "Ajouter un créneau",
-    slotLabel: (index: number) => `Créneau ${index}`,
+      "À son arrivée, un examen va d’office au radiologue de la ligne qui le couvre. Si plusieurs lignes le couvrent, la plus précise l’emporte : la modalité, puis la période, puis les heures. Ce que le planning ne couvre pas reste à attribuer, et vous pouvez toujours réattribuer depuis l’examen.",
+    timeZone: (zone: string) => `Heures et dates de la clinique (${zone}).`,
+    previousWeek: "Semaine précédente",
+    nextWeek: "Semaine suivante",
+    thisWeek: "Cette semaine",
+    followingWeek: "Semaine prochaine",
+    weekLabel: (from: string, to: string) => `Semaine du ${from} au ${to}`,
+    today: "Aujourd’hui",
+    view: "Présentation",
+    byRadiologist: "Par radiologue",
+    byModality: "Par modalité",
+    radiologistColumn: "Radiologue",
+    modalityColumn: "Modalité",
+    allModalities: "Toutes modalités",
+    nobodyThatDay: "Personne de prévu",
+    allDay: "Journée",
+    hours: (from: string, to: string) => `${from}–${to}`,
+    weekly: "Chaque semaine",
+    dated: (from: string, to: string) => `Du ${from} au ${to}`,
+    conflictBadge: "Conflit",
+    conflictInfo:
+      "Deux lignes aussi précises l’une que l’autre, pour deux radiologues, se recouvrent : pendant ce temps, le planning ne tranche pas et l’examen reste à attribuer.",
+    conflict: (first: string, second: string, days: string) =>
+      `${first} et ${second} sont prévus en même temps (${days}), aussi précisément l’un que l’autre : le planning ne tranche pas, un examen arrivé pendant ce temps restera à attribuer. Précisez une modalité, une période ou des heures.`,
+    cannotReceive: (name: string) =>
+      `${name} ne peut pas encore recevoir d’examen (habilitation ou rattachement) : ses lignes ne comptent pas.`,
+    notReading: (name: string, modality: string) =>
+      `${name} ne lit pas : ${modality}. Cette ligne ne compte pas ; l’équipe IMAFRIK règle les modalités que lit chaque radiologue.`,
+    network: "Réseau IMAFRIK",
+    networkLocked:
+      "Placé par l’équipe IMAFRIK : vous pouvez retirer sa ligne, pas la modifier.",
+    linesTitle: "Lignes de la semaine",
+    linesInfo:
+      "Les lignes qui valent pendant la semaine affichée : celles de chaque semaine, et celles dont la période la touche.",
+    noLines:
+      "Aucune ligne cette semaine : les examens arrivent à attribuer, vous les attribuez vous-même.",
+    add: "Ajouter une ligne",
+    edit: "Modifier",
+    editLabel: (line: string) => `Modifier la ligne : ${line}`,
+    remove: "Retirer",
+    removeLabel: (line: string) => `Retirer la ligne : ${line}`,
+    removeTitle: "Retirer cette ligne ?",
+    removeDescription: (line: string) =>
+      `${line}. Les examens qui arriveront ne lui seront plus attribués par cette ligne ; rien de ce qui est déjà attribué ne change.`,
+    removed: "Ligne retirée.",
+    updatedBy: (name: string, date: string) => `${name}, le ${date}`,
+    copy: "Recopier la semaine précédente",
+    copyInfo:
+      "Les lignes datées de la semaine précédente sont reprises sur celle-ci. Les lignes de chaque semaine valent déjà.",
+    copyNothing: "La semaine précédente n’a aucune ligne datée à recopier.",
+    copyTitle: "Remplacer les lignes de cette semaine ?",
+    copyDescription: (count: number) =>
+      count > 1
+        ? `Cette semaine a déjà ${count} lignes datées : elles seront remplacées par celles de la semaine précédente.`
+        : "Cette semaine a déjà une ligne datée : elle sera remplacée par celles de la semaine précédente.",
+    copyReplace: "Remplacer",
+    copied: (copied: number, skipped: number) =>
+      [
+        copied === 0
+          ? "Aucune ligne recopiée : leurs jours sont déjà passés."
+          : copied > 1
+            ? `${copied} lignes recopiées.`
+            : "1 ligne recopiée.",
+        skipped > 0 &&
+          (skipped > 1
+            ? `${skipped} laissées : leur radiologue ne peut plus y figurer, ou est du réseau.`
+            : "1 laissée : son radiologue ne peut plus y figurer, ou est du réseau."),
+      ]
+        .filter(Boolean)
+        .join(" "),
+    dialogAdd: "Ajouter une ligne",
+    dialogEdit: "Modifier la ligne",
+    dialogDescription:
+      "Un radiologue et des jours ; au besoin une modalité, des heures et une période.",
     radiologist: "Radiologue",
     chooseRadiologist: "Choisir un radiologue",
+    modality: "Modalité",
+    modalityAll: "Toutes",
+    modalityNotRead: (name: string) => `${name} ne lit pas cette modalité.`,
     days: "Jours",
+    allWeek: "Toute la semaine",
+    workweek: "Du lundi au vendredi",
     dayShort: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
     dayNames: [
       "lundi",
@@ -249,45 +316,70 @@ export const assignment = {
       "samedi",
       "dimanche",
     ],
-    allDay: "Toute la journée",
+    daysRange: (from: string, to: string) => `${from} à ${to}`,
+    hoursLabel: "Heures",
+    allDayLong: "Toute la journée",
     from: "De",
     to: "à",
     overnight: "jusqu’au lendemain matin",
-    removeSlot: "Retirer",
-    removeSlotLabel: (index: number) => `Retirer le créneau ${index}`,
+    duration: "Durée",
+    everyWeek: "Chaque semaine",
+    shownWeek: (from: string, to: string) =>
+      `Cette semaine seulement, du ${from} au ${to}`,
+    period: "Une période",
+    periodFrom: "Du",
+    periodTo: "Au",
     problems: {
       radiologist: "Choisissez un radiologue.",
       days: "Cochez au moins un jour.",
       hours: "Indiquez une heure de début et une heure de fin.",
       sameHours: "Le début et la fin ne peuvent pas être à la même heure.",
+      period: "Indiquez le premier et le dernier jour de la période.",
+      periodOrder: "La période finit après avoir commencé.",
+      periodTooLong: "Une période dure un an au plus.",
+      periodPast: "Cette période est déjà passée.",
+      noDayInPeriod: "Aucun des jours choisis ne tombe dans cette période.",
+      modalityNotRead: "Ce radiologue ne lit pas cette modalité.",
     },
-    overlap: (first: string, second: string, days: string) =>
-      `${first} et ${second} sont de garde en même temps (${days}) : un examen que les deux peuvent lire restera à attribuer.`,
-    cannotReceive: (name: string) =>
-      `${name} ne peut pas encore recevoir d’examen (habilitation ou rattachement) : la règle le passe.`,
-    network: "Réseau IMAFRIK",
-    submit: "Enregistrer les règles",
-    saved: "Règles d’attribution enregistrées.",
-    invalid: "Complétez ou retirez les créneaux signalés avant d’enregistrer.",
+    submitAdd: "Ajouter",
+    submitEdit: "Enregistrer",
+    added: "Ligne ajoutée.",
+    updated: "Ligne modifiée.",
     noRadiologists:
-      "Aucun radiologue dans votre équipe : invitez-en un depuis « Équipe » pour fixer des règles.",
+      "Aucun radiologue dans votre équipe : invitez-en un depuis « Équipe » pour composer le planning.",
     noRadiologistsAdmin:
       "Aucun radiologue ne peut lire cette clinique : rattachez-en un, ou ouvrez-la au réseau.",
     back: "Équipe",
-    summary: (slots: number, modalities: number) =>
-      slots === 0 && modalities === 0
-        ? "Aucune règle : les examens arrivent à attribuer."
+    summary: (weekly: number, dated: number) =>
+      weekly === 0 && dated === 0
+        ? "Aucune ligne : les examens arrivent à attribuer."
         : [
-            modalities > 0 &&
-              `${modalities} modalité${modalities > 1 ? "s" : ""} désignée${modalities > 1 ? "s" : ""}`,
-            slots > 0 && `${slots} créneau${slots > 1 ? "x" : ""} de garde`,
+            weekly > 0 &&
+              `${weekly} ligne${weekly > 1 ? "s" : ""} chaque semaine`,
+            dated > 0 &&
+              `${dated} ligne${dated > 1 ? "s" : ""} datée${dated > 1 ? "s" : ""}`,
           ]
             .filter(Boolean)
             .join(" · "),
-    /** Règle qui a confié un examen, nommée sur sa fiche. */
+    /** Ce que le planning a décidé pour un examen, à son arrivée. */
+    trace: {
+      byPlanning: "Attribué par le planning",
+      assignedBy: (line: string) => `Attribué par le planning : ${line}`,
+      ruleApplied: (line: string) => `Règle appliquée : ${line}`,
+      conflict: (names: string) => `Conflit du planning : ${names}`,
+      ineligible: "Prévu au planning, sans pouvoir le recevoir",
+      uncovered: "Hors planning",
+      conflictLong: (names: string) =>
+        `Le planning ne l’a pas attribué : ${names} sont prévus aussi précisément l’un que l’autre. Attribuez-le, et précisez le planning.`,
+      ineligibleLong:
+        "Le planning ne l’a pas attribué : le radiologue prévu ne pouvait pas le recevoir (habilitation, modalité lue). Attribuez-le à un autre.",
+      uncoveredLong:
+        "Le planning ne l’a pas attribué : aucune ligne ne couvrait son arrivée. Attribuez-le vous-même.",
+    },
+    /** Règle qui a confié un examen d'office, nommée sur sa fiche. */
     byRule: {
       modality: "radiologue de la modalité",
-      schedule: "planning de la semaine",
+      schedule: "planning d’attribution",
     },
     assignedBy: (rule: string) => `Attribué par la règle : ${rule}`,
   },

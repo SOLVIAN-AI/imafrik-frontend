@@ -1,5 +1,6 @@
 import type { ReportSections } from "@/components/editor/sections";
 import type { Study } from "@/lib/data/studies";
+import { addDays, mondayOf } from "@/lib/assignment-plan";
 
 /**
  * Jeu de démonstration, servi quand l'un des services n'est pas configuré
@@ -32,6 +33,13 @@ export const DEMO_CLINIC_CITIES: Record<string, string> = {
 
 const MINUTE = 60_000;
 const now = Date.now();
+
+/** La semaine en cours, à Lomé (UTC) : celle du planning de démonstration. */
+export const DEMO_WEEK = (() => {
+  const day = new Date(now).toISOString().slice(0, 10);
+  const monday = mondayOf(day);
+  return { monday, sunday: addDays(monday, 6) };
+})();
 
 /**
  * Délais promis de démonstration, en minutes : les valeurs par défaut des
@@ -79,13 +87,17 @@ function study(
     | "clinicalInfo"
     | "seriesCount"
     | "instanceCount"
-  > & {
-    urgent?: boolean;
-    receivedMinutesAgo: number;
-    reader?: Reader;
-    /** Délai de signature après réception, pour un examen rendu. */
-    turnaroundMinutes?: number;
-  },
+  > &
+    Pick<
+      Study,
+      "assignedByRule" | "assignedByLine" | "planOutcome" | "planConflictNames"
+    > & {
+      urgent?: boolean;
+      receivedMinutesAgo: number;
+      reader?: Reader;
+      /** Délai de signature après réception, pour un examen rendu. */
+      turnaroundMinutes?: number;
+    },
 ): DemoStudy {
   const reader = fields.reader ? DEMO_RADIOLOGISTS[fields.reader] : null;
   const signed = fields.status === "reported" || fields.status === "delivered";
@@ -127,6 +139,10 @@ function study(
         DEMO_SLA_MINUTES[fields.urgent ? "urgent" : "routine"] * MINUTE,
     ),
     reportLanguage: "fr",
+    assignedByRule: fields.assignedByRule ?? null,
+    assignedByLine: fields.assignedByLine ?? null,
+    planOutcome: fields.planOutcome ?? null,
+    planConflictNames: fields.planConflictNames ?? null,
   };
 }
 
@@ -158,6 +174,9 @@ export const DEMO_STUDIES: DemoStudy[] = [
     seriesCount: 4,
     instanceCount: 1284,
     receivedMinutesAgo: 8,
+    // Le planning hésite : Dr Kponton et Dr Bakari ont tous deux les scanners.
+    planOutcome: "conflict",
+    planConflictNames: ["Dr Adjo Kponton", "Dr Ibrahim Bakari"],
   }),
   study({
     id: "2",
@@ -174,6 +193,16 @@ export const DEMO_STUDIES: DemoStudy[] = [
     instanceCount: 642,
     receivedMinutesAgo: 47,
     reader: "me",
+    // Attribué à son arrivée par le planning : les IRM de cette semaine.
+    assignedByRule: "schedule",
+    assignedByLine: {
+      weekdays: [1, 2, 3, 4, 5, 6, 7],
+      startsAt: null,
+      endsAt: null,
+      modality: "mri",
+      startsOn: DEMO_WEEK.monday,
+      endsOn: DEMO_WEEK.sunday,
+    },
   }),
   study({
     id: "3",
@@ -189,6 +218,8 @@ export const DEMO_STUDIES: DemoStudy[] = [
     seriesCount: 1,
     instanceCount: 2,
     receivedMinutesAgo: 320,
+    // Kara ne planifie que ses IRM : une radiographie est hors planning.
+    planOutcome: "uncovered",
   }),
   study({
     id: "4",
@@ -256,6 +287,9 @@ export const DEMO_STUDIES: DemoStudy[] = [
     seriesCount: 6,
     instanceCount: 384,
     receivedMinutesAgo: 21,
+    // Les IRM de Kara vont à deux radiologues à la fois : un conflit.
+    planOutcome: "conflict",
+    planConflictNames: ["Dr Fatou Diallo", "Pr Mawuli Agbeko"],
   }),
   study({
     id: "8",
@@ -289,6 +323,7 @@ export const DEMO_STUDIES: DemoStudy[] = [
     seriesCount: 1,
     instanceCount: 4,
     receivedMinutesAgo: 76,
+    planOutcome: "uncovered",
   }),
   study({
     id: "10",

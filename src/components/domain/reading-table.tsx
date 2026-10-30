@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import { PlanTrace } from "@/components/domain/plan-trace";
 import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
@@ -118,8 +119,11 @@ function Follow({ study, group }: { study: Study; group: ReadingGroup }) {
   if (follow === "status") return <StudyStatusChip status={study.status} />;
   if (follow === "reader")
     return (
-      <span className="truncate text-secondary">
-        {study.assignedToName ?? t.worklist.table.colleague}
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate text-secondary">
+          {study.assignedToName ?? t.worklist.table.colleague}
+        </span>
+        <PlanTrace rule={study.assignedByRule} line={study.assignedByLine} />
       </span>
     );
   return group.note?.(study) ?? null;

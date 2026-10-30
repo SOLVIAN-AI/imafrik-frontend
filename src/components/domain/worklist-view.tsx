@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
 import { EligibilityNote } from "@/components/domain/eligibility-note";
+import { PlanTrace } from "@/components/domain/plan-trace";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { CredentialsBanner } from "@/components/domain/credentials-banner";
 import { ListToolbar } from "@/components/domain/list-toolbar";
@@ -306,13 +307,22 @@ export function WorklistView({
                       ...labels.supervision.open,
                       studies: sections.open,
                       follow: "none",
-                      note: (study) => (
-                        <EligibilityNote
-                          found={eligibility[study.id]}
-                          modality={study.modality}
-                          compact
-                        />
-                      ),
+                      // Personne d'éligible d'abord ; sinon pourquoi le
+                      // planning ne l'a pas attribué.
+                      note: (study) =>
+                        study.planOutcome &&
+                        eligibility[study.id]?.candidates !== 0 ? (
+                          <PlanTrace
+                            outcome={study.planOutcome}
+                            names={study.planConflictNames}
+                          />
+                        ) : (
+                          <EligibilityNote
+                            found={eligibility[study.id]}
+                            modality={study.modality}
+                            compact
+                          />
+                        ),
                     },
                   ]
                 : [

@@ -1,24 +1,25 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-import { AssignmentRulesForm } from "@/components/domain/assignment-rules-form";
+import { AssignmentPlanView } from "@/components/domain/assignment-plan-view";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import { getAssignmentRules } from "@/lib/actions/assignment-rules";
+import { getAssignmentPlan } from "@/lib/actions/assignment-plan";
 import { type ClinicConsultation, clinicHref } from "@/lib/clinic-view";
 import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
 
 /**
- * Règles d'attribution de la clinique, réglées par son responsable.
+ * Planning d'attribution de la clinique, réglé par son responsable.
  *
- * Le radiologue de chaque modalité, puis le planning de la semaine : à
- * l'arrivée d'un examen, le service le confie au radiologue prévu, s'il
- * peut le recevoir ; sinon l'examen reste à attribuer. Le responsable n'y
- * place que ses propres radiologues ; ceux du réseau que l'équipe IMAFRIK
- * y a placés restent visibles, et il peut les retirer.
+ * À l'arrivée d'un examen, le service l'attribue d'office au radiologue de
+ * la ligne la plus précise qui le couvre ; ce que le planning ne couvre
+ * pas reste à attribuer, et l'attribution directe sur l'examen corrige.
+ * Le responsable n'y place que ses propres radiologues ; ceux du réseau
+ * que l'équipe IMAFRIK y a placés restent visibles, et il peut retirer
+ * leurs lignes.
  *
- * Dans la vue des cliniques, l'équipe IMAFRIK lit les mêmes règles et les
+ * Dans la vue des cliniques, l'équipe IMAFRIK lit le même planning et le
  * règle par sa propre route, comme depuis la fiche de la clinique :
  * radiologues du réseau compris.
  *
@@ -32,10 +33,14 @@ export async function TeamRulesScreen({
 }) {
   const session = await requireSession();
   const { t } = await getMessages();
-  const text = t.assignment.rules;
+  const text = t.assignment.plan;
   const clinicId = consultation?.clinicId ?? null;
-  const rules = await getAssignmentRules(clinicId);
+  const plan = await getAssignmentPlan(clinicId);
   const clinicName = consultation?.name ?? session.active.organizationName;
+  const nobody =
+    plan.ok &&
+    plan.data.radiologists.length === 0 &&
+    plan.data.lines.length === 0;
 
   return (
     <>
@@ -53,17 +58,19 @@ export async function TeamRulesScreen({
       />
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
-        <Panel className="max-w-3xl p-4 sm:p-5">
-          {rules.ok ? (
-            <AssignmentRulesForm
-              key={rules.data.version}
-              clinicId={clinicId}
-              rules={rules.data}
-            />
-          ) : (
+        <Panel className="p-4 sm:p-5">
+          {!plan.ok ? (
             <p role="alert" className="text-xs text-urgent">
-              {rules.error}
+              {plan.error}
             </p>
+          ) : nobody ? (
+            <p className="text-xs text-secondary">
+              {clinicId === null
+                ? text.noRadiologists
+                : text.noRadiologistsAdmin}
+            </p>
+          ) : (
+            <AssignmentPlanView clinicId={clinicId} plan={plan.data} />
           )}
         </Panel>
       </div>

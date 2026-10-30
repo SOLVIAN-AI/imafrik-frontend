@@ -18,6 +18,11 @@ import {
   priorCandidateSchema,
 } from "@/lib/api/contracts";
 import type { NoCandidateReason } from "@/lib/assignment-blocker";
+import {
+  type AppliedPlanLine,
+  type PlanOutcome,
+  toAppliedLine,
+} from "@/lib/assignment-plan";
 import { getEligibility } from "@/lib/data/eligibility";
 import { demoAssignment, demoPriorCandidates } from "@/lib/demo/control";
 import { isDemoMode } from "@/lib/demo/mode";
@@ -77,6 +82,12 @@ export interface AssignmentState {
   assignedAt: string | null;
   /** Règle d'attribution qui l'a confié ; `null` pour une personne. */
   assignedByRule: "modality" | "schedule" | null;
+  /** La ligne du planning appliquée, telle qu'elle était. */
+  assignedByLine: AppliedPlanLine | null;
+  /** Examen à attribuer : pourquoi le planning ne l'a pas attribué. */
+  planOutcome: PlanOutcome | null;
+  /** En conflit : les radiologues entre lesquels le planning n'a pas tranché. */
+  planConflictNames: string[] | null;
   /** Le titulaire a commencé à rédiger : le réattribuer efface son texte. */
   draftInProgress: boolean;
   candidates: AssignmentCandidate[];
@@ -115,6 +126,11 @@ function toState(row: ApiAssignmentState): AssignmentState {
     assignedToName: row.assigned_to_name,
     assignedAt: row.assigned_at,
     assignedByRule: row.assigned_by_rule ?? null,
+    assignedByLine: row.assigned_by_line
+      ? toAppliedLine(row.assigned_by_line)
+      : null,
+    planOutcome: row.plan_outcome ?? null,
+    planConflictNames: row.plan_conflict_names ?? null,
     draftInProgress: row.draft_in_progress,
     candidates: row.candidates.map((candidate) => ({
       profileId: candidate.profile_id,

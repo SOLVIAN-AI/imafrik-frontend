@@ -92,6 +92,16 @@ export const studySchema = z.object({
   report_id: uuid.nullable(),
   report_language: z.enum(["fr", "en"]),
   due_at: isoDate,
+  assigned_by_rule: z.enum(["modality", "schedule"]).nullable().optional(),
+  assigned_by_line: z
+    .lazy(() => appliedPlanLineSchema)
+    .nullable()
+    .optional(),
+  plan_outcome: z
+    .lazy(() => planOutcomeSchema)
+    .nullable()
+    .optional(),
+  plan_conflict_names: z.array(z.string()).nullable().optional(),
 });
 const _study: Matches<z.input<typeof studySchema>, Schemas["Study"]> = true;
 
@@ -103,6 +113,27 @@ export const modalityGroupSchema = z.enum([
   "ct",
   "mri",
   "other",
+]);
+
+/** La ligne du planning qui a attribué un examen, telle qu'elle était. */
+export const appliedPlanLineSchema = z.object({
+  weekdays: z.array(z.number().int()),
+  starts_at: z.string().nullable().optional(),
+  ends_at: z.string().nullable().optional(),
+  modality: modalityGroupSchema.nullable().optional(),
+  starts_on: z.string().nullable().optional(),
+  ends_on: z.string().nullable().optional(),
+});
+const _appliedPlanLine: Matches<
+  z.input<typeof appliedPlanLineSchema>,
+  Schemas["AppliedPlanLine"]
+> = true;
+
+/** Pourquoi le planning n'a pas attribué un examen à son arrivée. */
+export const planOutcomeSchema = z.enum([
+  "conflict",
+  "ineligible",
+  "uncovered",
 ]);
 
 export const priorShareSchema = z.object({
@@ -146,6 +177,9 @@ export const assignmentStateSchema = z.object({
   assigned_to_name: z.string().nullable(),
   assigned_at: isoDate.nullable(),
   assigned_by_rule: z.enum(["modality", "schedule"]).nullable().optional(),
+  assigned_by_line: appliedPlanLineSchema.nullable().optional(),
+  plan_outcome: planOutcomeSchema.nullable().optional(),
+  plan_conflict_names: z.array(z.string()).nullable().optional(),
   draft_in_progress: z.boolean(),
   candidates: z.array(
     z.object({
@@ -1408,25 +1442,33 @@ const _urgentReader: Matches<
 /** Heure d'un créneau du planning, `HH:MM`. */
 const clockTime = z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/);
 
-export const assignmentSlotSchema = z.object({
+/** Jour du calendrier, `AAAA-MM-JJ`, à la date de la clinique. */
+const calendarDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+/** Une ligne du planning d'attribution. */
+export const planLineSchema = z.object({
+  id: uuid,
   radiologist_id: uuid,
   weekdays: z.array(z.number().int().min(1).max(7)),
   starts_at: clockTime.nullable().optional(),
   ends_at: clockTime.nullable().optional(),
+  modality_group: modalityGroupSchema.nullable().optional(),
+  starts_on: calendarDay.nullable().optional(),
+  ends_on: calendarDay.nullable().optional(),
+  updated_at: isoDate,
+  updated_by_name: z.string().nullable(),
 });
-const _assignmentSlot: Matches<
-  z.input<typeof assignmentSlotSchema>,
-  Schemas["AssignmentSlot"]
+const _planLine: Matches<
+  z.input<typeof planLineSchema>,
+  Schemas["PlanLine"]
 > = true;
 
-export const assignmentRulesSchema = z.object({
+/** Le planning d'attribution d'une clinique. */
+export const assignmentPlanSchema = z.object({
   clinic_id: uuid,
   time_zone: z.string(),
-  version: z.string(),
-  slots: z.array(assignmentSlotSchema),
-  modalities: z.array(
-    z.object({ group: modalityGroupSchema, radiologist_id: uuid }),
-  ),
+  today: calendarDay,
+  lines: z.array(planLineSchema),
   radiologists: z.array(
     z.object({
       profile_id: uuid,
@@ -1438,9 +1480,21 @@ export const assignmentRulesSchema = z.object({
     }),
   ),
 });
-const _assignmentRules: Matches<
-  z.input<typeof assignmentRulesSchema>,
-  Schemas["AssignmentRules"]
+const _assignmentPlan: Matches<
+  z.input<typeof assignmentPlanSchema>,
+  Schemas["AssignmentPlan"]
+> = true;
+
+/** Ce qu'a donné la recopie d'une semaine. */
+export const weekCopySchema = z.object({
+  copied: z.number().int(),
+  skipped: z.number().int(),
+  replaced: z.number().int(),
+  plan: assignmentPlanSchema,
+});
+const _weekCopy: Matches<
+  z.input<typeof weekCopySchema>,
+  Schemas["WeekCopy"]
 > = true;
 
 export const adminUserSchema = z.object({
@@ -2055,8 +2109,10 @@ export const CONTRACT_CHECKS = [
   _auditEntry,
   _userMembership,
   _urgentReader,
-  _assignmentSlot,
-  _assignmentRules,
+  _planLine,
+  _appliedPlanLine,
+  _assignmentPlan,
+  _weekCopy,
   _adminUser,
   _clinicDetail,
   _clinicLogo,
@@ -2076,7 +2132,8 @@ export type ApiAssignmentState = z.output<typeof assignmentStateSchema>;
 export type ApiPriorCandidate = z.output<typeof priorCandidateSchema>;
 export type ApiPriorShare = z.output<typeof priorShareSchema>;
 export type ApiUrgentReader = z.output<typeof urgentReaderSchema>;
-export type ApiAssignmentRules = z.output<typeof assignmentRulesSchema>;
+export type ApiAssignmentPlan = z.output<typeof assignmentPlanSchema>;
+export type ApiPlanLine = z.output<typeof planLineSchema>;
 export type ApiUserMembership = z.output<typeof userMembershipSchema>;
 export type ModalityGroup = z.output<typeof modalityGroupSchema>;
 export type ApiReport = z.output<typeof reportSchema>;

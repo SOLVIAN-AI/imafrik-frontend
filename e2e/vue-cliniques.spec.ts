@@ -172,7 +172,7 @@ test.describe("l’équipe IMAFRIK", () => {
     await expect(page.getByText("Dr Afi Mensah")).toBeVisible();
     await expect(page.getByRole("button", { name: "Inviter" })).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: /Modalités et urgences/ }),
+      page.getByRole("button", { name: /^Liste d’urgence :/ }),
     ).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: /Actions pour/ }),
@@ -183,12 +183,17 @@ test.describe("l’équipe IMAFRIK", () => {
       page.getByRole("link", { name: "Liste d’urgence", exact: true }),
     ).toHaveAttribute("href", "/admin/organisations/org-stj#liste-urgence");
 
-    // Règles : le formulaire de l'équipe, radiologues du réseau compris.
-    await page.getByRole("link", { name: "Règles d’attribution" }).click();
+    // Planning : celui de l'équipe, radiologues du réseau compris.
+    await page.getByRole("link", { name: "Planning d’attribution" }).click();
     await expect(page).toHaveURL(`${VUE}/equipe/regles`);
     await expect(
-      page.getByRole("button", { name: "Enregistrer les règles" }),
+      page.getByRole("button", { name: "Ajouter une ligne" }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("button", {
+        name: /^Modifier la ligne : Dr Fatou Diallo/,
+      }),
+    ).toHaveCount(1);
 
     // Compte-rendu : ni annulation ni addendum ; le PDF de l'équipe n'est
     // pas remis à la clinique, et l'écran le dit.
@@ -241,7 +246,7 @@ test.describe("l’équipe IMAFRIK", () => {
       [`${VUE}/examens/1`, "Fiche de l’examen"],
       [`${VUE}/comptes-rendus`, "Comptes-rendus de la clinique"],
       [`${VUE}/equipe`, "Équipe de la clinique"],
-      [`${VUE}/equipe/regles`, "Règles d’attribution de la clinique"],
+      [`${VUE}/equipe/regles`, "Planning d’attribution de la clinique"],
       [`${VUE}/activite`, "Activité et facturation de la clinique"],
     ] as const) {
       await page.goto(path);

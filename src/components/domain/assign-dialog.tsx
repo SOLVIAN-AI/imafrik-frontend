@@ -6,6 +6,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { DateTime } from "@/components/domain/date-time";
+import { PlanTrace } from "@/components/domain/plan-trace";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -281,15 +282,26 @@ export function AssignDialog({
                           </span>
                         )}
                         {state.assignedByRule && (
-                          <span className="block text-xs text-tertiary">
-                            {t.assignment.rules.assignedBy(
-                              t.assignment.rules.byRule[state.assignedByRule],
-                            )}
-                          </span>
+                          <PlanTrace
+                            rule={state.assignedByRule}
+                            line={state.assignedByLine}
+                            long
+                            className="mt-0.5 flex text-xs"
+                          />
                         )}
                       </>
                     ) : (
-                      <span className="text-secondary">{text.nobody}</span>
+                      <>
+                        <span className="text-secondary">{text.nobody}</span>
+                        {state.planOutcome && (
+                          <PlanTrace
+                            outcome={state.planOutcome}
+                            names={state.planConflictNames}
+                            long
+                            className="mt-1 flex"
+                          />
+                        )}
+                      </>
                     )}
                   </p>
                 </section>

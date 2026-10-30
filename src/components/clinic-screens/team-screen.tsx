@@ -2,7 +2,7 @@ import { CalendarClock, Siren } from "lucide-react";
 import Link from "next/link";
 
 import { SearchBox } from "@/components/admin/search-box";
-import { ReadingDialog } from "@/components/domain/reading-dialog";
+import { UrgentListDialog } from "@/components/domain/urgent-list-dialog";
 import {
   InviteMemberButton,
   MemberActions,
@@ -18,7 +18,6 @@ import type { BarDimension } from "@/lib/filters/dimensions";
 import { countOptions, filterRows, type RowValues } from "@/lib/filters/facets";
 import { LIST_FILTERS } from "@/lib/filters/screens";
 import { type Params, readFilters } from "@/lib/filters/url";
-import { describeModalities, MODALITY_GROUPS } from "@/lib/modalities";
 import { readListSearch } from "@/lib/search/server";
 import { formatDate, formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
@@ -38,16 +37,11 @@ function initials(name: string): string {
 const TEAM_ROLES = ["clinic_staff", "radiologist"] as const;
 
 /**
- * Valeurs d'un membre pour chaque dimension de l'équipe. Un radiologue
- * sans restriction lit toutes les modalités ; un responsable n'en lit
- * aucune et n'est sur aucune liste d'urgence.
+ * Valeurs d'un membre pour chaque dimension de l'équipe. Un responsable
+ * n'est sur aucune liste d'urgence.
  */
 const MEMBER_VALUES: RowValues<Member> = {
   role: (member) => [member.role],
-  modality: (member) =>
-    member.role === "radiologist"
-      ? (member.readModalities ?? MODALITY_GROUPS)
-      : [],
   urgentReader: (member) =>
     member.role === "radiologist" && member.urgentReader ? ["listed"] : [],
 };
@@ -68,21 +62,21 @@ const MEMBER_VALUES: RowValues<Member> = {
  * dernier responsable ne se retire pas (le service le refuse, et un
  * responsable seul en est averti ici).
  *
- * Pour chaque radiologue de la clinique, le responsable règle les
- * modalités qu'il lit (elles bornent ce qu'on peut lui attribuer) et sa
- * place sur la liste d'urgence (il peut alors prendre une urgence sans
- * attribution). Les règles d'attribution (radiologue par modalité,
- * planning de la semaine) ont leur écran, « Équipe › Règles
- * d'attribution ».
+ * Pour chaque radiologue de la clinique, le responsable règle sa place
+ * sur la liste d'urgence (il peut alors prendre une urgence sans
+ * attribution). Il ne règle plus les modalités qu'un radiologue lit, et ne
+ * les voit plus ici (décision du 30 octobre 2026) : l'équipe IMAFRIK seule
+ * les règle, et les lit, dans « Comptes ». Le planning d'attribution a son
+ * écran, « Équipe › Planning d'attribution ».
  *
- * Dans la vue des cliniques, l'équipe IMAFRIK voit la même équipe, avec
- * les modalités et la liste d'urgence de chacun, sans aucun geste du
- * responsable (inviter, retirer, régler un radiologue). Elle règle la
- * liste d'urgence de la clinique depuis sa fiche, son propre geste.
+ * Dans la vue des cliniques, l'équipe IMAFRIK voit la même équipe, avec la
+ * liste d'urgence de chacun, sans aucun geste du responsable (inviter,
+ * retirer, régler un radiologue). Elle règle la liste d'urgence de la
+ * clinique depuis sa fiche, son propre geste.
  *
- * La liste se filtre par la barre commune (rôle, modalité lue, liste
- * d'urgence) et se cherche par nom ou adresse électronique, sur la page :
- * le service renvoie toute l'équipe.
+ * La liste se filtre par la barre commune (rôle, liste d'urgence) et se
+ * cherche par nom ou adresse électronique, sur la page : le service
+ * renvoie toute l'équipe.
  *
  * @param consultation Clinique consultée par l'équipe IMAFRIK ; `null`
  *                     pour son responsable.
@@ -115,8 +109,6 @@ export async function TeamScreen({
       )
     : members;
   const shown = filterRows(found, MEMBER_VALUES, filters);
-  // Seuls les groupes lus par un radiologue de l'équipe sont proposés.
-  const groups = new Set(members.flatMap(MEMBER_VALUES.modality!));
   const readers = members.some((member) => member.role === "radiologist");
   const dimensions: BarDimension[] = [
     {
@@ -130,26 +122,14 @@ export async function TeamScreen({
       ),
     },
     {
-      key: "modality",
-      ...countOptions(
-        found,
-        MEMBER_VALUES,
-        filters,
-        "modality",
-        MODALITY_GROUPS.filter((group) => groups.has(group)).map((value) => ({
-          value,
-        })),
-      ),
-    },
-    {
       key: "urgentReader",
       options: countOptions(found, MEMBER_VALUES, filters, "urgentReader", [
         { value: "listed" },
       ]).options,
     },
   ];
-  // Sans radiologue, ni modalité ni liste d'urgence : la barre ne garde
-  // que le rôle, sauf un filtre venu de l'adresse, qu'elle doit nommer.
+  // Sans radiologue, pas de liste d'urgence : la barre ne garde que le
+  // rôle, sauf un filtre venu de l'adresse, qu'elle doit nommer.
   const bar = dimensions.filter(
     (entry) =>
       entry.key === "role" || readers || filters[entry.key] !== undefined,
@@ -186,7 +166,7 @@ export async function TeamScreen({
             <Button asChild variant="secondary" size="sm">
               <Link href={clinicHref(consultation, "/equipe/regles")}>
                 <CalendarClock aria-hidden />
-                {t.assignment.rules.trigger}
+                {t.assignment.plan.trigger}
               </Link>
             </Button>
             {consultation ? (
@@ -253,20 +233,10 @@ export async function TeamScreen({
                     <p className="truncate text-2xs text-tertiary">
                       {member.email ?? "—"}
                     </p>
-                    {member.role === "radiologist" && (
-                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-2xs text-secondary">
-                        <span className="truncate">
-                          {describeModalities(
-                            member.readModalities,
-                            t.assignment.modalities,
-                          )}
-                        </span>
-                        {member.urgentReader && (
-                          <span className="inline-flex items-center gap-1 font-medium text-urgent">
-                            <Siren className="size-3" aria-hidden />
-                            {t.assignment.reading.urgentBadge}
-                          </span>
-                        )}
+                    {member.role === "radiologist" && member.urgentReader && (
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-2xs font-medium text-urgent">
+                        <Siren className="size-3" aria-hidden />
+                        {t.assignment.reading.urgentBadge}
                       </p>
                     )}
                     {/* Téléphone : rôle et date passent sous le nom, qui
@@ -287,10 +257,9 @@ export async function TeamScreen({
                   </span>
 
                   {!consultation && member.role === "radiologist" && (
-                    <ReadingDialog
+                    <UrgentListDialog
                       membershipId={member.membershipId}
                       name={formatPersonName(member.title, member.fullName)}
-                      readModalities={member.readModalities}
                       urgentReader={member.urgentReader}
                     />
                   )}

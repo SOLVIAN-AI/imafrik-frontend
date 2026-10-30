@@ -245,7 +245,7 @@ export const glossary: typeof fr = {
   modalitesLues: {
     term: "Modalities read",
     definition:
-      "What a radiologist reads: radiography (HSG included), mammography, ultrasound, CT, MRI, other. Set by the clinic for its radiologists, or by the IMAFRIK team, they limit what can be assigned to them and the urgent examinations they see.",
+      "What a radiologist reads: radiography (HSG included), mammography, ultrasound, CT, MRI, other. Set by the IMAFRIK team, they limit what can be assigned to them, the urgent examinations they see and the schedule lines they can appear on.",
   },
   moisClos: {
     term: "Closed month",
@@ -268,9 +268,9 @@ export const glossary: typeof fr = {
       "Software installed on a clinic workstation. It receives the images from the devices and sends them, encrypted, to the IMAFRIK PACS. It is installed with the installation kit and an enrolment code.",
   },
   planning: {
-    term: "Weekly schedule",
+    term: "Assignment schedule",
     definition:
-      "Duty slots set by the clinic’s manager, or the IMAFRIK team: which radiologist, which days, which hours, nights included. An arriving examination goes to the only on-duty radiologist who can read it; if there are several, the manager chooses.",
+      "Lines set by the clinic’s manager, or the IMAFRIK team: which radiologist, which days, which hours, which modality, every week or for a period. On arrival, an examination goes automatically to the radiologist of the most precise line that covers it; two equally precise lines leave it to assign.",
   },
   pool: {
     term: "IMAFRIK network (pool)",
@@ -290,7 +290,7 @@ export const glossary: typeof fr = {
   regleAttribution: {
     term: "Assignment rule",
     definition:
-      "Instruction set in advance by the clinic’s manager, or the IMAFRIK team: a radiologist for each modality, then the weekly schedule. When an examination arrives, it gives it to the planned radiologist if they can read it. It never takes back an examination already assigned.",
+      "Instruction set in advance by the clinic’s manager, or the IMAFRIK team, in the assignment schedule. When an examination arrives, it gives it to the planned radiologist if they can read it. It never takes back an examination already assigned.",
   },
   reseauPrive: {
     term: "Private network",

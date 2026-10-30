@@ -186,7 +186,7 @@ export const pages = {
       purpose:
         "Tous les examens envoyés par votre clinique, avec le radiologue qui les lit et l’état de leur compte-rendu. C’est ici que vous attribuez vos examens à vos radiologues, modalité par modalité si vous le souhaitez.",
       steps: [
-        "Cliquez sur l’état « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore, les plus pressés en tête.",
+        "Cliquez sur l’état « À attribuer » : les examens que le planning n’a pas attribués, avec la raison (conflit, hors planning), les plus pressés en tête.",
         "Filtrez par radiologue, modalité, état, urgence ou période : chaque choix dit son nombre d’examens, et ils se combinent.",
         "Sur une ligne, cliquez sur « Attribuer », choisissez un radiologue parmi ceux qui lisent la modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
         "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
@@ -277,36 +277,36 @@ export const pages = {
     team: {
       title: "Équipe",
       purpose:
-        "Les membres de votre établissement qui ont accès à IMAFRIK : ses responsables, qui envoient les examens et gèrent l’équipe, et ses radiologues. C’est ici que vous invitez ou retirez vos collègues, et réglez ce que lit chacun de vos radiologues.",
+        "Les membres de votre établissement qui ont accès à IMAFRIK : ses responsables, qui envoient les examens et gèrent l’équipe, et ses radiologues. C’est ici que vous invitez ou retirez vos collègues, et placez vos radiologues sur la liste d’urgence.",
       steps: [
-        "Filtrez par rôle, modalité lue ou « Sur la liste d’urgence », chaque choix avec son nombre, ou cherchez un membre par nom ou adresse.",
+        "Filtrez par rôle ou « Sur la liste d’urgence », chaque choix avec son nombre, ou cherchez un membre par nom ou adresse.",
         "Cliquez sur « Inviter », saisissez nom, adresse électronique et rôle, puis « Envoyer l’invitation » : la personne choisit elle-même son mot de passe.",
         "« Responsable » a les mêmes droits que vous. « Radiologue » n’accède aux examens qu’après vérification de son numéro d’ordre.",
-        "Pour un radiologue, « Modalités et urgences » règle ce qu’il lit et la liste d’urgence ; « Règles d’attribution » lui confie d’office une modalité ou des jours de garde.",
+        "Pour un radiologue, « Liste d’urgence » lui permet de prendre une urgence sans attribution ; « Planning d’attribution » lui confie d’office des jours, une modalité, une semaine.",
         "Pour retirer un membre, ouvrez le menu au bout de sa ligne, puis « Retirer de l’équipe » : son accès est coupé aussitôt. Le dernier responsable ne se retire pas.",
       ],
       terms: [
         "responsable",
         "habilitation",
-        "modalitesLues",
         "listeUrgence",
+        "planning",
         "regleAttribution",
       ],
     },
     teamRules: {
-      title: "Règles d’attribution",
+      title: "Planning d’attribution",
       purpose:
-        "Confie d’office les examens de la clinique dès leur arrivée : au radiologue de leur modalité, sinon au radiologue de garde du planning. Ce que les règles ne couvrent pas reste à attribuer, et vous pouvez toujours réattribuer.",
+        "Confie d’office les examens de la clinique dès leur arrivée, selon le planning que vous composez : par jour, par modalité, chaque semaine ou pour une période. Ce qu’il ne couvre pas reste à attribuer, et vous pouvez toujours réattribuer.",
       steps: [
-        "Dans « Radiologue par modalité », choisissez au besoin qui reçoit tous les examens d’une modalité, par exemple l’échographie, à toute heure.",
-        "Dans « Planning de la semaine », cliquez sur « Ajouter un créneau », choisissez le radiologue, cochez ses jours et, s’il ne couvre pas la journée, ses heures.",
-        "Pour une garde de nuit, mettez une fin avant le début, par exemple de 20:00 à 08:00 : le créneau finit le lendemain matin.",
-        "Deux radiologues de garde en même temps ne se partagent pas les examens : l’écran vous le signale, et vous choisirez pour ceux que les deux peuvent lire.",
-        "Cliquez sur « Enregistrer les règles ». Elles valent pour les examens qui arrivent ensuite, jamais pour ceux déjà attribués.",
+        "Choisissez la semaine : « Cette semaine », « Semaine prochaine » ou les flèches. Les jours sont en colonnes, une rangée par radiologue ou par modalité.",
+        "Cliquez sur « Ajouter une ligne » : un radiologue, ses jours, et au besoin une modalité, des heures, puis « Chaque semaine » ou une période.",
+        "Si deux lignes couvrent un examen, la plus précise l’emporte : la modalité, puis la période, puis les heures. À égalité, l’écran signale un conflit.",
+        "« Recopier la semaine précédente » reprend ses lignes datées sur la semaine affichée ; les lignes de chaque semaine valent déjà.",
+        "Un examen attribué par le planning le dit, avec la règle appliquée. Le planning vaut pour ce qui arrive ensuite : réattribuez depuis « Examens ».",
       ],
       terms: [
-        "regleAttribution",
         "planning",
+        "regleAttribution",
         "modalitesLues",
         "attribution",
         "listeUrgence",
@@ -426,7 +426,7 @@ export const pages = {
         "Suivez la « Mise en service » : la première étape non franchie est celle qui appelle une action.",
         "Dans « Raccorder une passerelle », cliquez sur « Émettre un code » (15 minutes, une seule fois) et dictez-le à l’installateur, qui le saisit dans le kit.",
         "Quand le poste apparaît « En attente d’approbation » dans « Passerelles », vérifiez-le avec la clinique, puis cliquez sur « Approuver ».",
-        "Dans « Liste d’urgence » et « Règles d’attribution », choisissez les radiologues, de la clinique ou du réseau, qui prennent ses urgences ou reçoivent d’office ses examens.",
+        "Dans « Liste d’urgence » et « Planning d’attribution », choisissez les radiologues, de la clinique ou du réseau, qui prennent ses urgences ou reçoivent d’office ses examens.",
         "Renseignez son « Abonnement », puis au besoin la conservation des images, la langue des comptes-rendus et le logo en filigrane.",
       ],
       terms: [
@@ -710,32 +710,32 @@ export const pages = {
     clinicTeam: {
       title: "Équipe de la clinique",
       purpose:
-        "L’équipe de la clinique consultée : ses responsables et ses radiologues, avec les modalités que lit chacun et sa place sur la liste d’urgence. En consultation, l’équipe IMAFRIK n’y invite ni n’y retire personne.",
+        "L’équipe de la clinique consultée, telle que la voit son responsable : ses responsables et ses radiologues, avec leur place sur la liste d’urgence. Les modalités lues se lisent dans « Comptes ». En consultation, l’équipe IMAFRIK n’y invite ni n’y retire personne.",
       steps: [
-        "Filtrez par rôle, modalité lue ou « Sur la liste d’urgence », ou cherchez un membre ; lisez les modalités de chaque radiologue.",
+        "Filtrez par rôle ou « Sur la liste d’urgence », ou cherchez un membre par nom ou adresse.",
         "Un avis signale une clinique sans responsable, ou avec un seul : personne n’y prendrait le relais.",
         "Cliquez sur « Liste d’urgence » pour la régler depuis la fiche de la clinique, radiologues du réseau compris.",
-        "Cliquez sur « Règles d’attribution » pour lire et régler qui reçoit d’office les examens.",
+        "Cliquez sur « Planning d’attribution » pour lire et régler qui reçoit d’office les examens.",
       ],
       terms: [
         "vueCliniques",
         "responsable",
-        "modalitesLues",
         "listeUrgence",
+        "planning",
         "regleAttribution",
       ],
     },
     clinicTeamRules: {
-      title: "Règles d’attribution de la clinique",
+      title: "Planning d’attribution de la clinique",
       purpose:
-        "Les règles qui confient d’office les examens de la clinique consultée, à leur arrivée. L’équipe IMAFRIK les règle ici comme depuis la fiche de la clinique, radiologues du réseau compris.",
+        "Le planning qui confie d’office les examens de la clinique consultée, à leur arrivée : par jour, par modalité ou pour une période. L’équipe IMAFRIK le règle ici comme depuis la fiche de la clinique, radiologues du réseau compris.",
       steps: [
-        "Dans « Radiologue par modalité », lisez ou choisissez qui reçoit tous les examens d’une modalité.",
-        "Dans « Planning de la semaine », ajoutez ou retirez un créneau : radiologue, jours et, au besoin, heures.",
-        "Deux radiologues de garde en même temps laissent l’examen à attribuer : l’écran le signale.",
-        "Cliquez sur « Enregistrer les règles ». Elles valent pour les examens qui arrivent ensuite.",
+        "Choisissez la semaine et la présentation, par radiologue ou par modalité ; filtrez par radiologue ou par modalité.",
+        "Cliquez sur « Ajouter une ligne » : radiologue, jours, et au besoin modalité, heures et période. Les radiologues du réseau y figurent.",
+        "Un conflit signale deux lignes aussi précises pour deux radiologues : l’examen resterait à attribuer. Précisez une modalité, une période ou des heures.",
+        "« Recopier la semaine précédente » reprend ses lignes datées. Le planning vaut pour les examens qui arrivent ensuite.",
       ],
-      terms: ["regleAttribution", "planning", "modalitesLues", "attribution"],
+      terms: ["planning", "regleAttribution", "modalitesLues", "attribution"],
     },
     clinicActivity: {
       title: "Activité et facturation de la clinique",

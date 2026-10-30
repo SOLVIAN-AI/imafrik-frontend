@@ -120,6 +120,8 @@ export const filters = {
   memberSearchPlaceholder: "Nom, adresse électronique…",
   /** Ce que comptent les options et la liste, en toutes lettres. */
   nouns: {
+    planLines: (count: number) =>
+      count > 1 ? `${count} lignes` : `${count} ligne`,
     entries: (count: number) =>
       count > 1 ? `${count} entrées` : `${count} entrée`,
     requests: (count: number) =>
@@ -154,6 +156,7 @@ export const filters = {
     gateways: "Aucune passerelle ne correspond à ces filtres",
     statements: "Aucun relevé ne correspond à ces filtres",
     studies: "Aucun examen ne correspond à ces filtres",
+    planLines: "Aucune ligne du planning ne correspond à ces filtres",
     reports: "Aucun compte-rendu ne correspond à ces filtres",
     accounts: "Aucun compte ne correspond à ces filtres",
     organizations: "Aucune organisation ne correspond à ces filtres",

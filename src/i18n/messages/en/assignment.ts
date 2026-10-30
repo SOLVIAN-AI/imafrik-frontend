@@ -162,9 +162,11 @@ export const assignment: AppMessages["assignment"] = {
   reading: {
     title: (name: string) => `${name}’s reading`,
     description:
-      "The modalities they read limit what can be assigned to them; the urgent list lets them take an urgent examination without waiting for it to be assigned.",
-    trigger: "Modalities and urgent list",
-    triggerLabel: (name: string) => `Modalities and urgent list for ${name}`,
+      "On the urgent list, they can take an urgent examination without waiting for it to be assigned. The modalities they read are set by the IMAFRIK team.",
+    trigger: "Urgent list",
+    triggerLabel: (name: string) => `Urgent list: ${name}`,
+    urgentTitle: (name: string) => `${name} and the urgent list`,
+    urgentSaved: (name: string) => `${name}’s urgent list setting saved.`,
     button: "Modalities",
     buttonLabel: (name: string) => `Modalities read by ${name}`,
     modalities: "Modalities read",
@@ -192,30 +194,95 @@ export const assignment: AppMessages["assignment"] = {
     submit: "Save",
     loading: "Loading radiologists…",
   },
-  rules: {
-    title: "Assignment rules",
-    trigger: "Assignment rules",
-    description:
-      "Who receives the clinic’s examinations automatically, on arrival.",
+  plan: {
+    title: "Assignment schedule",
+    trigger: "Assignment schedule",
+    description: "Who receives the clinic’s examinations, on arrival.",
     adminDescription:
-      "Who receives this clinic’s examinations automatically on arrival, network radiologists included.",
+      "Who receives this clinic’s examinations on arrival, network radiologists included.",
     howItWorks:
-      "When an examination arrives, the radiologist for its modality receives it; otherwise, the only on-duty radiologist who can read it. Otherwise it stays to assign. A rule never takes back an examination already assigned: you can always reassign.",
-    modalitiesTitle: "Radiologist for each modality",
-    modalitiesHint:
-      "They receive every examination of this modality, at any hour, if they can read it.",
-    nobody: "Nobody",
-    notReading: (name: string) => `${name} does not read this modality`,
-    scheduleTitle: "Weekly schedule",
-    scheduleHint: (zone: string) =>
-      `Examinations that no modality radiologist receives go to the on-duty radiologist. Clinic hours (${zone}).`,
-    noSlots:
-      "No slot: apart from the designated modalities, examinations stay to assign.",
-    addSlot: "Add a slot",
-    slotLabel: (index: number) => `Slot ${index}`,
+      "On arrival, an examination goes automatically to the radiologist of the line that covers it. When several lines cover it, the most precise wins: the modality, then the period, then the hours. What the schedule does not cover stays to assign, and you can always reassign from the examination.",
+    timeZone: (zone: string) => `Clinic hours and dates (${zone}).`,
+    previousWeek: "Previous week",
+    nextWeek: "Following week",
+    thisWeek: "This week",
+    followingWeek: "Next week",
+    weekLabel: (from: string, to: string) => `Week of ${from} to ${to}`,
+    today: "Today",
+    view: "View",
+    byRadiologist: "By radiologist",
+    byModality: "By modality",
+    radiologistColumn: "Radiologist",
+    modalityColumn: "Modality",
+    allModalities: "All modalities",
+    nobodyThatDay: "Nobody planned",
+    allDay: "All day",
+    hours: (from: string, to: string) => `${from}–${to}`,
+    weekly: "Every week",
+    dated: (from: string, to: string) => `From ${from} to ${to}`,
+    conflictBadge: "Conflict",
+    conflictInfo:
+      "Two lines as precise as each other, for two radiologists, overlap: during that time the schedule does not decide and the examination stays to assign.",
+    conflict: (first: string, second: string, days: string) =>
+      `${first} and ${second} are planned at the same time (${days}), as precisely as each other: the schedule does not decide, and an examination arriving then will stay to assign. Add a modality, a period or hours.`,
+    cannotReceive: (name: string) =>
+      `${name} cannot receive examinations yet (credentials or affiliation): their lines do not count.`,
+    notReading: (name: string, modality: string) =>
+      `${name} does not read: ${modality}. This line does not count; the IMAFRIK team sets the modalities each radiologist reads.`,
+    network: "IMAFRIK network",
+    networkLocked:
+      "Placed by the IMAFRIK team: you can remove their line, not change it.",
+    linesTitle: "Lines of the week",
+    linesInfo:
+      "The lines that apply during the week shown: the weekly ones, and those whose period touches it.",
+    noLines:
+      "No line this week: examinations arrive to assign, and you assign them yourself.",
+    add: "Add a line",
+    edit: "Edit",
+    editLabel: (line: string) => `Edit the line: ${line}`,
+    remove: "Remove",
+    removeLabel: (line: string) => `Remove the line: ${line}`,
+    removeTitle: "Remove this line?",
+    removeDescription: (line: string) =>
+      `${line}. Examinations arriving from now on will no longer be assigned by this line; nothing already assigned changes.`,
+    removed: "Line removed.",
+    updatedBy: (name: string, date: string) => `${name}, on ${date}`,
+    copy: "Copy the previous week",
+    copyInfo:
+      "The dated lines of the previous week are repeated on this one. Weekly lines already apply.",
+    copyNothing: "The previous week has no dated line to copy.",
+    copyTitle: "Replace this week’s lines?",
+    copyDescription: (count: number) =>
+      count > 1
+        ? `This week already has ${count} dated lines: they will be replaced by those of the previous week.`
+        : "This week already has a dated line: it will be replaced by those of the previous week.",
+    copyReplace: "Replace",
+    copied: (copied: number, skipped: number) =>
+      [
+        copied === 0
+          ? "No line copied: their days are already over."
+          : copied > 1
+            ? `${copied} lines copied.`
+            : "1 line copied.",
+        skipped > 0 &&
+          (skipped > 1
+            ? `${skipped} left out: their radiologist can no longer appear, or is from the network.`
+            : "1 left out: its radiologist can no longer appear, or is from the network."),
+      ]
+        .filter(Boolean)
+        .join(" "),
+    dialogAdd: "Add a line",
+    dialogEdit: "Edit the line",
+    dialogDescription:
+      "A radiologist and days; if needed a modality, hours and a period.",
     radiologist: "Radiologist",
     chooseRadiologist: "Choose a radiologist",
+    modality: "Modality",
+    modalityAll: "All",
+    modalityNotRead: (name: string) => `${name} does not read this modality.`,
     days: "Days",
+    allWeek: "The whole week",
+    workweek: "Monday to Friday",
     dayShort: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     dayNames: [
       "Monday",
@@ -226,44 +293,66 @@ export const assignment: AppMessages["assignment"] = {
       "Saturday",
       "Sunday",
     ],
-    allDay: "All day",
+    daysRange: (from: string, to: string) => `${from} to ${to}`,
+    hoursLabel: "Hours",
+    allDayLong: "All day",
     from: "From",
     to: "to",
     overnight: "until the next morning",
-    removeSlot: "Remove",
-    removeSlotLabel: (index: number) => `Remove slot ${index}`,
+    duration: "Duration",
+    everyWeek: "Every week",
+    shownWeek: (from: string, to: string) =>
+      `This week only, from ${from} to ${to}`,
+    period: "A period",
+    periodFrom: "From",
+    periodTo: "To",
     problems: {
       radiologist: "Choose a radiologist.",
       days: "Tick at least one day.",
       hours: "Enter a start time and an end time.",
       sameHours: "The start and the end cannot be at the same time.",
+      period: "Enter the first and the last day of the period.",
+      periodOrder: "The period must end after it starts.",
+      periodTooLong: "A period lasts one year at most.",
+      periodPast: "This period is already over.",
+      noDayInPeriod: "None of the chosen days falls within this period.",
+      modalityNotRead: "This radiologist does not read this modality.",
     },
-    overlap: (first: string, second: string, days: string) =>
-      `${first} and ${second} are on duty at the same time (${days}): an examination both can read will stay to assign.`,
-    cannotReceive: (name: string) =>
-      `${name} cannot receive examinations yet (credentials or affiliation): the rule skips them.`,
-    network: "IMAFRIK network",
-    submit: "Save the rules",
-    saved: "Assignment rules saved.",
-    invalid: "Complete or remove the flagged slots before saving.",
+    submitAdd: "Add",
+    submitEdit: "Save",
+    added: "Line added.",
+    updated: "Line updated.",
     noRadiologists:
-      "No radiologist in your team: invite one from “Team” to set rules.",
+      "No radiologist in your team: invite one from “Team” to build the schedule.",
     noRadiologistsAdmin:
       "No radiologist can read this clinic: affiliate one, or open it to the network.",
     back: "Team",
-    summary: (slots: number, modalities: number) =>
-      slots === 0 && modalities === 0
-        ? "No rule: examinations arrive to assign."
+    summary: (weekly: number, dated: number) =>
+      weekly === 0 && dated === 0
+        ? "No line: examinations arrive to assign."
         : [
-            modalities > 0 &&
-              `${modalities} designated modalit${modalities > 1 ? "ies" : "y"}`,
-            slots > 0 && `${slots} duty slot${slots > 1 ? "s" : ""}`,
+            weekly > 0 && `${weekly} weekly line${weekly > 1 ? "s" : ""}`,
+            dated > 0 && `${dated} dated line${dated > 1 ? "s" : ""}`,
           ]
             .filter(Boolean)
             .join(" · "),
+    trace: {
+      byPlanning: "Assigned by the schedule",
+      assignedBy: (line: string) => `Assigned by the schedule: ${line}`,
+      ruleApplied: (line: string) => `Rule applied: ${line}`,
+      conflict: (names: string) => `Schedule conflict: ${names}`,
+      ineligible: "Planned, but the radiologist cannot receive it",
+      uncovered: "Outside the schedule",
+      conflictLong: (names: string) =>
+        `The schedule did not assign it: ${names} are planned as precisely as each other. Assign it, and make the schedule more precise.`,
+      ineligibleLong:
+        "The schedule did not assign it: the planned radiologist could not receive it (credentials, modalities read). Assign it to someone else.",
+      uncoveredLong:
+        "The schedule did not assign it: no line covered its arrival. Assign it yourself.",
+    },
     byRule: {
       modality: "radiologist for the modality",
-      schedule: "weekly schedule",
+      schedule: "assignment schedule",
     },
     assignedBy: (rule: string) => `Assigned by the rule: ${rule}`,
   },

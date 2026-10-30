@@ -78,7 +78,8 @@ Colonnes des tableaux :
 | `/comptes-rendus` | Comptes-rendus reçus | Croissant | Recherche | État « À télécharger, Téléchargés » (la navigation compte déjà les premiers) ; modalité ; urgence ; signataire ; période ; tri par signature | État, modalité, urgence : prêts. Signataire, période, tri : B1 | P1 |
 | `/equipe` | Membres | Borné | Aucun | Rôle, modalité lue, liste d’urgence, recherche (nom, courriel) | Sur la page | P3 |
 | `/activite` | Tableaux du mois (modalités, performances, relevé) | Fixe | Mois `?mois=` ; tri des performances en état local | Tri des performances dans l’adresse | | P3 |
-| `/equipe/regles`, `/envoyer`, `/parametres` | Formulaire, dépôt, justificatifs | | | Aucun : ce ne sont pas des listes à parcourir | | |
+| `/equipe/regles` | Lignes du planning d’attribution de la semaine | Borné (200 lignes en cours ou à venir) | Radiologue (liste déroulante), modalité (puces, une ligne « toutes modalités » vaut pour chacune), semaine `?semaine=`, présentation `?vue=modalite` | | Sur la page | Fait |
+| `/envoyer`, `/parametres` | Dépôt, justificatifs | | | Aucun : ce ne sont pas des listes à parcourir | | |
 
 ### 2.3 Équipe IMAFRIK
 

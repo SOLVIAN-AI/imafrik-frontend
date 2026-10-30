@@ -181,7 +181,7 @@ export const pages: typeof fr = {
       purpose:
         "All the examinations your clinic has sent, with the radiologist reading them and the status of their report. This is where you assign your examinations to your radiologists, modality by modality if you wish.",
       steps: [
-        "Click the “To assign” status to see only the examinations no radiologist can see yet, the most pressing first.",
+        "Click the “To assign” status: the examinations the schedule did not assign, with the reason (conflict, outside the schedule), the most pressing first.",
         "Filter by radiologist, modality, status, urgency or period: each choice shows its number of examinations, and they combine.",
         "On a row, click “Assign”, choose a radiologist among those reading the modality, tick the useful prior examinations, then click “Assign”.",
         "Type a patient name, an ID or a modality in the search box, then press Enter.",
@@ -272,36 +272,36 @@ export const pages: typeof fr = {
     team: {
       title: "Team",
       purpose:
-        "The members of your facility who have access to IMAFRIK: its managers, who send the examinations and manage the team, and its radiologists. This is where you invite or remove colleagues, and set what each of your radiologists reads.",
+        "The members of your facility who have access to IMAFRIK: its managers, who send the examinations and manage the team, and its radiologists. This is where you invite or remove colleagues, and put your radiologists on the urgent list.",
       steps: [
-        "Filter by role, modality read or “On the urgent list”, each choice with its number, or search for a member by name or email.",
+        "Filter by role or “On the urgent list”, each choice with its number, or search for a member by name or email.",
         "Click “Invite”, enter name, email address and role, then “Send invitation”: the person chooses their own password.",
         "“Manager” has the same rights as you. “Radiologist” can only access examinations once their registration number has been verified.",
-        "For a radiologist, “Modalities and urgent list” sets what they read and their place on the urgent list; “Assignment rules” gives them a modality or duty days automatically.",
+        "For a radiologist, “Urgent list” lets them take an urgent examination without an assignment; “Assignment schedule” gives them days, a modality or a week automatically.",
         "To remove a member, open the menu at the end of their row and choose “Remove from team”: their access ends at once. The last manager cannot be removed.",
       ],
       terms: [
         "responsable",
         "habilitation",
-        "modalitesLues",
         "listeUrgence",
+        "planning",
         "regleAttribution",
       ],
     },
     teamRules: {
-      title: "Assignment rules",
+      title: "Assignment schedule",
       purpose:
-        "Gives the clinic’s examinations automatically as soon as they arrive: to the radiologist for their modality, otherwise to the on-duty radiologist in the schedule. What the rules do not cover stays to assign, and you can always reassign.",
+        "Gives the clinic’s examinations automatically as soon as they arrive, following the schedule you build: by day, by modality, every week or for a period. What it does not cover stays to assign, and you can always reassign.",
       steps: [
-        "Under “Radiologist for each modality”, choose if needed who receives every examination of a modality, for example ultrasound, at any hour.",
-        "Under “Weekly schedule”, click “Add a slot”, choose the radiologist, tick their days and, if they do not cover the whole day, their hours.",
-        "For a night shift, set an end before the start, for example from 20:00 to 08:00: the slot ends the next morning.",
-        "Two radiologists on duty at the same time do not share examinations: the screen warns you, and you will choose for those both can read.",
-        "Click “Save the rules”. They apply to examinations that arrive afterwards, never to those already assigned.",
+        "Choose the week: “This week”, “Next week” or the arrows. Days are in columns, one row per radiologist or per modality.",
+        "Click “Add a line”: a radiologist, their days, and if needed a modality, hours, then “Every week” or a period.",
+        "When two lines cover an examination, the most precise wins: the modality, then the period, then the hours. When tied, the screen flags a conflict.",
+        "“Copy the previous week” repeats its dated lines on the week shown; weekly lines already apply.",
+        "An examination assigned by the schedule says so, with the rule applied. The schedule applies to what arrives next: reassign from “Examinations”.",
       ],
       terms: [
-        "regleAttribution",
         "planning",
+        "regleAttribution",
         "modalitesLues",
         "attribution",
         "listeUrgence",
@@ -421,7 +421,7 @@ export const pages: typeof fr = {
         "Follow “Onboarding”: the first step not yet completed is the one that calls for action.",
         "In “Connect a gateway”, click “Issue a code” (15 minutes, once only) and read it out to the installer, who enters it in the kit.",
         "When the workstation shows “Awaiting approval” under “Gateways”, check it with the clinic, then click “Approve”.",
-        "Under “Urgent list” and “Assignment rules”, choose the radiologists, from the clinic or the network, who take its urgent examinations or receive its examinations automatically.",
+        "Under “Urgent list” and “Assignment schedule”, choose the radiologists, from the clinic or the network, who take its urgent examinations or receive its examinations automatically.",
         "Set its “Subscription”, then, if needed, the image retention, the report language and the watermark logo.",
       ],
       terms: [
@@ -705,32 +705,32 @@ export const pages: typeof fr = {
     clinicTeam: {
       title: "Clinic team",
       purpose:
-        "The viewed clinic’s team: its managers and radiologists, with the modalities each one reads and their place on the urgent list. In view-only mode, the IMAFRIK team neither invites nor removes anyone.",
+        "The viewed clinic’s team, as its manager sees it: its managers and radiologists, with their place on the urgent list. The modalities read are shown in “Accounts”. In view-only mode, the IMAFRIK team neither invites nor removes anyone.",
       steps: [
-        "Filter by role, modality read or “On the urgent list”, or search for a member; read each radiologist’s modalities.",
+        "Filter by role or “On the urgent list”, or search for a member by name or email.",
         "A notice flags a clinic with no manager, or a single one: nobody would take over.",
         "Click “Urgent list” to set it from the clinic page, network radiologists included.",
-        "Click “Assignment rules” to read and set who automatically receives the examinations.",
+        "Click “Assignment schedule” to read and set who automatically receives the examinations.",
       ],
       terms: [
         "vueCliniques",
         "responsable",
-        "modalitesLues",
         "listeUrgence",
+        "planning",
         "regleAttribution",
       ],
     },
     clinicTeamRules: {
-      title: "Clinic assignment rules",
+      title: "Clinic assignment schedule",
       purpose:
-        "The rules that automatically hand over the viewed clinic’s examinations on arrival. The IMAFRIK team sets them here as from the clinic page, network radiologists included.",
+        "The schedule that automatically hands over the viewed clinic’s examinations on arrival: by day, by modality or for a period. The IMAFRIK team sets it here as from the clinic page, network radiologists included.",
       steps: [
-        "Under “Radiologist for each modality”, read or choose who receives every examination of a modality.",
-        "Under “Weekly schedule”, add or remove a slot: radiologist, days and, if needed, hours.",
-        "Two radiologists on call at the same time leave the examination to assign: the screen flags it.",
-        "Click “Save the rules”. They apply to the examinations that arrive afterwards.",
+        "Choose the week and the view, by radiologist or by modality; filter by radiologist or by modality.",
+        "Click “Add a line”: radiologist, days, and if needed modality, hours and period. Network radiologists are included.",
+        "A conflict flags two equally precise lines for two radiologists: the examination would stay to assign. Add a modality, a period or hours.",
+        "“Copy the previous week” repeats its dated lines. The schedule applies to examinations that arrive afterwards.",
       ],
-      terms: ["regleAttribution", "planning", "modalitesLues", "attribution"],
+      terms: ["planning", "regleAttribution", "modalitesLues", "attribution"],
     },
     clinicActivity: {
       title: "Clinic activity and billing",

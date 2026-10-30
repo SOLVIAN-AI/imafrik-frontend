@@ -107,6 +107,8 @@ export const filters: AppMessages["filters"] = {
   memberSearch: "Search for a member",
   memberSearchPlaceholder: "Name, email address…",
   nouns: {
+    planLines: (count: number) =>
+      count > 1 ? `${count} lines` : `${count} line`,
     entries: (count: number) => (count === 1 ? "1 entry" : `${count} entries`),
     requests: (count: number) =>
       count === 1 ? "1 request" : `${count} requests`,
@@ -136,6 +138,7 @@ export const filters: AppMessages["filters"] = {
     gateways: "No gateway matches these filters",
     statements: "No statement matches these filters",
     studies: "No examination matches these filters",
+    planLines: "No schedule line matches these filters",
     reports: "No report matches these filters",
     accounts: "No account matches these filters",
     organizations: "No organisation matches these filters",

@@ -250,7 +250,7 @@ export const glossary = {
   modalitesLues: {
     term: "Modalités lues",
     definition:
-      "Ce qu’un radiologue lit : radiographie (HSG comprise), mammographie, échographie, scanner, IRM, autres. Réglées par la clinique pour ses radiologues, ou par l’équipe IMAFRIK, elles bornent ce qu’on peut lui attribuer et les urgences qu’il voit.",
+      "Ce qu’un radiologue lit : radiographie (HSG comprise), mammographie, échographie, scanner, IRM, autres. Réglées par l’équipe IMAFRIK, elles bornent ce qu’on peut lui attribuer, les urgences qu’il voit et les lignes du planning où il peut figurer.",
   },
   moisClos: {
     term: "Mois clos",
@@ -273,9 +273,9 @@ export const glossary = {
       "Logiciel installé sur un poste de la clinique. Il reçoit les images des appareils et les envoie, chiffrées, au PACS d’IMAFRIK. Il s’installe avec le kit d’installation et un code d’enrôlement.",
   },
   planning: {
-    term: "Planning de la semaine",
+    term: "Planning d’attribution",
     definition:
-      "Créneaux de garde fixés par le responsable de la clinique, ou l’équipe IMAFRIK : quel radiologue, quels jours, à quelles heures, nuit comprise. Un examen qui arrive va au seul radiologue de garde qui peut le lire ; s’ils sont plusieurs, le responsable choisit.",
+      "Lignes fixées par le responsable de la clinique, ou l’équipe IMAFRIK : quel radiologue, quels jours, à quelles heures, pour quelle modalité, chaque semaine ou pour une période. À son arrivée, un examen va d’office au radiologue de la ligne la plus précise qui le couvre ; deux lignes aussi précises le laissent à attribuer.",
   },
   pool: {
     term: "Réseau IMAFRIK (pool)",
@@ -295,7 +295,7 @@ export const glossary = {
   regleAttribution: {
     term: "Règle d’attribution",
     definition:
-      "Consigne fixée à l’avance par le responsable de la clinique, ou l’équipe IMAFRIK : un radiologue par modalité, puis le planning de la semaine. À l’arrivée d’un examen, elle le confie au radiologue prévu s’il peut le lire. Elle ne reprend jamais un examen déjà attribué.",
+      "Consigne fixée à l’avance par le responsable de la clinique, ou l’équipe IMAFRIK, dans le planning d’attribution. À l’arrivée d’un examen, elle le confie au radiologue prévu s’il peut le lire. Elle ne reprend jamais un examen déjà attribué.",
   },
   reseauPrive: {
     term: "Réseau privé",
