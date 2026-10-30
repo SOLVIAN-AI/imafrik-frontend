@@ -47,7 +47,7 @@ stockage local sont posés avant le premier chargement
 | --- | --- | --- |
 | Portail | cookie `imafrik-demo-membership` | `m-radio`, `m-clinic`, `m-admin` |
 | Langue | cookie `imafrik-langue` | `fr`, `en` |
-| Thème | `localStorage.theme` (next-themes) | `dark`, `light` |
+| Thème | `localStorage.theme` (`lib/theme.ts`) | `dark`, `light` |
 | Visites guidées | `localStorage["imafrik-visites:demo-user"]` | `faites` (défaut), `a-faire` |
 
 Les visites guidées sont notées faites par défaut : une visite ouverte
@@ -58,6 +58,15 @@ comptes avec toutes les visites faites (`profiles.tours_completed`).
 Chaque test échoue s'il a produit une erreur JavaScript ou un
 `console.error`. Un test qui en attend une (le 404 d'une adresse
 inexistante) la déclare dans `ignoredErrors`, avec sa raison.
+
+Chaque test échoue aussi si une page a existé deux fois dans le document,
+même un instant, même cachée : plus d'un `<main>`, d'un `#contenu` ou
+d'un `<h1>`, guettés à chaque mutation (`e2e/support/contenu-unique.ts`).
+Le message dit où était la copie. C'est le symptôme d'une page que React
+a renoncé à hydrater et reconstruite côté client, pendant que le rendu du
+serveur attendait son dévoilement dans un `<div hidden>` : un sélecteur
+strict trouvait alors deux éléments, au hasard de la course (voir
+`contenu-unique.spec.ts`).
 
 Aucune attente fixe : les assertions de Playwright attendent d'elles-mêmes
 que la page atteigne l'état voulu. La relecture automatique de la file
@@ -75,6 +84,7 @@ sans attendre réellement.
 | `visite.spec.ts` | Visites guidées d'un premier venu, dans les trois portails : démarrage seul, chaque étape dans la fenêtre sans recouvrir l'élément montré (ordinateur et téléphone), clavier (flèches, Entrée, Échap) sans effet sur la page dessous, focus rendu au bouton d'aide, visite qui ne revient plus, relance par le bouton d'aide, accessibilité visite ouverte, anglais. |
 | `lecture.spec.ts` | L'écran de lecture s'ouvre depuis la file ; la pastille de langue du compte-rendu apparaît quand l'interface est dans une autre langue, et seulement alors. |
 | `anglais.spec.ts` | Chaque écran des trois portails, en anglais : `<html lang="en">` et aucun libellé d'interface français. Les données de démonstration restent en français, et ne sont pas recherchées. |
+| `contenu-unique.spec.ts` | Une page de chaque portail, chargée en entier, s'hydrate sur le rendu du serveur au lieu d'être reconstruite côté client : le dévoilement de la page streamée est retenu jusqu'après l'hydratation, ce qui rend la course systématique, avec un thème du système différent de celui de l'application ; de même après un geste fait pendant le chargement (ouvrir l'aide, basculer le thème). |
 | `idees.spec.ts` | « Vos idées » : le raccourci de la barre du haut et celui de l’aide ouvrent le formulaire avec le nom de l’écran, jamais son adresse ; validation, envoi refusé en démonstration ; « Mes idées » de chaque rôle, filtrées par état ; boîte de l’équipe filtrée par rôle et par état depuis le cockpit, recherche hors de l’adresse ; anglais. |
 | `mise-en-page.spec.ts` | Chevauchements de texte, défilement horizontal, texte rogné et cibles tactiles trop petites, sur un échantillon de pages à 1440 × 900 et 390 × 844, en clair et en sombre ; plus une contre-épreuve qui prouve que l'audit détecte bien ces anomalies. |
 | `accessibilite.spec.ts` | Audit axe-core (WCAG 2.1 A et AA) des écrans principaux, en français et en anglais, en clair et en sombre ; contrôles au clavier. Voir « Accessibilité » ci-dessous. |

@@ -1,7 +1,8 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { Toaster as Sonner } from "sonner";
+
+import { useTheme } from "@/hooks/use-theme";
 
 /**
  * Notifications éphémères.
@@ -15,11 +16,11 @@ import { Toaster as Sonner } from "sonner";
  * sur une interface sombre agresse dans une salle de lecture.
  */
 export function Toaster() {
-  const { resolvedTheme } = useTheme();
+  const { theme } = useTheme();
 
   return (
     <Sonner
-      theme={resolvedTheme === "light" ? "light" : "dark"}
+      theme={theme === "light" ? "light" : "dark"}
       position="bottom-right"
       toastOptions={{
         classNames: {

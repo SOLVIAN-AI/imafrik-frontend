@@ -12,7 +12,6 @@ import {
   Sun,
   type LucideIcon,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
@@ -23,6 +22,7 @@ import {
 } from "@/components/domain/study-status";
 import { NAV_ICONS } from "@/components/layout/sidebar";
 import { useSession } from "@/components/providers/session-provider";
+import { useTheme } from "@/hooks/use-theme";
 import {
   searchStudies,
   setListSearch,
@@ -164,7 +164,7 @@ export function CommandPalette({
   const router = useRouter();
   const pathname = usePathname();
   const { active } = useSession();
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme: currentTheme, setTheme } = useTheme();
   const t = useMessages();
   const locale = useLocale();
   const [query, setQuery] = React.useState("");
@@ -255,7 +255,7 @@ export function CommandPalette({
         run: () => go(item.href),
       }));
 
-    const dark = resolvedTheme !== "light";
+    const dark = currentTheme !== "light";
     const theme: Command = {
       id: "theme",
       group: "preferences",
@@ -293,7 +293,7 @@ export function CommandPalette({
     query,
     active.role,
     pathname,
-    resolvedTheme,
+    currentTheme,
     setTheme,
     go,
     close,

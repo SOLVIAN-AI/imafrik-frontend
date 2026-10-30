@@ -93,6 +93,10 @@ export async function auditAccessibility(
   // Un écran encore dans sa forme d'attente (`data-pending-layout`)
   // n'est pas celui qu'on veut auditer.
   await expect(page.locator("[data-pending-layout]")).toHaveCount(0);
+  // Le titre arrive avec les métadonnées, qui peuvent suivre la page dans
+  // le flux : auditer avant, c'est relever un `<title>` vide qui n'en est
+  // pas un (constaté le 29 octobre 2026 sur examens-modalites.spec.ts).
+  await expect(page).toHaveTitle(/\S/);
   let builder = new AxeBuilder({ page }).withTags(WCAG_TAGS);
   if (options.include) builder = builder.include(options.include);
   for (const { selector } of EXCLUSIONS) builder = builder.exclude(selector);

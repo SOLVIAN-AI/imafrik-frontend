@@ -17,7 +17,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
-import { type GlossaryTerm, HelpContext } from "@/components/help/help-context";
+import {
+  createHelpOpenStore,
+  type GlossaryTerm,
+  HelpContext,
+  type HelpControls,
+} from "@/components/help/help-context";
 import { useSession } from "@/components/providers/session-provider";
 import { useTour } from "@/components/tour/tour-provider";
 import {
@@ -92,13 +97,26 @@ interface TermRequest {
  * Monté sous `TourProvider` : il relance la visite de l'écran.
  */
 export function HelpProvider({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = React.useState(false);
+  // L'ouverture vit hors de l'état du fournisseur, et la valeur du
+  // contexte ne change jamais : voir `HelpControls`.
+  const [store] = React.useState(createHelpOpenStore);
+  const open = React.useSyncExternalStore(
+    store.subscribe,
+    store.isOpen,
+    () => false,
+  );
   const [request, setRequest] = React.useState<TermRequest | null>(null);
-  const toggle = React.useCallback(() => setOpen((value) => !value), []);
-  const openTerm = React.useCallback((term: GlossaryTerm) => {
-    setRequest({ term });
-    setOpen(true);
-  }, []);
+  const controls = React.useMemo<HelpControls>(
+    () => ({
+      ...store,
+      toggle: () => store.setOpen(!store.isOpen()),
+      openTerm: (term) => {
+        setRequest({ term });
+        store.setOpen(true);
+      },
+    }),
+    [store],
+  );
 
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -106,20 +124,20 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       event.preventDefault();
-      setOpen((value) => !value);
+      controls.toggle();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [controls]);
 
-  const state = React.useMemo(
-    () => ({ open, toggle, setOpen, openTerm }),
-    [open, toggle, openTerm],
-  );
   return (
-    <HelpContext.Provider value={state}>
+    <HelpContext.Provider value={controls}>
       {children}
-      <HelpPanel open={open} onOpenChange={setOpen} termRequest={request} />
+      <HelpPanel
+        open={open}
+        onOpenChange={store.setOpen}
+        termRequest={request}
+      />
     </HelpContext.Provider>
   );
 }

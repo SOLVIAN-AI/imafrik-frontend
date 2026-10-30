@@ -3,7 +3,7 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { HelpContext, type HelpState } from "@/components/help/help-context";
+import { HelpContext, type HelpControls } from "@/components/help/help-context";
 
 /**
  * Bulle d'information (ⓘ) : un bouton sans texte visible, nommé d'après
@@ -135,8 +135,9 @@ describe("bulle d'information", () => {
 
   it("« En savoir plus » ouvre l'aide sur le terme, et ferme la bulle", async () => {
     const openTerm = vi.fn();
-    const help: HelpState = {
-      open: false,
+    const help: HelpControls = {
+      isOpen: () => false,
+      subscribe: () => () => undefined,
       toggle: vi.fn(),
       setOpen: vi.fn(),
       openTerm,

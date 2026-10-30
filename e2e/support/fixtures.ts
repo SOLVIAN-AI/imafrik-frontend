@@ -1,6 +1,7 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
 import { auditAccessibility, type AuditOptions } from "./accessibilite";
+import { watchDuplicates } from "./contenu-unique";
 import { DEMO_USER_ID, TOUR_IDS, TOURS_STORAGE_PREFIX } from "./donnees";
 
 /**
@@ -18,6 +19,11 @@ import { DEMO_USER_ID, TOUR_IDS, TOURS_STORAGE_PREFIX } from "./donnees";
  * qui en attend une, par exemple le 404 d'une adresse inexistante, la
  * déclare explicitement dans `ignoredErrors`, avec sa justification.
  *
+ * Une autre guette, à chaque mutation du document, une page présente deux
+ * fois : plus d'un `<main>`, d'un `#contenu` ou d'un `<h1>`, même un
+ * instant, même caché (`support/contenu-unique.ts`). Elle fait échouer le
+ * test qui l'a vue, en disant où était la copie.
+ *
  * La fixture `checkA11y` audite l'accessibilité de la page dans son état
  * courant (`support/accessibilite.ts`) et fait échouer le test sur toute
  * violation grave ou critique des WCAG 2.1 A et AA.
@@ -29,7 +35,7 @@ export type DemoMembership = "m-radio" | "m-clinic" | "m-admin";
 /** Langue de l'interface, telle que la lit le cookie `imafrik-langue`. */
 export type Langue = "fr" | "en";
 
-/** Thème de l'interface, tel que le lit `next-themes` dans `localStorage`. */
+/** Thème de l'interface, tel que le lit `lib/theme.ts` dans `localStorage`. */
 export type Theme = "dark" | "light";
 
 /** Cookie de l'appartenance choisie en démonstration (`lib/session/server.ts`). */
@@ -68,6 +74,8 @@ interface Options {
 interface Fixtures {
   /** Erreurs recueillies jusqu'ici ; vérifiées automatiquement à la fin du test. */
   pageErrors: string[];
+  /** Pages vues en double jusqu'ici ; vérifiées automatiquement à la fin du test. */
+  pageDuplicates: string[];
   /**
    * Audite l'accessibilité de la page dans son état courant ; échoue, avec
    * le détail de chaque violation, si l'audit en relève une bloquante.
@@ -98,8 +106,8 @@ export const test = base.extend<Options & Fixtures>({
       cookies.push({ name: LANGUAGE_COOKIE, value: langue, url: baseURL });
     if (cookies.length > 0) await context.addCookies(cookies);
     if (theme) {
-      // `next-themes` lit sa clé avant le premier rendu : la poser par un
-      // script d'initialisation évite tout basculement visible.
+      // Le script du thème lit sa clé avant le premier affichage : la poser
+      // par un script d'initialisation évite tout basculement visible.
       await context.addInitScript((value) => {
         window.localStorage.setItem("theme", value);
       }, theme);
@@ -132,6 +140,22 @@ export const test = base.extend<Options & Fixtures>({
         expect(
           errors,
           "Erreurs JavaScript ou console.error pendant le test",
+        ).toEqual([]);
+    },
+    { auto: true },
+  ],
+
+  pageDuplicates: [
+    async ({ context }, use, testInfo) => {
+      const duplicates: string[] = [];
+      await watchDuplicates(context, (url, detail) =>
+        duplicates.push(`${url} : ${detail}`),
+      );
+      await use(duplicates);
+      if (testInfo.status === testInfo.expectedStatus)
+        expect(
+          duplicates,
+          "Contenu principal présent deux fois dans le document",
         ).toEqual([]);
     },
     { auto: true },
