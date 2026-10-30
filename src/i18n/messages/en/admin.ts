@@ -822,6 +822,7 @@ export const admin: AppMessages["admin"] = {
     safetyNetsDescription: "Latest run of each scheduled task",
     history: "Operations history",
     historyDescription: "Recent runs across all tasks",
+    historyFiltered: "Recent runs matching the filters",
   },
 
   audit: {

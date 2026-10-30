@@ -1,16 +1,25 @@
 import { CalendarClock, Siren } from "lucide-react";
 import Link from "next/link";
 
+import { SearchBox } from "@/components/admin/search-box";
 import { ReadingDialog } from "@/components/domain/reading-dialog";
 import {
   InviteMemberButton,
   MemberActions,
 } from "@/components/domain/team-actions";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { type ClinicConsultation, clinicHref } from "@/lib/clinic-view";
-import { listMembers } from "@/lib/data/organization";
-import { describeModalities } from "@/lib/modalities";
+import { listMembers, type Member } from "@/lib/data/organization";
+import { matchChoices } from "@/lib/filters/choice";
+import type { BarDimension } from "@/lib/filters/dimensions";
+import { countOptions, filterRows, type RowValues } from "@/lib/filters/facets";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { type Params, readFilters } from "@/lib/filters/url";
+import { describeModalities, MODALITY_GROUPS } from "@/lib/modalities";
+import { readListSearch } from "@/lib/search/server";
 import { formatDate, formatPersonName } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
@@ -24,6 +33,24 @@ function initials(name: string): string {
     .map((part) => part[0])
     .join("");
 }
+
+/** Rôles d'une équipe de clinique, dans l'ordre de la barre. */
+const TEAM_ROLES = ["clinic_staff", "radiologist"] as const;
+
+/**
+ * Valeurs d'un membre pour chaque dimension de l'équipe. Un radiologue
+ * sans restriction lit toutes les modalités ; un responsable n'en lit
+ * aucune et n'est sur aucune liste d'urgence.
+ */
+const MEMBER_VALUES: RowValues<Member> = {
+  role: (member) => [member.role],
+  modality: (member) =>
+    member.role === "radiologist"
+      ? (member.readModalities ?? MODALITY_GROUPS)
+      : [],
+  urgentReader: (member) =>
+    member.role === "radiologist" && member.urgentReader ? ["listed"] : [],
+};
 
 /**
  * Membres de l'établissement.
@@ -53,17 +80,80 @@ function initials(name: string): string {
  * responsable (inviter, retirer, régler un radiologue). Elle règle la
  * liste d'urgence de la clinique depuis sa fiche, son propre geste.
  *
+ * La liste se filtre par la barre commune (rôle, modalité lue, liste
+ * d'urgence) et se cherche par nom ou adresse électronique, sur la page :
+ * le service renvoie toute l'équipe.
+ *
  * @param consultation Clinique consultée par l'équipe IMAFRIK ; `null`
  *                     pour son responsable.
+ * @param params       Paramètres de l'adresse : les filtres.
  */
 export async function TeamScreen({
   consultation,
+  params,
 }: {
   consultation: ClinicConsultation | null;
+  params: Params;
 }) {
   const session = await requireSession();
-  const members = await listMembers(consultation?.clinicId);
-  const { t, locale } = await getMessages();
+  const scope = consultation ? "vue-clinique-equipe" : "equipe";
+  const [members, { t, locale }, search] = await Promise.all([
+    listMembers(consultation?.clinicId),
+    getMessages(),
+    readListSearch(scope, session),
+  ]);
+  const filters = readFilters(params, LIST_FILTERS.equipe);
+  const found = search
+    ? matchChoices(
+        members.map((member) => ({
+          ...member,
+          name: `${member.fullName} ${member.email ?? ""}`,
+        })),
+        search,
+      ).map((match) =>
+        members.find((member) => member.membershipId === match.membershipId)!,
+      )
+    : members;
+  const shown = filterRows(found, MEMBER_VALUES, filters);
+  // Seuls les groupes lus par un radiologue de l'équipe sont proposés.
+  const groups = new Set(members.flatMap(MEMBER_VALUES.modality!));
+  const readers = members.some((member) => member.role === "radiologist");
+  const dimensions: BarDimension[] = [
+    {
+      key: "role",
+      ...countOptions(
+        found,
+        MEMBER_VALUES,
+        filters,
+        "role",
+        TEAM_ROLES.map((value) => ({ value })),
+      ),
+    },
+    {
+      key: "modality",
+      ...countOptions(
+        found,
+        MEMBER_VALUES,
+        filters,
+        "modality",
+        MODALITY_GROUPS.filter((group) => groups.has(group)).map((value) => ({
+          value,
+        })),
+      ),
+    },
+    {
+      key: "urgentReader",
+      options: countOptions(found, MEMBER_VALUES, filters, "urgentReader", [
+        { value: "listed" },
+      ]).options,
+    },
+  ];
+  // Sans radiologue, ni modalité ni liste d'urgence : la barre ne garde
+  // que le rôle, sauf un filtre venu de l'adresse, qu'elle doit nommer.
+  const bar = dimensions.filter(
+    (entry) =>
+      entry.key === "role" || readers || filters[entry.key] !== undefined,
+  );
   const messages = t.clinic.team;
   const clinicName = consultation?.name ?? session.active.organizationName;
   const managers = members.filter(
@@ -87,6 +177,12 @@ export async function TeamScreen({
         description={`${messages.count(members.length)} · ${clinicName}`}
         actions={
           <>
+            <SearchBox
+              scope={scope}
+              search={search}
+              label={t.filters.memberSearch}
+              placeholder={t.filters.memberSearchPlaceholder}
+            />
             <Button asChild variant="secondary" size="sm">
               <Link href={clinicHref(consultation, "/equipe/regles")}>
                 <CalendarClock aria-hidden />
@@ -109,6 +205,15 @@ export async function TeamScreen({
         }
       />
 
+      {members.length > 0 && (
+        <FilterBar
+          dimensions={bar}
+          active={filters}
+          result={{ count: shown.length, noun: "members" }}
+          className="shrink-0 px-4 pb-3 sm:px-6"
+        />
+      )}
+
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
         {note && (
           <p className="mb-3 rounded-lg bg-progress-muted px-3 py-2.5 text-xs leading-relaxed text-progress">
@@ -116,10 +221,15 @@ export async function TeamScreen({
           </p>
         )}
         {/* Une clinique sans membre (vue des cliniques) : l'avis suffit. */}
-        {members.length > 0 && (
+        {members.length > 0 && shown.length === 0 && (
+          <Panel>
+            <FilteredEmpty dimensions={bar} active={filters} noun="members" />
+          </Panel>
+        )}
+        {shown.length > 0 && (
           <Panel className="flex min-h-0 flex-col overflow-hidden">
             <ul className="divide-y divide-border-subtle overflow-auto">
-              {members.map((member) => (
+              {shown.map((member) => (
                 <li
                   key={member.membershipId}
                   className="flex items-center gap-3 px-4 py-3"

@@ -40,7 +40,7 @@ export const pages: typeof fr = {
         "Real, anonymised examinations to read and report in the real reading screen, with no patient or clinic involved. Training is open to you even before your file is approved.",
       steps: [
         "Read “The workflow, as on a real examination” at the top of the page.",
-        "Choose an exercise by its modality, body region and status: “To do”, “In progress” or “Signed”.",
+        "Filter by modality or by status, “To do”, “In progress” or “Signed”: each choice shows its number of exercises.",
         "Click “Start” to open a new exercise, or “Resume” to continue the one in progress.",
         "Click “Review” to reread a signed exercise, and its model answer when the card shows “Model answer available”.",
       ],
@@ -88,7 +88,7 @@ export const pages: typeof fr = {
       purpose:
         "Report templates from your organisation and those provided by IMAFRIK. You read them here in full; they are applied and created on the reading screen.",
       steps: [
-        "Search for a template by name or region, or filter by modality.",
+        "Filter by origin or modality, each choice with its number of templates, or search for a template by name or region.",
         "Click a template to read its full text, exactly as it will be applied.",
         "On the reading screen, click “Template” to complete the sections that are still empty.",
         "To create one, click “Save as template” from a report in progress.",
@@ -230,9 +230,9 @@ export const pages: typeof fr = {
       purpose:
         "The members of your facility who have access to IMAFRIK: its managers, who send the examinations and manage the team, and its radiologists. This is where you invite or remove colleagues, and set what each of your radiologists reads.",
       steps: [
-        "Click “Invite”, enter the person’s full name and email address, then choose their role.",
+        "Filter by role, modality read or “On the urgent list”, each choice with its number, or search for a member by name or email.",
+        "Click “Invite”, enter name, email address and role, then “Send invitation”: the person chooses their own password.",
         "“Manager” has the same rights as you. “Radiologist” can only access examinations once their registration number has been verified.",
-        "Click “Send invitation”: the person receives a link by email and chooses their own password.",
         "For a radiologist, “Modalities and urgent list” sets what they read and their place on the urgent list; “Assignment rules” gives them a modality or duty days automatically.",
         "To remove a member, open the menu at the end of their row and choose “Remove from team”: their access ends at once. The last manager cannot be removed.",
       ],
@@ -494,7 +494,7 @@ export const pages: typeof fr = {
         "Check the “Central PACS”, the “Examinations stored” and the “Image volume” on the PACS disk.",
         "Go through the “Dependencies”: a red cross and a detail flag a service that is not responding.",
         "Under “Safety nets”, spot the red dot of a task that failed or whose latest run is too old.",
-        "See the “Operations history” for recent runs across all tasks.",
+        "In the “Operations history”, filter by task or “Failures only”: each choice shows its number of recent runs.",
       ],
       terms: ["pacs", "filetSecurite", "examen"],
     },
@@ -614,7 +614,7 @@ export const pages: typeof fr = {
       purpose:
         "The viewed clinic’s team: its managers and radiologists, with the modalities each one reads and their place on the urgent list. In view-only mode, the IMAFRIK team neither invites nor removes anyone.",
       steps: [
-        "Read each radiologist’s modalities and, if shown, the “Urgent list” mention.",
+        "Filter by role, modality read or “On the urgent list”, or search for a member; read each radiologist’s modalities.",
         "A notice flags a clinic with no manager, or a single one: nobody would take over.",
         "Click “Urgent list” to set it from the clinic page, network radiologists included.",
         "Click “Assignment rules” to read and set who automatically receives the examinations.",
@@ -713,8 +713,8 @@ export const pages: typeof fr = {
       purpose:
         "Report templates from the whole platform, provided by IMAFRIK or created by organisations, shown in full. Read-only: the team reviews them but cannot delete them, as they belong to the organisations.",
       steps: [
+        "Filter by origin, “IMAFRIK” or “Organisation”, or by modality: each choice shows its number of templates.",
         "Search for a template by name or region in the “Name, region…” field.",
-        "Filter by modality with the chips; “All” shows them all again.",
         "Click a template in the list to read it in full, exactly as a report would look.",
         "Check where it comes from: “Provided by IMAFRIK”, or “Organisation” under the name of a template created by an organisation.",
       ],
@@ -725,7 +725,7 @@ export const pages: typeof fr = {
       purpose:
         "Training exercises: real, anonymised examinations with no patient or clinic involved. The team also sees cases “Under review”, hidden from radiologists, to preview them and have them reviewed before publication.",
       steps: [
-        "Browse the cards: modality, region, title, indication and image source of each case.",
+        "Filter by modality or by status, then browse the cards: region, title, indication and image source of each case.",
         "Spot the cases “Under review”: visible to the IMAFRIK team only, until a radiologist has reviewed the clinical context.",
         "Click “Preview” to open a case under review on the reading screen, without an exercise.",
         "On each card, check “Context reviewed by” and the image source, with “View the source”.",

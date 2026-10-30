@@ -876,6 +876,7 @@ export const admin = {
     safetyNetsDescription: "Dernière exécution de chaque tâche planifiée",
     history: "Historique d’exploitation",
     historyDescription: "Exécutions récentes, toutes tâches confondues",
+    historyFiltered: "Exécutions récentes retenues par les filtres",
   },
 
   audit: {

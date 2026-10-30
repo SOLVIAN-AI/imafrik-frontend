@@ -178,7 +178,9 @@ test.describe("l’équipe IMAFRIK", () => {
       page.getByRole("button", { name: /Actions pour/ }),
     ).toHaveCount(0);
     await expect(
-      page.getByRole("link", { name: "Liste d’urgence" }),
+      // Exact : la bascule « Sur la liste d’urgence » de la barre contient
+      // aussi ces mots.
+      page.getByRole("link", { name: "Liste d’urgence", exact: true }),
     ).toHaveAttribute("href", "/admin/organisations/org-stj#liste-urgence");
 
     // Règles : le formulaire de l'équipe, radiologues du réseau compris.

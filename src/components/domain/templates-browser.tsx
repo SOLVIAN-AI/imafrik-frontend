@@ -29,11 +29,11 @@ function normalize(text: string): string {
  * dizaine de modèles : il fallait faire défiler des pages de texte pour
  * trouver le bon. La liste donne l'accès, l'aperçu donne la lecture.
  *
- * Le filtre par modalité reprend celles des modèles présents : proposer
- * « Mammographie » à une organisation qui n'en a aucun ne servirait à
- * rien.
+ * L'origine et la modalité se filtrent par la barre commune de la page,
+ * dans l'adresse ; la bibliothèque reçoit les modèles retenus, et garde
+ * la recherche par nom, région ou code de modalité.
  *
- * @param templates Modèles de l'organisation et modèles fournis par IMAFRIK.
+ * @param templates Modèles retenus, de l'organisation et d'IMAFRIK.
  */
 export function TemplatesBrowser({
   templates,
@@ -47,32 +47,18 @@ export function TemplatesBrowser({
   // Nom courant d'une modalité, à défaut son code DICOM.
   const modalityName = (code: string) => labels.modalityNames[code] ?? code;
   const [query, setQuery] = React.useState("");
-  const [modality, setModality] = React.useState<string | null>(null);
   const [selectedId, setSelectedId] = React.useState(templates[0]?.id);
-
-  const modalities = React.useMemo(
-    () =>
-      [
-        ...new Set(
-          templates.flatMap((template) =>
-            template.modality ? [template.modality] : [],
-          ),
-        ),
-      ].sort(),
-    [templates],
-  );
 
   const visible = React.useMemo(() => {
     const needle = normalize(query.trim());
     return templates.filter(
       (template) =>
-        (!modality || template.modality === modality) &&
-        (!needle ||
-          normalize(
-            `${template.name} ${template.bodyPart ?? ""} ${template.modality ?? ""}`,
-          ).includes(needle)),
+        !needle ||
+        normalize(
+          `${template.name} ${template.bodyPart ?? ""} ${template.modality ?? ""}`,
+        ).includes(needle),
     );
-  }, [templates, query, modality]);
+  }, [templates, query]);
 
   // La sélection suit le filtre : un modèle masqué ne reste pas affiché
   // à droite d'une liste qui ne le contient plus.
@@ -82,7 +68,7 @@ export function TemplatesBrowser({
   return (
     <div className="grid min-h-0 flex-1 gap-4 px-4 pb-6 sm:px-6 lg:grid-cols-[minmax(16rem,20rem)_1fr]">
       <Panel className="flex min-h-0 flex-col overflow-hidden lg:max-h-full">
-        <div className="flex flex-col gap-2.5 border-b border-border-subtle p-3">
+        <div className="border-b border-border-subtle p-3">
           <label className="relative block">
             <span className="sr-only">{labels.search}</span>
             <Search
@@ -100,30 +86,6 @@ export function TemplatesBrowser({
               )}
             />
           </label>
-          {modalities.length > 1 && (
-            <div
-              className="flex flex-wrap gap-1"
-              role="group"
-              aria-label={labels.modality}
-            >
-              {[null, ...modalities].map((value) => (
-                <button
-                  key={value ?? "all"}
-                  type="button"
-                  aria-pressed={modality === value}
-                  onClick={() => setModality(value)}
-                  className={cn(
-                    "rounded-full px-2.5 py-1 text-2xs font-medium transition-colors",
-                    modality === value
-                      ? "bg-accent-muted text-accent"
-                      : "text-tertiary hover:bg-surface-hover hover:text-secondary",
-                  )}
-                >
-                  {value ? modalityName(value) : labels.allModalities}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {visible.length === 0 ? (
@@ -164,7 +126,14 @@ export function TemplatesBrowser({
                       <span className="block truncate text-sm font-medium">
                         {template.name}
                       </span>
-                      <span className="block truncate text-2xs text-tertiary">
+                      {/* Sur le fond du modèle choisi, le gris tertiaire
+                          manquait de contraste en thème sombre. */}
+                      <span
+                        className={cn(
+                          "block truncate text-2xs",
+                          active ? "text-secondary" : "text-tertiary",
+                        )}
+                      >
                         {template.bodyPart ?? labels.allRegions} ·{" "}
                         {template.shared ? "IMAFRIK" : labels.organisation}
                       </span>

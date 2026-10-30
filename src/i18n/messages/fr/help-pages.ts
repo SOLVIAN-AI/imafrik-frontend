@@ -45,7 +45,7 @@ export const pages = {
         "Des examens réels anonymisés, à lire et rédiger dans le vrai écran de lecture, sans patient ni clinique. La formation vous est ouverte avant même la validation de votre dossier.",
       steps: [
         "Lisez « Le parcours, comme sur un vrai examen » en haut de la page.",
-        "Choisissez un exercice d’après sa modalité, sa région et son état : « À faire », « En cours » ou « Signé ».",
+        "Filtrez par modalité ou par état, « À faire », « En cours » ou « Signé » : chaque choix dit son nombre d’exercices.",
         "Cliquez sur « Commencer » pour ouvrir un nouvel exercice, ou sur « Reprendre » pour continuer celui en cours.",
         "Cliquez sur « Revoir » pour relire un exercice signé, et son corrigé quand la carte indique « Corrigé disponible ».",
       ],
@@ -93,7 +93,7 @@ export const pages = {
       purpose:
         "Les modèles de compte-rendu de votre organisation et ceux fournis par IMAFRIK. Vous les relisez ici en entier ; ils s’appliquent et se créent dans l’écran de lecture.",
       steps: [
-        "Cherchez un modèle par nom ou par région, ou filtrez par modalité.",
+        "Filtrez par origine ou modalité, chaque choix avec son nombre de modèles, ou cherchez un modèle par nom ou par région.",
         "Cliquez sur un modèle pour lire son texte en entier, tel qu’il sera appliqué.",
         "Dans l’écran de lecture, cliquez sur « Modèle » pour compléter les sections encore vides.",
         "Pour en créer un, cliquez sur « Enregistrer comme modèle » depuis un compte-rendu en cours.",
@@ -235,9 +235,9 @@ export const pages = {
       purpose:
         "Les membres de votre établissement qui ont accès à IMAFRIK : ses responsables, qui envoient les examens et gèrent l’équipe, et ses radiologues. C’est ici que vous invitez ou retirez vos collègues, et réglez ce que lit chacun de vos radiologues.",
       steps: [
-        "Cliquez sur « Inviter », saisissez le nom complet et l’adresse électronique de la personne, puis choisissez son rôle.",
+        "Filtrez par rôle, modalité lue ou « Sur la liste d’urgence », chaque choix avec son nombre, ou cherchez un membre par nom ou adresse.",
+        "Cliquez sur « Inviter », saisissez nom, adresse électronique et rôle, puis « Envoyer l’invitation » : la personne choisit elle-même son mot de passe.",
         "« Responsable » a les mêmes droits que vous. « Radiologue » n’accède aux examens qu’après vérification de son numéro d’ordre.",
-        "Cliquez sur « Envoyer l’invitation » : la personne reçoit un lien par courriel et choisit elle-même son mot de passe.",
         "Pour un radiologue, « Modalités et urgences » règle ce qu’il lit et la liste d’urgence ; « Règles d’attribution » lui confie d’office une modalité ou des jours de garde.",
         "Pour retirer un membre, ouvrez le menu au bout de sa ligne, puis « Retirer de l’équipe » : son accès est coupé aussitôt. Le dernier responsable ne se retire pas.",
       ],
@@ -499,7 +499,7 @@ export const pages = {
         "Contrôlez le « PACS central », les « Examens conservés » et le « Volume d’images » sur le disque du PACS.",
         "Parcourez les « Dépendances » : une croix rouge et un détail signalent un service qui ne répond pas.",
         "Dans « Filets de sécurité », repérez le point rouge d’une tâche en échec ou dont la dernière exécution est trop ancienne.",
-        "Consultez l’« Historique d’exploitation » pour les exécutions récentes, toutes tâches confondues.",
+        "Dans l’« Historique d’exploitation », filtrez par tâche ou « Échecs seulement » : chaque choix dit son nombre d’exécutions récentes.",
       ],
       terms: ["pacs", "filetSecurite", "examen"],
     },
@@ -619,7 +619,7 @@ export const pages = {
       purpose:
         "L’équipe de la clinique consultée : ses responsables et ses radiologues, avec les modalités que lit chacun et sa place sur la liste d’urgence. En consultation, l’équipe IMAFRIK n’y invite ni n’y retire personne.",
       steps: [
-        "Lisez pour chaque radiologue ses modalités et, s’il y figure, la mention « Liste d’urgence ».",
+        "Filtrez par rôle, modalité lue ou « Sur la liste d’urgence », ou cherchez un membre ; lisez les modalités de chaque radiologue.",
         "Un avis signale une clinique sans responsable, ou avec un seul : personne n’y prendrait le relais.",
         "Cliquez sur « Liste d’urgence » pour la régler depuis la fiche de la clinique, radiologues du réseau compris.",
         "Cliquez sur « Règles d’attribution » pour lire et régler qui reçoit d’office les examens.",
@@ -718,8 +718,8 @@ export const pages = {
       purpose:
         "Les modèles de comptes-rendus de toute la plateforme, fournis par IMAFRIK ou créés par les organisations, lus en entier. En consultation : l’équipe les relit sans pouvoir les supprimer, car ils appartiennent aux organisations.",
       steps: [
+        "Filtrez par origine, « IMAFRIK » ou « Organisation », ou par modalité : chaque choix dit son nombre de modèles.",
         "Cherchez un modèle par nom ou par région dans le champ « Nom, région… ».",
-        "Filtrez par modalité avec les pastilles ; « Toutes » les affiche de nouveau.",
         "Cliquez sur un modèle de la liste pour le lire en entier, dans la forme exacte d’un compte-rendu.",
         "Repérez son origine : « Fourni par IMAFRIK », ou « Organisation » sous le nom d’un modèle créé par une organisation.",
       ],
@@ -730,7 +730,7 @@ export const pages = {
       purpose:
         "Les exercices de formation : des examens réels anonymisés, sans patient ni clinique. L’équipe y voit aussi les cas « En relecture », cachés aux radiologues, pour les prévisualiser et les faire relire avant publication.",
       steps: [
-        "Parcourez les cartes : modalité, région, titre, indication et source des images de chaque cas.",
+        "Filtrez par modalité ou par état, puis parcourez les cartes : région, titre, indication et source des images de chaque cas.",
         "Repérez les cas « En relecture » : visibles de l’équipe IMAFRIK seulement, tant qu’un radiologue n’a pas relu le contexte clinique.",
         "Cliquez sur « Prévisualiser » pour ouvrir un cas en relecture dans l’écran de lecture, sans exercice.",
         "Vérifiez sur chaque carte « Contexte relu par » et la source des images, avec « Voir la source ».",

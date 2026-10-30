@@ -50,6 +50,12 @@ export const LIST_FILTERS = {
   // Journal d'audit : filtré par le service ; demandes reçues : sur la page.
   journal: ["organization", "author", "family", "action", "period"],
   demandes: ["requester", "requestState", "period"],
+  // Équipe d'une clinique (et vue des cliniques), modèles, formation,
+  // historique des tâches : des listes bornées, filtrées sur la page.
+  equipe: ["role", "modality", "urgentReader"],
+  modeles: ["origin", "modality"],
+  formation: ["modality", "trainingState"],
+  systeme: ["task", "failed"],
   "comptes-rendus-equipe": [
     ...NETWORK,
     "radiologist",

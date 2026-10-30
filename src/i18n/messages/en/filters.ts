@@ -91,6 +91,19 @@ export const filters: AppMessages["filters"] = {
   urgency: "Urgency",
   allPriorities: "All priorities",
   urgent: "Urgent",
+  origin: "Origin",
+  allOrigins: "All origins",
+  origins: { imafrik: "IMAFRIK", organization: "Organisation" },
+  task: "Task",
+  allTasks: "All tasks",
+  urgentList: "Urgent list",
+  onUrgentList: "On the urgent list",
+  allMembers: "All members",
+  failures: "Failures",
+  allRuns: "All runs",
+  failuresOnly: "Failures only",
+  memberSearch: "Search for a member",
+  memberSearchPlaceholder: "Name, email address…",
   nouns: {
     entries: (count: number) => (count === 1 ? "1 entry" : `${count} entries`),
     requests: (count: number) =>
@@ -106,6 +119,11 @@ export const filters: AppMessages["filters"] = {
     reports: (count: number) => (count === 1 ? "1 report" : `${count} reports`),
     organizations: (count: number) =>
       count === 1 ? "1 organisation" : `${count} organisations`,
+    members: (count: number) => (count === 1 ? "1 member" : `${count} members`),
+    templates: (count: number) =>
+      count === 1 ? "1 template" : `${count} templates`,
+    cases: (count: number) => (count === 1 ? "1 case" : `${count} cases`),
+    runs: (count: number) => (count === 1 ? "1 run" : `${count} runs`),
   },
   empty: {
     entries: "No entry matches these filters",
@@ -116,7 +134,13 @@ export const filters: AppMessages["filters"] = {
     reports: "No report matches these filters",
     accounts: "No account matches these filters",
     organizations: "No organisation matches these filters",
+    members: "No member matches these filters",
+    templates: "No template matches these filters",
+    cases: "No case matches these filters",
+    runs: "No run matches these filters",
     detail: (filters: string) =>
       `Filters applied: ${filters}. Clear one to widen the list.`,
+    searchTitle: "No result for this search",
+    searchDetail: "Check the spelling, or search for another word.",
   },
 };
