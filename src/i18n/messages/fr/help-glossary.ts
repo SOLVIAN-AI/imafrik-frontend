@@ -202,6 +202,21 @@ export const glossary = {
     definition:
       "Rémunération du radiologue pour la lecture d’un examen. Son montant se fixe entre la clinique et le radiologue et lui revient en totalité : IMAFRIK n’y prélève aucune commission.",
   },
+  idee: {
+    term: "Idée (Vos idées)",
+    definition:
+      "Piste d’amélioration d’IMAFRIK proposée par un radiologue ou un responsable de clinique : un titre, une description, une catégorie. L’équipe IMAFRIK la lit et y répond. Elle ne contient jamais l’identité d’un patient.",
+  },
+  etatIdee: {
+    term: "État d’une idée",
+    definition:
+      "Où l’équipe IMAFRIK en est : reçue (pas encore lue), à l’étude, prévue (dans une prochaine version), livrée (disponible) ou non retenue (pas pour le moment). L’auteur est prévenu par courriel à chaque changement.",
+  },
+  regroupement: {
+    term: "Regroupement d’idées",
+    definition:
+      "Deux idées qui demandent la même chose sont regroupées : la seconde est rattachée à l’idée principale et en suit l’état. Son auteur en est prévenu, sans lire l’idée d’un autre.",
+  },
   journalAudit: {
     term: "Journal d’audit",
     definition:

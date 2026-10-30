@@ -120,6 +120,19 @@ export const pages = {
         "engagement",
       ],
     },
+    ideas: {
+      title: "Vos idées",
+      purpose:
+        "Proposez une piste pour améliorer IMAFRIK et suivez ce qu’elle devient : l’équipe IMAFRIK lit chaque idée, la fait avancer et vous répond. Vous ne voyez que vos propres idées.",
+      steps: [
+        "Donnez un titre court, décrivez ce qui vous gêne et ce que vous aimeriez à la place, puis choisissez la catégorie.",
+        "Si vous le savez, dites ce que l’idée vous ferait gagner : du temps, de la clarté ou de la sécurité.",
+        "N’écrivez jamais l’identité d’un patient : ni nom, ni identifiant, ni date de naissance. Aucune capture d’écran n’est jointe.",
+        "Depuis un autre écran, l’ampoule de la barre du haut ouvre ce formulaire avec le nom de l’écran ; décochez « Joindre ce contexte » au besoin.",
+        "Cliquez sur « Envoyer l’idée », puis suivez-la dans « Mes idées » : son état et la réponse de l’équipe. Un courriel vous prévient.",
+      ],
+      terms: ["idee", "etatIdee"],
+    },
     reading: {
       title: "Écran de lecture",
       purpose:
@@ -293,6 +306,19 @@ export const pages = {
         "Dans « Engagements », cliquez sur « Télécharger mon exemplaire » pour obtenir la convention de service acceptée.",
       ],
       terms: ["pool", "priseEnCharge", "doubleAuthentification", "engagement"],
+    },
+    ideas: {
+      title: "Vos idées",
+      purpose:
+        "Proposez ce qui faciliterait la vie de votre clinique sur IMAFRIK, et suivez ce que l’idée devient : l’équipe IMAFRIK la lit, la fait avancer et vous répond. Vous ne voyez que vos propres idées.",
+      steps: [
+        "Donnez un titre court, décrivez ce qui vous gêne et ce que vous aimeriez à la place, puis choisissez la catégorie.",
+        "Si vous le savez, dites ce que l’idée vous ferait gagner : du temps, de la clarté ou de la sécurité.",
+        "N’écrivez jamais l’identité d’un patient : ni nom, ni identifiant, ni date de naissance. Aucune capture d’écran n’est jointe.",
+        "Depuis un autre écran, l’ampoule de la barre du haut ouvre ce formulaire avec le nom de l’écran ; décochez « Joindre ce contexte » au besoin.",
+        "Cliquez sur « Envoyer l’idée », puis suivez-la dans « Mes idées » : son état et la réponse de l’équipe. Un courriel vous prévient.",
+      ],
+      terms: ["idee", "etatIdee"],
     },
   },
   admin: {
@@ -470,6 +496,19 @@ export const pages = {
         "Choisissez l’étape du suivi, ajoutez vos notes, puis cliquez sur « Enregistrer ».",
       ],
       terms: ["numeroOrdre", "habilitation"],
+    },
+    ideas: {
+      title: "Idées",
+      purpose:
+        "Les pistes d’amélioration proposées par les radiologues et les responsables de clinique. L’équipe IMAFRIK les lit, y répond, les fait avancer d’un état à l’autre et regroupe les doublons.",
+      steps: [
+        "Filtrez par clinique, rôle, catégorie, état ou période, chaque option comptée ; cherchez un mot du titre, du texte ou le nom de l’auteur.",
+        "Commencez par les idées « Reçues » : le cockpit en donne le nombre, et son alerte mène ici.",
+        "Choisissez l’état, écrivez une réponse, puis cliquez sur « Enregistrer » : l’auteur est prévenu par courriel.",
+        "Pour un doublon, choisissez l’idée principale dans « Même idée que… » : l’idée regroupée suit son état, et son auteur est prévenu.",
+        "Le contexte dit d’où vient l’idée : écran, version, appareil. Chaque geste est tracé au journal d’audit.",
+      ],
+      terms: ["idee", "etatIdee", "regroupement", "journalAudit"],
     },
     billing: {
       title: "Facturation",

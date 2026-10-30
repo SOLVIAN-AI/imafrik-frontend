@@ -21,10 +21,12 @@ export const nav: AppMessages["nav"] = {
     gateways: "Gateways",
     accounts: "Accounts",
     requests: "Incoming requests",
+    ideaInbox: "Ideas",
     billing: "Billing",
     system: "System",
     audit: "Audit log",
     controls: "Platform settings",
+    ideas: "Your ideas",
   },
   groups: {
     production: "Production",

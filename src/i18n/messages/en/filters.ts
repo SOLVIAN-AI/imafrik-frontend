@@ -40,6 +40,8 @@ export const filters: AppMessages["filters"] = {
   requestSearch: "Search for a request",
   requestSearchPlaceholder: "Name, email, facility…",
   stage: "Stage",
+  ideaCategory: "Category",
+  allIdeaCategories: "All categories",
   allStages: "All stages",
   organization: "Organisation",
   allOrganizations: "All organisations",
@@ -124,6 +126,7 @@ export const filters: AppMessages["filters"] = {
       count === 1 ? "1 template" : `${count} templates`,
     cases: (count: number) => (count === 1 ? "1 case" : `${count} cases`),
     runs: (count: number) => (count === 1 ? "1 run" : `${count} runs`),
+    ideas: (count: number) => (count === 1 ? "1 idea" : `${count} ideas`),
   },
   empty: {
     entries: "No entry matches these filters",
@@ -138,6 +141,7 @@ export const filters: AppMessages["filters"] = {
     templates: "No template matches these filters",
     cases: "No case matches these filters",
     runs: "No run matches these filters",
+    ideas: "No idea matches these filters",
     detail: (filters: string) =>
       `Filters applied: ${filters}. Clear one to widen the list.`,
     searchTitle: "No result for this search",

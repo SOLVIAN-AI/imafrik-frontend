@@ -144,6 +144,7 @@ export const admin: AppMessages["admin"] = {
     outOf: (total: number) => `of ${total}`,
     radiologistsActive: "Active radiologists",
     newRequests: "Requests to handle",
+    newIdeas: "New ideas",
     operations: "Operations",
     operationsDescription: "Latest run of each task",
     system: "System",
@@ -847,6 +848,7 @@ export const admin: AppMessages["admin"] = {
       billing: "Billing",
       agreement: "Agreements",
       contact_request: "Requests received",
+      idea: "Ideas",
       platform: "Platform",
     },
     actions: {
@@ -924,6 +926,10 @@ export const admin: AppMessages["admin"] = {
       "platform.tailscale_configured": "Tailscale connection saved",
       "platform.tailscale_removed": "Tailscale connection removed",
       "platform.tailscale_policy_pushed": "Tailscale access policy pushed",
+      "idea.submitted": "Idea suggested",
+      "idea.status_changed": "Idea status changed",
+      "idea.answered": "Idea answered",
+      "idea.grouped": "Idea grouped with another",
     },
   },
 
@@ -1035,6 +1041,8 @@ export const admin: AppMessages["admin"] = {
           : `${count} signature or stamp images await your review`,
       newRequests: (count: number) =>
         `${count} contact request${count === 1 ? " is" : "s are"} awaiting a reply`,
+      newIdeas: (count: number) =>
+        count === 1 ? "1 new idea to read" : `${count} new ideas to read`,
     },
     ops: {
       backupDatabase: "41.3 MB encrypted · 18 tables verified",

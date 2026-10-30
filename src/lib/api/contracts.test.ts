@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   contractEndResultSchema,
+  ideaInboxSchema,
   invitationWelcomeSchema,
   organizationSchema,
   reportSchema,
@@ -113,6 +114,46 @@ describe("contrat d'API", () => {
     expect(organizationSchema.parse(organization).id).toBe(organization.id);
     expect(() =>
       organizationSchema.parse({ ...organization, id: "org-1" }),
+    ).toThrow();
+  });
+
+  it("lit la boîte des idées, et refuse un état inconnu", () => {
+    const idea = {
+      id: "11111111-1111-4111-8111-111111111111",
+      title: "Fenêtrage au clavier",
+      body: "Des touches pour les fenêtres usuelles.",
+      category: "reading",
+      benefit: null,
+      screen: "worklist",
+      app_version: "4f2c9a1",
+      device: "desktop",
+      status: "planned",
+      status_changed_at: "2026-10-28T09:00:00Z",
+      response: null,
+      responded_at: null,
+      grouped: false,
+      created_at: "2026-10-20T09:00:00Z",
+      author_id: null,
+      author_name: null,
+      author_role: "radiologist",
+      organization_id: null,
+      organization_name: null,
+      organization_kind: null,
+      duplicate_of: null,
+      duplicate_of_title: null,
+      duplicates: 2,
+      responded_by_name: null,
+      updated_at: "2026-10-28T09:00:00Z",
+    };
+    expect(ideaInboxSchema.parse({ items: [idea], total: 1 }).total).toBe(1);
+    expect(() =>
+      ideaInboxSchema.parse({ items: [{ ...idea, status: "lost" }], total: 1 }),
+    ).toThrow();
+    expect(() =>
+      ideaInboxSchema.parse({
+        items: [{ ...idea, author_role: "platform_admin" }],
+        total: 1,
+      }),
     ).toThrow();
   });
 });

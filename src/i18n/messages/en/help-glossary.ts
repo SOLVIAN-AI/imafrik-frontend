@@ -197,6 +197,21 @@ export const glossary: typeof fr = {
     definition:
       "The radiologist’s pay for reading an examination. Its amount is agreed between the clinic and the radiologist and goes to them in full: IMAFRIK takes no commission on it.",
   },
+  idee: {
+    term: "Idea (Your ideas)",
+    definition:
+      "A way to improve IMAFRIK suggested by a radiologist or a clinic manager: a title, a description, a category. The IMAFRIK team reads it and answers. It never contains a patient’s identity.",
+  },
+  etatIdee: {
+    term: "Idea status",
+    definition:
+      "Where the IMAFRIK team stands: received (not read yet), under review, planned (in an upcoming release), shipped (available) or not taken forward (not for now). The author is notified by email at every change.",
+  },
+  regroupement: {
+    term: "Grouped ideas",
+    definition:
+      "Two ideas asking for the same thing are grouped: the second is linked to the main idea and follows its status. Its author is told, without reading someone else’s idea.",
+  },
   journalAudit: {
     term: "Audit log",
     definition:

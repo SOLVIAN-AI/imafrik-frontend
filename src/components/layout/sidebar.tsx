@@ -15,6 +15,7 @@ import {
   Inbox,
   LayoutDashboard,
   LayoutList,
+  Lightbulb,
   Loader2,
   LogOut,
   type LucideIcon,
@@ -97,6 +98,7 @@ export const NAV_ICONS = {
   audit: ScrollText,
   controls: SlidersHorizontal,
   training: GraduationCap,
+  ideas: Lightbulb,
 } satisfies Record<string, LucideIcon>;
 
 export type NavIconKey = keyof typeof NAV_ICONS;

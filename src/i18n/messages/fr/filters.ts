@@ -46,6 +46,8 @@ export const filters = {
   requestSearch: "Rechercher une demande",
   requestSearchPlaceholder: "Nom, adresse, établissement…",
   stage: "Étape",
+  ideaCategory: "Catégorie",
+  allIdeaCategories: "Toutes les catégories",
   allStages: "Toutes les étapes",
   organization: "Organisation",
   allOrganizations: "Toutes les organisations",
@@ -141,6 +143,7 @@ export const filters = {
     cases: (count: number) => `${count} cas`,
     runs: (count: number) =>
       count > 1 ? `${count} exécutions` : `${count} exécution`,
+    ideas: (count: number) => (count > 1 ? `${count} idées` : `${count} idée`),
   },
   /** Liste vide à cause des filtres. */
   empty: {
@@ -156,6 +159,7 @@ export const filters = {
     templates: "Aucun modèle ne correspond à ces filtres",
     cases: "Aucun cas ne correspond à ces filtres",
     runs: "Aucune exécution ne correspond à ces filtres",
+    ideas: "Aucune idée ne correspond à ces filtres",
     detail: (filters: string) =>
       `Filtres retenus : ${filters}. Effacez-en un pour élargir la liste.`,
     /** Liste vide à cause de la recherche seule. */

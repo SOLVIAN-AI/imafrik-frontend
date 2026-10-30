@@ -1052,6 +1052,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/ideas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Idées reçues
+         * @description Toutes les idées, les plus récentes d’abord, avec leur auteur.
+         *
+         *     La boîte se filtre et se compte sur la page (rôle, clinique,
+         *     catégorie, état, période) ; ``total`` dit si elle est coupée.
+         *
+         *     Args:
+         *         principal: Membre de l’équipe IMAFRIK.
+         *         limit: Nombre d’idées, les plus récentes d’abord.
+         *
+         *     Returns:
+         *         Les idées et leur nombre total.
+         */
+        get: operations["list_ideas_admin_ideas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/ideas/{idea_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Suivre une idée
+         * @description Change l’état d’une idée, y répond ou la regroupe avec une autre.
+         *
+         *     Chaque changement est tracé ; l’auteur est prévenu par courriel quand
+         *     l’état de son idée change ou que l’équipe lui répond, après
+         *     l’enregistrement.
+         *
+         *     Args:
+         *         idea_id: Idée suivie.
+         *         body: Champs à changer, seuls ceux envoyés comptent.
+         *         principal: Membre de l’équipe IMAFRIK.
+         *
+         *     Returns:
+         *         L’idée, après modification.
+         *
+         *     Raises:
+         *         NotFound: Idée, ou idée principale, introuvable.
+         *         Unprocessable: Rien à changer, ou idée regroupée avec elle-même.
+         *         Conflict: État demandé pour une idée regroupée, qui suit sa
+         *             principale.
+         */
+        patch: operations["update_idea_admin_ideas__idea_id__patch"];
+        trace?: never;
+    };
     "/admin/memberships/{membership_id}/modalities": {
         parameters: {
             query?: never;
@@ -2758,6 +2826,50 @@ export interface paths {
          *         Le jeton et sa durée de vie.
          */
         post: operations["issue_document_token_me_credential_documents_token_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/ideas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mes idées
+         * @description Les idées de l’appelant, les plus récentes d’abord, avec leur suivi.
+         *
+         *     Args:
+         *         principal: Radiologue ou responsable de clinique.
+         *
+         *     Returns:
+         *         Ses idées, sous RLS : jamais celles d’un autre.
+         */
+        get: operations["list_my_ideas_me_ideas_get"];
+        put?: never;
+        /**
+         * Proposer une idée
+         * @description Enregistre une idée de l’appelant, et trace le geste.
+         *
+         *     Sous RLS : la base pose l’auteur, l’organisation et le rôle (ceux des
+         *     claims, relus en base) et refuse au-delà du plafond de débit (429).
+         *
+         *     Args:
+         *         body: L’idée.
+         *         principal: Radiologue ou responsable de clinique.
+         *
+         *     Returns:
+         *         L’idée enregistrée, à l’état « reçue ».
+         *
+         *     Raises:
+         *         Forbidden: Rôle sans droit de proposer.
+         *         TooManyRequests: Plafond de débit atteint.
+         */
+        post: operations["submit_idea_me_ideas_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4699,6 +4811,93 @@ export interface components {
              * @description Seconde saisie du code à créer (avec define_pin).
              */
             pin_confirmation?: string | null;
+        };
+        /**
+         * AdminIdea
+         * @description Une idée, telle que l’équipe IMAFRIK la suit.
+         *
+         *     Attributes:
+         *         author_id: Auteur ; nul si son compte a été supprimé.
+         *         author_name: Titre et nom de l’auteur.
+         *         author_role: Radiologue ou responsable de clinique.
+         *         organization_id: Organisation active de l’auteur à la proposition.
+         *         organization_name: Son nom.
+         *         organization_kind: Clinique ou groupe de radiologie.
+         *         duplicate_of: Idée principale, si celle-ci est regroupée.
+         *         duplicate_of_title: Titre de l’idée principale.
+         *         duplicates: Idées regroupées sous celle-ci.
+         *         responded_by_name: Membre de l’équipe qui a répondu.
+         *         updated_at: Dernière modification.
+         */
+        AdminIdea: {
+            /** App Version */
+            app_version: string | null;
+            /** Author Id */
+            author_id: string | null;
+            /** Author Name */
+            author_name: string | null;
+            /**
+             * Author Role
+             * @enum {string}
+             */
+            author_role: "radiologist" | "clinic_staff";
+            /** Benefit */
+            benefit: ("time" | "clarity" | "safety") | null;
+            /** Body */
+            body: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "reading" | "reporting" | "assignment" | "studies" | "billing" | "other";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Device */
+            device: ("desktop" | "tablet" | "phone") | null;
+            /** Duplicate Of */
+            duplicate_of: string | null;
+            /** Duplicate Of Title */
+            duplicate_of_title: string | null;
+            /** Duplicates */
+            duplicates: number;
+            /** Grouped */
+            grouped: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Organization Id */
+            organization_id: string | null;
+            /** Organization Kind */
+            organization_kind: ("clinic" | "radiology_group") | null;
+            /** Organization Name */
+            organization_name: string | null;
+            /** Responded At */
+            responded_at: string | null;
+            /** Responded By Name */
+            responded_by_name: string | null;
+            /** Response */
+            response: string | null;
+            /** Screen */
+            screen: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "received" | "under_review" | "planned" | "shipped" | "declined";
+            /** Status Changed At */
+            status_changed_at: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /**
          * AdminOrganization
@@ -6898,6 +7097,143 @@ export interface components {
             status: "awaiting_approval" | "pending" | "active" | "suspended" | "rejected" | "revoked";
         };
         /**
+         * Idea
+         * @description Une idée, telle que son auteur la suit.
+         *
+         *     Attributes:
+         *         id: Identifiant.
+         *         title: Titre.
+         *         body: Description.
+         *         category: Partie du produit concernée.
+         *         benefit: Ce qu’elle ferait gagner.
+         *         screen: Clé de l’écran d’où elle a été proposée.
+         *         app_version: Version de l’application.
+         *         device: Appareil utilisé.
+         *         status: Où l’équipe IMAFRIK en est.
+         *         status_changed_at: Dernier changement d’état.
+         *         response: Réponse de l’équipe IMAFRIK.
+         *         responded_at: Instant de la réponse.
+         *         grouped: Regroupée avec une idée semblable, dont elle suit l’état.
+         *             L’idée principale n’est pas nommée : elle est d’un autre auteur.
+         *         created_at: Proposition.
+         */
+        Idea: {
+            /** App Version */
+            app_version: string | null;
+            /** Benefit */
+            benefit: ("time" | "clarity" | "safety") | null;
+            /** Body */
+            body: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "reading" | "reporting" | "assignment" | "studies" | "billing" | "other";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Device */
+            device: ("desktop" | "tablet" | "phone") | null;
+            /** Grouped */
+            grouped: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Responded At */
+            responded_at: string | null;
+            /** Response */
+            response: string | null;
+            /** Screen */
+            screen: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "received" | "under_review" | "planned" | "shipped" | "declined";
+            /** Status Changed At */
+            status_changed_at: string | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * IdeaCreate
+         * @description Une idée, telle que le formulaire l’envoie.
+         *
+         *     Attributes:
+         *         title: Titre, sur une ligne.
+         *         body: Description.
+         *         category: Partie du produit concernée.
+         *         benefit: Ce qu’elle ferait gagner, si l’auteur le dit.
+         *         screen: Clé de l’écran d’où elle est proposée, jamais une adresse.
+         *         app_version: Version de l’application.
+         *         device: Appareil utilisé.
+         */
+        IdeaCreate: {
+            /** App Version */
+            app_version?: string | null;
+            /** Benefit */
+            benefit?: ("time" | "clarity" | "safety") | null;
+            /** Body */
+            body: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "reading" | "reporting" | "assignment" | "studies" | "billing" | "other";
+            /** Device */
+            device?: ("desktop" | "tablet" | "phone") | null;
+            /** Screen */
+            screen?: string | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * IdeaInbox
+         * @description La boîte des idées de l’équipe IMAFRIK.
+         *
+         *     Attributes:
+         *         items: Les idées, les plus récentes d’abord.
+         *         total: Toutes les idées reçues ; plus que ``items`` si la boîte est
+         *             coupée à sa limite.
+         */
+        IdeaInbox: {
+            /** Items */
+            items: components["schemas"]["AdminIdea"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * IdeaUpdate
+         * @description Ce que l’équipe IMAFRIK change à une idée.
+         *
+         *     Seuls les champs envoyés comptent : un champ absent reste tel quel,
+         *     une réponse ou un regroupement envoyés à ``null`` s’effacent.
+         *
+         *     Attributes:
+         *         status: Nouvel état.
+         *         response: Réponse à l’auteur ; vide ou ``null`` pour l’effacer.
+         *         duplicate_of: Idée principale du regroupement ; ``null`` pour le
+         *             défaire.
+         */
+        IdeaUpdate: {
+            /**
+             * Duplicate Of
+             * @description Idée principale ; null pour défaire le regroupement.
+             */
+            duplicate_of?: string | null;
+            /**
+             * Response
+             * @description Réponse à l’auteur ; vide ou null pour l’effacer.
+             */
+            response?: string | null;
+            /** Status */
+            status?: ("received" | "under_review" | "planned" | "shipped" | "declined") | null;
+        };
+        /**
          * Invitation
          * @description Invitation d'une personne dans une organisation.
          *
@@ -7270,6 +7606,12 @@ export interface components {
             clinics_active: number;
             /** Clinics Connected */
             clinics_connected: number;
+            /**
+             * New Ideas
+             * @description Idées proposées encore à l’état « reçue », que l’équipe n’a pas lues.
+             * @default 0
+             */
+            new_ideas: number;
             /** New Requests */
             new_requests: number;
             /** Radiologists Active */
@@ -9734,7 +10076,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.auto_assigned" | "study.unassigned" | "study.urgent_alerted" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.assignment_rules_changed" | "organization.plan_changed" | "organization.viewed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "billing.month_closed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.auto_assigned" | "study.unassigned" | "study.urgent_alerted" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.assignment_rules_changed" | "organization.plan_changed" | "organization.viewed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "billing.month_closed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed" | "idea.submitted" | "idea.status_changed" | "idea.answered" | "idea.grouped") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 /** @description Seulement les actions de cette famille (« report » pour report.*) */
@@ -11344,6 +11686,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GatewayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_ideas_admin_ideas_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdeaInbox"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_idea_admin_ideas__idea_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                idea_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdeaUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminIdea"];
                 };
             };
             /** @description Validation Error */
@@ -13708,6 +14120,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DocumentToken"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_ideas_me_ideas_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Idea"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_idea_me_ideas_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdeaCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Idea"];
                 };
             };
             /** @description Validation Error */

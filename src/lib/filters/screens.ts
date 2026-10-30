@@ -53,6 +53,10 @@ export const LIST_FILTERS = {
   // Journal d'audit : filtré par le service ; demandes reçues : sur la page.
   journal: ["organization", "author", "family", "action", "period"],
   demandes: ["requester", "requestState", "period"],
+  // « Vos idées » : la boîte de l’équipe IMAFRIK (rôle et clinique de
+  // l’auteur), et « Mes idées » de l’auteur ; filtrées sur la page.
+  idees: [...NETWORK, "role", "ideaCategory", "ideaState", "period"],
+  "mes-idees": ["ideaCategory", "ideaState"],
   // Équipe d'une clinique (et vue des cliniques), modèles, formation,
   // historique des tâches : des listes bornées, filtrées sur la page.
   equipe: ["role", "modality", "urgentReader"],

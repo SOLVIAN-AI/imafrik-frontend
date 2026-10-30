@@ -20,10 +20,12 @@ export const nav = {
     gateways: "Passerelles",
     accounts: "Comptes",
     requests: "Demandes reçues",
+    ideaInbox: "Idées",
     billing: "Facturation",
     system: "Système",
     audit: "Journal d’audit",
     controls: "Réglages",
+    ideas: "Vos idées",
   },
   /** Groupes de la navigation, par clé (`NavGroup.key`). */
   groups: {

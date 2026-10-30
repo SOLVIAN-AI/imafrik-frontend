@@ -37,6 +37,8 @@ export const LIST_SEARCH_SCOPES = [
   "admin-organisations",
   // Demandes reçues : nom, adresse, établissement.
   "admin-demandes",
+  // Idées : titre, texte, auteur, organisation.
+  "admin-idees",
   // Équipe d'une clinique : nom, adresse électronique. La vue des
   // cliniques a la sienne, comme pour les examens.
   "equipe",
