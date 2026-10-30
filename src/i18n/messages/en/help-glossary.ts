@@ -227,6 +227,16 @@ export const glossary: typeof fr = {
     definition:
       "The radiologists a clinic, or the IMAFRIK team, allows to take an urgent examination without waiting for it to be assigned, in the modalities they read. They are emailed; the first to take it gets it, and it disappears for the others.",
   },
+  decoupeProposee: {
+    term: "Suggested sections",
+    definition:
+      "Report layout in five sections: clinical indication, technique, comparison, findings, conclusion. Indication, findings and conclusion are required to sign. The other choice is the blank page.",
+  },
+  feuilleBlanche: {
+    term: "Blank page",
+    definition:
+      "Report layout where the radiologist writes their own way (subheadings, bold, lists), then a separate, required conclusion. Header, logos, identity, signature, stamp and QR code stay automatic. The starting layout is set in settings.",
+  },
   modele: {
     term: "Template",
     definition:

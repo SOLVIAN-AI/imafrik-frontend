@@ -1,4 +1,7 @@
-import type { ReportSections } from "@/components/editor/sections";
+import type {
+  ReportLayout,
+  ReportSections,
+} from "@/components/editor/sections";
 import { EMPTY_REPORT_SECTIONS } from "@/components/editor/sections";
 import { DEMO_RADIOLOGISTS, DEMO_STUDIES } from "@/lib/demo/studies";
 
@@ -18,6 +21,8 @@ export interface DemoReport {
   signerTitle: string;
   signerLicense: string;
   verifyToken: string;
+  /** Mise en page ; la découpe proposée à défaut. */
+  layout?: ReportLayout;
   sections: ReportSections;
 }
 
@@ -49,6 +54,7 @@ function signed(
   signer: keyof typeof SIGNERS,
   verifyToken: string,
   sections: Partial<ReportSections>,
+  layout: ReportLayout = "structured",
 ): DemoReport {
   const study = DEMO_STUDIES.find((candidate) => candidate.id === studyId)!;
   return {
@@ -57,6 +63,7 @@ function signed(
     signedAt: study.reportedAt!,
     verifyToken,
     ...SIGNERS[signer],
+    layout,
     sections: { ...EMPTY_REPORT_SECTIONS, ...sections },
   };
 }
@@ -127,17 +134,20 @@ export const DEMO_REPORTS: DemoReport[] = [
     conclusion:
       "<p>Hernie discale C5-C6 postéro-latérale droite à l’origine d’un rétrécissement foraminal, concordante avec la clinique.</p>",
   }),
-  signed("15", "me", "W4GA-7RNE-5YTU", {
-    indication:
-      "<p>Sinusite chronique, bilan avant chirurgie endoscopique.</p>",
-    technique:
-      "<p>Acquisition hélicoïdale du massif facial sans injection, reconstructions coronales et sagittales.</p>",
-    comparatif: "<p>Absence d’examen antérieur disponible.</p>",
-    resultats:
-      "<p>Comblement muqueux des sinus maxillaires et de l’ethmoïde antérieur, prédominant à droite. Complexe ostio-méatal droit obstrué. Pas de lyse osseuse. Lame criblée symétrique, type II de Keros.</p>",
-    conclusion:
-      "<p>Pansinusite antérieure prédominant à droite, avec obstruction du complexe ostio-méatal droit. Pas de variante anatomique à risque chirurgical.</p>",
-  }),
+  // Rédigé sur une feuille blanche : le texte libre du radiologue, avec
+  // ses propres sous-titres, puis la conclusion, à part.
+  signed(
+    "15",
+    "me",
+    "W4GA-7RNE-5YTU",
+    {
+      corps:
+        "<p>Bilan d’une sinusite chronique avant chirurgie endoscopique. Acquisition hélicoïdale du massif facial sans injection, reconstructions coronales et sagittales. Pas d’examen antérieur.</p><h3>Sinus</h3><ul><li><p>Comblement muqueux des sinus maxillaires et de l’ethmoïde antérieur, prédominant à droite.</p></li><li><p>Complexe ostio-méatal droit obstrué.</p></li></ul><h3>Repères chirurgicaux</h3><p>Pas de lyse osseuse. Lame criblée symétrique, type II de Keros. Pas de cellule d’Onodi ni de déhiscence de la lame papyracée.</p>",
+      conclusion:
+        "<p>Pansinusite antérieure prédominant à droite, avec obstruction du complexe ostio-méatal droit. Pas de variante anatomique à risque chirurgical.</p>",
+    },
+    "free",
+  ),
 ];
 
 /**

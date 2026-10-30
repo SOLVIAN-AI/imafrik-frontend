@@ -3769,9 +3769,21 @@ export interface paths {
          *     renvoie ``expected_version`` est protégé contre l'écrasement par un
          *     autre onglet ; celui qui l'omet écrit sans condition.
          *
+         *     **Changer de mise en page** (``layout``) se fait dans le même
+         *     enregistrement que le texte qui va avec : l'éditeur a déjà fondu les
+         *     rubriques dans la feuille blanche, ou versé la feuille blanche dans
+         *     les résultats. Les clés de l'ancienne mise en page quittent alors la
+         *     base, dans la même écriture : aucun texte caché, que ni l'éditeur ni
+         *     le PDF n'afficheraient, ne reste derrière.
+         *
+         *     Un envoi qui porte une clé étrangère à la mise en page du brouillon
+         *     est refusé, sans rien écrire : c'est un onglet resté sur l'autre
+         *     mise en page, et l'écrire perdrait son texte.
+         *
          *     Args:
          *         report_id: Compte-rendu à mettre à jour.
-         *         body: Sections modifiées et, en option, la version attendue.
+         *         body: Sections modifiées, la mise en page si elle change et, en
+         *             option, la version attendue.
          *         principal: Radiologue authentifié.
          *
          *     Returns:
@@ -3779,8 +3791,8 @@ export interface paths {
          *
          *     Raises:
          *         Conflict: Compte-rendu absent, appartenant à un autre auteur, déjà
-         *             signé — donc verrouillé par le trigger — ou modifié depuis la
-         *             version indiquée.
+         *             signé — donc verrouillé par le trigger —, modifié depuis la
+         *             version indiquée, ou passé à une autre mise en page.
          */
         patch: operations["autosave_reports__report_id__patch"];
         trace?: never;
@@ -3826,6 +3838,40 @@ export interface paths {
          *         PinLocked: Code verrouillé après cinq erreurs (423).
          */
         post: operations["add_addendum_reports__report_id__addenda_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/{report_id}/letterhead": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * En-tête du compte-rendu
+         * @description Renvoie l'en-tête que portera le compte-rendu : clinique, ville, logo.
+         *
+         *     Le droit de lire est celui du compte-rendu, vérifié par RLS ; le logo,
+         *     que nul utilisateur ne lit directement, est ensuite lu par le rôle de
+         *     service, comme à la signature.
+         *
+         *     Args:
+         *         report_id: Compte-rendu concerné.
+         *         principal: Appelant disposant d'une organisation active.
+         *
+         *     Returns:
+         *         L'en-tête du document.
+         *
+         *     Raises:
+         *         NotFound: Compte-rendu inexistant ou hors du périmètre de l'appelant.
+         */
+        get: operations["read_letterhead_reports__report_id__letterhead_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4322,6 +4368,11 @@ export interface paths {
          *     tel quel, avec le code 201 — l'appelant n'a pas à distinguer les deux
          *     cas. Deux appels simultanés du même radiologue ne produisent qu'une
          *     ligne, grâce à l'unicité de ``study_id`` et au ``on conflict``.
+         *
+         *     Le brouillon naît dans la mise en page que le radiologue a choisie
+         *     dans ses paramètres (``profiles.report_layout``) : découpe proposée
+         *     ou feuille blanche. Il en change ensuite dans l'éditeur, pour ce
+         *     compte-rendu seulement.
          *
          *     Args:
          *         study_id: Examen pris en charge par l'appelant.
@@ -7867,6 +7918,36 @@ export interface components {
             version: string | null;
         };
         /**
+         * Letterhead
+         * @description En-tête d'un compte-rendu, tel que le PDF signé l'imprimera.
+         *
+         *     L'éditeur le montre en tête de la feuille, verrouillé : dans les deux
+         *     mises en page, le radiologue rédige sous l'en-tête de la clinique, sans
+         *     pouvoir le modifier ni le retirer. Ce n'est qu'un aperçu : à la
+         *     signature, l'API relit tout en base.
+         *
+         *     Attributes:
+         *         organization_name: Clinique émettrice.
+         *         city: Sa ville, imprimée sous son nom.
+         *         custom_header: La clinique a un en-tête à elle, imprimé à la place
+         *             de son nom (``organizations.header_html``).
+         *         logo: Vignette du logo de la clinique, en URI ``data:`` ; il
+         *             s'imprime en filigrane de chaque page. ``None`` sans logo.
+         *         study_date: Date de l'examen, imprimée avec l'identité du patient.
+         */
+        Letterhead: {
+            /** City */
+            city: string | null;
+            /** Custom Header */
+            custom_header: boolean;
+            /** Logo */
+            logo: string | null;
+            /** Organization Name */
+            organization_name: string;
+            /** Study Date */
+            study_date: string | null;
+        };
+        /**
          * LiveCounts
          * @description L'état de la file, à l'instant.
          */
@@ -8705,6 +8786,9 @@ export interface components {
          *         title: Titre — « Dr », spécialité.
          *         license_number: Numéro d'ordre, imprimé sur les comptes-rendus.
          *         locale: Langue de l'interface, des messages et des courriels.
+         *         report_layout: Mise en page des brouillons que le radiologue ouvre :
+         *             découpe proposée (``structured``) ou feuille blanche (``free``).
+         *             Il en change pour chaque compte-rendu dans l'éditeur.
          *         credentials_verified: Validation enregistrée par l'équipe IMAFRIK.
          *             Changer de nom, de titre, de numéro ou d'exercice la retire.
          *         practice_status: Exercice déclaré : ``registered`` (inscrit à
@@ -8745,6 +8829,12 @@ export interface components {
             locale: "fr" | "en";
             /** Practice Status */
             practice_status?: ("registered" | "resident") | null;
+            /**
+             * Report Layout
+             * @default structured
+             * @enum {string}
+             */
+            report_layout: "structured" | "free";
             /** Title */
             title?: string | null;
         };
@@ -8768,6 +8858,8 @@ export interface components {
          *         title: Titre — « Dr », spécialité.
          *         license_number: Numéro d'ordre.
          *         locale: Langue de l'interface, des messages et des courriels.
+         *         report_layout: Mise en page des prochains brouillons. Elle ne
+         *             touche ni à l'identité imprimée ni à la validation.
          *         practice_status: Exercice déclaré. En changer retire la validation :
          *             les justificatifs acceptés ne valent que pour l'exercice déclaré.
          */
@@ -8780,6 +8872,8 @@ export interface components {
             locale?: ("fr" | "en") | null;
             /** Practice Status */
             practice_status?: ("registered" | "resident") | null;
+            /** Report Layout */
+            report_layout?: ("structured" | "free") | null;
             /** Title */
             title?: string | null;
         };
@@ -9009,7 +9103,10 @@ export interface components {
          *         study_id: Examen concerné.
          *         author_id: Radiologue qui le rédige.
          *         status: Brouillon ou signé.
-         *         sections: Texte, une clé par section.
+         *         layout: Mise en page choisie par le radiologue : découpe proposée
+         *             (``structured``) ou feuille blanche (``free``). Elle décide des
+         *             clés de ``sections``, et de l'allure du PDF.
+         *         sections: Texte, une clé par section de la mise en page.
          *         version: Incrémentée à chaque enregistrement du texte.
          *         signed_at: Horodatage de la signature.
          *         signed_by: Profil signataire.
@@ -9042,6 +9139,11 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Layout
+             * @enum {string}
+             */
+            layout: "structured" | "free";
             /** Pdf Sha256 */
             pdf_sha256: string | null;
             /** Sections */
@@ -9099,8 +9201,10 @@ export interface components {
          *         name: Intitulé affiché dans l'éditeur.
          *         modality: Modalité visée — ``CT``, ``MR``, ``CR``…
          *         body_part: Région anatomique visée.
-         *         sections: Contenu pré-rempli, une clé par section du
-         *             compte-rendu.
+         *         layout: Mise en page du modèle : découpe proposée (``structured``)
+         *             ou feuille blanche (``free``).
+         *         sections: Contenu pré-rempli, une clé par section de sa mise en
+         *             page.
          */
         ReportTemplate: {
             /** Body Part */
@@ -9110,6 +9214,11 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Layout
+             * @enum {string}
+             */
+            layout: "structured" | "free";
             /** Modality */
             modality: string | null;
             /** Name */
@@ -9240,7 +9349,13 @@ export interface components {
          *     Attributes:
          *         sections: Sections modifiées, fusionnées avec les existantes.
          *             L'envoi est partiel : l'éditeur ne transmet que ce qui a
-         *             changé.
+         *             changé. Seules les clés de la mise en page du brouillon sont
+         *             admises.
+         *         layout: Nouvelle mise en page, quand le radiologue en change :
+         *             découpe proposée ou feuille blanche. Absente, celle du
+         *             brouillon est gardée. Le texte envoyé est alors celui de la
+         *             nouvelle mise en page, et les clés de l'ancienne quittent la
+         *             base : l'éditeur les a déjà fondues dans le nouveau texte.
          *         expected_version: Version du brouillon telle que le client l'a
          *             lue. Si elle est fournie et ne correspond plus — un autre
          *             onglet a écrit entre-temps — l'enregistrement est refusé
@@ -9249,6 +9364,11 @@ export interface components {
         SectionsPatch: {
             /** Expected Version */
             expected_version?: number | null;
+            /**
+             * Layout
+             * @description Nouvelle mise en page : structured (découpe proposée) ou free (feuille blanche). Absente, celle du brouillon est gardée.
+             */
+            layout?: ("structured" | "free") | null;
             /** Sections */
             sections?: {
                 [key: string]: string;
@@ -10018,11 +10138,19 @@ export interface components {
          *         name: Intitulé affiché dans l'éditeur.
          *         modality: Modalité visée ; ``None`` pour toutes.
          *         body_part: Région anatomique visée.
-         *         sections: Texte de chaque section, au format de l'éditeur.
+         *         layout: Mise en page du compte-rendu dont le modèle est issu.
+         *         sections: Texte de chaque section de cette mise en page, au format
+         *             de l'éditeur.
          */
         TemplateCreate: {
             /** Body Part */
             body_part?: string | null;
+            /**
+             * Layout
+             * @default structured
+             * @enum {string}
+             */
+            layout: "structured" | "free";
             /** Modality */
             modality?: string | null;
             /** Name */
@@ -15946,6 +16074,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Addendum"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_letterhead_reports__report_id__letterhead_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Letterhead"];
                 };
             };
             /** @description Validation Error */

@@ -6,7 +6,11 @@ import { EMPTY_REPORT_SECTIONS } from "@/components/editor/sections";
 import type { AppMessages } from "@/i18n";
 import { getMessages } from "@/i18n/server";
 import { isAiReviewAvailable } from "@/lib/data/assist";
-import { getReportForStudy, type Report } from "@/lib/data/reports";
+import {
+  getLetterhead,
+  getReportForStudy,
+  type Report,
+} from "@/lib/data/reports";
 import { getSigningContext } from "@/lib/data/signing";
 import {
   findNextStudyId,
@@ -168,6 +172,9 @@ export default async function ReadingPage({
   // faut le saisir ou le créer, et montre ce qui sera apposé.
   const signing =
     mode.kind === "author" ? await getSigningContext() : undefined;
+  // L'en-tête du document, montré verrouillé sur la feuille. Facultatif :
+  // sans lui, la feuille s'affiche nue, le texte reste là.
+  const letterhead = report ? await getLetterhead(report.id) : null;
 
   return (
     <ReadingWorkspace
@@ -184,6 +191,8 @@ export default async function ReadingPage({
       viewerUrl={viewerUrl}
       mode={mode}
       initial={report?.sections ?? EMPTY_REPORT_SECTIONS}
+      initialLayout={report?.layout}
+      letterhead={letterhead}
       signed={report?.status === "signed"}
       signerName={formatPersonName(session.user.title, session.user.fullName)}
       templates={templates}

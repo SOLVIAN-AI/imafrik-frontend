@@ -1,6 +1,9 @@
 import "server-only";
 
-import type { ReportSections } from "@/components/editor/sections";
+import type {
+  ReportLayout,
+  ReportSections,
+} from "@/components/editor/sections";
 import { EMPTY_REPORT_SECTIONS } from "@/components/editor/sections";
 import { apiGet } from "@/lib/api/client";
 import { templateSchema } from "@/lib/api/contracts";
@@ -22,6 +25,11 @@ export interface ReportTemplate {
   /** Modalité visée ; `null` pour un modèle valable quelle que soit la modalité. */
   modality: string | null;
   bodyPart: string | null;
+  /**
+   * Mise en page du compte-rendu dont le modèle est issu : découpe
+   * proposée ou feuille blanche. Ses sections sont celles de ce mode.
+   */
+  layout: ReportLayout;
   sections: ReportSections;
   /**
    * Modèle fourni par IMAFRIK à toutes les organisations, par opposition
@@ -39,6 +47,7 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
     modality: "US",
     bodyPart: "Abdomen",
     shared: true,
+    layout: "structured",
     sections: {
       ...EMPTY_REPORT_SECTIONS,
       technique:
@@ -55,6 +64,7 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
     modality: "CT",
     bodyPart: "Thorax",
     shared: true,
+    layout: "structured",
     sections: {
       ...EMPTY_REPORT_SECTIONS,
       technique:
@@ -70,6 +80,7 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
     modality: "MR",
     bodyPart: "Crâne",
     shared: true,
+    layout: "structured",
     sections: {
       ...EMPTY_REPORT_SECTIONS,
       technique:
@@ -85,12 +96,29 @@ const DEMO_TEMPLATES: ReportTemplate[] = [
     modality: "CR",
     bodyPart: "Thorax",
     shared: true,
+    layout: "structured",
     sections: {
       ...EMPTY_REPORT_SECTIONS,
       technique: "<p>Cliché de face, en inspiration, debout.</p>",
       resultats:
         '<p style="text-align: justify">Transparence pulmonaire normale et symétrique. Culs-de-sac pleuraux libres. Silhouette cardio-médiastinale de taille normale. Coupoles diaphragmatiques régulières.</p>',
       conclusion: "<p>Radiographie thoracique sans anomalie.</p>",
+    },
+  },
+  {
+    // Modèle en feuille blanche : appliqué à un brouillon vierge, il y
+    // mène ; ses champs entre crochets se parcourent par Tab.
+    id: "t-us-pelvis-libre",
+    name: "Échographie pelvienne, feuille blanche",
+    modality: "US",
+    bodyPart: "Pelvis",
+    shared: true,
+    layout: "free",
+    sections: {
+      ...EMPTY_REPORT_SECTIONS,
+      corps:
+        "<p>Échographie pelvienne par voie sus-pubienne, vessie en réplétion, complétée par voie endovaginale.</p><h3>Utérus</h3><p>Utérus [antéversé], de [taille] mm de grand axe, myomètre [homogène]. Endomètre de [épaisseur] mm.</p><h3>Annexes</h3><p>Ovaires de taille et d’échostructure normales. Pas d’épanchement dans le cul-de-sac de Douglas.</p>",
+      conclusion: "<p>[Conclusion].</p>",
     },
   },
 ];
@@ -126,6 +154,7 @@ export async function listTemplates(
       name: row.name,
       modality: row.modality,
       bodyPart: row.body_part,
+      layout: row.layout,
       shared: row.organization_id === null,
       sections: { ...EMPTY_REPORT_SECTIONS, ...row.sections },
     }));

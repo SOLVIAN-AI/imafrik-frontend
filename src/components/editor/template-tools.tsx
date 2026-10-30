@@ -5,10 +5,17 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import {
+  EMPTY_REPORT_SECTIONS,
+  isReportBlank,
   isSectionEmpty,
+  type ReportLayout,
   type ReportSections,
   type SectionKey,
-} from "@/components/editor/report-editor";
+  sectionsForLayout,
+  sectionsOf,
+  toFreeLayout,
+  toStructuredLayout,
+} from "@/components/editor/sections";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,36 +46,70 @@ import type { ReportTemplate } from "@/lib/data/templates";
  * restent en place. C'est ce qui permet d'appliquer un modèle à
  * n'importe quel moment de la rédaction sans risque.
  *
+ * **Un modèle retient sa mise en page.** Appliqué à un compte-rendu
+ * encore vierge, il y mène : un modèle en feuille blanche ouvre une
+ * feuille blanche. Sur un texte déjà commencé dans l'autre mise en page,
+ * c'est le modèle qui s'adapte, converti sans perte (`toFreeLayout`,
+ * `toStructuredLayout`) : le choix du radiologue, et son texte, ne
+ * changent jamais en silence.
+ *
  * @param templates Modèles proposés — ceux de la modalité de l'examen.
  * @param sections  Contenu actuel.
- * @param onApply   Reçoit les sections après application.
+ * @param layout    Mise en page actuelle.
+ * @param titles    Intitulés des rubriques, dans la langue du compte-rendu.
+ * @param onApply   Reçoit les sections et la mise en page après application.
  */
 export function TemplatePicker({
   templates,
   sections,
+  layout,
+  titles,
   onApply,
 }: {
   templates: ReportTemplate[];
   sections: ReportSections;
-  onApply: (next: ReportSections) => void;
+  layout: ReportLayout;
+  titles: Record<SectionKey, string>;
+  onApply: (next: ReportSections, layout: ReportLayout) => void;
 }) {
-  const labels = useMessages().reading.templates;
+  const t = useMessages();
+  const labels = t.reading.templates;
   if (templates.length === 0) return null;
 
   const apply = (template: ReportTemplate) => {
-    const next = { ...sections };
+    let target = layout;
+    let source = template.sections;
+    let base = sections;
+    if (template.layout !== layout) {
+      if (isReportBlank(sections, layout)) {
+        target = template.layout;
+        base = EMPTY_REPORT_SECTIONS;
+      } else {
+        source =
+          template.layout === "free"
+            ? toStructuredLayout(template.sections)
+            : toFreeLayout(template.sections, titles);
+      }
+    }
+    const next = { ...base };
     let filled = 0;
-    for (const key of Object.keys(next) as SectionKey[]) {
-      if (
-        isSectionEmpty(next[key]) &&
-        !isSectionEmpty(template.sections[key])
-      ) {
-        next[key] = template.sections[key];
+    for (const { key } of sectionsOf(target)) {
+      if (isSectionEmpty(next[key]) && !isSectionEmpty(source[key])) {
+        next[key] = source[key];
         filled += 1;
       }
     }
-    onApply(next);
-    toast.success(filled > 0 ? labels.applied(filled) : labels.nothingApplied);
+    onApply(next, target);
+    const name = t.reading.layout.inSentence;
+    toast.success(
+      template.layout === layout
+        ? filled > 0
+          ? labels.applied(filled)
+          : labels.nothingApplied
+        : target === template.layout
+          ? labels.adopted(name[target])
+          : labels.converted(name[layout]),
+    );
   };
 
   return (
@@ -84,6 +125,14 @@ export function TemplatePicker({
         {templates.map((template) => (
           <DropdownMenuItem key={template.id} onSelect={() => apply(template)}>
             <span className="min-w-0 flex-1 truncate">{template.name}</span>
+            {template.layout === "free" && (
+              <span
+                className="shrink-0 text-2xs text-tertiary"
+                title={labels.layoutOf(t.reading.layout.names.free)}
+              >
+                {t.reading.layout.names.free}
+              </span>
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -100,10 +149,13 @@ export function TemplatePicker({
  */
 export function SaveAsTemplate({
   sections,
+  layout,
   modality,
   bodyPart,
 }: {
   sections: ReportSections;
+  /** Mise en page du compte-rendu : le modèle la retient. */
+  layout: ReportLayout;
   modality: string;
   bodyPart: string | null;
 }) {
@@ -132,7 +184,8 @@ export function SaveAsTemplate({
                   modality: String(form.get("modality") ?? ""),
                   bodyPart: String(form.get("bodyPart") ?? ""),
                 },
-                sections,
+                sectionsForLayout(sections, layout),
+                layout,
               );
               if (!result.ok) {
                 toast.error(result.error);

@@ -12,7 +12,9 @@ import {
   type AiReviewController,
 } from "@/components/editor/use-ai-review";
 import {
+  DEFAULT_LAYOUT,
   missingRequiredSections,
+  type ReportLayout,
   type ReportSections,
 } from "@/components/editor/sections";
 import {
@@ -77,6 +79,8 @@ export interface SignPinOptions {
  * bloquent pas : le radiologue reste juge de son texte.
  *
  * @param sections     Contenu courant, contrôlé avant signature.
+ * @param layout       Mise en page : en feuille blanche, le texte libre et
+ *                     la conclusion sont obligatoires.
  * @param patientLabel Patient concerné, pour éviter de signer le mauvais
  *                     examen après avoir enchaîné plusieurs lectures.
  * @param signerName   Nom sous lequel la signature sera enregistrée.
@@ -95,6 +99,7 @@ export function SignReportDialog({
   open,
   onOpenChange,
   sections,
+  layout = DEFAULT_LAYOUT,
   patientLabel,
   signerName,
   language,
@@ -106,6 +111,7 @@ export function SignReportDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sections: ReportSections;
+  layout?: ReportLayout;
   patientLabel: string;
   signerName: string;
   language: Locale;
@@ -125,8 +131,11 @@ export function SignReportDialog({
   const sectionTitles = messagesFor(language).reading.sections.titles;
   const [signing, setSigning] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const missing = missingRequiredSections(sections);
-  const findings = React.useMemo(() => reviewReport(sections), [sections]);
+  const missing = missingRequiredSections(sections, layout);
+  const findings = React.useMemo(
+    () => reviewReport(sections, layout),
+    [sections, layout],
+  );
 
   const changeOpen = (next: boolean) => {
     // Le code ne survit pas à la fenêtre.
@@ -208,6 +217,7 @@ export function SignReportDialog({
           <AiReviewPanel
             review={aiReview}
             sectionTitles={sectionTitles}
+            layout={layout}
             className="max-h-56 overflow-auto rounded-lg border border-border-subtle px-3 py-2.5"
           />
         )}

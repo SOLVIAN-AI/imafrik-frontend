@@ -232,6 +232,16 @@ export const glossary = {
     definition:
       "Radiologues qu’une clinique, ou l’équipe IMAFRIK, autorise à prendre une urgence sans attendre qu’on la leur attribue, dans les modalités qu’ils lisent. Ils sont prévenus par courriel ; le premier qui la prend l’obtient, et elle disparaît chez les autres.",
   },
+  decoupeProposee: {
+    term: "Découpe proposée",
+    definition:
+      "Mise en page d’un compte-rendu en cinq rubriques : indication clinique, technique, comparatif, résultats, conclusion. L’indication, les résultats et la conclusion sont obligatoires pour signer. L’autre choix est la feuille blanche.",
+  },
+  feuilleBlanche: {
+    term: "Feuille blanche",
+    definition:
+      "Mise en page où le radiologue rédige à sa façon (sous-titres, gras, listes), puis une conclusion à part, obligatoire. En-tête, logos, identité, signature, cachet et QR restent automatiques. Le mode de départ se règle dans les paramètres.",
+  },
   modele: {
     term: "Modèle",
     definition:

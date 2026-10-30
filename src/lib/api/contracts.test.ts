@@ -58,6 +58,7 @@ describe("contrat d'API", () => {
       study_id: study.id,
       author_id: study.id,
       status: "signed",
+      layout: "structured",
       sections: { conclusion: "<p>RAS</p>" },
       version: 3,
       signed_at: "2026-10-06T12:00:00Z",
@@ -72,6 +73,13 @@ describe("contrat d'API", () => {
     };
     expect(() => reportSchema.parse(report)).toThrow();
     expect(reportSchema.parse({ ...report, addenda: [] }).version).toBe(3);
+    // La mise en page est une liste fermée : découpe proposée ou feuille blanche.
+    expect(
+      reportSchema.parse({ ...report, addenda: [], layout: "free" }).layout,
+    ).toBe("free");
+    expect(() =>
+      reportSchema.parse({ ...report, addenda: [], layout: "libre" }),
+    ).toThrow();
   });
 
   it("lit l'accueil d'un invité, inviteur inconnu compris", () => {

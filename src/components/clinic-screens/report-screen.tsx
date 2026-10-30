@@ -125,6 +125,7 @@ export async function ReportScreen({
 
           <ReportDocument
             sections={report.sections}
+            layout={report.layout}
             language={study?.reportLanguage}
           />
 

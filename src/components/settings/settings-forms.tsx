@@ -21,8 +21,13 @@ import {
   changePassword,
   type ProfileInput,
   setLanguage,
+  setReportLayout,
   updateProfile,
 } from "@/lib/actions/profile";
+import {
+  REPORT_LAYOUTS,
+  type ReportLayout,
+} from "@/components/editor/sections";
 import {
   identityChangeResetsValidation,
   licenseChangeResetsValidation,
@@ -265,6 +270,74 @@ export function ProfileForm({
  * pilote à la fois la worklist, les recherches d'images et la prise en
  * charge.
  */
+/**
+ * Mise en page de départ des comptes-rendus : découpe proposée ou feuille
+ * blanche.
+ *
+ * Un point de départ, pas une règle : le radiologue en change pour chaque
+ * compte-rendu dans l'éditeur, sans perdre de texte. Ce réglage évite à
+ * celui qui rédige toujours à sa façon de basculer à chaque examen.
+ *
+ * @param layout Mise en page enregistrée.
+ */
+export function ReportLayoutForm({ layout }: { layout: ReportLayout }) {
+  const t = useMessages().settings.reportLayout;
+  const [value, setValue] = React.useState<ReportLayout>(layout);
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <Section
+      title={t.title}
+      description={t.description}
+      pending={pending}
+      onSubmit={() =>
+        startTransition(async () => {
+          const result = await setReportLayout(value);
+          if (result.ok) toast.success(t.saved);
+          else toast.error(result.error);
+        })
+      }
+    >
+      <fieldset className="flex flex-col gap-2">
+        <legend className="sr-only">{t.title}</legend>
+        {REPORT_LAYOUTS.map((option) => {
+          const selected = value === option;
+          return (
+            <label
+              key={option}
+              className={cn(
+                "flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors duration-100",
+                selected
+                  ? "border-accent/40 bg-accent-muted"
+                  : "border-border-subtle hover:border-border-default hover:bg-surface-hover",
+              )}
+            >
+              <input
+                type="radio"
+                name="reportLayout"
+                checked={selected}
+                onChange={() => setValue(option)}
+                className="mt-0.5 size-4 shrink-0 accent-[var(--accent)]"
+              />
+              <span className="min-w-0">
+                <span className="block text-xs font-medium">
+                  {t.options[option].title}
+                </span>
+                {/* Secondaire, pas tertiaire : sur le fond accentué de
+                    l'option choisie, le tertiaire tombe sous 4,5:1. */}
+                <span className="mt-1 block text-2xs leading-relaxed text-secondary">
+                  {t.options[option].detail}
+                </span>
+              </span>
+            </label>
+          );
+        })}
+      </fieldset>
+      <p className="text-2xs leading-relaxed text-tertiary">{t.note}</p>
+    </Section>
+  );
+}
+
 export function PoolForm({ openToPool }: { openToPool: boolean }) {
   const t = useMessages().settings.pool;
   const [value, setValue] = React.useState(openToPool);

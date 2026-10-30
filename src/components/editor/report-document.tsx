@@ -7,9 +7,11 @@ import {
   sectionExtensions,
 } from "@/components/editor/extensions";
 import {
-  REPORT_SECTIONS,
+  DEFAULT_LAYOUT,
   isSectionEmpty,
+  type ReportLayout,
   type ReportSections,
+  sectionsOf,
 } from "@/components/editor/sections";
 import { messagesFor } from "@/i18n";
 import { useLocale } from "@/i18n/client";
@@ -26,7 +28,16 @@ import { cn } from "@/lib/utils";
  * exposerait l'écran à ce qu'un client d'API mal intentionné aurait pu
  * écrire dans la base.
  */
-function DocumentSection({ title, html }: { title: string; html: string }) {
+function DocumentSection({
+  title,
+  html,
+  variant = "section",
+}: {
+  title: string;
+  html: string;
+  /** Texte libre sans intitulé visible, ou conclusion encadrée : voir `ReportEditor`. */
+  variant?: "section" | "free" | "conclusion";
+}) {
   const editor = useEditor({
     extensions: sectionExtensions(),
     content: html,
@@ -45,9 +56,24 @@ function DocumentSection({ title, html }: { title: string; html: string }) {
     },
   });
 
+  if (variant === "conclusion") {
+    return (
+      <section className="px-5 pt-2 pb-5 sm:px-10 sm:pb-6">
+        <div className="rounded-lg border border-border-default bg-surface-sunken/60 px-4 py-3 sm:px-5 sm:py-4">
+          <h3 className="label-eyebrow mb-2">{title}</h3>
+          <div className="[&_p]:font-medium">
+            <EditorContent editor={editor} />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="border-b border-border-subtle px-5 py-5 last:border-b-0 sm:px-10 sm:py-6">
-      <h3 className="label-eyebrow mb-2">{title}</h3>
+      <h3 className={cn("label-eyebrow mb-2", variant === "free" && "sr-only")}>
+        {title}
+      </h3>
       <EditorContent editor={editor} />
     </section>
   );
@@ -70,15 +96,22 @@ function DocumentSection({ title, html }: { title: string; html: string }) {
  * (`language`, celle du contrat de la clinique), comme sur le PDF ; à
  * défaut, celle de l'utilisateur.
  *
+ * **Feuille blanche** (`layout`) : le texte libre tel que le radiologue
+ * l'a mis en forme, sans intitulé ajouté, puis la conclusion, encadrée
+ * comme dans l'éditeur. Le PDF l'imprime à la même place, en gras.
+ *
  * @param sections Contenu du compte-rendu.
+ * @param layout   Mise en page du compte-rendu.
  * @param language Langue du compte-rendu.
  */
 export function ReportDocument({
   sections,
+  layout = DEFAULT_LAYOUT,
   language,
   className,
 }: {
   sections: ReportSections;
+  layout?: ReportLayout;
   language?: Locale;
   className?: string;
 }) {
@@ -86,21 +119,29 @@ export function ReportDocument({
   const titles = messagesFor(language ?? locale).reading.sections.titles;
   return (
     <article
+      data-layout={layout}
       className={cn(
         "mx-auto max-w-3xl rounded-xl border border-border-subtle",
         "bg-surface-raised shadow-raised",
         className,
       )}
     >
-      {REPORT_SECTIONS.filter(
-        (section) => !isSectionEmpty(sections[section.key]),
-      ).map((section) => (
-        <DocumentSection
-          key={section.key}
-          title={titles[section.key]}
-          html={sections[section.key]}
-        />
-      ))}
+      {sectionsOf(layout)
+        .filter((section) => !isSectionEmpty(sections[section.key]))
+        .map((section) => (
+          <DocumentSection
+            key={section.key}
+            title={titles[section.key]}
+            html={sections[section.key]}
+            variant={
+              layout === "free"
+                ? section.key === "corps"
+                  ? "free"
+                  : "conclusion"
+                : "section"
+            }
+          />
+        ))}
     </article>
   );
 }

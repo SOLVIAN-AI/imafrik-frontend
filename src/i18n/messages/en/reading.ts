@@ -75,6 +75,8 @@ export const reading: AppMessages["reading"] = {
     clinicalInfo: "Clinical information",
     copyToIndication: "Copy into the clinical indication",
     indication: "Indication",
+    copyToFreeText: "Copy to the start of the free text",
+    freeText: "Text",
     panes: {
       label: "Displayed pane",
       images: "Images",
@@ -88,6 +90,7 @@ export const reading: AppMessages["reading"] = {
       comparatif: "Comparison",
       resultats: "Findings",
       conclusion: "Conclusion",
+      corps: "Free text",
     },
     placeholders: {
       indication: "Reason for the examination, clinical information provided…",
@@ -95,7 +98,56 @@ export const reading: AppMessages["reading"] = {
       comparatif: "Previous examinations available, or no comparison…",
       resultats: "Description by organ…",
       conclusion: "Diagnostic summary.",
+      corps:
+        "Write it your way: subheadings, bold, lists, tables. The conclusion is written separately, just below.",
     },
+  },
+  layout: {
+    label: "Layout",
+    names: {
+      structured: "Suggested sections",
+      free: "Blank page",
+    },
+    inSentence: {
+      structured: "suggested sections",
+      free: "the blank page",
+    },
+    info: "Suggested sections: five sections, from indication to conclusion. Blank page: your text, your way, then a separate, required conclusion. Header, logos, patient identity, signature, stamp and QR code are added automatically in both. Switching never loses text.",
+    toFree: "Sections merged into the blank page, each under its heading.",
+    toFreeEmpty: "Blank page: write it your way, then the conclusion.",
+    undo: "Undo",
+    restored: "Suggested sections restored, as they were.",
+    confirmTitle: "Go back to the suggested sections?",
+    confirmBody:
+      "Your free text will go, in full, into “Findings”: you can then spread it across the sections if you wish. The conclusion stays where it is. Nothing is deleted.",
+    confirm: "Switch to suggested sections",
+    cancel: "Keep the blank page",
+    toStructured: "Free text placed in “Findings”.",
+    conclusionHint:
+      "Required, separate: what the referring doctor reads first.",
+    conclusionInfo:
+      "A few lines, separate from the free text. It is printed just before the signature, in bold, in the same place as with the suggested sections: the referring doctor and the clinic always find it in the same place.",
+  },
+  letterhead: {
+    print: {
+      patient: "Patient",
+      identifier: "Patient ID",
+      birth: "Date of birth",
+      exam: "Examination",
+      date: "Date",
+      missing: "not provided",
+      verify: "Verify authenticity",
+    },
+    automatic: "Automatic",
+    automaticInfo:
+      "Clinic header, watermark logo, patient identity, signature, stamp, verification QR code and IMAFRIK logo: the signed PDF always carries them, in both layouts. They cannot be changed or removed.",
+    logoAlt: (clinic: string) => `${clinic} logo, printed as a watermark`,
+    customHeader: "Clinic’s own header",
+    signatureSlot:
+      "Signature and stamp applied when you sign, with your personal code",
+    qr: "Verification QR code",
+    issuedBy: "Report issued via IMAFRIK teleradiology",
+    locked: "Automatic parts of the document",
   },
   editor: {
     requiredTitle: "Section required before signing",
@@ -463,7 +515,12 @@ export const reading: AppMessages["reading"] = {
       "All sections already contain text: nothing has been replaced.",
     saveAs: "Save as template",
     saveAsDescription:
-      "The current text of the five sections becomes a template, offered to your colleagues for examinations of the same modality. First remove anything specific to this patient.",
+      "The current text becomes a template, with its layout, offered to your colleagues for examinations of the same modality. First remove anything specific to this patient.",
+    layoutOf: (layout: string) => `Layout: ${layout}`,
+    adopted: (layout: string) =>
+      `Template applied: the report switches to ${layout}, the template’s layout.`,
+    converted: (layout: string) =>
+      `Template with another layout: converted to ${layout} to complete what is empty.`,
     name: "Template name",
     namePlaceholder: "Normal chest CT",
     region: "Region",

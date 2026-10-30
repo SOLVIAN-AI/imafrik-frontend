@@ -3,7 +3,7 @@
 import { RefreshCw, Sparkles } from "lucide-react";
 
 import { editorSection, type AiSource } from "@/components/editor/ai-review";
-import type { SectionKey } from "@/components/editor/sections";
+import type { ReportLayout, SectionKey } from "@/components/editor/sections";
 import type { AiReviewController } from "@/components/editor/use-ai-review";
 import { Button } from "@/components/ui/button";
 import { useMessages } from "@/i18n/client";
@@ -22,16 +22,20 @@ import { cn } from "@/lib/utils";
  * @param review        État et commandes de la relecture.
  * @param sectionTitles Intitulés des sections, dans la langue du
  *                      compte-rendu.
+ * @param layout        Mise en page du brouillon : en feuille blanche, un
+ *                      passage des « résultats » est dans le texte libre.
  * @param onGo          Amène une section à l'écran.
  */
 export function AiReviewPanel({
   review,
   sectionTitles,
+  layout = "structured",
   onGo,
   className,
 }: {
   review: AiReviewController;
   sectionTitles: Record<SectionKey, string>;
+  layout?: ReportLayout;
   onGo?: (section: SectionKey) => void;
   className?: string;
 }) {
@@ -40,7 +44,9 @@ export function AiReviewPanel({
 
   const running = review.status === "running";
   const sourceTitle = (source: AiSource) =>
-    source === "clinical_info" ? labels.clinicalInfo : sectionTitles[source];
+    source === "clinical_info"
+      ? labels.clinicalInfo
+      : sectionTitles[editorSection(source, layout)];
   const state =
     review.status === "running"
       ? labels.running
@@ -115,7 +121,7 @@ export function AiReviewPanel({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onGo(editorSection(finding.section))}
+                    onClick={() => onGo(editorSection(finding.section, layout))}
                   >
                     {labels.go}
                   </Button>

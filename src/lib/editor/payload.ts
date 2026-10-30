@@ -1,6 +1,8 @@
 import {
-  REPORT_SECTIONS,
+  DEFAULT_LAYOUT,
+  type ReportLayout,
   type ReportSections,
+  sectionsOf,
 } from "@/components/editor/sections";
 
 /**
@@ -19,13 +21,21 @@ export const SECTION_MAX_LENGTH = 200_000;
 export const ADDENDUM_MAX_LENGTH = 10_000;
 
 /**
- * Vrai si le brouillon reçu a la forme attendue : les sections connues,
- * chacune du texte de taille raisonnable, et rien d'autre.
+ * Vrai si le brouillon reçu a la forme attendue : les sections de sa mise
+ * en page, chacune du texte de taille raisonnable, et rien d'autre.
+ *
+ * @param layout Mise en page du texte ; un exercice de formation n'a que
+ *               la découpe proposée.
  */
-export function isSectionsPayload(value: unknown): value is ReportSections {
+export function isSectionsPayload(
+  value: unknown,
+  layout: ReportLayout = DEFAULT_LAYOUT,
+): value is Partial<ReportSections> {
   if (typeof value !== "object" || value === null || Array.isArray(value))
     return false;
-  const known = new Set<string>(REPORT_SECTIONS.map((section) => section.key));
+  const known = new Set<string>(
+    sectionsOf(layout).map((section) => section.key),
+  );
   return Object.entries(value).every(
     ([key, html]) =>
       known.has(key) &&

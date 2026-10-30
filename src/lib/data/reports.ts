@@ -1,18 +1,26 @@
 import "server-only";
 
 import {
+  DEFAULT_LAYOUT,
   EMPTY_REPORT_SECTIONS,
+  type ReportLayout,
   type ReportSections,
 } from "@/components/editor/sections";
 import { apiGet } from "@/lib/api/client";
 import {
+  letterheadSchema,
   reportSchema,
   type ApiAddendum,
   type ApiReport,
 } from "@/lib/api/contracts";
 import { isDemoMode } from "@/lib/demo/mode";
+import { demoLayoutPreference } from "@/lib/demo/report-layout";
 import { DEMO_REPORTS } from "@/lib/demo/reports";
-import { DEMO_STUDIES, demoDraftSections } from "@/lib/demo/studies";
+import {
+  DEMO_CLINIC_CITIES,
+  DEMO_STUDIES,
+  demoDraftSections,
+} from "@/lib/demo/studies";
 import { clinicViewApi } from "@/lib/clinic-view";
 
 /**
@@ -48,6 +56,11 @@ export interface Report {
   studyId: string;
   authorId: string;
   status: "draft" | "signed";
+  /**
+   * Mise en page choisie par le radiologue : découpe proposée ou feuille
+   * blanche. Elle décide des sections affichées et de l'allure du PDF.
+   */
+  layout: ReportLayout;
   sections: ReportSections;
   /**
    * Version du texte. Renvoyée à chaque enregistrement : le service
@@ -77,6 +90,7 @@ export function toReport(row: ApiReport): Report {
     studyId: row.study_id,
     authorId: row.author_id,
     status: row.status,
+    layout: row.layout,
     sections: { ...EMPTY_REPORT_SECTIONS, ...pickSections(row.sections) },
     version: row.version,
     signedAt: row.signed_at ? new Date(row.signed_at) : null,
@@ -102,9 +116,15 @@ export function pickSections(
   );
 }
 
-/** Compte-rendu de démonstration : signé, ou brouillon en cours. */
+/**
+ * Compte-rendu de démonstration : signé, ou brouillon en cours.
+ *
+ * @param draftLayout Mise en page d'un brouillon encore vierge : celle des
+ *                    paramètres du radiologue, comme dans le service.
+ */
 function demoReport(
   predicate: (studyId: string, reportId: string) => boolean,
+  draftLayout: ReportLayout = DEFAULT_LAYOUT,
 ): Report | null {
   const signed = DEMO_REPORTS.find((report) =>
     predicate(report.studyId, report.id),
@@ -115,6 +135,7 @@ function demoReport(
       studyId: signed.studyId,
       authorId: signed.authorId,
       status: "signed",
+      layout: signed.layout ?? DEFAULT_LAYOUT,
       sections: signed.sections,
       version: 1,
       signedAt: signed.signedAt,
@@ -136,12 +157,16 @@ function demoReport(
       predicate(study.id, `draft-${study.id}`),
   );
   if (!draft?.assignedTo) return null;
+  const written = demoDraftSections(draft.id);
   return {
     id: `draft-${draft.id}`,
     studyId: draft.id,
     authorId: draft.assignedTo,
     status: "draft",
-    sections: { ...EMPTY_REPORT_SECTIONS, ...demoDraftSections(draft.id) },
+    // Un brouillon déjà commencé l'a été en découpe proposée ; un
+    // brouillon vierge naît dans la mise en page des paramètres.
+    layout: Object.keys(written).length > 0 ? DEFAULT_LAYOUT : draftLayout,
+    sections: { ...EMPTY_REPORT_SECTIONS, ...written },
     version: 1,
     signedAt: null,
     signedBy: null,
@@ -173,7 +198,7 @@ export async function getReportForStudy(
 ): Promise<Report | null> {
   if (isDemoMode()) {
     return demoReportOf(
-      demoReport((sid) => sid === studyId),
+      demoReport((sid) => sid === studyId, await demoLayoutPreference()),
       clinicId,
     );
   }
@@ -197,7 +222,7 @@ export async function getReport(
 ): Promise<Report | null> {
   if (isDemoMode()) {
     return demoReportOf(
-      demoReport((_, rid) => rid === id),
+      demoReport((_, rid) => rid === id, await demoLayoutPreference()),
       clinicId,
     );
   }
@@ -222,4 +247,63 @@ function demoReportOf(
   return report.status === "signed" && study?.clinicId === clinicId
     ? report
     : null;
+}
+
+/**
+ * En-tête que portera le compte-rendu : clinique, ville, logo.
+ *
+ * L'éditeur le montre verrouillé en tête de la feuille, dans les deux
+ * mises en page. Facultatif : un échec laisse l'éditeur sans en-tête,
+ * jamais sans texte.
+ */
+export interface Letterhead {
+  organizationName: string;
+  city: string | null;
+  /** La clinique a son propre en-tête, imprimé à la place de son nom. */
+  customHeader: boolean;
+  /** Vignette du logo, en URI `data:` ; `null` sans logo. */
+  logo: string | null;
+  /** Date de l'examen, imprimée avec l'identité du patient (`AAAA-MM-JJ`). */
+  studyDate: string | null;
+}
+
+/**
+ * En-tête d'un compte-rendu, ou `null` s'il n'a pu être lu.
+ *
+ * @param reportId Compte-rendu concerné.
+ */
+export async function getLetterhead(
+  reportId: string,
+): Promise<Letterhead | null> {
+  if (isDemoMode()) {
+    const report = demoReport((_, rid) => rid === reportId);
+    const study = DEMO_STUDIES.find((s) => s.id === report?.studyId);
+    if (!study) return null;
+    return {
+      organizationName: study.clinic,
+      city: DEMO_CLINIC_CITIES[study.clinic] ?? null,
+      customHeader: false,
+      // Les cliniques de démonstration n'ont pas déposé de logo.
+      logo: null,
+      studyDate: study.receivedAt.toISOString().slice(0, 10),
+    };
+  }
+  try {
+    const row = await apiGet(
+      `/reports/${encodeURIComponent(reportId)}/letterhead`,
+      letterheadSchema,
+      { notFoundAsNull: true },
+    );
+    return row
+      ? {
+          organizationName: row.organization_name,
+          city: row.city,
+          customHeader: row.custom_header,
+          logo: row.logo,
+          studyDate: row.study_date,
+        }
+      : null;
+  } catch {
+    return null;
+  }
 }

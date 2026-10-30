@@ -1,7 +1,9 @@
 import {
-  REPORT_SECTIONS,
+  DEFAULT_LAYOUT,
+  type ReportLayout,
   type ReportSections,
   type SectionKey,
+  sectionsOf,
 } from "@/components/editor/sections";
 import { plainText } from "@/components/editor/review";
 
@@ -22,6 +24,10 @@ import { plainText } from "@/components/editor/review";
  *
  * L'IA signale, elle ne décide de rien : aucun de ces états ne bloque la
  * signature. Fonctions pures, testées à part.
+ *
+ * **Feuille blanche.** Le service présente le texte libre au modèle comme
+ * des résultats (`sections.review_sections`) : une citation des
+ * « résultats » se cherche, et se retrouve, dans le texte libre.
  */
 
 /** Types de signalement, tels que le service les définit. */
@@ -34,8 +40,11 @@ export type AiFindingKind =
   | "question_unanswered"
   | "critical_finding";
 
-/** Où se trouve un passage cité : une section, ou la demande de la clinique. */
-export type AiSource = SectionKey | "clinical_info";
+/**
+ * Où se trouve un passage cité : une section de la découpe proposée, ou la
+ * demande de la clinique. Le service ne connaît pas le texte libre.
+ */
+export type AiSource = Exclude<SectionKey, "corps"> | "clinical_info";
 
 /** Un signalement de la relecture par IA. */
 export interface AiFinding {
@@ -76,11 +85,19 @@ function flat(text: string): string {
  * une relecture porte encore sur ce que le radiologue a sous les yeux.
  *
  * @param sections Sections du brouillon, en HTML.
+ * @param layout   Mise en page du brouillon : changer de mise en page
+ *                 change ce que le service relit.
  */
-export function reviewSignature(sections: ReportSections): string {
-  return REPORT_SECTIONS.map((section) =>
-    flat(plainText(sections[section.key] ?? "")),
-  ).join("␞");
+export function reviewSignature(
+  sections: ReportSections,
+  layout: ReportLayout = DEFAULT_LAYOUT,
+): string {
+  return [
+    layout,
+    ...sectionsOf(layout).map((section) =>
+      flat(plainText(sections[section.key] ?? "")),
+    ),
+  ].join("␞");
 }
 
 /**
@@ -89,9 +106,18 @@ export function reviewSignature(sections: ReportSections): string {
  * Le renseignement clinique n'est pas une section : la question qu'il
  * pose se traite dans l'indication.
  *
+ * En feuille blanche, tout ce qui n'est pas la conclusion se trouve dans
+ * le texte libre.
+ *
  * @param source Source du passage cité.
+ * @param layout Mise en page du brouillon.
  */
-export function editorSection(source: AiSource): SectionKey {
+export function editorSection(
+  source: AiSource,
+  layout: ReportLayout = DEFAULT_LAYOUT,
+): SectionKey {
+  if (layout === "free")
+    return source === "conclusion" ? "conclusion" : "corps";
   return source === "clinical_info" ? "indication" : source;
 }
 
@@ -104,12 +130,16 @@ export function editorSection(source: AiSource): SectionKey {
  *
  * @param finding  Signalement.
  * @param sections Sections du brouillon, en HTML.
+ * @param layout   Mise en page du brouillon.
  */
 export function stillPresent(
   finding: Pick<AiFinding, "section" | "quote">,
   sections: ReportSections,
+  layout: ReportLayout = DEFAULT_LAYOUT,
 ): boolean {
   if (finding.section === "clinical_info") return true;
-  const text = flat(plainText(sections[finding.section] ?? ""));
+  const text = flat(
+    plainText(sections[editorSection(finding.section, layout)] ?? ""),
+  );
   return text.includes(flat(finding.quote));
 }

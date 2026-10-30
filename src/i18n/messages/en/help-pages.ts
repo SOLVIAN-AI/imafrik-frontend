@@ -135,7 +135,7 @@ export const pages: typeof fr = {
       steps: [
         "Read the “Clinical information” and go through the images, or, on a computer, “Open in Weasis”; a shared prior examination opens read-only.",
         "Click “Take on”: the examination is reserved for you until you sign it, or until “Return the examination”, which deletes the draft and notifies the clinic.",
-        "Write the sections, using “Template” to fill those still empty; the text is saved automatically.",
+        "Write with “Suggested sections” or on a “Blank page” (starting layout set in your settings), with “Template” to prefill; everything is saved automatically.",
         "Click “Sign”, check the flagged points, enter your personal code, then click “Sign and send”.",
         "Click “Next examination” to move on; to correct a signed report, click “Correct with an addendum”.",
       ],
@@ -143,7 +143,7 @@ export const pages: typeof fr = {
         "viewer",
         "renseignementClinique",
         "priseEnCharge",
-        "anteriorite",
+        "feuilleBlanche",
         "codePersonnel",
       ],
       guides: ["weasis"],

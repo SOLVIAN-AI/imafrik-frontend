@@ -130,6 +130,7 @@ export async function StudySheetScreen({
                 <div className="p-4">
                   <ReportDocument
                     sections={signed.sections}
+                    layout={signed.layout}
                     language={study.reportLanguage}
                   />
                 </div>

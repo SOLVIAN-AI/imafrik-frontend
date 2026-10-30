@@ -88,7 +88,7 @@ export async function openTrainingAttempt(
  */
 export async function saveTrainingDraft(
   attemptId: string,
-  sections: ReportSections,
+  sections: Partial<ReportSections>,
   expectedVersion: number,
 ): Promise<ActionResult<{ version: number }>> {
   if (isDemoMode()) return { ok: true, data: { version: expectedVersion + 1 } };

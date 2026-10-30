@@ -24,6 +24,12 @@ export const DEMO_CLINIC_IDS: Record<string, string> = {
   "Polyclinique de Kara": "org-pka",
 };
 
+/** Villes des cliniques de démonstration, imprimées sous leur nom. */
+export const DEMO_CLINIC_CITIES: Record<string, string> = {
+  "Clinique Saint-Joseph": "Lomé",
+  "Polyclinique de Kara": "Kara",
+};
+
 const MINUTE = 60_000;
 const now = Date.now();
 

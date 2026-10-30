@@ -89,6 +89,9 @@ export const reading = {
     clinicalInfo: "Renseignement clinique",
     copyToIndication: "Recopier dans l’indication clinique",
     indication: "Indication",
+    /** Feuille blanche : le renseignement ouvre le texte libre. */
+    copyToFreeText: "Recopier en tête du texte libre",
+    freeText: "Texte",
     panes: {
       label: "Volet affiché",
       images: "Images",
@@ -103,6 +106,7 @@ export const reading = {
       comparatif: "Comparatif",
       resultats: "Résultats",
       conclusion: "Conclusion",
+      corps: "Texte libre",
     },
     placeholders: {
       indication: "Motif de l’examen, renseignement clinique transmis…",
@@ -110,7 +114,68 @@ export const reading = {
       comparatif: "Examens antérieurs disponibles, ou absence de comparatif…",
       resultats: "Description par organe…",
       conclusion: "Synthèse diagnostique.",
+      corps:
+        "Rédigez à votre façon : sous-titres, gras, listes, tableaux. La conclusion se rédige à part, juste en dessous.",
     },
+  },
+  /**
+   * Mise en page du compte-rendu : découpe proposée ou feuille blanche.
+   * Tout est dans la langue de l'utilisateur.
+   */
+  layout: {
+    label: "Mise en page",
+    names: {
+      structured: "Découpe proposée",
+      free: "Feuille blanche",
+    },
+    /** Le même nom, au fil d'une phrase. */
+    inSentence: {
+      structured: "découpe proposée",
+      free: "feuille blanche",
+    },
+    info: "Découpe proposée : cinq rubriques, de l’indication à la conclusion. Feuille blanche : votre texte, à votre façon, puis une conclusion à part, obligatoire. En-tête, logos, identité du patient, signature, cachet et QR s’ajoutent seuls dans les deux cas. Changer ne perd jamais de texte.",
+    toFree:
+      "Rubriques réunies dans la feuille blanche, chacune sous son intitulé.",
+    toFreeEmpty: "Feuille blanche : rédigez à votre façon, puis la conclusion.",
+    undo: "Annuler",
+    restored: "Découpe proposée rétablie, telle qu’avant.",
+    confirmTitle: "Revenir à la découpe proposée ?",
+    confirmBody:
+      "Votre texte libre ira, entier, dans « Résultats » : vous le répartirez dans les rubriques si vous le souhaitez. La conclusion reste à sa place. Rien n’est effacé.",
+    confirm: "Passer à la découpe proposée",
+    cancel: "Garder la feuille blanche",
+    toStructured: "Texte libre placé dans « Résultats ».",
+    conclusionHint:
+      "Obligatoire, à part : ce que le médecin demandeur lit en premier.",
+    conclusionInfo:
+      "Quelques lignes, à part du texte libre. Elle s’imprime juste avant la signature, en gras, à la même place qu’en découpe proposée : le médecin demandeur et la clinique la trouvent toujours au même endroit.",
+  },
+  /**
+   * Ce que le service ajoute seul au document, montré verrouillé dans la
+   * feuille : en-tête, identité, signature. Les intitulés imprimés
+   * (`print`) suivent la langue du compte-rendu, le reste celle de
+   * l'utilisateur.
+   */
+  letterhead: {
+    print: {
+      patient: "Patient",
+      identifier: "Identifiant",
+      birth: "Naissance",
+      exam: "Examen",
+      date: "Date",
+      missing: "non renseigné",
+      verify: "Vérifier l’authenticité",
+    },
+    automatic: "Automatique",
+    automaticInfo:
+      "En-tête de la clinique, logo en filigrane, identité du patient, signature, cachet, QR de vérification et logo IMAFRIK : le PDF signé les porte d’office, dans les deux mises en page. Ils ne se modifient ni ne se retirent.",
+    logoAlt: (clinic: string) => `Logo de ${clinic}, imprimé en filigrane`,
+    customHeader: "En-tête propre à la clinique",
+    signatureSlot:
+      "Signature et cachet apposés à la signature, avec votre code personnel",
+    qr: "QR de vérification",
+    issuedBy: "Compte-rendu émis par téléradiologie IMAFRIK",
+    locked: "Parties automatiques du document",
   },
   /** Éditeur de compte-rendu. */
   editor: {
@@ -508,7 +573,13 @@ export const reading = {
       "Toutes les sections étaient déjà rédigées : rien n’a été remplacé.",
     saveAs: "Enregistrer comme modèle",
     saveAsDescription:
-      "Le texte actuel des cinq sections devient un modèle, proposé à vos collègues pour les examens de même modalité. Retirez d’abord tout ce qui est propre à ce patient.",
+      "Le texte actuel devient un modèle, avec sa mise en page, proposé à vos collègues pour les examens de même modalité. Retirez d’abord tout ce qui est propre à ce patient.",
+    /** Mise en page retenue par le modèle, dans la liste. */
+    layoutOf: (layout: string) => `Mise en page : ${layout}`,
+    adopted: (layout: string) =>
+      `Modèle appliqué : le compte-rendu passe en ${layout}, la mise en page du modèle.`,
+    converted: (layout: string) =>
+      `Modèle d’une autre mise en page : converti en ${layout} pour compléter ce qui est vide.`,
     name: "Nom du modèle",
     namePlaceholder: "TDM thoracique normale",
     region: "Région",

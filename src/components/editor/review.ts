@@ -1,8 +1,10 @@
 import type { AppMessages } from "@/i18n";
 import {
-  REPORT_SECTIONS,
+  DEFAULT_LAYOUT,
+  type ReportLayout,
   type ReportSections,
   type SectionKey,
+  sectionsOf,
 } from "@/components/editor/sections";
 
 /**
@@ -128,23 +130,33 @@ const LEGIT_REPEATS = new Set(["nous", "vous", "l", "d", "s", "that", "had"]);
 /**
  * Relit un compte-rendu.
  *
+ * En feuille blanche, le texte libre tient lieu de résultats : rien n'y
+ * sépare la question posée de la description, si bien que seule la
+ * conclusion est confrontée au texte qui la précède.
+ *
  * @param sections Contenu des sections, en HTML.
+ * @param layout   Mise en page du compte-rendu.
  * @returns Les points à vérifier, dans l'ordre du document — latéralité
  *          en tête, parce que c'est la plus grave.
  */
-export function reviewReport(sections: ReportSections): ReviewFinding[] {
+export function reviewReport(
+  sections: ReportSections,
+  layout: ReportLayout = DEFAULT_LAYOUT,
+): ReviewFinding[] {
+  const order = sectionsOf(layout);
   const texts = Object.fromEntries(
-    REPORT_SECTIONS.map((section) => [
+    order.map((section) => [
       section.key,
       plainText(sections[section.key] ?? ""),
     ]),
-  ) as Record<SectionKey, string>;
+  ) as Partial<Record<SectionKey, string>>;
   const findings: ReviewFinding[] = [];
 
   // ─── Latéralité ──────────────────────────────────────────────────
-  const asked = sidesIn(texts.indication);
-  const described = sidesIn(texts.resultats);
-  const concluded = sidesIn(texts.conclusion);
+  const free = layout === "free";
+  const asked = sidesIn(free ? "" : (texts.indication ?? ""));
+  const described = sidesIn((free ? texts.corps : texts.resultats) ?? "");
+  const concluded = sidesIn(texts.conclusion ?? "");
 
   // Une seule latéralité demandée, l'autre seule décrite.
   if (asked.size === 1 && described.size === 1) {
@@ -170,8 +182,8 @@ export function reviewReport(sections: ReportSections): ReviewFinding[] {
   }
 
   // ─── Par section : modèle, unités, répétitions ──────────────────
-  for (const section of REPORT_SECTIONS) {
-    const text = texts[section.key];
+  for (const section of order) {
+    const text = texts[section.key] ?? "";
     if (!text.trim()) continue;
 
     for (const match of text.matchAll(PLACEHOLDER)) {
@@ -207,18 +219,17 @@ export function reviewReport(sections: ReportSections): ReviewFinding[] {
     }
   }
 
-  const order: Record<ReviewKind, number> = {
+  const rank: Record<ReviewKind, number> = {
     laterality: 0,
     placeholder: 1,
     unit: 2,
     repeat: 3,
   };
   const position = (key: SectionKey) =>
-    REPORT_SECTIONS.findIndex((section) => section.key === key);
+    order.findIndex((section) => section.key === key);
   return findings.sort(
     (a, b) =>
-      order[a.kind] - order[b.kind] ||
-      position(a.section) - position(b.section),
+      rank[a.kind] - rank[b.kind] || position(a.section) - position(b.section),
   );
 }
 
