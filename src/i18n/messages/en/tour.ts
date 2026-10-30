@@ -72,6 +72,10 @@ export const tour: AppMessages["tour"] = {
         title: "The report",
         body: "Five sections, saved automatically as you write. Type / at the start of a line to insert a standard phrase.",
       },
+      layout: {
+        title: "Suggested sections or blank page",
+        body: "Write section by section, or your own way on a blank page, with a separate conclusion. Header and logos stay in place, and switching loses nothing.",
+      },
       templates: {
         title: "Your templates",
         body: "A template fills the sections that are still empty: you only correct what differs. Your own templates are saved from any text.",

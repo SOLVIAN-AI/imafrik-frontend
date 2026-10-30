@@ -105,6 +105,7 @@ export const TOURS: readonly TourDefinition[] = [
         placement: "left",
         optional: true,
       },
+      { id: "layout", target: "layout", placement: "left", optional: true },
       { id: "templates", target: "templates", optional: true },
       { id: "sign", target: "sign", optional: true },
       { id: "back", target: "back", placement: "bottom" },

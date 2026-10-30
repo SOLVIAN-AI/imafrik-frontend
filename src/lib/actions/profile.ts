@@ -7,9 +7,11 @@ import {
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { isReportLayout } from "@/components/editor/sections";
 import { apiSend } from "@/lib/api/client";
 import { type ActionResult, demoUnavailable, run } from "@/lib/actions/result";
 import { isDemoMode } from "@/lib/demo/mode";
+import { writeDemoLayoutPreference } from "@/lib/demo/report-layout";
 import { writeLanguageCookie } from "@/lib/i18n/cookie";
 import { isLocale } from "@/lib/i18n/locale";
 import { getMessages } from "@/i18n/server";
@@ -94,6 +96,33 @@ export async function setLanguage(locale: unknown): Promise<ActionResult> {
   await writeLanguageCookie(locale);
   revalidatePath("/", "layout");
   return { ok: true, data: undefined };
+}
+
+/**
+ * Règle la mise en page de départ des comptes-rendus du radiologue.
+ *
+ * Elle ne décide que de la mise en page d'un brouillon qui s'ouvre : un
+ * compte-rendu en cours garde la sienne, et le radiologue en change dans
+ * l'éditeur. Tout profil la porte ; seul l'écran d'un radiologue la
+ * propose.
+ *
+ * @param layout Découpe proposée ou feuille blanche.
+ */
+export async function setReportLayout(layout: unknown): Promise<ActionResult> {
+  if (!isReportLayout(layout)) {
+    const { t } = await getMessages();
+    return { ok: false, error: t.common.errors.invalidRequest, status: 422 };
+  }
+  if (isDemoMode()) {
+    await writeDemoLayoutPreference(layout);
+    return { ok: true, data: undefined };
+  }
+  const result = await run(async () => {
+    await apiSend("/me", "PATCH", { report_layout: layout });
+    return undefined;
+  });
+  if (result.ok) revalidatePath("/parametres");
+  return result;
 }
 
 /** Messages du changement de mot de passe, dans la langue de la requête. */

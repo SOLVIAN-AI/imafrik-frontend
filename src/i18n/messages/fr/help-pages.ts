@@ -140,7 +140,7 @@ export const pages = {
       steps: [
         "Lisez le « Renseignement clinique » et parcourez les images, ou, sur ordinateur, « Ouvrir dans Weasis » ; une antériorité s’ouvre en lecture seule.",
         "Cliquez sur « Prendre en charge » : l’examen vous est réservé jusqu’à la signature, ou jusqu’à « Rendre l’examen », qui efface le brouillon et prévient la clinique.",
-        "Rédigez les sections, avec « Modèle » pour remplir celles encore vides ; le texte s’enregistre automatiquement.",
+        "Rédigez en « Découpe proposée » ou sur une « Feuille blanche » (départ réglé dans les paramètres), avec « Modèle » pour pré-remplir ; tout s’enregistre seul.",
         "Cliquez sur « Signer », vérifiez les points signalés, saisissez votre code personnel, puis cliquez sur « Signer et transmettre ».",
         "Cliquez sur « Examen suivant » pour enchaîner ; pour corriger un compte-rendu signé, cliquez sur « Corriger par un addendum ».",
       ],
@@ -148,7 +148,7 @@ export const pages = {
         "viewer",
         "renseignementClinique",
         "priseEnCharge",
-        "anteriorite",
+        "feuilleBlanche",
         "codePersonnel",
       ],
       guides: ["weasis"],

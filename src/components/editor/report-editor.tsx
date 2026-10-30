@@ -20,12 +20,21 @@ import {
 } from "@/components/editor/extensions";
 import { FindBar } from "@/components/editor/find-bar";
 import {
+  ALL_SECTION_KEYS,
   countWords,
+  DEFAULT_LAYOUT,
   isSectionEmpty,
-  REPORT_SECTIONS,
+  type ReportLayout,
   type ReportSections,
   type SectionKey,
+  sectionsOf,
 } from "@/components/editor/sections";
+import {
+  LayoutSwitch,
+  PaperFoot,
+  PaperHead,
+  type PaperContext,
+} from "@/components/editor/paper";
 import { FormatToolbar } from "@/components/editor/format-toolbar";
 import {
   adjacentField,
@@ -43,6 +52,7 @@ import {
   type AiReviewController,
 } from "@/components/editor/use-ai-review";
 import { ShortcutsDialog } from "@/components/editor/shortcuts-dialog";
+import { InfoTip } from "@/components/ui/info-tip";
 import {
   Dialog,
   DialogContent,
@@ -62,6 +72,7 @@ export {
   isSectionEmpty,
   missingRequiredSections,
   REPORT_SECTIONS,
+  type ReportLayout,
   type ReportSections,
   type SectionKey,
 } from "@/components/editor/sections";
@@ -76,6 +87,16 @@ export type SaveState = AutosaveState;
  * données — `sections` est un objet, pas un document unique — et permet à
  * un modèle de n'en pré-remplir qu'une partie. Un document unique
  * obligerait à analyser des titres pour retrouver les mêmes découpages.
+ *
+ * Trois allures (`variant`) :
+ *
+ * - `section` : une rubrique de la découpe proposée, sous son intitulé ;
+ * - `free` : le texte libre d'une feuille blanche, sous un simple repère
+ *   (« Texte libre ») que le PDF n'imprime pas : les sous-titres sont
+ *   ceux du radiologue. Une hauteur de page, pour qu'on y écrive comme
+ *   sur une feuille ;
+ * - `conclusion` : la conclusion d'une feuille blanche, voir
+ *   {@link ConclusionFrame}.
  */
 function Section({
   id,
@@ -85,12 +106,14 @@ function Section({
   language,
   value,
   readOnly,
+  variant = "section",
   onFocus,
   onChange,
   onReady,
   onLeave,
 }: {
   id: string;
+  variant?: "section" | "free" | "conclusion";
   /** Intitulé, dans la langue du compte-rendu. */
   title: string;
   /** Texte de substitution, dans la langue de l'utilisateur. */
@@ -126,6 +149,10 @@ function Section({
         class: cn(
           "outline-none",
           DOCUMENT_TEXT_CLASSES,
+          // Une feuille blanche a une hauteur de page : on clique n'importe
+          // où dans le blanc pour écrire. La conclusion, quelques lignes.
+          variant === "free" && "min-h-64 sm:min-h-[22rem]",
+          variant === "conclusion" && "min-h-[4.8em]",
           // Le texte de substitution disparaît dès la première frappe.
           "[&_p.is-editor-empty:first-child::before]:pointer-events-none",
           "[&_p.is-editor-empty:first-child::before]:float-left",
@@ -174,6 +201,24 @@ function Section({
   }, [editor, onLeave]);
 
   const empty = editor?.isEmpty ?? true;
+  const dot = required && empty && (
+    // Pastille porteuse de sens : `role="img"` lui donne droit à un
+    // nom accessible, qu'un `<span>` sans rôle ne peut pas porter.
+    <span
+      role="img"
+      className="size-1 rounded-full bg-urgent"
+      title={t.reading.editor.requiredTitle}
+      aria-label={t.reading.editor.requiredLabel}
+    />
+  );
+
+  if (variant === "conclusion") {
+    return (
+      <ConclusionFrame id={id} title={title} dot={dot} readOnly={readOnly}>
+        <EditorContent editor={editor} />
+      </ConclusionFrame>
+    );
+  }
 
   return (
     <section
@@ -182,18 +227,58 @@ function Section({
     >
       <h3 className="label-eyebrow mb-2 flex items-center gap-1.5">
         {title}
-        {required && empty && (
-          // Pastille porteuse de sens : `role="img"` lui donne droit à un
-          // nom accessible, qu'un `<span>` sans rôle ne peut pas porter.
-          <span
-            role="img"
-            className="size-1 rounded-full bg-urgent"
-            title={t.reading.editor.requiredTitle}
-            aria-label={t.reading.editor.requiredLabel}
-          />
-        )}
+        {dot}
       </h3>
       <EditorContent editor={editor} />
+    </section>
+  );
+}
+
+/**
+ * La conclusion d'une feuille blanche.
+ *
+ * **À part, encadrée, sous le texte libre.** C'est ce que le médecin
+ * demandeur lit en premier, et ce que la clinique cherche d'un coup
+ * d'œil : la fondre dans le texte libre la noierait. Elle occupe la place
+ * qu'elle a en découpe proposée, à la fin du texte, juste avant la
+ * signature, et s'imprime de la même façon : intitulé, puis texte en gras.
+ * Le cadre la distingue à l'écran ; la phrase sous son intitulé dit
+ * pourquoi elle est obligatoire, sans qu'il faille le découvrir à la
+ * signature.
+ */
+function ConclusionFrame({
+  id,
+  title,
+  dot,
+  readOnly,
+  children,
+}: {
+  id: string;
+  title: string;
+  dot: React.ReactNode;
+  readOnly: boolean;
+  children: React.ReactNode;
+}) {
+  const labels = useMessages().reading.layout;
+  return (
+    <section id={id} className="scroll-mt-4 px-5 pt-2 pb-5 sm:px-10 sm:pb-6">
+      <div className="rounded-lg border border-border-default bg-surface-sunken/60 px-4 py-3 sm:px-5 sm:py-4">
+        <h3 className="label-eyebrow flex items-center gap-1.5">
+          {title}
+          {dot}
+          <InfoTip
+            label={title}
+            title={title}
+            text={labels.conclusionInfo}
+            term="feuilleBlanche"
+            className="-ml-1"
+          />
+        </h3>
+        {!readOnly && (
+          <p className="mb-2 text-2xs text-tertiary">{labels.conclusionHint}</p>
+        )}
+        <div className="[&_p]:font-medium">{children}</div>
+      </div>
     </section>
   );
 }
@@ -257,10 +342,12 @@ function SaveIndicator({ state }: { state: SaveState }) {
  */
 function Outline({
   sections,
+  layout,
   titles,
   idPrefix,
 }: {
   sections: ReportSections;
+  layout: ReportLayout;
   /** Intitulés des sections, dans la langue du compte-rendu. */
   titles: Record<SectionKey, string>;
   idPrefix: string;
@@ -274,7 +361,7 @@ function Outline({
       aria-label={labels.label}
       className="relative flex shrink-0 gap-1.5 overflow-x-auto border-b border-border-subtle bg-surface-base px-3 py-2 sm:px-5"
     >
-      {REPORT_SECTIONS.map((section) => {
+      {sectionsOf(layout).map((section) => {
         const filled = !isSectionEmpty(sections[section.key]);
         const blocking = section.required && !filled;
         return (
@@ -376,8 +463,13 @@ function EditorAction({
  * palette — voir `sectionExtensions` — est celle d'un traitement de
  * texte : emphase, surlignage, exposants, sous-titres, listes, tableaux
  * de mesures, signes médicaux, phrases types au « / ». Chaque format a
- * son rendu dans le PDF. La structure, elle, reste fixe : un
- * compte-rendu est un document normalisé.
+ * son rendu dans le PDF.
+ *
+ * **Deux mises en page, au choix du radiologue** (`layout`) : la découpe
+ * proposée, cinq rubriques ; ou la feuille blanche, un texte libre puis
+ * une conclusion à part. Le reste du document, lui, ne bouge pas : la
+ * feuille montre, verrouillés, l'en-tête, l'identité du patient, la place
+ * de la signature et du QR (`paper`, voir `paper.tsx`).
  *
  * Autour du texte : sommaire des sections (ce qui manque avant de
  * signer), compteur de mots, aide des raccourcis, et un mode plein écran
@@ -400,6 +492,9 @@ function EditorAction({
  */
 export function ReportEditor({
   sections,
+  layout = DEFAULT_LAYOUT,
+  onLayoutChange,
+  paper,
   revision = 0,
   saveState = "idle",
   readOnly = false,
@@ -409,6 +504,15 @@ export function ReportEditor({
   aiReview = NO_AI_REVIEW,
 }: {
   sections: ReportSections;
+  /** Mise en page : découpe proposée ou feuille blanche. */
+  layout?: ReportLayout;
+  /**
+   * Demande de changement de mise en page ; absente, le choix n'est pas
+   * offert (exercice de formation, consultation).
+   */
+  onLayoutChange?: (layout: ReportLayout) => void;
+  /** En-tête et pied verrouillés de la feuille ; absents, la feuille est nue. */
+  paper?: PaperContext;
   /**
    * Révision du contenu. Chaque section ne lit `sections` qu'à sa
    * création : le parent incrémente ce compteur quand il remplace le
@@ -450,17 +554,20 @@ export function ReportEditor({
   const [find, setFind] = React.useState<null | { replace: boolean }>(null);
   const idPrefix = React.useId().replace(/:/g, "");
 
+  // Les sections de la mise en page, dans l'ordre du document.
+  const order = sectionsOf(layout);
+
   // Les éditeurs des sections, pour la recherche et la navigation au
   // clavier d'une section à l'autre.
   const editorsRef = React.useRef(new Map<SectionKey, Editor>());
   const readyHandlers = React.useMemo(
     () =>
       Object.fromEntries(
-        REPORT_SECTIONS.map((section) => [
-          section.key,
+        ALL_SECTION_KEYS.map((key) => [
+          key,
           (editor: Editor | null) => {
-            if (editor) editorsRef.current.set(section.key, editor);
-            else editorsRef.current.delete(section.key);
+            if (editor) editorsRef.current.set(key, editor);
+            else editorsRef.current.delete(key);
           },
         ]),
       ) as Record<SectionKey, (editor: Editor | null) => void>,
@@ -468,10 +575,10 @@ export function ReportEditor({
   );
   const orderedEditors = React.useCallback(
     () =>
-      REPORT_SECTIONS.map((section) =>
-        editorsRef.current.get(section.key),
-      ).filter((editor): editor is Editor => Boolean(editor)),
-    [],
+      sectionsOf(layout)
+        .map((section) => editorsRef.current.get(section.key))
+        .filter((editor): editor is Editor => Boolean(editor)),
+    [layout],
   );
 
   /**
@@ -483,11 +590,10 @@ export function ReportEditor({
   const leaveHandlers = React.useMemo(
     () =>
       Object.fromEntries(
-        REPORT_SECTIONS.map((section, index) => [
+        sectionsOf(layout).map((section, index, all) => [
           section.key,
           (direction: Direction, reason: LeaveReason) => {
-            const target =
-              REPORT_SECTIONS[direction === "next" ? index + 1 : index - 1];
+            const target = all[direction === "next" ? index + 1 : index - 1];
             const editor = target && editorsRef.current.get(target.key);
             if (!editor) return false;
             focusNow(editor);
@@ -513,10 +619,13 @@ export function ReportEditor({
         SectionKey,
         (direction: Direction, reason: LeaveReason) => boolean
       >,
-    [],
+    [layout],
   );
 
-  const findings = React.useMemo(() => reviewReport(sections), [sections]);
+  const findings = React.useMemo(
+    () => reviewReport(sections, layout),
+    [sections, layout],
+  );
   // Points à vérifier, toutes relectures confondues : règles et IA.
   const pointCount = findings.length + aiReview.findings.length;
 
@@ -551,7 +660,7 @@ export function ReportEditor({
     }
   };
 
-  const words = REPORT_SECTIONS.reduce(
+  const words = order.reduce(
     (total, section) => total + countWords(sections[section.key] ?? ""),
     0,
   );
@@ -629,7 +738,12 @@ export function ReportEditor({
         />
       )}
       {!readOnly && (
-        <Outline sections={sections} titles={titles} idPrefix={idPrefix} />
+        <Outline
+          sections={sections}
+          layout={layout}
+          titles={titles}
+          idPrefix={idPrefix}
+        />
       )}
 
       <div
@@ -648,10 +762,17 @@ export function ReportEditor({
         {/* La « feuille » : une surface élevée, centrée, détachée de son
             fond sur les quatre côtés. C'est ce détachement, autant que
             les marges intérieures, qui donne l'impression de document. */}
-        <div className="mx-auto max-w-3xl rounded-xl border border-border-subtle bg-surface-raised shadow-raised">
-          {REPORT_SECTIONS.map((section) => (
+        <div
+          data-layout={layout}
+          className="mx-auto max-w-3xl rounded-xl border border-border-subtle bg-surface-raised shadow-raised"
+        >
+          {paper && <PaperHead paper={paper} language={reportLanguage} />}
+          {!readOnly && onLayoutChange && (
+            <LayoutSwitch value={layout} onChange={onLayoutChange} />
+          )}
+          {order.map((section) => (
             <Section
-              key={`${section.key}:${revision}`}
+              key={`${section.key}:${layout}:${revision}`}
               id={`${idPrefix}-${section.key}`}
               title={titles[section.key]}
               placeholder={t.reading.sections.placeholders[section.key]}
@@ -659,12 +780,22 @@ export function ReportEditor({
               language={reportLanguage}
               value={sections[section.key] ?? ""}
               readOnly={readOnly}
+              variant={
+                layout === "free"
+                  ? section.key === "corps"
+                    ? "free"
+                    : "conclusion"
+                  : "section"
+              }
               onFocus={setActive}
               onChange={(html) => onChange?.(section.key, html)}
               onReady={readyHandlers[section.key]}
               onLeave={leaveHandlers[section.key]}
             />
           ))}
+          {paper && !readOnly && (
+            <PaperFoot paper={paper} language={reportLanguage} />
+          )}
         </div>
         {!readOnly && (
           <p className="mx-auto mt-3 max-w-3xl px-1 text-2xs text-tertiary">
@@ -704,6 +835,7 @@ export function ReportEditor({
           <AiReviewPanel
             review={aiReview}
             sectionTitles={titles}
+            layout={layout}
             onGo={goToSection}
             className="max-h-[40vh] overflow-auto border-t border-border-subtle px-5 py-4"
           />

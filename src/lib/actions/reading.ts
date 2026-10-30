@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
-import type { ReportSections } from "@/components/editor/sections";
+import {
+  isReportLayout,
+  type ReportLayout,
+  type ReportSections,
+} from "@/components/editor/sections";
 import { getMessages } from "@/i18n/server";
 import { apiGet, apiSend } from "@/lib/api/client";
 import {
@@ -122,20 +126,31 @@ export async function releaseStudy(studyId: string): Promise<ActionResult> {
  * ailleurs entre-temps — un second onglet — le service refuse plutôt que
  * d'écraser en silence, et l'écran le dit.
  *
+ * La mise en page part avec chaque enregistrement : le service n'écrit
+ * que les sections de cette mise en page et retire celles de l'autre.
+ * Changer de mise en page n'est donc qu'un enregistrement de plus, avec
+ * le texte converti par l'éditeur, sans perte.
+ *
  * @param reportId        Compte-rendu concerné.
- * @param sections        Contenu des cinq sections.
+ * @param sections        Sections de la mise en page, et elles seules.
  * @param expectedVersion Version lue avant cette modification.
+ * @param layout          Mise en page du texte.
  * @returns La nouvelle version.
  */
 export async function saveReportDraft(
   reportId: string,
-  sections: ReportSections,
+  sections: Partial<ReportSections>,
   expectedVersion: number,
+  layout: ReportLayout = "structured",
 ): Promise<ActionResult<{ version: number }>> {
   if (isDemoMode()) return { ok: true, data: { version: expectedVersion + 1 } };
   const invalid = await rejectInvalidIds(reportId);
   if (invalid) return invalid;
-  if (!Number.isInteger(expectedVersion) || !isSectionsPayload(sections)) {
+  if (
+    !Number.isInteger(expectedVersion) ||
+    !isReportLayout(layout) ||
+    !isSectionsPayload(sections, layout)
+  ) {
     const { t } = await getMessages();
     return { ok: false, error: t.reading.actions.invalidDraft, status: 422 };
   }
@@ -143,7 +158,7 @@ export async function saveReportDraft(
     const saved = await apiSend(
       `/reports/${encodeURIComponent(reportId)}`,
       "PATCH",
-      { sections, expected_version: expectedVersion },
+      { sections, layout, expected_version: expectedVersion },
       reportSchema,
     );
     return { version: saved.version };

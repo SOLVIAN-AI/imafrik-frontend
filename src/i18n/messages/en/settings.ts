@@ -44,6 +44,25 @@ export const settings: AppMessages["settings"] = {
     reportsNote:
       "PDF reports use each clinic’s report language, as set in its contract.",
   },
+  reportLayout: {
+    title: "Writing reports",
+    description:
+      "The layout of each new report. In the editor you can switch at any time, for one report only, without losing any text.",
+    options: {
+      structured: {
+        title: "Suggested sections",
+        detail:
+          "Clinical indication, technique, comparison, findings, conclusion: each section in its place, required ones flagged.",
+      },
+      free: {
+        title: "Blank page",
+        detail:
+          "Your text, formatted your way (subheadings, bold, lists), then a separate, required conclusion.",
+      },
+    },
+    note: "Either way, the clinic header, logos, patient identity, your signature, your stamp and the verification QR code are added to the PDF automatically.",
+    saved: "Layout saved: it applies to your next reports.",
+  },
   pool: {
     title: "Who reads your examinations",
     description:

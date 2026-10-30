@@ -7,7 +7,11 @@ import {
   stillPresent,
   type AiFinding,
 } from "@/components/editor/ai-review";
-import type { ReportSections } from "@/components/editor/sections";
+import {
+  DEFAULT_LAYOUT,
+  type ReportLayout,
+  type ReportSections,
+} from "@/components/editor/sections";
 import { reviewDraft, sendFindingDecision } from "@/lib/actions/reading";
 
 /** Où en est la relecture par IA. */
@@ -52,17 +56,20 @@ interface Reviewed {
  *
  * @param reportId Brouillon à relire ; `null` hors du mode auteur.
  * @param sections Contenu courant de l'éditeur.
+ * @param layout   Mise en page du brouillon.
  * @param enabled  La fonction est offerte à cet utilisateur.
  * @param save     Enregistre le brouillon ; résout à `false` en cas d'échec.
  */
 export function useAiReview({
   reportId,
   sections,
+  layout = DEFAULT_LAYOUT,
   enabled,
   save,
 }: {
   reportId: string | null;
   sections: ReportSections;
+  layout?: ReportLayout;
   enabled: boolean;
   save: () => Promise<boolean>;
 }): AiReviewController {
@@ -74,10 +81,10 @@ export function useAiReview({
   );
   // Le texte au moment où le service répond : la frappe continue pendant
   // l'appel, et l'empreinte doit être celle du texte réellement relu.
-  const sectionsRef = React.useRef(sections);
+  const sectionsRef = React.useRef({ sections, layout });
   React.useEffect(() => {
-    sectionsRef.current = sections;
-  }, [sections]);
+    sectionsRef.current = { sections, layout };
+  }, [sections, layout]);
   // Une seule relecture à la fois, y compris entre deux rendus.
   const running = React.useRef(false);
   // Issues déjà renvoyées au service, pour ne pas les renvoyer deux fois.
@@ -93,7 +100,10 @@ export function useAiReview({
           setStatus("unavailable");
           return;
         }
-        const signature = reviewSignature(sectionsRef.current);
+        const signature = reviewSignature(
+          sectionsRef.current.sections,
+          sectionsRef.current.layout,
+        );
         const result = await reviewDraft(reportId);
         if (!result.ok || !result.data.available) {
           setStatus("unavailable");
@@ -140,24 +150,28 @@ export function useAiReview({
     () =>
       (reviewed?.findings ?? []).filter(
         (finding) =>
-          !dismissed.has(finding.index) && stillPresent(finding, sections),
+          !dismissed.has(finding.index) &&
+          stillPresent(finding, sections, layout),
       ),
-    [reviewed, dismissed, sections],
+    [reviewed, dismissed, sections, layout],
   );
 
   // Un passage qui a disparu du texte a été corrigé : on le dit au service.
   React.useEffect(() => {
     for (const finding of reviewed?.findings ?? []) {
-      if (!dismissed.has(finding.index) && !stillPresent(finding, sections)) {
+      if (
+        !dismissed.has(finding.index) &&
+        !stillPresent(finding, sections, layout)
+      ) {
         report(finding.index, "corrected");
       }
     }
-  }, [reviewed, dismissed, sections, report]);
+  }, [reviewed, dismissed, sections, layout, report]);
 
   const stale =
     status === "done" &&
     reviewed !== null &&
-    reviewed.signature !== reviewSignature(sections);
+    reviewed.signature !== reviewSignature(sections, layout);
 
   return React.useMemo(
     () => ({

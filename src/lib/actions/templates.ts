@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import type { ReportSections } from "@/components/editor/sections";
+import {
+  isReportLayout,
+  type ReportLayout,
+  type ReportSections,
+} from "@/components/editor/sections";
 import { getMessages } from "@/i18n/server";
 import { apiSend } from "@/lib/api/client";
 import { templateSchema } from "@/lib/api/contracts";
@@ -14,6 +18,7 @@ import {
   rejectInvalidIds,
 } from "@/lib/actions/result";
 import { isDemoMode } from "@/lib/demo/mode";
+import { isSectionsPayload } from "@/lib/editor/payload";
 
 /**
  * Modèles de comptes-rendus de l'organisation.
@@ -37,12 +42,18 @@ export type TemplateInput = z.input<typeof createSchema>;
  * Crée un modèle à partir des sections fournies.
  *
  * @param input    Nom, modalité et région.
- * @param sections Texte des cinq sections.
+ * @param sections Texte des sections de la mise en page, et d'elles seules.
+ * @param layout   Mise en page du compte-rendu : le modèle la retient.
  */
 export async function createTemplate(
   input: TemplateInput,
-  sections: ReportSections,
+  sections: Partial<ReportSections>,
+  layout: ReportLayout = "structured",
 ): Promise<ActionResult> {
+  if (!isReportLayout(layout) || !isSectionsPayload(sections, layout)) {
+    const { t } = await getMessages();
+    return { ok: false, error: t.common.errors.invalidRequest, status: 422 };
+  }
   const parsed = createSchema.safeParse(input);
   if (!parsed.success) {
     const { t } = await getMessages();
@@ -67,6 +78,7 @@ export async function createTemplate(
         name: parsed.data.name,
         modality: parsed.data.modality || null,
         body_part: parsed.data.bodyPart || null,
+        layout,
         sections,
       },
       templateSchema,

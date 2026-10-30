@@ -44,6 +44,27 @@ export const settings = {
     reportsNote:
       "La langue des comptes-rendus PDF est celle de chaque clinique, fixée à son contrat.",
   },
+  /** Mise en page de départ des comptes-rendus d'un radiologue. */
+  reportLayout: {
+    title: "Rédaction des comptes-rendus",
+    description:
+      "La mise en page de chaque nouveau compte-rendu. Dans l’éditeur, vous en changez à tout moment, pour un compte-rendu seulement, sans perdre de texte.",
+    options: {
+      structured: {
+        title: "Découpe proposée",
+        detail:
+          "Indication clinique, technique, comparatif, résultats, conclusion : chaque rubrique à sa place, les obligatoires signalées.",
+      },
+      free: {
+        title: "Feuille blanche",
+        detail:
+          "Votre texte, mis en forme à votre façon (sous-titres, gras, listes), puis une conclusion à part, obligatoire.",
+      },
+    },
+    note: "Dans les deux cas, l’en-tête de la clinique, les logos, l’identité du patient, votre signature, votre cachet et le QR de vérification s’ajoutent seuls au PDF.",
+    saved:
+      "Mise en page enregistrée : elle vaut pour vos prochains comptes-rendus.",
+  },
   pool: {
     title: "Qui lit vos examens",
     description:

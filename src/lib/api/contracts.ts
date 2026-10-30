@@ -268,11 +268,15 @@ const _addendum: Matches<
   Schemas["Addendum"]
 > = true;
 
+/** Mise en page du texte : découpe proposée ou feuille blanche. */
+export const reportLayoutSchema = z.enum(["structured", "free"]);
+
 export const reportSchema = z.object({
   id: uuid,
   study_id: uuid,
   author_id: uuid,
   status: z.enum(["draft", "signed"]),
+  layout: reportLayoutSchema,
   sections: z.record(z.string(), z.string()),
   version: z.number().int(),
   signed_at: isoDate.nullable(),
@@ -287,6 +291,23 @@ export const reportSchema = z.object({
   updated_at: isoDate,
 });
 const _report: Matches<z.input<typeof reportSchema>, Schemas["Report"]> = true;
+
+/** En-tête que portera le compte-rendu, montré verrouillé dans l'éditeur. */
+export const letterheadSchema = z.object({
+  organization_name: z.string(),
+  city: z.string().nullable(),
+  custom_header: z.boolean(),
+  // Vignette du logo, embarquée : jamais une adresse à charger.
+  logo: z
+    .string()
+    .regex(/^data:image\/png;base64,[A-Za-z0-9+/]+=*$/)
+    .nullable(),
+  study_date: isoDate.nullable(),
+});
+const _letterhead: Matches<
+  z.input<typeof letterheadSchema>,
+  Schemas["Letterhead"]
+> = true;
 
 export const viewerTokenSchema = z.object({
   token: z.string(),
@@ -425,6 +446,7 @@ export const templateSchema = z.object({
   name: z.string(),
   modality: z.string().nullable(),
   body_part: z.string().nullable(),
+  layout: reportLayoutSchema,
   sections: z.record(z.string(), z.string()),
 });
 const _template: Matches<
@@ -583,6 +605,8 @@ export const profileSchema = z.object({
   title: z.string().nullable().optional(),
   license_number: z.string().nullable().optional(),
   locale: z.enum(["fr", "en"]),
+  // Mise en page des brouillons qu'ouvre le radiologue.
+  report_layout: reportLayoutSchema,
   // Habilitation enregistrée par l'équipe IMAFRIK.
   credentials_verified: z.boolean(),
   practice_status: practiceStatusSchema.nullable().optional(),
@@ -1983,6 +2007,7 @@ export const CONTRACT_CHECKS = [
   _studyFacets,
   _studyEligibility,
   _report,
+  _letterhead,
   _viewer,
   _viewerRenewed,
   _weasisLaunch,

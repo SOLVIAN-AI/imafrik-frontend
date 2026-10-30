@@ -56,6 +56,28 @@ describe("copie de secours chiffrée", () => {
     }
   });
 
+  it("garde la mise en page d'une feuille blanche", async () => {
+    const key = await keyFor("a");
+    const free = {
+      ...EMPTY_REPORT_SECTIONS,
+      corps: "<h3>Utérus</h3><p>Normal.</p>",
+      conclusion: "<p>RAS.</p>",
+    };
+    await writeReportBackup(key, REPORT, {
+      ...backup(),
+      sections: free,
+      layout: "free",
+    });
+    const read = await readReportBackup(key, REPORT);
+    expect(read.status === "found" && read.backup.layout).toBe("free");
+    expect(read.status === "found" && read.backup.sections).toEqual(free);
+
+    // Une copie d'avant la feuille blanche n'en porte pas : découpe proposée.
+    await writeReportBackup(key, REPORT, backup());
+    const older = await readReportBackup(key, REPORT);
+    expect(older.status === "found" && older.backup.layout).toBe(undefined);
+  });
+
   it("garde la marque d'une copie écrite pendant un conflit", async () => {
     const key = await keyFor("a");
     expect(

@@ -33,6 +33,16 @@ import {
   type ReportSections,
   type SectionKey,
 } from "@/components/editor/report-editor";
+import type { PaperContext } from "@/components/editor/paper";
+import {
+  DEFAULT_LAYOUT,
+  isReportBlank,
+  isSectionEmpty,
+  type ReportLayout,
+  sectionsForLayout,
+  toFreeLayout,
+  toStructuredLayout,
+} from "@/components/editor/sections";
 import {
   SignFailure,
   SignReportDialog,
@@ -55,12 +65,20 @@ import { DeadlineBadge } from "@/components/domain/reading-table";
 import { useSession } from "@/components/providers/session-provider";
 import { HelpMenu } from "@/components/tour/help-menu";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { type SaveOutcome, useAutosave } from "@/hooks/use-autosave";
 import type { ViewerSession } from "@/hooks/use-viewer-session";
 import { WorkspaceSkeleton } from "@/components/editor/workspace-skeleton";
 import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import type { AppMessages } from "@/i18n";
+import { messagesFor, type AppMessages } from "@/i18n";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { ActionResult } from "@/lib/actions/result";
 import { renewViewerToken, reopenViewer } from "@/lib/actions/viewer";
@@ -71,6 +89,7 @@ import {
   saveReportDraft,
   signReport,
 } from "@/lib/actions/reading";
+import type { Letterhead } from "@/lib/data/reports";
 import type { Study } from "@/lib/data/studies";
 import type { ReportTemplate } from "@/lib/data/templates";
 import {
@@ -253,10 +272,14 @@ type AdaptableLabels = Pick<
  * compte-rendu, à l'identique.
  */
 export interface WorkspaceAdapter {
-  /** Enregistre le texte ; mêmes réponses que `saveReportDraft`. */
+  /**
+   * Enregistre le texte ; mêmes réponses que `saveReportDraft`. Un
+   * exercice est toujours en découpe proposée : il n'en reçoit que les
+   * sections.
+   */
   save: (
     id: string,
-    sections: ReportSections,
+    sections: Partial<ReportSections>,
     version: number,
   ) => Promise<ActionResult<{ version: number }>>;
   /** Version en base, pour résoudre un conflit d'enregistrement. */
@@ -435,6 +458,9 @@ function StudyBar({
  * @param study      Examen lu.
  * @param mode       Ce que l'utilisateur peut faire — voir {@link WorkspaceMode}.
  * @param initial    Contenu du compte-rendu tel qu'il est en base.
+ * @param initialLayout Mise en page en base : découpe proposée ou feuille
+ *                   blanche.
+ * @param letterhead En-tête du document, montré verrouillé sur la feuille.
  * @param signed     Le compte-rendu est déjà signé.
  * @param signerName Nom porté par la signature.
  * @param templates  Modèles proposés à l'auteur — ceux de la modalité.
@@ -446,6 +472,8 @@ function ReportWorkspace({
   study,
   mode,
   initial,
+  initialLayout = DEFAULT_LAYOUT,
+  letterhead = null,
   signed: initiallySigned,
   signerName,
   templates = [],
@@ -459,6 +487,8 @@ function ReportWorkspace({
   study: WorkspaceStudy;
   mode: WorkspaceMode;
   initial: ReportSections;
+  initialLayout?: ReportLayout;
+  letterhead?: Letterhead | null;
   signed: boolean;
   signerName: string;
   templates?: ReportTemplate[];
@@ -485,9 +515,21 @@ function ReportWorkspace({
     [adapter, readingLabels],
   );
   const [sections, setSections] = React.useState<ReportSections>(initial);
+  // Mise en page : un exercice reste en découpe proposée, quelle que soit
+  // la préférence du radiologue (son corrigé se compare rubrique par
+  // rubrique).
+  const [layout, setLayout] = React.useState<ReportLayout>(
+    adapter ? DEFAULT_LAYOUT : initialLayout,
+  );
   // Révision du contenu : incrémentée à chaque texte posé d'ailleurs que
   // par la frappe — voir `replaceSections`.
   const [revision, setRevision] = React.useState(0);
+  const [confirmStructured, setConfirmStructured] = React.useState(false);
+  // Ce qu'enregistre l'éditeur : le texte et sa mise en page, ensemble.
+  const content = React.useMemo(
+    () => ({ layout, sections }),
+    [layout, sections],
+  );
   const [signed, setSigned] = React.useState(initiallySigned);
   const [confirming, setConfirming] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
@@ -509,14 +551,22 @@ function ReportWorkspace({
   );
 
   const save = React.useCallback(
-    async (value: ReportSections): Promise<SaveOutcome> => {
+    async (value: WorkspaceContent): Promise<SaveOutcome> => {
       if (!author) return "saved";
+      // Seules les sections de la mise en page partent : le service
+      // retire de la base celles de l'autre.
+      const payload = sectionsForLayout(value.sections, value.layout);
       // Réseau coupé : l'appel de l'action rejette au lieu de répondre. Les
       // deux cas mènent à la copie de secours.
-      const result = await (adapter?.save ?? saveReportDraft)(
-        author.reportId,
-        value,
-        version.current,
+      const result = await (
+        adapter
+          ? adapter.save(author.reportId, payload, version.current)
+          : saveReportDraft(
+              author.reportId,
+              payload,
+              version.current,
+              value.layout,
+            )
       ).catch(() => null);
       if (result?.ok) {
         version.current = result.data.version;
@@ -533,7 +583,8 @@ function ReportWorkspace({
       const key = await backupKey;
       if (key) {
         await writeReportBackup(key, author.reportId, {
-          sections: value,
+          sections: value.sections,
+          layout: value.layout,
           baseVersion: version.current,
           savedAt: new Date().toISOString(),
         });
@@ -554,12 +605,13 @@ function ReportWorkspace({
    * disparaissait au rechargement.
    */
   const keep = React.useCallback(
-    async (value: ReportSections): Promise<boolean> => {
+    async (value: WorkspaceContent): Promise<boolean> => {
       if (!author) return false;
       const key = await backupKey;
       if (!key) return false;
       return writeReportBackup(key, author.reportId, {
-        sections: value,
+        sections: value.sections,
+        layout: value.layout,
         baseVersion: version.current,
         savedAt: new Date().toISOString(),
         conflict: true,
@@ -592,12 +644,110 @@ function ReportWorkspace({
     [],
   );
 
+  /** Remplace le texte et sa mise en page d'un coup : voir `replaceSections`. */
+  const replaceContent = React.useCallback(
+    (next: WorkspaceContent) => {
+      setLayout(next.layout);
+      replaceSections(next.sections);
+    },
+    [replaceSections],
+  );
+
   const { state, flush, resume } = useAutosave({
-    value: sections,
+    value: content,
     save,
     keep,
     disabled: locked,
   });
+
+  // Intitulés des rubriques dans la langue du compte-rendu : ceux qui
+  // deviennent des sous-titres quand les rubriques sont réunies.
+  const reportTitles = messagesFor(study.reportLanguage).reading.sections
+    .titles;
+  const layoutLabels = useMessages().reading.layout;
+
+  /**
+   * La découpe telle qu'elle était quand le radiologue est passé à la
+   * feuille blanche, et le texte libre qui en est né. Tant qu'il n'a pas
+   * touché à ce texte, revenir à la découpe la rétablit à l'identique,
+   * sans rien demander : il essayait la feuille blanche, il n'a rien
+   * écrit.
+   */
+  const beforeFree = React.useRef<{
+    corps: string;
+    sections: ReportSections;
+  } | null>(null);
+
+  // L'action « Annuler » d'une notification vit plus longtemps que le
+  // rendu qui l'a créée : elle appelle la version courante.
+  const changeLayoutRef = React.useRef<(layout: ReportLayout) => void>(
+    () => undefined,
+  );
+
+  /**
+   * Change de mise en page, sans jamais perdre de texte.
+   *
+   * - Vers la feuille blanche : les rubriques sont réunies dans le texte
+   *   libre, chacune sous son intitulé ; « Annuler » revient en arrière.
+   * - Vers la découpe : rétablie à l'identique si le texte libre n'a pas
+   *   bougé ; sinon, après confirmation, le texte libre va entier dans
+   *   « Résultats ». La conclusion ne bouge jamais.
+   */
+  const changeLayout = React.useCallback(
+    (next: ReportLayout) => {
+      if (next === layout) return;
+      if (next === "free") {
+        const blank = isReportBlank(sections, "structured");
+        const converted = toFreeLayout(sections, reportTitles);
+        beforeFree.current = blank
+          ? null
+          : { corps: converted.corps, sections };
+        replaceContent({ layout: "free", sections: converted });
+        if (blank) toast.success(layoutLabels.toFreeEmpty);
+        else
+          toast.success(layoutLabels.toFree, {
+            action: {
+              label: layoutLabels.undo,
+              onClick: () => changeLayoutRef.current("structured"),
+            },
+          });
+        return;
+      }
+      const kept = beforeFree.current;
+      if (kept && kept.corps === sections.corps) {
+        beforeFree.current = null;
+        replaceContent({
+          layout: "structured",
+          sections: { ...kept.sections, conclusion: sections.conclusion },
+        });
+        toast.success(layoutLabels.restored);
+        return;
+      }
+      if (isSectionEmpty(sections.corps)) {
+        replaceContent({
+          layout: "structured",
+          sections: toStructuredLayout(sections),
+        });
+        return;
+      }
+      setConfirmStructured(true);
+    },
+    [layout, sections, reportTitles, replaceContent, layoutLabels],
+  );
+  React.useEffect(() => {
+    changeLayoutRef.current = changeLayout;
+  }, [changeLayout]);
+
+  /** Confirmé : le texte libre va, entier, dans « Résultats ». */
+  const toStructuredConfirmed = () => {
+    setConfirmStructured(false);
+    beforeFree.current = null;
+    replaceContent({
+      layout: "structured",
+      sections: toStructuredLayout(sections),
+    });
+    toast.success(layoutLabels.toStructured);
+  };
 
   /**
    * Résout un conflit en gardant le texte affiché : l'écriture suivante
@@ -646,7 +796,15 @@ function ReportWorkspace({
         duration: Number.POSITIVE_INFINITY,
         action: {
           label: labels.backupRestore,
-          onClick: () => replaceSections(backup.sections),
+          // Une copie d'avant la feuille blanche n'a pas de mise en page :
+          // elle était en découpe proposée.
+          onClick: () =>
+            replaceContent({
+              layout: adapter
+                ? DEFAULT_LAYOUT
+                : (backup.layout ?? DEFAULT_LAYOUT),
+              sections: { ...initial, ...backup.sections },
+            }),
         },
         cancel: {
           label: labels.backupDiscard,
@@ -657,7 +815,7 @@ function ReportWorkspace({
     return () => {
       cancelled = true;
     };
-  }, [author, backupKey, labels, replaceSections]);
+  }, [adapter, author, backupKey, initial, labels, replaceContent]);
 
   /**
    * Signe, après s'être assuré que le service a bien le texte affiché.
@@ -674,6 +832,7 @@ function ReportWorkspace({
   const aiReview = useAiReview({
     reportId: locked ? null : (author?.reportId ?? null),
     sections,
+    layout,
     enabled: aiReviewOffered,
     save: flush,
   });
@@ -796,10 +955,16 @@ function ReportWorkspace({
       <TemplatePicker
         templates={templates}
         sections={sections}
-        onApply={replaceSections}
+        layout={layout}
+        titles={reportTitles}
+        onApply={(next, nextLayout) => {
+          if (nextLayout !== layout) beforeFree.current = null;
+          replaceContent({ layout: nextLayout, sections: next });
+        }}
       />
       <SaveAsTemplate
         sections={sections}
+        layout={layout}
         modality={study.modality}
         bodyPart={study.bodyPart}
       />
@@ -820,6 +985,28 @@ function ReportWorkspace({
   ) : (
     next
   );
+
+  // La feuille autour du texte : en-tête, identité, signature. Pas pour
+  // un exercice, qui n'est émis par aucune clinique.
+  const paper: PaperContext | undefined = adapter
+    ? undefined
+    : {
+        letterhead,
+        clinic: study.clinic,
+        patient: {
+          name: formatPatientName(study.patientName),
+          id: study.patientId,
+          birthDate: study.patientBirthDate,
+          exam: [study.modality, study.bodyPart].filter(Boolean).join(" · "),
+        },
+        signer: author
+          ? {
+              name: signerName,
+              signature: signing?.applied?.signature,
+              stamp: signing?.applied?.stamp,
+            }
+          : undefined,
+      };
 
   const report = (
     <div className="flex h-full min-h-0 flex-col">
@@ -842,14 +1029,25 @@ function ReportWorkspace({
       )}
       <ClinicalContext
         info={study.clinicalInfo}
+        free={layout === "free"}
         onUse={
-          !locked && isBlank(sections.indication)
-            ? () =>
-                replaceSections((current) => ({
-                  ...current,
-                  indication: `<p>${escapeHtml(study.clinicalInfo ?? "")}</p>`,
-                }))
-            : undefined
+          locked
+            ? undefined
+            : layout === "free"
+              ? isBlank(sections.corps)
+                ? () =>
+                    replaceSections((current) => ({
+                      ...current,
+                      corps: `<h3>${escapeHtml(reportTitles.indication)}</h3><p>${escapeHtml(study.clinicalInfo ?? "")}</p>`,
+                    }))
+                : undefined
+              : isBlank(sections.indication)
+                ? () =>
+                    replaceSections((current) => ({
+                      ...current,
+                      indication: `<p>${escapeHtml(study.clinicalInfo ?? "")}</p>`,
+                    }))
+                : undefined
         }
       />
       <PriorsPanel priors={priors} />
@@ -859,6 +1057,9 @@ function ReportWorkspace({
       ) : (
         <ReportEditor
           sections={sections}
+          layout={layout}
+          onLayoutChange={author && !adapter ? changeLayout : undefined}
+          paper={paper}
           revision={revision}
           saveState={state}
           readOnly={locked}
@@ -892,6 +1093,7 @@ function ReportWorkspace({
           open={confirming}
           onOpenChange={setConfirming}
           sections={sections}
+          layout={layout}
           patientLabel={adapter?.title ?? formatPatientName(study.patientName)}
           signerName={signerName}
           language={study.reportLanguage}
@@ -903,8 +1105,35 @@ function ReportWorkspace({
           }
         />
       )}
+
+      <Dialog open={confirmStructured} onOpenChange={setConfirmStructured}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{layoutLabels.confirmTitle}</DialogTitle>
+            <DialogDescription>{layoutLabels.confirmBody}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setConfirmStructured(false)}
+            >
+              {layoutLabels.cancel}
+            </Button>
+            <Button size="sm" onClick={toStructuredConfirmed}>
+              {layoutLabels.confirm}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
+}
+
+/** Ce qu'enregistre l'éditeur : le texte et sa mise en page. */
+interface WorkspaceContent {
+  layout: ReportLayout;
+  sections: ReportSections;
 }
 
 /** Emplacements prêtés par le cadre de lecture à son compte-rendu. */
@@ -1151,9 +1380,12 @@ function escapeHtml(text: string): string {
  */
 function ClinicalContext({
   info,
+  free = false,
   onUse,
 }: {
   info: string | null;
+  /** Feuille blanche : le renseignement ouvre le texte libre. */
+  free?: boolean;
   onUse?: () => void;
 }) {
   const labels = useMessages().reading.workspace;
@@ -1177,10 +1409,10 @@ function ClinicalContext({
           size="sm"
           className="shrink-0"
           onClick={onUse}
-          title={labels.copyToIndication}
+          title={free ? labels.copyToFreeText : labels.copyToIndication}
         >
           <CornerDownLeft />
-          {labels.indication}
+          {free ? labels.freeText : labels.indication}
         </Button>
       )}
     </div>

@@ -6,6 +6,7 @@ import {
   PasswordForm,
   PoolForm,
   ProfileForm,
+  ReportLayoutForm,
 } from "@/components/settings/settings-forms";
 import { CredentialFileCard } from "@/components/credentials/credential-file-card";
 import { AgreementsCard } from "@/components/settings/agreements-card";
@@ -80,6 +81,9 @@ export default async function SettingsPage() {
             {organization && <PoolForm openToPool={organization.openToPool} />}
           </div>
           <div className="flex min-w-0 flex-col gap-4">
+            {isRadiologist && (
+              <ReportLayoutForm layout={profile.reportLayout} />
+            )}
             {isRadiologist && <LanguageForm />}
             <PasswordForm />
             <MfaCard enrolled={mfaEnrolled} />

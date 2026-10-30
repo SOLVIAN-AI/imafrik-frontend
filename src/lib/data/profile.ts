@@ -1,9 +1,11 @@
 import "server-only";
 
+import type { ReportLayout } from "@/components/editor/sections";
 import { apiGet } from "@/lib/api/client";
 import { sessionInfoSchema } from "@/lib/api/contracts";
 import type { CredentialState, PracticeStatus } from "@/lib/credentials";
 import { isDemoMode } from "@/lib/demo/mode";
+import { demoLayoutPreference } from "@/lib/demo/report-layout";
 import { DEMO_LICENSE_NUMBER } from "@/lib/session/demo";
 import { getSession } from "@/lib/session/server";
 
@@ -22,6 +24,11 @@ export interface Profile {
    * alors le nouvel état.
    */
   credentialState: CredentialState;
+  /**
+   * Mise en page des comptes-rendus qu'ouvre ce radiologue : découpe
+   * proposée ou feuille blanche. Il en change pour chacun dans l'éditeur.
+   */
+  reportLayout: ReportLayout;
 }
 
 /**
@@ -42,6 +49,7 @@ export async function getProfile(): Promise<Profile> {
       practiceStatus: radiologist ? "registered" : null,
       credentialsValidUntil: null,
       credentialState: session!.user.credentialState,
+      reportLayout: await demoLayoutPreference(),
     };
   }
   const info = await apiGet("/me", sessionInfoSchema);
@@ -52,5 +60,6 @@ export async function getProfile(): Promise<Profile> {
     practiceStatus: info.profile?.practice_status ?? null,
     credentialsValidUntil: info.profile?.credentials_valid_until ?? null,
     credentialState: info.profile?.credential_state ?? "undeclared",
+    reportLayout: info.profile?.report_layout ?? "structured",
   };
 }

@@ -73,6 +73,10 @@ export const tour = {
         title: "Le compte-rendu",
         body: "Cinq sections, enregistrées automatiquement pendant que vous écrivez. Tapez / en début de ligne pour insérer une phrase type.",
       },
+      layout: {
+        title: "Découpe proposée ou feuille blanche",
+        body: "Rédigez rubrique par rubrique, ou à votre façon sur une feuille blanche, avec une conclusion à part. En-tête et logos restent en place, et changer ne perd rien.",
+      },
       templates: {
         title: "Vos modèles",
         body: "Un modèle remplit les sections encore vides : vous ne corrigez que ce qui diffère. Vos propres modèles s’enregistrent à partir d’un texte.",

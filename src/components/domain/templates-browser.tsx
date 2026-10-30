@@ -177,7 +177,11 @@ export function TemplatesBrowser({
               appliqué. La clé recrée l'éditeur en lecture seule, qui ne
               suit pas un changement de contenu. */}
           <div className="min-h-0 flex-1 overflow-auto p-5">
-            <ReportDocument key={selected.id} sections={selected.sections} />
+            <ReportDocument
+              key={selected.id}
+              sections={selected.sections}
+              layout={selected.layout}
+            />
           </div>
         </Panel>
       ) : (

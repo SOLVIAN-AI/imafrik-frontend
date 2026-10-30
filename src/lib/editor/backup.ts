@@ -1,6 +1,10 @@
 "use client";
 
 import type { ReportSections } from "@/components/editor/report-editor";
+import {
+  isReportLayout,
+  type ReportLayout,
+} from "@/components/editor/sections";
 
 /**
  * Copie de secours locale, chiffrée, d'un brouillon de compte-rendu.
@@ -47,6 +51,12 @@ export const BACKUP_TTL_MS = 24 * 60 * 60 * 1000;
 /** Ce qui est conservé pour un compte-rendu. */
 export interface ReportBackup {
   sections: ReportSections;
+  /**
+   * Mise en page du texte gardé. Absente des copies d'avant la feuille
+   * blanche, toutes en découpe proposée. Gardée en clair : elle ne dit
+   * rien du patient.
+   */
+  layout?: ReportLayout;
   /** Version du brouillon en base au moment où le texte a été écrit. */
   baseVersion: number;
   savedAt: string;
@@ -68,6 +78,8 @@ interface StoredBackup {
   savedAt: string;
   /** Copie écrite pendant un conflit. Facultatif : absent des copies antérieures. */
   conflict?: boolean;
+  /** Mise en page. Facultative : absente des copies antérieures. */
+  layout?: ReportLayout;
   /** Vecteur d'initialisation, base64. */
   iv: string;
   /** Sections chiffrées, base64. */
@@ -111,7 +123,8 @@ function isStoredBackup(value: unknown): value is StoredBackup {
     typeof candidate.iv === "string" &&
     typeof candidate.data === "string" &&
     (candidate.conflict === undefined ||
-      typeof candidate.conflict === "boolean")
+      typeof candidate.conflict === "boolean") &&
+    (candidate.layout === undefined || isReportLayout(candidate.layout))
   );
 }
 
@@ -169,6 +182,7 @@ export async function writeReportBackup(
       baseVersion: backup.baseVersion,
       savedAt: backup.savedAt,
       ...(backup.conflict ? { conflict: true } : {}),
+      ...(backup.layout ? { layout: backup.layout } : {}),
       iv: toBase64(iv),
       data: toBase64(data),
     };
@@ -227,6 +241,7 @@ export async function readReportBackup(
         baseVersion: stored.baseVersion,
         savedAt: stored.savedAt,
         ...(stored.conflict ? { conflict: true } : {}),
+        ...(stored.layout ? { layout: stored.layout } : {}),
       },
     };
   } catch {
