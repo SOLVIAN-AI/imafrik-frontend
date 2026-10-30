@@ -3,6 +3,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
+import {
+  ConfirmAllPlannedButton,
+  ConfirmPlannedButton,
+  PlannedNote,
+} from "@/components/domain/planned-assignee";
+import { confirmable } from "@/lib/assignment-plan";
+import type { PlannedRadiologist } from "@/lib/actions/assignment";
 import { EligibilityNote } from "@/components/domain/eligibility-note";
 import { FilterBar } from "@/components/filters/filter-bar";
 import { FilteredEmpty } from "@/components/filters/filtered-empty";
@@ -16,6 +23,7 @@ import { ColumnLabel } from "@/components/ui/info-tip";
 import { ListPagination } from "@/components/domain/list-pagination";
 import { ListToolbar } from "@/components/domain/list-toolbar";
 import { getEligibility } from "@/lib/data/eligibility";
+import { getPlanned } from "@/lib/data/plan";
 import type { Eligibility } from "@/lib/assignment-blocker";
 import { loadStudyFilters } from "@/lib/data/study-filters";
 import {
@@ -119,11 +127,23 @@ export default async function AdminStudiesPage({
       (page) => page.total,
     ),
   ]);
-  // Qui peut recevoir chaque examen à attribuer de la page, en un appel.
-  const eligibility = await getEligibility(
-    studies
-      .filter((study) => isAssignable(study.status) && !study.assignedTo)
-      .map((study) => study.id),
+  // Qui peut recevoir chaque examen à attribuer de la page, et qui le
+  // planning de sa clinique prévoit : un appel chacun.
+  const open = studies.filter(
+    (study) => isAssignable(study.status) && !study.assignedTo,
+  );
+  const [eligibility, planned] = await Promise.all([
+    getEligibility(open.map((study) => study.id)),
+    getPlanned(
+      "team",
+      open
+        .filter((study) => study.status === "received")
+        .map((study) => study.id),
+    ),
+  ]);
+  const toConfirm = confirmable(
+    open.map((study) => study.id),
+    planned,
   );
   // La barre : chaque choix avec son nombre d'examens, compté par le
   // service avec tous les autres filtres.
@@ -152,12 +172,14 @@ export default async function AdminStudiesPage({
         </div>
       )}
 
-      <FilterBar
-        dimensions={bar}
-        active={filters}
-        result={{ count: total, noun: "studies" }}
-        className="shrink-0 px-4 pb-3 sm:px-6"
-      />
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-4 pb-3 sm:px-6">
+        <FilterBar
+          dimensions={bar}
+          active={filters}
+          result={{ count: total, noun: "studies" }}
+        />
+        <ConfirmAllPlannedButton portal="team" items={toConfirm} />
+      </div>
 
       <div className="flex min-h-0 flex-1 flex-col px-4 pb-6 sm:px-6">
         <Panel className="flex min-h-0 flex-col overflow-hidden">
@@ -202,6 +224,7 @@ export default async function AdminStudiesPage({
                     <Reader
                       study={study}
                       eligibility={eligibility}
+                      planned={planned}
                       unassigned={t.assignment.list.unassigned}
                     />
                   </p>
@@ -215,7 +238,15 @@ export default async function AdminStudiesPage({
                 </div>
                 {isAssignable(study.status) && (
                   // Sous la carte, à pleine vue : l'action de la ligne.
-                  <div className="flex basis-full justify-end">
+                  <div className="flex basis-full flex-wrap justify-end gap-1.5">
+                    {!study.assignedTo && (
+                      <ConfirmPlannedButton
+                        portal="team"
+                        studyId={study.id}
+                        patient={formatPatientName(study.patientName)}
+                        planned={planned[study.id]}
+                      />
+                    )}
                     <AssignDialog
                       portal="team"
                       studyId={study.id}
@@ -272,7 +303,7 @@ export default async function AdminStudiesPage({
                       info={{ text: text.waitingInfo(STALE_AFTER_HOURS) }}
                     />
                   </th>
-                  <th scope="col" className="sticky right-0 w-36 !text-right">
+                  <th scope="col" className="sticky right-0 w-56 !text-right">
                     <span className="label-eyebrow">
                       {t.assignment.list.action}
                     </span>
@@ -330,6 +361,7 @@ export default async function AdminStudiesPage({
                         <Reader
                           study={study}
                           eligibility={eligibility}
+                          planned={planned}
                           unassigned={t.assignment.list.unassigned}
                         />
                       </div>
@@ -353,13 +385,23 @@ export default async function AdminStudiesPage({
 
                     <td className="sticky right-0 bg-surface-raised text-right">
                       {isAssignable(study.status) && (
-                        <AssignDialog
-                          portal="team"
-                          studyId={study.id}
-                          patient={formatPatientName(study.patientName)}
-                          assigned={study.assignedTo !== null}
-                          clinic={{ id: study.clinicId, name: study.clinic }}
-                        />
+                        <span className="inline-flex items-center justify-end gap-1">
+                          {!study.assignedTo && (
+                            <ConfirmPlannedButton
+                              portal="team"
+                              studyId={study.id}
+                              patient={formatPatientName(study.patientName)}
+                              planned={planned[study.id]}
+                            />
+                          )}
+                          <AssignDialog
+                            portal="team"
+                            studyId={study.id}
+                            patient={formatPatientName(study.patientName)}
+                            assigned={study.assignedTo !== null}
+                            clinic={{ id: study.clinicId, name: study.clinic }}
+                          />
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -381,16 +423,18 @@ export default async function AdminStudiesPage({
 }
 
 /**
- * Qui lit l'examen ; sans titulaire, qu'il est à attribuer, ou que
- * personne ne peut le recevoir.
+ * Qui lit l'examen ; sans titulaire, qui le planning prévoit, qu'il est à
+ * attribuer, ou que personne ne peut le recevoir.
  */
 function Reader({
   study,
   eligibility,
+  planned,
   unassigned,
 }: {
   study: Study;
   eligibility: Record<string, Eligibility>;
+  planned: Record<string, PlannedRadiologist[]>;
   unassigned: string;
 }) {
   if (study.assignedToName)
@@ -399,6 +443,7 @@ function Reader({
     );
   if (!isAssignable(study.status))
     return <span className="text-tertiary">—</span>;
+  if (planned[study.id]) return <PlannedNote planned={planned[study.id]} />;
   return (
     <EligibilityNote
       found={eligibility[study.id]}

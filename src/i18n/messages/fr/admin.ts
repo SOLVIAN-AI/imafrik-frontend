@@ -940,7 +940,7 @@ export const admin = {
       "organization.state_changed": "Organisation activée ou suspendue",
       "organization.pool_changed": "Ouverture au pool modifiée",
       "organization.urgent_readers_changed": "Liste d’urgence modifiée",
-      "organization.assignment_rules_changed": "Règles d’attribution modifiées",
+      "organization.assignment_rules_changed": "Planning d’attribution modifié",
       "organization.plan_changed": "Formule d’abonnement modifiée",
       "organization.viewed": "Clinique ouverte en consultation",
       "organization.retention_changed": "Durée de conservation modifiée",

@@ -4,8 +4,8 @@ import { expect, settle, test } from "./support/fixtures";
 
 /**
  * Listes bornées sur la barre commune (démonstration), filtrées et
- * comptées sur la page : « Équipe » (rôle, modalité lue, liste d'urgence,
- * recherche hors adresse), « Modèles » (origine, modalité), « Formation »
+ * comptées sur la page : « Équipe » (rôle, liste d'urgence, recherche
+ * hors adresse), « Modèles » (origine, modalité), « Formation »
  * (modalité, état) et l'historique de « Système » (tâche, échecs).
  */
 
@@ -60,18 +60,15 @@ test.describe("équipe", () => {
     await checkA11y();
   });
 
-  test("ne propose que les modalités lues par l’équipe", async ({ page }) => {
+  test("ne filtre plus par modalité lue : l’équipe IMAFRIK la règle", async ({
+    page,
+  }) => {
     await page.goto("/equipe");
-    const modalites = bar(page).getByRole("group", { name: "Modalité" });
-    const noms = (await modalites.getByRole("link").allInnerTexts()).map(
-      (texte) => texte.split("\n")[0].trim(),
-    );
-    // Afi Mensah lit la radiographie et l’échographie.
-    expect(noms).toEqual([
-      "Toutes les modalités",
-      "Radiographie",
-      "Échographie",
-    ]);
+    await expect(bar(page).getByRole("group", { name: "Rôle" })).toBeVisible();
+    await expect(
+      bar(page).getByRole("group", { name: "Modalité" }),
+    ).toHaveCount(0);
+    await expect(page.getByText("Radiographie, Échographie")).toHaveCount(0);
   });
 
   test("cherche un membre sans l’écrire dans l’adresse", async ({ page }) => {

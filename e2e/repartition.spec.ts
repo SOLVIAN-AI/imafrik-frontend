@@ -130,14 +130,13 @@ test.describe("quand personne ne peut recevoir un examen", () => {
     await expect(ligne.getByTestId("nobody-eligible")).toHaveText(
       /^Personne d’éligible/,
     );
-    // Les autres lignes disent combien de radiologues peuvent les recevoir.
+    // Les autres lignes disent qui le planning de leur clinique prévoit.
     await expect(
       page
         .locator("main table tbody tr")
         .filter({ hasText: "KOFFI Ama" })
-        .getByText(/^\d+ éligibles?$/)
-        .filter({ visible: true }),
-    ).toBeVisible();
+        .getByTestId("planned-radiologist"),
+    ).toContainText("Dr Ibrahim Bakari");
 
     const bouton = ligne.getByRole("button", {
       name: "Attribuer l’examen de BOKO Essi",

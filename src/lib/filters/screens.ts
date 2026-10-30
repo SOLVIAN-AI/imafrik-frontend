@@ -59,7 +59,10 @@ export const LIST_FILTERS = {
   "mes-idees": ["ideaCategory", "ideaState"],
   // Équipe d'une clinique (et vue des cliniques), modèles, formation,
   // historique des tâches : des listes bornées, filtrées sur la page.
-  equipe: ["role", "modality", "urgentReader"],
+  equipe: ["role", "urgentReader"],
+  // Planning d'attribution d'une clinique : ses lignes de la semaine,
+  // filtrées sur la page.
+  planning: ["radiologist", "modality"],
   modeles: ["origin", "modality"],
   formation: ["modality", "trainingState"],
   systeme: ["task", "failed"],

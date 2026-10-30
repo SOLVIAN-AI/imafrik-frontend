@@ -6,6 +6,7 @@ import { WorklistView } from "@/components/domain/worklist-view";
 import type { StudyStatus } from "@/components/domain/study-status";
 import type { ModalityGroup } from "@/lib/api/contracts";
 import { getEligibility } from "@/lib/data/eligibility";
+import { getPlanned } from "@/lib/data/plan";
 import {
   getClinicCounts,
   getModalityCounts,
@@ -168,10 +169,21 @@ export default async function WorklistPage({
   const sections = splitWorklist(studies, session.user.id);
   // Le radiologue n'attribue rien : seule l'équipe a besoin de savoir qui
   // peut recevoir chaque examen à attribuer.
-  const eligibility =
-    session.active.role === "platform_admin"
-      ? await getEligibility(sections.open.map((study) => study.id))
-      : {};
+  const supervising = session.active.role === "platform_admin";
+  const openIds = sections.open.map((study) => study.id);
+  // Et le radiologue que le planning de chaque clinique prévoit, à
+  // confirmer d'un geste.
+  const [eligibility, planned] = supervising
+    ? await Promise.all([
+        getEligibility(openIds),
+        getPlanned(
+          "team",
+          sections.open
+            .filter((study) => study.status === "received")
+            .map((study) => study.id),
+        ),
+      ])
+    : [{}, {}];
   const bar: BarDimension[] = [
     clinicDimension(clinicCounts),
     modalityDimension(modalityCounts),
@@ -182,6 +194,7 @@ export default async function WorklistPage({
     <WorklistView
       sections={sections}
       eligibility={eligibility}
+      planned={planned}
       scope={clinicCounts.clinics
         .filter((row) => row.count > 0)
         .map((row) => row.name)}

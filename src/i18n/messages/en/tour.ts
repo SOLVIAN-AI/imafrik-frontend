@@ -112,7 +112,7 @@ export const tour: AppMessages["tour"] = {
       },
       team: {
         title: "Your team",
-        body: "Invite your managers and your radiologists: everyone has their own account. Set each radiologist’s modalities, the urgent list and the assignment rules here.",
+        body: "Invite your managers and your radiologists: everyone has their own account. Set the urgent list here, and build the assignment schedule.",
       },
       help: {
         title: "Need help?",

@@ -53,6 +53,11 @@ export interface ReadingGroup {
    * recevoir un examen à attribuer.
    */
   note?: (study: Study) => React.ReactNode;
+  /**
+   * Geste de toute la section, au bout de son titre : par exemple « Tout
+   * confirmer » pour les examens à attribuer qui ont un radiologue prévu.
+   */
+  headerAction?: React.ReactNode;
 }
 
 const DEADLINE_STYLES: Record<DeadlineTone, string> = {
@@ -219,8 +224,16 @@ function GroupHeading({
       )}
     </>
   );
+  const extra = group.headerAction && (
+    <div className="ml-auto shrink-0">{group.headerAction}</div>
+  );
   if (!group.collapsible)
-    return <div className="flex items-center gap-2">{label}</div>;
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        {label}
+        {extra}
+      </div>
+    );
   return (
     <button
       type="button"
@@ -412,7 +425,7 @@ export function ReadingTable({
         <table
           className={cn(
             "w-full table-fixed border-separate border-spacing-0 text-sm",
-            action && "min-w-[60rem]",
+            action && "min-w-[64rem]",
           )}
         >
           <thead className="sticky top-0 z-20">
@@ -450,7 +463,7 @@ export function ReadingTable({
               {action && (
                 // Collée à droite : l'action reste visible quand le tableau
                 // défile en largeur.
-                <th scope="col" className="sticky right-0 w-36 !text-right">
+                <th scope="col" className="sticky right-0 w-48 !text-right">
                   <span className="label-eyebrow">{action.label}</span>
                 </th>
               )}

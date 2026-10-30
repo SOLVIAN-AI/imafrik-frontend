@@ -5,7 +5,7 @@ import { requireConsultation } from "@/lib/data/clinic-view";
 import { getMessages } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getMessages()).t.assignment.rules.title };
+  return { title: (await getMessages()).t.assignment.plan.title };
 }
 
 /** Règles d'attribution d'une clinique, dans la vue de l'équipe IMAFRIK. */

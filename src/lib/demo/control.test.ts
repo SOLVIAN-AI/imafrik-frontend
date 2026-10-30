@@ -10,10 +10,15 @@ import {
   demoUsers,
   credentialReviewDue,
   demoAssignment,
-  demoAssignmentRules,
+  demoAssignmentPlan,
   demoEligibility,
+  demoPlanned,
 } from "@/lib/demo/control";
-import { overlaps, toAssignmentRules } from "@/lib/assignment-rules";
+import {
+  conflictsOfWeek,
+  mondayOf,
+  toAssignmentPlan,
+} from "@/lib/assignment-plan";
 import { DEMO_STUDIES } from "@/lib/demo/studies";
 import { modalityGroupOf } from "@/lib/modalities";
 
@@ -197,19 +202,52 @@ describe("dossiers à examiner en démonstration", () => {
     expect(codes.indexOf("urgent_unclaimed")).toBe(0);
   });
 
-  it("couvre la semaine de Saint-Joseph sans chevauchement de garde", () => {
-    const clinic = toAssignmentRules(demoAssignmentRules(null, true));
-    expect(overlaps(clinic.slots)).toEqual([]);
+  it("a un planning à Saint-Joseph, daté de la semaine de la clinique", () => {
+    const clinic = toAssignmentPlan(demoAssignmentPlan(null, true, NOW));
+    expect(clinic.today).toBe("2026-10-07");
     const known = new Set(clinic.radiologists.map((r) => r.profileId));
-    for (const slot of clinic.slots)
-      expect(known).toContain(slot.radiologistId);
+    for (const line of clinic.lines)
+      expect(known).toContain(line.radiologistId);
+    // Les IRM de cette semaine, les scanners de la suivante.
+    const dated = clinic.lines.filter((line) => line.startsOn !== null);
+    expect(dated.map((line) => [line.modality, line.startsOn])).toEqual([
+      ["mri", "2026-10-05"],
+      ["ct", "2026-10-12"],
+    ]);
+    // Un seul conflit : deux radiologues de jour, la semaine.
+    const conflicts = conflictsOfWeek(clinic.lines, mondayOf(clinic.today));
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0].days).toHaveLength(5);
     // L'équipe IMAFRIK choisit parmi tout le groupe ; le responsable voit
     // les siens et ceux qu'elle a placés.
-    const team = demoAssignmentRules("org-stj", false);
-    expect(team.radiologists.length).toBeGreaterThan(
+    const team = demoAssignmentPlan("org-stj", false, NOW);
+    expect(team.radiologists.length).toBeGreaterThanOrEqual(
       clinic.radiologists.length,
     );
-    expect(demoAssignmentRules("org-kara", false).slots).toEqual([]);
+    expect(demoAssignmentPlan("org-autre", false, NOW).lines).toEqual([]);
+  });
+
+  it("prévoit un radiologue pour les examens à attribuer, ou en hésite", () => {
+    const open = DEMO_STUDIES.filter(
+      (study) => study.status === "received" && study.assignedTo === null,
+    );
+    const planned = demoPlanned(open.map((study) => study.id));
+    const of = (modality: string, clinic: string) =>
+      planned[
+        open.find((s) => s.modality === modality && s.clinicId === clinic)!.id
+      ]?.map((one) => one.name) ?? [];
+    expect(of("CT", "org-stj")).toEqual(["Dr Ibrahim Bakari"]);
+    expect(of("CR", "org-pka")).toEqual(["Dr Ibrahim Bakari"]);
+    expect(of("MR", "org-pka").sort()).toEqual([
+      "Dr Fatou Diallo",
+      "Pr Mawuli Agbeko",
+    ]);
+    expect(of("MG", "org-pka")).toEqual([]);
+    // La fenêtre d'attribution nomme le même.
+    const ct = open.find((s) => s.modality === "CT")!;
+    expect(demoAssignment(ct.id)!.planned).toEqual([
+      { profile_id: "demo-bakari", name: "Dr Ibrahim Bakari" },
+    ]);
   });
 });
 

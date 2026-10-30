@@ -98,8 +98,8 @@ export function AssignmentPanel({
             )}
             {state.assignedByRule && (
               <span className="basis-full pl-5 text-tertiary">
-                {messages.rules.assignedBy(
-                  messages.rules.byRule[state.assignedByRule],
+                {messages.plan.assignedBy(
+                  messages.plan.byRule[state.assignedByRule],
                 )}
               </span>
             )}

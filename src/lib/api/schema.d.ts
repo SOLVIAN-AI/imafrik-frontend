@@ -171,7 +171,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/admin/clinics/{clinic_id}/assignment-rules": {
+    "/admin/clinics/{clinic_id}/assignment-plan": {
         parameters: {
             query?: never;
             header?: never;
@@ -179,26 +179,100 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Règles d'attribution d'une clinique
-         * @description Planning et radiologue par modalité d'une clinique, radiologues du réseau compris.
+         * Planning d'attribution d'une clinique
+         * @description Lignes du planning d'une clinique, radiologues du réseau compris.
          *
          *     Raises:
          *         NotFound: Clinique introuvable.
          */
-        get: operations["get_clinic_rules_admin_clinics__clinic_id__assignment_rules_get"];
-        /**
-         * Régler les règles d'attribution d'une clinique
-         * @description Remplace le planning et les radiologues par modalité d'une clinique.
-         *
-         *     Raises:
-         *         NotFound: Clinique introuvable.
-         *         Conflict: Les règles ont changé depuis la lecture.
-         *         Unprocessable: Un radiologue ne lit pas la clinique, ou pas la
-         *             modalité pour laquelle il est désigné.
-         */
-        put: operations["update_clinic_rules_admin_clinics__clinic_id__assignment_rules_put"];
+        get: operations["get_clinic_plan_admin_clinics__clinic_id__assignment_plan_get"];
+        put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/assignment-plan/copy-week": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Recopier la semaine précédente du planning d'une clinique
+         * @description Recopie sur une semaine les lignes datées de la semaine précédente.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         *         Unprocessable: Pas un lundi, semaine passée, rien à recopier, ou
+         *             planning plein.
+         *         Conflict: La semaine visée a déjà des lignes datées, sans
+         *             confirmation (``replace``).
+         */
+        post: operations["copy_clinic_week_admin_clinics__clinic_id__assignment_plan_copy_week_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/assignment-plan/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ajouter une ligne au planning d'une clinique
+         * @description Ajoute une ligne au planning d'une clinique.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable.
+         *         Unprocessable: Le radiologue ne lit pas la clinique, ou pas la
+         *             modalité, la période est passée ou n'a aucun des jours choisis,
+         *             ou le planning est plein.
+         */
+        post: operations["add_clinic_line_admin_clinics__clinic_id__assignment_plan_lines_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/clinics/{clinic_id}/assignment-plan/lines/{line_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Modifier une ligne du planning d'une clinique
+         * @description Modifie une ligne du planning d'une clinique.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable, ou ligne absente de son planning.
+         *         Unprocessable: Comme pour l'ajout.
+         */
+        put: operations["update_clinic_line_admin_clinics__clinic_id__assignment_plan_lines__line_id__put"];
+        post?: never;
+        /**
+         * Retirer une ligne du planning d'une clinique
+         * @description Retire une ligne du planning d'une clinique.
+         *
+         *     Raises:
+         *         NotFound: Clinique introuvable, ou ligne absente de son planning.
+         */
+        delete: operations["remove_clinic_line_admin_clinics__clinic_id__assignment_plan_lines__line_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1635,6 +1709,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/studies/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Radiologue prévu par le planning, pour ces examens
+         * @description Le radiologue que le planning de leur clinique prévoit, pour chaque examen.
+         *
+         *     Pour une page de « À lire », « Examens » ou de la vue des cliniques :
+         *     en un appel. Une lecture, malgré le verbe : la liste des examens tient
+         *     dans le corps.
+         */
+        post: operations["get_plan_admin_studies_plan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/studies/plan/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attribuer ces examens au radiologue que le planning prévoit
+         * @description « Confirmer » et « Tout confirmer » : le radiologue prévu reçoit l'examen.
+         *
+         *     Un examen attribué ou pris entre-temps, ou dont le planning ne prévoit
+         *     plus ce radiologue, est laissé tel quel, sans empêcher les autres.
+         */
+        post: operations["confirm_plan_admin_studies_plan_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/studies/{study_id}/assignment": {
         parameters: {
             query?: never;
@@ -2206,6 +2327,53 @@ export interface paths {
          *             de la liste : les trois cas sont confondus volontairement.
          */
         post: operations["give_feedback_assist_runs__run_id__feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clinic/studies/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Radiologue prévu par le planning, pour ces examens de la clinique
+         * @description Le radiologue que le planning de la clinique prévoit, pour chaque examen.
+         *
+         *     Un examen d'une autre clinique est rendu sans radiologue prévu, comme
+         *     un examen inexistant.
+         */
+        post: operations["get_plan_clinic_studies_plan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/clinic/studies/plan/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attribuer ces examens de la clinique au radiologue que le planning prévoit
+         * @description « Confirmer » et « Tout confirmer » : le radiologue prévu reçoit l'examen.
+         *
+         *     Un examen d'une autre clinique est rendu ``not_found``. Un examen
+         *     attribué ou pris entre-temps, ou dont le planning ne prévoit plus ce
+         *     radiologue, est laissé tel quel, sans empêcher les autres.
+         */
+        post: operations["confirm_plan_clinic_studies_plan_confirm_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3502,7 +3670,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/organization/assignment-rules": {
+    "/organization/assignment-plan": {
         parameters: {
             query?: never;
             header?: never;
@@ -3510,22 +3678,95 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Règles d'attribution de la clinique
-         * @description Planning de la semaine et radiologue par modalité de la clinique active.
+         * Planning d'attribution de la clinique
+         * @description Lignes du planning de la clinique active, et radiologues à choisir.
          */
-        get: operations["get_rules_organization_assignment_rules_get"];
-        /**
-         * Régler les règles d'attribution de la clinique
-         * @description Remplace le planning et les radiologues par modalité de la clinique active.
-         *
-         *     Raises:
-         *         Conflict: Les règles ont changé depuis la lecture.
-         *         Unprocessable: Un radiologue n'est pas de la clinique, ou ne lit
-         *             pas la modalité pour laquelle il est désigné.
-         */
-        put: operations["update_rules_organization_assignment_rules_put"];
+        get: operations["get_plan_organization_assignment_plan_get"];
+        put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organization/assignment-plan/copy-week": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Recopier la semaine précédente du planning de la clinique
+         * @description Recopie sur une semaine les lignes datées de la semaine précédente.
+         *
+         *     Raises:
+         *         Unprocessable: Pas un lundi, semaine passée, rien à recopier, ou
+         *             planning plein.
+         *         Conflict: La semaine visée a déjà des lignes datées, sans
+         *             confirmation (``replace``).
+         */
+        post: operations["copy_week_organization_assignment_plan_copy_week_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organization/assignment-plan/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ajouter une ligne au planning de la clinique
+         * @description Ajoute une ligne au planning de la clinique active.
+         *
+         *     Raises:
+         *         Unprocessable: Le radiologue n'est pas de la clinique, ne lit pas
+         *             la modalité, la période est passée ou n'a aucun des jours
+         *             choisis, ou le planning est plein.
+         */
+        post: operations["add_line_organization_assignment_plan_lines_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organization/assignment-plan/lines/{line_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Modifier une ligne du planning de la clinique
+         * @description Modifie une ligne du planning de la clinique active.
+         *
+         *     Raises:
+         *         NotFound: Ligne absente du planning de la clinique.
+         *         Unprocessable: Comme pour l'ajout.
+         */
+        put: operations["update_line_organization_assignment_plan_lines__line_id__put"];
+        post?: never;
+        /**
+         * Retirer une ligne du planning de la clinique
+         * @description Retire une ligne du planning de la clinique active.
+         *
+         *     Raises:
+         *         NotFound: Ligne absente du planning de la clinique.
+         */
+        delete: operations["remove_line_organization_assignment_plan_lines__line_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3667,8 +3908,8 @@ export interface paths {
         };
         get?: never;
         /**
-         * Régler les modalités et la liste d'urgence d'un radiologue
-         * @description Modalités lues par un radiologue de la clinique, et sa place sur la liste d'urgence.
+         * Régler la place d'un radiologue sur la liste d'urgence
+         * @description Place d'un radiologue de la clinique sur sa liste d'urgence.
          *
          *     Raises:
          *         NotFound: Appartenance absente de la clinique active.
@@ -5640,6 +5881,37 @@ export interface components {
             via_pool: boolean;
         };
         /**
+         * AssignmentPlan
+         * @description Le planning d'attribution d'une clinique.
+         *
+         *     Attributes:
+         *         clinic_id: Clinique.
+         *         time_zone: Fuseau dans lequel il se lit (IANA).
+         *         today: Date du jour à la clinique : elle situe « cette semaine ».
+         *         lines: Lignes hebdomadaires, puis lignes datées, de la plus
+         *             ancienne à la plus lointaine. Les lignes datées finies depuis
+         *             plus de quatre semaines n'y sont plus.
+         *         radiologists: Radiologues à choisir, et ceux déjà au planning.
+         */
+        AssignmentPlan: {
+            /**
+             * Clinic Id
+             * Format: uuid
+             */
+            clinic_id: string;
+            /** Lines */
+            lines: components["schemas"]["PlanLine"][];
+            /** Radiologists */
+            radiologists: components["schemas"]["PlanRadiologist"][];
+            /** Time Zone */
+            time_zone: string;
+            /**
+             * Today
+             * Format: date
+             */
+            today: string;
+        };
+        /**
          * AssignmentRequest
          * @description Attribution ou réattribution d'un examen.
          *
@@ -5665,78 +5937,6 @@ export interface components {
             share_prior_ids?: string[];
         };
         /**
-         * AssignmentRules
-         * @description Les règles d'attribution d'une clinique.
-         *
-         *     Attributes:
-         *         clinic_id: Clinique.
-         *         time_zone: Fuseau dans lequel se lit le planning (IANA).
-         *         version: À rendre au remplacement : il est refusé si les règles
-         *             ont changé entre-temps.
-         *         slots: Planning de la semaine, dans l'ordre de l'écran.
-         *         modalities: Radiologue désigné par groupe de modalités.
-         *         radiologists: Radiologues à choisir, et ceux déjà dans les règles.
-         */
-        AssignmentRules: {
-            /**
-             * Clinic Id
-             * Format: uuid
-             */
-            clinic_id: string;
-            /** Modalities */
-            modalities: components["schemas"]["ModalityAssignee"][];
-            /** Radiologists */
-            radiologists: components["schemas"]["RuleRadiologist"][];
-            /** Slots */
-            slots: components["schemas"]["AssignmentSlot"][];
-            /** Time Zone */
-            time_zone: string;
-            /** Version */
-            version: string;
-        };
-        /**
-         * AssignmentRulesUpdate
-         * @description Les règles d'attribution, en entier.
-         *
-         *     Attributes:
-         *         version: Version lue avant la modification.
-         *         slots: Planning complet ; vide pour aucun.
-         *         modalities: Radiologues par modalité ; une modalité absente n'en a
-         *             plus. Une seule entrée par groupe.
-         */
-        AssignmentRulesUpdate: {
-            /** Modalities */
-            modalities: components["schemas"]["ModalityAssignee"][];
-            /** Slots */
-            slots: components["schemas"]["AssignmentSlot"][];
-            /** Version */
-            version: string;
-        };
-        /**
-         * AssignmentSlot
-         * @description Un créneau du planning.
-         *
-         *     Attributes:
-         *         radiologist_id: Radiologue de garde.
-         *         weekdays: Jours, de 1 (lundi) à 7 (dimanche).
-         *         starts_at: Début, ``HH:MM`` ; absent pour toute la journée.
-         *         ends_at: Fin, ``HH:MM`` ; avant le début pour une garde de nuit,
-         *             qui finit le lendemain.
-         */
-        AssignmentSlot: {
-            /** Ends At */
-            ends_at?: string | null;
-            /**
-             * Radiologist Id
-             * Format: uuid
-             */
-            radiologist_id: string;
-            /** Starts At */
-            starts_at?: string | null;
-            /** Weekdays */
-            weekdays: number[];
-        };
-        /**
          * AssignmentState
          * @description Attribution d'un examen, telle qu'elle est.
          *
@@ -5749,9 +5949,13 @@ export interface components {
          *         assigned_to_name: Son nom.
          *         assigned_at: Instant de l'attribution ; nul quand le radiologue a
          *             pris une urgence lui-même sans attribution préalable.
-         *         assigned_by_rule: Règle d'attribution de la clinique qui l'a confié
-         *             (``modality``, ``schedule``) ; nul pour une attribution faite
-         *             par une personne.
+         *         assigned_by_rule: Règle d'attribution qui l'avait confié d'office,
+         *             avant le 30 octobre 2026 (``modality``, ``schedule``) ; nul pour
+         *             une attribution faite par une personne. Plus aucune règle
+         *             n'attribue : le planning propose, une personne confirme.
+         *         planned: Radiologues que le planning prévoit, pour un examen à
+         *             attribuer : un seul, il est prévu (la fenêtre le présélectionne) ;
+         *             plusieurs, le planning hésite ; aucun, rien n'est prévu.
          *         draft_in_progress: Vrai si le titulaire a commencé à rédiger : une
          *             réattribution effacerait son texte.
          *         candidates: Radiologues éligibles, les moins chargés d'abord.
@@ -5776,6 +5980,8 @@ export interface components {
             modality: string | null;
             /** Notified */
             notified?: boolean | null;
+            /** Planned */
+            planned?: components["schemas"]["PlannedRadiologist"][];
             /** Prior Shares */
             prior_shares: components["schemas"]["PriorShareOut"][];
             /**
@@ -8169,22 +8375,6 @@ export interface components {
             received: number;
         };
         /**
-         * ModalityAssignee
-         * @description Le radiologue désigné pour un groupe de modalités.
-         */
-        ModalityAssignee: {
-            /**
-             * Group
-             * @enum {string}
-             */
-            group: "radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other";
-            /**
-             * Radiologist Id
-             * Format: uuid
-             */
-            radiologist_id: string;
-        };
-        /**
          * ModalityCount
          * @description Examens d'un groupe de modalités.
          */
@@ -8545,6 +8735,202 @@ export interface components {
             removed_fingerprints: string[];
             /** Trusted Certificates */
             trusted_certificates: components["schemas"]["TrustedCertificate"][];
+        };
+        /**
+         * PlanConfirmItem
+         * @description Un examen à confirmer, et le radiologue prévu que l'écran montrait.
+         */
+        PlanConfirmItem: {
+            /**
+             * Radiologist Id
+             * Format: uuid
+             */
+            radiologist_id: string;
+            /**
+             * Study Id
+             * Format: uuid
+             */
+            study_id: string;
+        };
+        /**
+         * PlanConfirmRequest
+         * @description Les examens à attribuer au radiologue que le planning prévoit.
+         *
+         *     Attributes:
+         *         items: Un examen par ligne confirmée ; tous ceux de la page pour
+         *             « Tout confirmer ». Un examen n'y figure qu'une fois.
+         */
+        PlanConfirmRequest: {
+            /** Items */
+            items: components["schemas"]["PlanConfirmItem"][];
+        };
+        /**
+         * PlanConfirmResult
+         * @description Ce qu'a donné la confirmation d'un examen.
+         *
+         *     Attributes:
+         *         study_id: Examen.
+         *         outcome: ``assigned`` (attribué au radiologue prévu),
+         *             ``already_assigned`` (quelqu'un l'a attribué ou pris entre-temps),
+         *             ``plan_changed`` (le planning ne prévoit plus ce radiologue),
+         *             ``not_found`` (examen inconnu, ou d'une autre clinique).
+         */
+        PlanConfirmResult: {
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "assigned" | "already_assigned" | "plan_changed" | "not_found";
+            /**
+             * Study Id
+             * Format: uuid
+             */
+            study_id: string;
+        };
+        /**
+         * PlanConfirmation
+         * @description Ce qu'a donné « Confirmer » ou « Tout confirmer ».
+         *
+         *     Attributes:
+         *         results: Une issue par examen, dans l'ordre demandé.
+         *         assigned: Examens attribués.
+         *         notified: Radiologues prévenus par courriel (un seul courriel par
+         *             radiologue, qui compte ses examens).
+         */
+        PlanConfirmation: {
+            /** Assigned */
+            assigned: number;
+            /** Notified */
+            notified: number;
+            /** Results */
+            results: components["schemas"]["PlanConfirmResult"][];
+        };
+        /**
+         * PlanLine
+         * @description Une ligne du planning, telle qu'elle est.
+         *
+         *     Attributes:
+         *         id: Ligne.
+         *         updated_at: Dernière modification, ou création.
+         *         updated_by_name: Qui l'a faite ; absent si on ne le sait plus.
+         */
+        PlanLine: {
+            /** Ends At */
+            ends_at?: string | null;
+            /** Ends On */
+            ends_on?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Modality Group */
+            modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+            /**
+             * Radiologist Id
+             * Format: uuid
+             */
+            radiologist_id: string;
+            /** Starts At */
+            starts_at?: string | null;
+            /** Starts On */
+            starts_on?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Updated By Name */
+            updated_by_name: string | null;
+            /** Weekdays */
+            weekdays: number[];
+        };
+        /**
+         * PlanLineInput
+         * @description Une ligne du planning, à écrire.
+         *
+         *     Attributes:
+         *         radiologist_id: Radiologue prévu.
+         *         weekdays: Jours, de 1 (lundi) à 7 (dimanche) ; les sept pour toute
+         *             la semaine.
+         *         starts_at: Début, ``HH:MM`` ; absent pour toute la journée.
+         *         ends_at: Fin, ``HH:MM`` ; avant le début pour une garde de nuit,
+         *             qui finit le lendemain.
+         *         modality_group: Groupe de modalités ; absent pour toutes.
+         *         starts_on: Premier jour de la période, à la date de la clinique ;
+         *             absent pour une ligne qui vaut chaque semaine.
+         *         ends_on: Dernier jour de la période, compris.
+         */
+        PlanLineInput: {
+            /** Ends At */
+            ends_at?: string | null;
+            /** Ends On */
+            ends_on?: string | null;
+            /** Modality Group */
+            modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+            /**
+             * Radiologist Id
+             * Format: uuid
+             */
+            radiologist_id: string;
+            /** Starts At */
+            starts_at?: string | null;
+            /** Starts On */
+            starts_on?: string | null;
+            /** Weekdays */
+            weekdays: number[];
+        };
+        /**
+         * PlanRadiologist
+         * @description Un radiologue qui peut figurer au planning.
+         *
+         *     Attributes:
+         *         profile_id: Profil.
+         *         name: Titre et nom.
+         *         organization_name: Clinique ou groupe par lequel il la lit.
+         *         via_pool: Vrai pour un radiologue du réseau.
+         *         read_modalities: Groupes de modalités lus ; ``None`` pour tous.
+         *             Réglés par l'équipe IMAFRIK seule.
+         *         can_receive: Faux s'il ne peut pas recevoir d'examen de la clinique
+         *             aujourd'hui (habilitation, rattachement) : le planning l'ignore.
+         */
+        PlanRadiologist: {
+            /** Can Receive */
+            can_receive: boolean;
+            /** Name */
+            name: string;
+            /** Organization Name */
+            organization_name: string;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /** Read Modalities */
+            read_modalities: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other")[] | null;
+            /** Via Pool */
+            via_pool: boolean;
+        };
+        /**
+         * PlanRequest
+         * @description Les examens d'une page, dont on veut le radiologue prévu.
+         */
+        PlanRequest: {
+            /** Study Ids */
+            study_ids: string[];
+        };
+        /**
+         * PlannedRadiologist
+         * @description Un radiologue que le planning de la clinique prévoit pour un examen.
+         */
+        PlannedRadiologist: {
+            /** Name */
+            name: string;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
         };
         /**
          * PlatformSettings
@@ -9022,16 +9408,16 @@ export interface components {
         };
         /**
          * ReadingSettings
-         * @description Lecture d'un radiologue de la clinique.
+         * @description Place d'un radiologue de la clinique sur sa liste d'urgence.
+         *
+         *     Les modalités qu'il lit ne se règlent pas ici : l'équipe IMAFRIK seule
+         *     les règle. Un champ ``read_modalities`` envoyé par une ancienne
+         *     interface est ignoré.
          *
          *     Attributes:
-         *         read_modalities: Groupes de modalités qu'il lit ; ``None`` pour
-         *             tous. Au moins un.
          *         urgent_reader: Sur la liste d'urgence de la clinique.
          */
         ReadingSettings: {
-            /** Read Modalities */
-            read_modalities?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other")[] | null;
             /** Urgent Reader */
             urgent_reader: boolean;
         };
@@ -9311,36 +9697,6 @@ export interface components {
              * @description Exécution relevée, à rappeler avec chaque décision ; None si rien n'a été appelé.
              */
             run_id: string | null;
-        };
-        /**
-         * RuleRadiologist
-         * @description Un radiologue qui peut figurer dans les règles.
-         *
-         *     Attributes:
-         *         profile_id: Profil.
-         *         name: Titre et nom.
-         *         organization_name: Clinique ou groupe par lequel il la lit.
-         *         via_pool: Vrai pour un radiologue du réseau.
-         *         read_modalities: Groupes de modalités lus ; ``None`` pour tous.
-         *         can_receive: Faux s'il ne peut pas recevoir d'examen de la clinique
-         *             aujourd'hui (habilitation, rattachement) : la règle l'ignore.
-         */
-        RuleRadiologist: {
-            /** Can Receive */
-            can_receive: boolean;
-            /** Name */
-            name: string;
-            /** Organization Name */
-            organization_name: string;
-            /**
-             * Profile Id
-             * Format: uuid
-             */
-            profile_id: string;
-            /** Read Modalities */
-            read_modalities: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other")[] | null;
-            /** Via Pool */
-            via_pool: boolean;
         };
         /**
          * SectionsPatch
@@ -9896,6 +10252,26 @@ export interface components {
             next_cursor?: string | null;
             /** Total */
             total: number;
+        };
+        /**
+         * StudyPlan
+         * @description Le radiologue que le planning prévoit pour un examen.
+         *
+         *     Attributes:
+         *         study_id: Examen.
+         *         planned: Un seul : il est prévu, l'examen se confirme d'un geste.
+         *             Plusieurs : le planning hésite (deux lignes aussi précises),
+         *             le responsable choisit. Aucun : rien n'est prévu, ou l'examen
+         *             n'est plus à attribuer.
+         */
+        StudyPlan: {
+            /** Planned */
+            planned: components["schemas"]["PlannedRadiologist"][];
+            /**
+             * Study Id
+             * Format: uuid
+             */
+            study_id: string;
         };
         /**
          * StudyStableEvent
@@ -10699,6 +11075,47 @@ export interface components {
             /** Value */
             value: string;
         };
+        /**
+         * WeekCopy
+         * @description Ce qu'a donné la recopie d'une semaine.
+         *
+         *     Attributes:
+         *         copied: Lignes recopiées.
+         *         skipped: Lignes laissées : leur radiologue ne peut plus figurer au
+         *             planning, ou ne lit plus leur modalité.
+         *         replaced: Lignes datées de la semaine visée, retirées.
+         *         plan: Le planning, tel qu'il est devenu.
+         */
+        WeekCopy: {
+            /** Copied */
+            copied: number;
+            plan: components["schemas"]["AssignmentPlan"];
+            /** Replaced */
+            replaced: number;
+            /** Skipped */
+            skipped: number;
+        };
+        /**
+         * WeekCopyRequest
+         * @description Recopie, sur une semaine, des lignes datées de la précédente.
+         *
+         *     Attributes:
+         *         week: Lundi de la semaine visée.
+         *         replace: Confirme le retrait des lignes datées que la semaine
+         *             visée compte déjà.
+         */
+        WeekCopyRequest: {
+            /**
+             * Replace
+             * @default false
+             */
+            replace: boolean;
+            /**
+             * Week
+             * Format: date
+             */
+            week: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -10956,7 +11373,7 @@ export interface operations {
             };
         };
     };
-    get_clinic_rules_admin_clinics__clinic_id__assignment_rules_get: {
+    get_clinic_plan_admin_clinics__clinic_id__assignment_plan_get: {
         parameters: {
             query?: never;
             header?: {
@@ -10975,7 +11392,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AssignmentRules"];
+                    "application/json": components["schemas"]["AssignmentPlan"];
                 };
             };
             /** @description Validation Error */
@@ -10989,7 +11406,7 @@ export interface operations {
             };
         };
     };
-    update_clinic_rules_admin_clinics__clinic_id__assignment_rules_put: {
+    copy_clinic_week_admin_clinics__clinic_id__assignment_plan_copy_week_post: {
         parameters: {
             query?: never;
             header?: {
@@ -11002,7 +11419,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AssignmentRulesUpdate"];
+                "application/json": components["schemas"]["WeekCopyRequest"];
             };
         };
         responses: {
@@ -11012,7 +11429,116 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AssignmentRules"];
+                    "application/json": components["schemas"]["WeekCopy"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_clinic_line_admin_clinics__clinic_id__assignment_plan_lines_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanLineInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_clinic_line_admin_clinics__clinic_id__assignment_plan_lines__line_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+                line_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanLineInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_clinic_line_admin_clinics__clinic_id__assignment_plan_lines__line_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+                line_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentPlan"];
                 };
             };
             /** @description Validation Error */
@@ -13219,6 +13745,76 @@ export interface operations {
             };
         };
     };
+    get_plan_admin_studies_plan_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyPlan"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_plan_admin_studies_plan_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanConfirmation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_assignment_admin_studies__study_id__assignment_get: {
         parameters: {
             query?: never;
@@ -13900,6 +14496,76 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_plan_clinic_studies_plan_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyPlan"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_plan_clinic_studies_plan_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanConfirmation"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -15681,7 +16347,7 @@ export interface operations {
             };
         };
     };
-    get_rules_organization_assignment_rules_get: {
+    get_plan_organization_assignment_plan_get: {
         parameters: {
             query?: never;
             header?: {
@@ -15698,7 +16364,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AssignmentRules"];
+                    "application/json": components["schemas"]["AssignmentPlan"];
                 };
             };
             /** @description Validation Error */
@@ -15712,7 +16378,7 @@ export interface operations {
             };
         };
     };
-    update_rules_organization_assignment_rules_put: {
+    copy_week_organization_assignment_plan_copy_week_post: {
         parameters: {
             query?: never;
             header?: {
@@ -15723,7 +16389,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AssignmentRulesUpdate"];
+                "application/json": components["schemas"]["WeekCopyRequest"];
             };
         };
         responses: {
@@ -15733,7 +16399,112 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AssignmentRules"];
+                    "application/json": components["schemas"]["WeekCopy"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_line_organization_assignment_plan_lines_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanLineInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_line_organization_assignment_plan_lines__line_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                line_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanLineInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentPlan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_line_organization_assignment_plan_lines__line_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                line_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignmentPlan"];
                 };
             };
             /** @description Validation Error */

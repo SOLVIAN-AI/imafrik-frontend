@@ -60,7 +60,7 @@ export const glossary: typeof fr = {
   attribution: {
     term: "Assignment",
     definition:
-      "Reserving an examination for a specific radiologist, by the clinic’s manager or, for network radiologists, by the IMAFRIK team, or automatically on arrival by an assignment rule. Only they can see it and take it on; they are notified by email, without any patient data.",
+      "Reserving an examination for a specific radiologist, by the clinic’s manager or, for network radiologists, by the IMAFRIK team, often by confirming the radiologist the assignment schedule plans. Only they can see it and take it on; they are notified by email, without any patient data.",
   },
   brouillon: {
     term: "Draft",
@@ -245,7 +245,7 @@ export const glossary: typeof fr = {
   modalitesLues: {
     term: "Modalities read",
     definition:
-      "What a radiologist reads: radiography (HSG included), mammography, ultrasound, CT, MRI, other. Set by the clinic for its radiologists, or by the IMAFRIK team, they limit what can be assigned to them and the urgent examinations they see.",
+      "What a radiologist reads: radiography (HSG included), mammography, ultrasound, CT, MRI, other. Set by the IMAFRIK team, they limit what can be assigned to them, the urgent examinations they see and the schedule lines they can appear on.",
   },
   moisClos: {
     term: "Closed month",
@@ -268,9 +268,9 @@ export const glossary: typeof fr = {
       "Software installed on a clinic workstation. It receives the images from the devices and sends them, encrypted, to the IMAFRIK PACS. It is installed with the installation kit and an enrolment code.",
   },
   planning: {
-    term: "Weekly schedule",
+    term: "Assignment schedule",
     definition:
-      "Duty slots set by the clinic’s manager, or the IMAFRIK team: which radiologist, which days, which hours, nights included. An arriving examination goes to the only on-duty radiologist who can read it; if there are several, the manager chooses.",
+      "What the clinic’s manager, or the IMAFRIK team, plans: which radiologist reads, which days, which hours, which modality, every week or for a period. It suggests the radiologist for an examination to assign; it assigns nothing without confirmation.",
   },
   pool: {
     term: "IMAFRIK network (pool)",
@@ -282,6 +282,11 @@ export const glossary: typeof fr = {
     definition:
       "The action by which a radiologist starts reading an examination assigned to them, or takes an urgent examination from their urgent list. Until they sign, they can return it: the examination is to assign again.",
   },
+  radiologuePrevu: {
+    term: "Planned radiologist",
+    definition:
+      "The one the assignment schedule names for an examination to assign, from its arrival time: the most precise line wins (modality, then period, then hours). “Confirm” assigns it to them; two equally precise lines plan nobody.",
+  },
   renseignementClinique: {
     term: "Clinical information",
     definition:
@@ -290,7 +295,7 @@ export const glossary: typeof fr = {
   regleAttribution: {
     term: "Assignment rule",
     definition:
-      "Instruction set in advance by the clinic’s manager, or the IMAFRIK team: a radiologist for each modality, then the weekly schedule. When an examination arrives, it gives it to the planned radiologist if they can read it. It never takes back an examination already assigned.",
+      "Until 30 October 2026, an instruction that gave an examination automatically on arrival: to the radiologist for its modality, or to the on-duty radiologist. Replaced by the assignment schedule, which suggests without assigning; the log and the page of examinations given that way still say so.",
   },
   reseauPrive: {
     term: "Private network",

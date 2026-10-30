@@ -5,7 +5,7 @@ import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getMessages()).t.assignment.rules.title };
+  return { title: (await getMessages()).t.assignment.plan.title };
 }
 
 /** Règles d'attribution de la clinique, réglées par son responsable. */

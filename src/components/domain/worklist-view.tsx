@@ -6,6 +6,12 @@ import { toast } from "sonner";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
 import { EligibilityNote } from "@/components/domain/eligibility-note";
+import {
+  ConfirmAllPlannedButton,
+  ConfirmPlannedButton,
+  PlannedNote,
+} from "@/components/domain/planned-assignee";
+import { confirmable } from "@/lib/assignment-plan";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { CredentialsBanner } from "@/components/domain/credentials-banner";
 import { ListToolbar } from "@/components/domain/list-toolbar";
@@ -21,7 +27,10 @@ import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { AppMessages } from "@/i18n";
 import { useNow } from "@/hooks/use-now";
-import type { AssignmentState } from "@/lib/actions/assignment";
+import type {
+  AssignmentState,
+  PlannedRadiologist,
+} from "@/lib/actions/assignment";
 import type { Eligibility } from "@/lib/assignment-blocker";
 import type { Study } from "@/lib/data/studies";
 import type { ActiveFilters, BarDimension } from "@/lib/filters/dimensions";
@@ -197,6 +206,8 @@ function useUrgentArrivals(open: Study[]) {
  *                   au lieu de laisser croire la file complète.
  * @param eligibility Équipe IMAFRIK : qui peut recevoir chaque examen à
  *                   attribuer, lu par la page pour toute la file affichée.
+ * @param planned    Équipe IMAFRIK : le radiologue que le planning de sa
+ *                   clinique prévoit pour chaque examen à attribuer.
  */
 export function WorklistView({
   sections: served,
@@ -207,6 +218,7 @@ export function WorklistView({
   shown,
   total,
   eligibility = {},
+  planned = {},
 }: {
   sections: WorklistSections;
   scope: readonly string[];
@@ -216,6 +228,7 @@ export function WorklistView({
   shown: number;
   total: number;
   eligibility?: Record<string, Eligibility>;
+  planned?: Record<string, PlannedRadiologist[]>;
 }) {
   const now = useNow();
   const t = useMessages();
@@ -306,11 +319,25 @@ export function WorklistView({
                       ...labels.supervision.open,
                       studies: sections.open,
                       follow: "none",
-                      note: (study) => (
-                        <EligibilityNote
-                          found={eligibility[study.id]}
-                          modality={study.modality}
-                          compact
+                      // Le radiologue prévu d'abord : il se confirme d'un
+                      // geste ; sinon, qui peut recevoir l'examen.
+                      note: (study) =>
+                        planned[study.id] ? (
+                          <PlannedNote planned={planned[study.id]} compact />
+                        ) : (
+                          <EligibilityNote
+                            found={eligibility[study.id]}
+                            modality={study.modality}
+                            compact
+                          />
+                        ),
+                      headerAction: (
+                        <ConfirmAllPlannedButton
+                          portal="team"
+                          items={confirmable(
+                            sections.open.map((study) => study.id),
+                            planned,
+                          )}
                         />
                       ),
                     },
@@ -341,14 +368,24 @@ export function WorklistView({
                     // quand personne ne peut recevoir l'examen, la ligne le
                     // dit dans son suivi et la fenêtre explique quoi faire.
                     render: (study) => (
-                      <AssignDialog
-                        portal="team"
-                        studyId={study.id}
-                        patient={formatPatientName(study.patientName)}
-                        assigned={study.assignedTo !== null}
-                        clinic={{ id: study.clinicId, name: study.clinic }}
-                        onChanged={(state) => record(study.id, state)}
-                      />
+                      <span className="inline-flex flex-wrap items-center justify-end gap-1">
+                        {study.assignedTo === null && (
+                          <ConfirmPlannedButton
+                            portal="team"
+                            studyId={study.id}
+                            patient={formatPatientName(study.patientName)}
+                            planned={planned[study.id]}
+                          />
+                        )}
+                        <AssignDialog
+                          portal="team"
+                          studyId={study.id}
+                          patient={formatPatientName(study.patientName)}
+                          assigned={study.assignedTo !== null}
+                          clinic={{ id: study.clinicId, name: study.clinic }}
+                          onChanged={(state) => record(study.id, state)}
+                        />
+                      </span>
                     ),
                   }
                 : undefined

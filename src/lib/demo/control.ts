@@ -2,7 +2,8 @@ import type {
   ApiAdminUser,
   ApiAssignmentState,
   ApiPriorCandidate,
-  ApiAssignmentRules,
+  ApiAssignmentPlan,
+  ApiPlanLine,
   ApiUrgentReader,
   ApiCredentialDocument,
   ApiContactRequest,
@@ -27,6 +28,13 @@ import { demoIdeas } from "@/lib/demo/ideas";
 import { DEMO_SIGNING_REVIEW_PROFILE } from "@/lib/demo/signing";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 import { MODALITY_GROUPS, modalityGroupOf } from "@/lib/modalities";
+import {
+  addDays,
+  localParts,
+  mondayOf,
+  plannedFor,
+  toAssignmentPlan,
+} from "@/lib/assignment-plan";
 
 /**
  * Réseau de démonstration de la tour de contrôle.
@@ -1470,29 +1478,39 @@ export function demoUrgentReaders(clinicId: string): ApiUrgentReader[] {
 /** Délai au-delà duquel une urgence non prise donne l'alerte. */
 const URGENT_UNCLAIMED_MINUTES = 10;
 
-/** Clinique de démonstration qui a ses propres règles d'attribution. */
-const DEMO_RULES_CLINIC = "org-stj";
+/** Clinique de démonstration du responsable, qui a son planning. */
+const DEMO_PLAN_CLINIC = "org-stj";
+
+/** Fuseau des cliniques de démonstration : Lomé et Kara, à l'heure UTC. */
+const DEMO_TIME_ZONE = "Africa/Lome";
 
 /**
- * Règles d'attribution de démonstration.
+ * Planning d'attribution de démonstration, daté de la semaine en cours.
  *
- * La Clinique Saint-Joseph confie l'échographie à sa radiologue, Afi
- * Mensah, qui tient aussi la journée en semaine ; l'équipe IMAFRIK a placé
- * deux radiologues du réseau, l'un pour les nuits, l'autre pour la
- * journée du week-end : toute la semaine est couverte, sans
- * chevauchement. Le
- * responsable les voit sans pouvoir en ajouter ; l'équipe IMAFRIK choisit
- * parmi tous les radiologues du groupe.
+ * La Clinique Saint-Joseph a sa radiologue, Afi Mensah, en journée la
+ * semaine ; l'équipe IMAFRIK y a placé des radiologues du réseau : les
+ * nuits, le week-end, les scanners chaque semaine, les IRM cette semaine
+ * et les scanners de la semaine prochaine. Dr Kponton, de jour en semaine
+ * comme Afi Mensah, montre un conflit. La Polyclinique de Kara confie
+ * tout à Dr Bakari, et ses IRM à deux radiologues à la fois : son IRM
+ * urgente n'a personne de prévu.
+ *
+ * Le responsable voit les radiologues du réseau du planning, sans pouvoir
+ * en ajouter ; l'équipe IMAFRIK choisit parmi tous ceux du groupe.
  *
  * @param clinicId      Clinique ; `null` pour la clinique active du
  *                      responsable (Saint-Joseph).
  * @param ownClinicOnly Vrai pour le responsable.
+ * @param now           Instant de référence, pour situer la semaine.
  */
-export function demoAssignmentRules(
+export function demoAssignmentPlan(
   clinicId: string | null,
   ownClinicOnly: boolean,
-): ApiAssignmentRules {
-  const id = clinicId ?? DEMO_RULES_CLINIC;
+  now = Date.now(),
+): ApiAssignmentPlan {
+  const id = clinicId ?? DEMO_PLAN_CLINIC;
+  const today = localParts(new Date(now), DEMO_TIME_ZONE).day;
+  const monday = mondayOf(today);
   const own = {
     profile_id: "p-amensah",
     name: "Dr Afi Mensah",
@@ -1509,46 +1527,120 @@ export function demoAssignmentRules(
     read_modalities: READS[reader.id],
     can_receive: true,
   });
-  const [, , agbeko, diallo] = READERS;
-  if (id !== DEMO_RULES_CLINIC) {
+  const [me, bakari, agbeko, diallo] = READERS;
+  const updatedAt = new Date(now - 26 * 3_600_000).toISOString();
+  const line = (
+    key: string,
+    radiologist: string,
+    weekdays: number[],
+    extra: Partial<ApiPlanLine> = {},
+  ): ApiPlanLine => ({
+    id: `demo-line-${key}`,
+    radiologist_id: radiologist,
+    weekdays,
+    starts_at: null,
+    ends_at: null,
+    modality_group: null,
+    starts_on: null,
+    ends_on: null,
+    updated_at: updatedAt,
+    updated_by_name:
+      radiologist === own.profile_id ? "Akouvi Mensah" : "Équipe IMAFRIK",
+    ...extra,
+  });
+  const week = { starts_on: monday, ends_on: addDays(monday, 6) };
+  const next = { starts_on: addDays(monday, 7), ends_on: addDays(monday, 13) };
+  const days = [1, 2, 3, 4, 5];
+  const everyDay = [1, 2, 3, 4, 5, 6, 7];
+  const daytime = { starts_at: "08:00", ends_at: "18:00" };
+
+  if (id === DEMO_PLAN_CLINIC) {
+    const lines = [
+      line("stj-jour", own.profile_id, days, daytime),
+      line("stj-kponton", me.id, days, daytime),
+      line("stj-nuit", diallo.id, everyDay, {
+        starts_at: "18:00",
+        ends_at: "08:00",
+      }),
+      line("stj-week-end", agbeko.id, [6, 7], daytime),
+      line("stj-scanner", bakari.id, everyDay, { modality_group: "ct" }),
+      line("stj-irm", agbeko.id, everyDay, { modality_group: "mri", ...week }),
+      line("stj-scanner-suivante", diallo.id, everyDay, {
+        modality_group: "ct",
+        ...next,
+      }),
+    ];
+    const placed = new Set(lines.map((one) => one.radiologist_id));
     return {
       clinic_id: id,
-      time_zone: "Africa/Lome",
-      version: "demo-0",
-      slots: [],
-      modalities: [],
+      time_zone: DEMO_TIME_ZONE,
+      today,
+      lines,
+      radiologists: ownClinicOnly
+        ? [own, ...READERS.filter((r) => placed.has(r.id)).map(network)]
+        : [own, ...READERS.map(network)],
+    };
+  }
+  if (id === DEMO_CLINIC_IDS["Polyclinique de Kara"]) {
+    return {
+      clinic_id: id,
+      time_zone: DEMO_TIME_ZONE,
+      today,
+      lines: [
+        line("pka-tout", bakari.id, everyDay),
+        line("pka-irm-diallo", diallo.id, everyDay, { modality_group: "mri" }),
+        line("pka-irm-agbeko", agbeko.id, everyDay, { modality_group: "mri" }),
+      ],
       radiologists: READERS.map(network),
     };
   }
   return {
     clinic_id: id,
-    time_zone: "Africa/Lome",
-    version: "demo-1",
-    slots: [
-      {
-        radiologist_id: own.profile_id,
-        weekdays: [1, 2, 3, 4, 5],
-        starts_at: "08:00",
-        ends_at: "18:00",
-      },
-      {
-        radiologist_id: diallo.id,
-        weekdays: [1, 2, 3, 4, 5, 6, 7],
-        starts_at: "18:00",
-        ends_at: "08:00",
-      },
-      {
-        radiologist_id: agbeko.id,
-        weekdays: [6, 7],
-        starts_at: "08:00",
-        ends_at: "18:00",
-      },
-    ],
-    modalities: [{ group: "ultrasound", radiologist_id: own.profile_id }],
-    radiologists: ownClinicOnly
-      ? [own, network(agbeko), network(diallo)]
-      : [own, ...READERS.map(network)],
+    time_zone: DEMO_TIME_ZONE,
+    today,
+    lines: [],
+    radiologists: READERS.map(network),
   };
+}
+
+/** Radiologues prévus d'un examen de démonstration, comme le service. */
+function demoPlannedOf(studyId: string): { profileId: string; name: string }[] {
+  const study = DEMO_STUDIES.find((candidate) => candidate.id === studyId);
+  if (!study || study.status !== "received" || study.assignedTo !== null) {
+    return [];
+  }
+  const plan = toAssignmentPlan(demoAssignmentPlan(study.clinicId, false));
+  const receivers = new Set<string>(
+    READERS.filter((reader) =>
+      READS[reader.id].includes(modalityGroupOf(study.modality)),
+    ).map((reader) => reader.id),
+  );
+  const names = new Map(plan.radiologists.map((r) => [r.profileId, r.name]));
+  return plannedFor(plan, study.receivedAt, study.modality, (id) =>
+    receivers.has(id),
+  ).map((profileId) => ({
+    profileId,
+    name: names.get(profileId) ?? profileId,
+  }));
+}
+
+/**
+ * Radiologues que le planning prévoit pour des examens de démonstration :
+ * Dr Bakari pour le scanner urgent de Saint-Joseph et la radiographie de
+ * Kara ; deux radiologues pour l'IRM de Kara ; personne pour la
+ * mammographie, que nul ne lit.
+ *
+ * @param studyIds Examens de la page.
+ */
+export function demoPlanned(
+  studyIds: readonly string[],
+): Record<string, { profileId: string; name: string }[]> {
+  return Object.fromEntries(
+    studyIds.flatMap((id) => {
+      const planned = demoPlannedOf(id);
+      return planned.length > 0 ? [[id, planned]] : [];
+    }),
+  );
 }
 
 /**
@@ -1640,6 +1732,10 @@ export function demoAssignment(studyId: string): ApiAssignmentState | null {
     assigned_at: holder
       ? new Date(study.receivedAt.getTime() + 5 * 60_000).toISOString()
       : null,
+    planned: demoPlannedOf(study.id).map((one) => ({
+      profile_id: one.profileId,
+      name: one.name,
+    })),
     draft_in_progress: study.status === "in_progress",
     candidates: READERS.filter((reader) =>
       READS[reader.id].includes(modalityGroupOf(study.modality)),

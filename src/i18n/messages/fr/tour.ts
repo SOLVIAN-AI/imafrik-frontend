@@ -113,7 +113,7 @@ export const tour = {
       },
       team: {
         title: "Votre équipe",
-        body: "Invitez vos responsables et vos radiologues : chacun a son propre compte. Réglez ici les modalités de chaque radiologue, la liste d’urgence et les règles d’attribution.",
+        body: "Invitez vos responsables et vos radiologues : chacun a son propre compte. Réglez ici la liste d’urgence, et composez le planning d’attribution.",
       },
       help: {
         title: "Besoin d’aide ?",

@@ -14,7 +14,7 @@ import { RelativeTime } from "@/components/admin/relative-time";
 import { ReportLanguageForm } from "@/components/admin/report-language-form";
 import { RetentionForm } from "@/components/admin/retention-form";
 import { UrgentReadersForm } from "@/components/admin/urgent-readers-form";
-import { AssignmentRulesForm } from "@/components/domain/assignment-rules-form";
+import { AssignmentPlanView } from "@/components/domain/assignment-plan-view";
 import { Legend, Ring, StackedBars } from "@/components/charts/charts";
 import { DateTime } from "@/components/domain/date-time";
 import { PageHeader } from "@/components/layout/app-shell";
@@ -35,7 +35,7 @@ import {
   formatMinutes,
   formatRate,
 } from "@/lib/format";
-import { getAssignmentRules } from "@/lib/actions/assignment-rules";
+import { getAssignmentPlan } from "@/lib/actions/assignment-plan";
 import { getUrgentReaders } from "@/lib/actions/urgent-readers";
 import { clinicViewPath } from "@/lib/clinic-view";
 import { getClinicPlan } from "@/lib/data/activity";
@@ -83,17 +83,25 @@ export default async function ClinicPage({
   const clinic = await getClinic(id);
   if (!clinic) notFound();
 
-  const [analytics, recent, logo, gateways, codes, urgentReaders, rules, plan] =
-    await Promise.all([
-      getAnalytics(30, clinic.id),
-      getPipeline(15, clinic.id),
-      getClinicLogo(clinic.id),
-      getClinicGateways(clinic.id),
-      getEnrollmentCodes(clinic.id),
-      getUrgentReaders(clinic.id),
-      getAssignmentRules(clinic.id),
-      getClinicPlan(clinic.id),
-    ]);
+  const [
+    analytics,
+    recent,
+    logo,
+    gateways,
+    codes,
+    urgentReaders,
+    schedule,
+    plan,
+  ] = await Promise.all([
+    getAnalytics(30, clinic.id),
+    getPipeline(15, clinic.id),
+    getClinicLogo(clinic.id),
+    getClinicGateways(clinic.id),
+    getEnrollmentCodes(clinic.id),
+    getUrgentReaders(clinic.id),
+    getAssignmentPlan(clinic.id),
+    getClinicPlan(clinic.id),
+  ]);
   const activity = analytics.byClinic[0];
   const done = clinic.onboarding.filter((step) => step.done).length;
   const ended = clinic.contractEndedAt !== null;
@@ -335,19 +343,19 @@ export default async function ClinicPage({
         </Section>
 
         <Section
-          title={t.assignment.rules.title}
-          description={t.assignment.rules.adminDescription}
+          id="planning"
+          title={t.assignment.plan.title}
+          description={t.assignment.plan.adminDescription}
         >
-          {rules.ok ? (
-            <AssignmentRulesForm
-              key={rules.data.version}
+          {schedule.ok ? (
+            <AssignmentPlanView
               clinicId={clinic.id}
-              rules={rules.data}
+              plan={schedule.data}
               readOnly={ended}
             />
           ) : (
             <p role="alert" className="text-xs text-urgent">
-              {rules.error}
+              {schedule.error}
             </p>
           )}
         </Section>
