@@ -463,7 +463,7 @@ export const pages = {
       purpose:
         "Rassemble les demandes envoyées par le formulaire de contact du site, par des établissements ou des radiologues. Chacune se suit de « Nouvelle » à « Convertie » ou « Écartée », avec les notes de l’équipe.",
       steps: [
-        "Filtrez par demandeur, « Établissements » ou « Radiologues », et par étape du suivi : les nouvelles s’affichent par défaut.",
+        "Filtrez par demandeur, étape du suivi ou période, chaque option comptée ; cherchez par nom, adresse ou établissement.",
         "Contactez le demandeur en cliquant sur son adresse électronique ou sur son numéro de téléphone.",
         "Pour un radiologue, relevez le « N° d’ordre déclaré » : il est vérifié avant tout accès aux examens.",
         "Pour accueillir un radiologue, cliquez sur « Inviter comme radiologue » quand le bouton est proposé : la demande passe à « Convertie ».",
@@ -509,7 +509,7 @@ export const pages = {
         "Chaque geste sensible, horodaté et attribué : examen consulté, compte-rendu signé, réglage modifié, membre ajouté. C’est la pièce à produire quand on demande qui a vu un dossier. Lecture seule : le journal s’écrit par le service, jamais d’ici.",
       steps: [
         "Lisez les entrées, les plus récentes en tête : date, action, auteur (« Système » ou « Règle d’attribution » pour un geste automatique), organisation et ressource.",
-        "Choisissez une action dans la liste « Toutes les actions » pour n’afficher qu’un type de geste, par exemple « Examen consulté ».",
+        "Filtrez par organisation, auteur, famille (« Comptes-rendus »…), action ou période : la liste se relit, depuis les plus récentes.",
         "Survolez la référence d’une ressource pour lire son identifiant complet.",
         "Cliquez sur « Entrées plus anciennes », en bas de page, pour remonter le journal 50 entrées à la fois.",
         "Cliquez sur « Revenir aux plus récentes » pour retrouver le début du journal.",

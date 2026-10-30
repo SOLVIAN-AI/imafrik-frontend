@@ -884,7 +884,6 @@ export const admin = {
     olderEntries: "Entrées plus anciennes",
     backToLatest: "Revenir aux plus récentes",
     emptyTitle: "Aucune entrée",
-    emptyForAction: "Aucune entrée pour cette action.",
     emptyDetail:
       "Le journal se remplit à mesure que la plateforme est utilisée.",
     system: "Système",
@@ -895,6 +894,22 @@ export const admin = {
      * par le service et par les fonctions de la base ; une action
      * inconnue ici s'affiche telle quelle.
      */
+    /** Familles d'actions, pour le filtre du journal. */
+    families: {
+      study: "Examens",
+      prior: "Antériorités",
+      report: "Comptes-rendus",
+      signing: "Signatures et cachets",
+      user: "Comptes",
+      membership: "Appartenances",
+      profile: "Profils",
+      organization: "Organisations",
+      gateway: "Passerelles",
+      billing: "Facturation",
+      agreement: "Engagements",
+      contact_request: "Demandes reçues",
+      platform: "Plateforme",
+    },
     actions: {
       "study.viewed": "Examen consulté",
       "study.claimed": "Examen pris en charge",

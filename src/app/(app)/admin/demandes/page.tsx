@@ -10,18 +10,26 @@ import type { Metadata } from "next";
 
 import { ContactTracker } from "@/components/admin/contact-tracker";
 import { InviteRequesterButton } from "@/components/admin/invite-requester-button";
-import { ControlBody, Segmented } from "@/components/admin/control-ui";
+import { ControlBody } from "@/components/admin/control-ui";
+import { SearchBox } from "@/components/admin/search-box";
 import { DateTime } from "@/components/domain/date-time";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   CONTACT_STATUSES,
   type ContactStatus,
-  isRequesterKind,
   REQUESTER_KINDS,
-  type RequesterKind,
 } from "@/lib/contact-status";
-import { listContactRequests } from "@/lib/data/admin";
+import { type ContactRequest, listContactRequests } from "@/lib/data/admin";
+import { matchChoices } from "@/lib/filters/choice";
+import { type BarDimension, PERIODS } from "@/lib/filters/dimensions";
+import { countOptions, filterRows, type RowValues } from "@/lib/filters/facets";
+import { periodsOf } from "@/lib/filters/periods";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { hasFilters, readFilters } from "@/lib/filters/url";
+import { readListSearch } from "@/lib/search/server";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
 import { getMessages } from "@/i18n/server";
@@ -38,34 +46,16 @@ const STATUS_STYLES: Record<ContactStatus, string> = {
   dismissed: "bg-surface-active text-secondary",
 };
 
-/** Valeur d'adresse du filtre « demandeur », en français comme les autres. */
-const KIND_PARAMS: Record<RequesterKind, string> = {
-  clinic: "etablissement",
-  radiologist: "radiologue",
-};
-
-/**
- * Adresse de la liste pour une étape et un demandeur.
- *
- * @param status Étape, ou toutes.
- * @param kind   Demandeur, ou tous.
- */
-function requestsHref(
-  status: ContactStatus | "all",
-  kind: RequesterKind | null,
-): string {
-  const params = new URLSearchParams({ etat: status });
-  if (kind) params.set("demandeur", KIND_PARAMS[kind]);
-  return `/admin/demandes?${params}`;
-}
-
 /**
  * Demandes envoyées par le formulaire de contact du site.
  *
  * Une demande est un futur client : elle se suit comme telle, de
  * « nouvelle » à « convertie » ou « écartée », avec les notes de qui l'a
- * traitée. Les nouvelles s'affichent par défaut — c'est ce qui attend une
- * réponse.
+ * traitée. La barre de filtres commune les trie par demandeur, étape et
+ * période, chaque option comptée ; la recherche (nom, adresse,
+ * établissement) vit dans un cookie, jamais dans l'adresse. Toutes les
+ * demandes par défaut ; l'alerte du cockpit ouvre les nouvelles
+ * (`?etat=new`, encore lu).
  *
  * Deux demandeurs, deux chemins : un établissement de santé signe un
  * contrat, puis crée lui-même les comptes de son personnel ; un
@@ -89,84 +79,93 @@ export default async function ContactRequestsPage({
       : null;
   const text = t.admin.requests;
   const params = await searchParams;
-  const requestedKind = Object.entries(KIND_PARAMS).find(
-    ([, value]) => value === params.demandeur,
-  )?.[0];
-  const kind = isRequesterKind(requestedKind) ? requestedKind : null;
+  const search = await readListSearch("admin-demandes", session);
+  const keys = LIST_FILTERS.demandes;
+  const filters = readFilters(params, keys);
   const all = await listContactRequests();
-  // Les étapes se comptent dans le périmètre du demandeur choisi.
-  const requests = kind
-    ? all.filter((request) => request.requesterKind === kind)
+  // La recherche d'abord : le nom, l'adresse, l'établissement.
+  const found = search
+    ? matchChoices(
+        all.map((request) => ({
+          ...request,
+          name: [request.fullName, request.email, request.organization]
+            .filter(Boolean)
+            .join(" "),
+        })),
+        search,
+      ).map((match) => all.find((request) => request.id === match.id)!)
     : all;
-  const counts = Object.fromEntries(
-    CONTACT_STATUSES.map((status) => [
-      status,
-      requests.filter((request) => request.status === status).length,
-    ]),
-  ) as Record<ContactStatus, number>;
-
-  const requested = typeof params.etat === "string" ? params.etat : undefined;
-  const filter: ContactStatus | "all" =
-    requested === "all"
-      ? "all"
-      : (CONTACT_STATUSES as readonly string[]).includes(requested ?? "")
-        ? (requested as ContactStatus)
-        : counts.new > 0
-          ? "new"
-          : "all";
-  const shown =
-    filter === "all"
-      ? requests
-      : requests.filter((request) => request.status === filter);
+  const values: RowValues<ContactRequest> = {
+    requester: (request) =>
+      request.requesterKind ? [request.requesterKind] : [],
+    requestState: (request) => [request.status],
+    period: (request) => periodsOf(request.createdAt),
+  };
+  const shown = filterRows(found, values, filters);
+  const newCount = all.filter((request) => request.status === "new").length;
+  const bar: BarDimension[] = [
+    {
+      key: "requester",
+      ...countOptions(
+        found,
+        values,
+        filters,
+        "requester",
+        REQUESTER_KINDS.map((value) => ({ value })),
+      ),
+    },
+    {
+      key: "requestState",
+      ...countOptions(
+        found,
+        values,
+        filters,
+        "requestState",
+        CONTACT_STATUSES.map((value) => ({ value })),
+      ),
+    },
+    {
+      key: "period",
+      ...countOptions(
+        found,
+        values,
+        filters,
+        "period",
+        PERIODS.map((value) => ({ value })),
+      ),
+    },
+  ];
 
   return (
     <>
       <PageHeader
         title={t.nav.items.requests}
-        description={text.description(requests.length, counts.new)}
+        description={text.description(all.length, newCount)}
         actions={
-          <>
-            <Segmented
-              label={text.requester}
-              options={[
-                {
-                  label: text.allRequesters,
-                  href: requestsHref(filter, null),
-                  active: kind === null,
-                },
-                ...REQUESTER_KINDS.map((value) => ({
-                  label: `${text.requesterKindPlural[value]} · ${all.filter((request) => request.requesterKind === value).length}`,
-                  href: requestsHref(filter, value),
-                  active: kind === value,
-                })),
-              ]}
-            />
-            <Segmented
-              label={text.stage}
-              options={[
-                {
-                  label: text.allFilter(requests.length),
-                  href: requestsHref("all", kind),
-                  active: filter === "all",
-                },
-                ...CONTACT_STATUSES.map((status) => ({
-                  label: `${text.statusPlural[status]} · ${counts[status]}`,
-                  href: requestsHref(status, kind),
-                  active: filter === status,
-                })),
-              ]}
-            />
-          </>
+          <SearchBox
+            scope="admin-demandes"
+            search={search}
+            label={t.filters.requestSearch}
+            placeholder={t.filters.requestSearchPlaceholder}
+          />
         }
       />
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{ count: shown.length, noun: "requests" }}
+        className="shrink-0 px-4 pb-3 sm:px-6"
+      />
       <ControlBody>
-        {shown.length === 0 ? (
+        {shown.length === 0 && (search || hasFilters(filters)) ? (
+          <Panel>
+            <FilteredEmpty dimensions={bar} active={filters} noun="requests" />
+          </Panel>
+        ) : shown.length === 0 ? (
           <Panel>
             <EmptyState
               icon={Inbox}
-              title={
-                requests.length === 0 ? text.noRequest : text.nothingInStage
-              }
+              title={text.noRequest}
               detail={text.emptyDetail}
             />
           </Panel>

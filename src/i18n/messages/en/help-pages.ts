@@ -458,7 +458,7 @@ export const pages: typeof fr = {
       purpose:
         "Gathers the requests sent through the website’s contact form, by facilities or radiologists. Each one is followed from “New” to “Converted” or “Dismissed”, with the team’s notes.",
       steps: [
-        "Filter by requester, “Facilities” or “Radiologists”, and by follow-up stage: new requests are shown by default.",
+        "Filter by requester, follow-up stage or period, each option counted; search by name, email or facility.",
         "Contact the requester by clicking their email address or phone number.",
         "For a radiologist, note the “Declared registration number”: it is checked before any access to examinations.",
         "To welcome a radiologist, click “Invite as radiologist” when the button is offered: the request moves to “Converted”.",
@@ -504,7 +504,7 @@ export const pages: typeof fr = {
         "Every sensitive action, timestamped and attributed: an examination viewed, a report signed, a setting changed, a member added. It is the record to produce when someone asks who saw a file. Read-only: the log is written by the service, never from here.",
       steps: [
         "Read the entries, most recent first: date, action, author (“System” or “Assignment rule” for an automatic action), organisation and resource.",
-        "Pick an action in the “All actions” list to show only one kind of action, for example “Examination viewed”.",
+        "Filter by organisation, author, family (“Reports”…), action or period: the log reloads, most recent first.",
         "Hover over a resource reference to see its full identifier.",
         "Click “Older entries” at the bottom of the page to go back through the log, 50 entries at a time.",
         "Click “Back to the most recent” to return to the start of the log.",

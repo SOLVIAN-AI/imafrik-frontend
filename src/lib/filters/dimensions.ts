@@ -27,6 +27,12 @@
 
 import type { AppMessages } from "@/i18n";
 import type { ModalityGroup } from "@/lib/api/contracts";
+import {
+  CONTACT_STATUSES,
+  type ContactStatus,
+  REQUESTER_KINDS,
+  type RequesterKind,
+} from "@/lib/contact-status";
 import { GATEWAY_STATUSES, type GatewayStatus } from "@/lib/gateways";
 import {
   MODALITY_GROUPS,
@@ -205,6 +211,46 @@ const ORG_LINK_SLUGS: Record<(typeof ORG_LINKS)[number], string> = {
   silent: "silencieuse",
 };
 
+/**
+ * Familles d'actions du journal d'audit : le préfixe d'une action, avant
+ * le point (`report.signed` : « report »).
+ */
+export const AUDIT_FAMILIES = [
+  "study",
+  "prior",
+  "report",
+  "signing",
+  "user",
+  "membership",
+  "profile",
+  "organization",
+  "gateway",
+  "billing",
+  "agreement",
+  "contact_request",
+  "platform",
+] as const;
+
+/** Une famille d'actions. */
+export type AuditFamily = (typeof AUDIT_FAMILIES)[number];
+
+/** Forme d'un code d'action : `famille.geste`. */
+const ACTION_PATTERN = /^[a-z_]{1,40}\.[a-z_]{1,60}$/;
+
+/** L'étape d'une demande reçue dans l'adresse, en français. */
+const REQUEST_STATE_SLUGS: Record<ContactStatus, string> = {
+  new: "nouvelles",
+  contacted: "contactees",
+  converted: "converties",
+  dismissed: "ecartees",
+};
+
+/** La nature du demandeur dans l'adresse, en français. */
+const REQUESTER_SLUGS: Record<RequesterKind, string> = {
+  clinic: "etablissement",
+  radiologist: "radiologue",
+};
+
 /** Périodes proposées, en jours : la réception depuis 24 h, 7 jours… */
 export const PERIODS = ["1", "7", "30", "90", "365"] as const;
 
@@ -345,6 +391,71 @@ export const DIMENSIONS = {
     text: (t) => ({ name: t.filters.standing, all: t.filters.allStandings }),
     valueLabel: (t, value) =>
       t.gateways.status[value as GatewayStatus] ?? value,
+  },
+  author: {
+    param: "auteur",
+    presentation: "dropdown",
+    read: (raw) => (ID_PATTERN.test(raw) ? raw : null),
+    write: (value) => value,
+    text: (t) => ({ name: t.filters.author, all: t.filters.allAuthors }),
+    searchText: (t) => ({
+      search: t.filters.authorSearch,
+      noMatch: t.filters.authorNoMatch,
+      matches: t.filters.authorMatches,
+    }),
+  },
+  family: {
+    param: "famille",
+    presentation: "dropdown",
+    values: AUDIT_FAMILIES,
+    read: (raw) =>
+      (AUDIT_FAMILIES as readonly string[]).includes(raw) ? raw : null,
+    write: (value) => value,
+    text: (t) => ({ name: t.filters.family, all: t.filters.allFamilies }),
+    valueLabel: (t, value) =>
+      t.admin.audit.families[value as AuditFamily] ?? value,
+  },
+  action: {
+    param: "action",
+    presentation: "dropdown",
+    read: (raw) => (ACTION_PATTERN.test(raw) ? raw : null),
+    write: (value) => value,
+    text: (t) => ({ name: t.filters.action, all: t.admin.filters.allActions }),
+    searchText: (t) => ({
+      search: t.filters.actionSearch,
+      noMatch: t.filters.actionNoMatch,
+      matches: t.filters.actionMatches,
+    }),
+  },
+  requester: {
+    param: "demandeur",
+    presentation: "chips",
+    values: REQUESTER_KINDS,
+    read: (raw) =>
+      REQUESTER_KINDS.find((kind) => REQUESTER_SLUGS[kind] === raw) ?? null,
+    write: (value) => REQUESTER_SLUGS[value as RequesterKind] ?? value,
+    text: (t) => ({
+      name: t.admin.requests.requester,
+      all: t.filters.allRequesters,
+    }),
+    valueLabel: (t, value) =>
+      t.admin.requests.requesterKindPlural[value as RequesterKind] ?? value,
+  },
+  // Le même paramètre que l'état d'un examen : ils ne se rencontrent sur
+  // aucun écran. Les anciennes valeurs (`?etat=new`, celle de l'alerte du
+  // cockpit) restent lues.
+  requestState: {
+    param: "etat",
+    presentation: "chips",
+    values: CONTACT_STATUSES,
+    read: (raw) =>
+      CONTACT_STATUSES.find(
+        (state) => REQUEST_STATE_SLUGS[state] === raw || state === raw,
+      ) ?? null,
+    write: (value) => REQUEST_STATE_SLUGS[value as ContactStatus] ?? value,
+    text: (t) => ({ name: t.filters.stage, all: t.filters.allStages }),
+    valueLabel: (t, value) =>
+      t.admin.requests.statusPlural[value as ContactStatus] ?? value,
   },
   account: {
     // Le paramètre principal ; les deux autres passent par le codec.

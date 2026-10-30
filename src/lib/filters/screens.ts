@@ -50,6 +50,9 @@ export const LIST_FILTERS = {
   activite: [...NETWORK, "modality"],
   facturation: [...NETWORK, "noPlan"],
   passerelles: [...NETWORK, "gatewayStatus", "mute"],
+  // Journal d'audit : filtré par le service ; demandes reçues : sur la page.
+  journal: ["organization", "author", "family", "action", "period"],
+  demandes: ["requester", "requestState", "period"],
   "comptes-rendus-equipe": [
     ...NETWORK,
     "radiologist",
