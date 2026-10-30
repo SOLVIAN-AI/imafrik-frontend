@@ -454,7 +454,7 @@ export const reading = {
     ],
     download: "Télécharger Weasis (site officiel)",
     oneAtATime:
-      "Weasis s’ouvre dans un profil IMAFRIK, à part de votre Weasis habituel, et n’y affiche qu’un examen à la fois : chaque ouverture remplace le précédent. Le lien vaut cinq minutes et ne sert qu’une fois.",
+      "Weasis s’ouvre dans un profil IMAFRIK, à part de votre Weasis habituel, et n’y affiche que l’examen remis par IMAFRIK, un à la fois : il n’importe ni fichier, ni CD, ni autre image, et vous n’y déposez aucun fichier. Chaque ouverture remplace la précédente. Le lien vaut cinq minutes et ne sert qu’une fois.",
     privacy:
       "Ouvert depuis IMAFRIK, Weasis ne propose ni export, ni envoi vers un autre PACS, ni enregistrement ou copie d’image. Il garde les images sur cet ordinateur tant qu’il est ouvert et les efface à sa fermeture : fermez-le après chaque lecture, n’en faites aucune copie (capture ou photo de l’écran, impression, copie de son dossier temporaire), et ne l’utilisez que sur un poste à session personnelle et disque chiffré, comme le demande le contrat d’exercice.",
     close: "Fermer",

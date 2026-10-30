@@ -79,8 +79,11 @@ test.describe("l’équipe IMAFRIK", () => {
     const champ = page.getByRole("searchbox", { name: "Rechercher un compte" });
     await champ.fill("diallo");
     await champ.press("Enter");
-    await expect(page.getByText("Dr Fatou Diallo")).toBeVisible();
-    await expect(page.getByText("Dr Adjo Kponton")).toHaveCount(0);
+    // Dans le contenu principal : pendant le rendu en flux, Next ajoute
+    // brièvement une copie cachée du contenu en fin de page.
+    const contenu = page.getByRole("main");
+    await expect(contenu.getByText("Dr Fatou Diallo")).toBeVisible();
+    await expect(contenu.getByText("Dr Adjo Kponton")).toHaveCount(0);
     expect(page.url()).not.toContain("diallo");
 
     // Un filtre garde la recherche, sans qu'elle passe par l'adresse.
@@ -95,7 +98,7 @@ test.describe("l’équipe IMAFRIK", () => {
     await expect(champ).toHaveValue("diallo");
     await champ.fill("");
     await champ.press("Enter");
-    await expect(page.getByText("Dr Adjo Kponton")).toBeVisible();
+    await expect(contenu.getByText("Dr Adjo Kponton")).toBeVisible();
   });
 
   test("retire la recherche d’un ancien lien", async ({ page }) => {

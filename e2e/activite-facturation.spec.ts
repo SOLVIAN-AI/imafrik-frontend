@@ -289,7 +289,11 @@ test.describe("l'équipe IMAFRIK", () => {
     page,
   }) => {
     await page.goto("/admin/organisations/org-stj");
-    await expect(page.getByText("25 000 FCFA HT par mois")).toBeVisible();
+    // Dans le contenu principal : pendant le rendu en flux, Next ajoute
+    // brièvement une copie cachée du contenu en fin de page.
+    await expect(
+      page.getByRole("main").getByText("25 000 FCFA HT par mois"),
+    ).toBeVisible();
     const enregistrer = page
       .locator("form")
       .filter({ has: page.getByRole("radio", { name: /Formule Pro/ }) })
