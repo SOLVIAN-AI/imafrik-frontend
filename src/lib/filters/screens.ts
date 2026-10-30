@@ -45,6 +45,9 @@ export const LIST_FILTERS = {
   // Pilotage de l'équipe : flux d'images (filtré par le service avant sa
   // limite), relevés du mois et passerelles (filtrés sur la page).
   flux: [...NETWORK, "modality", "state", "urgency"],
+  // Activité : filtrée par le service ; la modalité ne vaut pas pour les
+  // performances par radiologue, qui n'en ont pas.
+  activite: [...NETWORK, "modality"],
   facturation: [...NETWORK, "noPlan"],
   passerelles: [...NETWORK, "gatewayStatus", "mute"],
   // Journal d'audit : filtré par le service ; demandes reçues : sur la page.

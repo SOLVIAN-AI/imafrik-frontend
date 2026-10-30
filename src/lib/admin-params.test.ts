@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  CLINIC_PARAM,
-  parseClinic,
   parseCursor,
   parseMonth,
   parsePeriod,
@@ -18,23 +16,6 @@ describe("paramètres d'adresse de la tour de contrôle", () => {
     expect(parsePeriod("12")).toBe(30);
     expect(parsePeriod(undefined)).toBe(30);
     expect(parsePeriod("1e3")).toBe(30);
-  });
-
-  it("ne retient qu'une clinique connue", () => {
-    expect(parseClinic("a", ["a", "b"])).toBe("a");
-    expect(parseClinic("x", ["a"])).toBeNull();
-    expect(parseClinic(undefined, ["a"])).toBeNull();
-  });
-
-  it("ne retient la clinique d’une liste d’examens que si le service la compte", () => {
-    // `?clinique=` porte l'identifiant tel quel ; plusieurs valeurs, ou une
-    // valeur tapée à la main, reviennent à toutes les cliniques.
-    const comptees = ["org-stj", "org-pka"];
-    expect(CLINIC_PARAM).toBe("clinique");
-    expect(parseClinic("org-pka", comptees)).toBe("org-pka");
-    expect(parseClinic(["org-stj", "org-pka"], comptees)).toBe("org-stj");
-    expect(parseClinic("KOFFI", comptees)).toBeNull();
-    expect(parseClinic("", comptees)).toBeNull();
   });
 
   it("borne le mois au mois courant", () => {

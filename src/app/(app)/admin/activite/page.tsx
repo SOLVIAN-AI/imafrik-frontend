@@ -2,7 +2,6 @@ import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { ClinicFilter } from "@/components/admin/clinic-filter";
 import {
   ControlBody,
   Figure,
@@ -18,16 +17,13 @@ import {
   StackedBars,
 } from "@/components/charts/charts";
 import { MonthNav } from "@/components/domain/month-nav";
+import { FilterBar } from "@/components/filters/filter-bar";
 import type { GlossaryTerm } from "@/components/help/help-context";
 import { PerformanceTable } from "@/components/domain/performance-table";
 import { PageHeader } from "@/components/layout/app-shell";
 import { ColumnLabel, type InfoTipContent } from "@/components/ui/info-tip";
-import {
-  ANALYTICS_PERIODS,
-  parseClinic,
-  parseMonth,
-  parsePeriod,
-} from "@/lib/admin-params";
+import { ANALYTICS_PERIODS, parseMonth, parsePeriod } from "@/lib/admin-params";
+import type { ModalityGroup } from "@/lib/api/contracts";
 import { chunk, weightedMean } from "@/lib/charts";
 import { getNetworkPerformance } from "@/lib/data/activity";
 import { listOrganizations } from "@/lib/data/admin";
@@ -36,6 +32,9 @@ import {
   type StageMedians,
   getAnalytics,
 } from "@/lib/data/control";
+import { type BarDimension, dimension } from "@/lib/filters/dimensions";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { readFilters } from "@/lib/filters/url";
 import {
   MISSING,
   formatBytes,
@@ -48,6 +47,7 @@ import {
   formatRate,
 } from "@/lib/format";
 import type { Locale } from "@/lib/i18n/locale";
+import { MODALITY_GROUPS } from "@/lib/modalities";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
 import { getMessages } from "@/i18n/server";
@@ -83,8 +83,14 @@ function parseTab(value: string | string[] | undefined): Tab {
  * décomposition par étape, heures d'arrivée, modalités), les
  * **performances par radiologue** d'un mois (`?mois=`, et `?radiologue=`
  * pour en désigner un, depuis sa ligne dans « Comptes »), et l'activité
- * **par clinique**. La facturation a son écran, à côté. Période, mois et
- * clinique vivent dans l'adresse : une vue se partage telle quelle.
+ * **par clinique**. La facturation a son écran, à côté. Période, mois,
+ * clinique et modalité vivent dans l'adresse : une vue se partage telle
+ * quelle.
+ *
+ * La clinique et le groupe de modalités sont sur la barre commune,
+ * filtrés par le service, sans nombres : l'écran montre lui-même les
+ * volumes par clinique et par modalité. La modalité ne vaut pas pour les
+ * performances par radiologue, qui ne la distinguent pas.
  */
 export default async function ActivityPage({
   searchParams,
@@ -98,31 +104,66 @@ export default async function ActivityPage({
     .filter((org) => org.kind === "clinic")
     .map((org) => ({ id: org.id, name: org.name }));
   const days = parsePeriod(params.jours);
-  const clinicId = parseClinic(
-    params.clinique,
-    clinics.map((clinic) => clinic.id),
-  );
   const month = parseMonth(params.mois);
   const current = parseMonth(undefined);
   const tab = parseTab(params.onglet);
+  const filters = readFilters(
+    params,
+    tab === "radiologues" ? ["clinic"] : LIST_FILTERS.activite,
+    { clinic: clinics.map((clinic) => clinic.id) },
+  );
+  const clinicId = filters.clinic ?? null;
+  const modalityGroup = (filters.modality as ModalityGroup | undefined) ?? null;
   const radiologistId =
     typeof params.radiologue === "string" ? params.radiologue : undefined;
   // Chaque rubrique ne lit que ce qu'elle montre.
   const [data, performance] = await Promise.all([
-    tab === "radiologues" ? null : getAnalytics(days, clinicId),
+    tab === "radiologues" ? null : getAnalytics(days, clinicId, modalityGroup),
     tab === "radiologues" ? getNetworkPerformance(month, clinicId) : null,
   ]);
   const clinicName = clinics.find((clinic) => clinic.id === clinicId)?.name;
+  // Sans nombres : l'écran les montre lui-même, par clinique et par
+  // modalité.
+  const bar: BarDimension[] = [
+    {
+      key: "clinic",
+      options: clinics.map((clinic) => ({
+        value: clinic.id,
+        label: clinic.name,
+      })),
+    },
+    ...(tab === "radiologues"
+      ? []
+      : [
+          {
+            key: "modality" as const,
+            options: MODALITY_GROUPS.map((value) => ({ value })),
+          },
+        ]),
+  ];
 
-  /** Adresse de l'écran, rubrique, période, clinique et mois gardés. */
+  /**
+   * Adresse de l'écran, rubrique, période, clinique, modalité et mois
+   * gardés ; la modalité quitte les performances par radiologue.
+   */
   const href = (
-    changes: { tab?: Tab; period?: number; everyone?: boolean } = {},
+    changes: {
+      tab?: Tab;
+      period?: number;
+      everyone?: boolean;
+      clinic?: string;
+    } = {},
   ) => {
     const target = changes.tab ?? tab;
+    const clinic = changes.clinic ?? clinicId;
     const query = new URLSearchParams();
     if (target !== "ensemble") query.set("onglet", target);
     query.set("jours", String(changes.period ?? days));
-    if (clinicId) query.set("clinique", clinicId);
+    if (clinic) query.set("clinique", clinic);
+    if (modalityGroup && target !== "radiologues") {
+      const modality = dimension("modality");
+      query.set(modality.param, modality.write(modalityGroup));
+    }
     if (month !== current) query.set("mois", month);
     if (target === "radiologues" && radiologistId && !changes.everyone)
       query.set("radiologue", radiologistId);
@@ -172,7 +213,6 @@ export default async function ActivityPage({
                 }))}
               />
             )}
-            <ClinicFilter clinics={clinics} active={clinicId ?? null} />
           </>
         }
       />
@@ -195,6 +235,15 @@ export default async function ActivityPage({
           <ChevronRight className="size-3.5" aria-hidden />
         </Link>
       </div>
+      <FilterBar
+        dimensions={bar}
+        active={filters}
+        result={{
+          count: data?.totals.received ?? 0,
+          noun: "studies",
+        }}
+        className="shrink-0 px-4 pb-3 sm:px-6"
+      />
 
       <ControlBody>
         {data && tab === "ensemble" && (
@@ -238,7 +287,11 @@ export default async function ActivityPage({
         )}
 
         {data && tab === "cliniques" && (
-          <Clinics data={data} days={days} {...lang} />
+          <Clinics
+            data={data}
+            clinicHref={(id) => href({ tab: "cliniques", clinic: id })}
+            {...lang}
+          />
         )}
 
         {performance && (
@@ -548,10 +601,14 @@ function Stages({ stages, t, locale }: { stages: StageMedians } & Lang) {
 /** Tableau par clinique : volumes, délais, débit de réception. */
 function Clinics({
   data,
-  days,
+  clinicHref,
   t,
   locale,
-}: { data: ControlAnalytics; days: number } & Lang) {
+}: {
+  data: ControlAnalytics;
+  /** Adresse de la rubrique pour une clinique, les autres filtres gardés. */
+  clinicHref: (id: string) => string;
+} & Lang) {
   const text = t.admin.activity;
   const columns = text.columns;
   // Ce que mesurent les colonnes qui ne se lisent pas d'elles-mêmes : la
@@ -575,7 +632,7 @@ function Clinics({
             {data.byClinic.map((clinic) => (
               <li key={clinic.id} className="px-4 py-3">
                 <Link
-                  href={`/admin/activite?onglet=cliniques&jours=${days}&clinique=${clinic.id}`}
+                  href={clinicHref(clinic.id)}
                   className="text-sm font-medium hover:underline"
                 >
                   {clinic.name}
@@ -668,7 +725,7 @@ function Clinics({
                   >
                     <td className="max-w-[16rem] truncate">
                       <Link
-                        href={`/admin/activite?onglet=cliniques&jours=${days}&clinique=${clinic.id}`}
+                        href={clinicHref(clinic.id)}
                         className="font-medium hover:underline"
                       >
                         {clinic.name}

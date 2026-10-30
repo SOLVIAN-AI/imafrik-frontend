@@ -329,18 +329,25 @@ function toAnalytics(raw: ApiControlAnalytics): ControlAnalytics {
 }
 
 /**
- * Activité sur une période, toutes cliniques ou une seule.
+ * Activité sur une période, toutes cliniques ou une seule, toutes
+ * modalités ou un seul groupe.
  *
- * @param days     Nombre de jours, aujourd'hui compris.
- * @param clinicId Clinique, ou `null` pour tout le réseau.
+ * @param days          Nombre de jours, aujourd'hui compris.
+ * @param clinicId      Clinique, ou `null` pour tout le réseau.
+ * @param modalityGroup Groupe de modalités, ou `null` pour tous.
  */
 export async function getAnalytics(
   days: number,
   clinicId: string | null = null,
+  modalityGroup: ModalityGroup | null = null,
 ): Promise<ControlAnalytics> {
-  if (isDemoMode()) return toAnalytics(demoAnalytics(days, clinicId));
+  if (isDemoMode())
+    return toAnalytics(
+      demoAnalytics(days, clinicId, Date.now(), modalityGroup),
+    );
   const query = new URLSearchParams({ days: String(days) });
   if (clinicId) query.set("clinic_id", clinicId);
+  if (modalityGroup) query.set("modality_group", modalityGroup);
   return toAnalytics(
     await apiGet(`/admin/analytics?${query}`, controlAnalyticsSchema),
   );

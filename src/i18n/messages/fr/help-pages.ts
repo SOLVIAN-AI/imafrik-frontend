@@ -321,7 +321,7 @@ export const pages = {
         "L’activité de la plateforme en trois rubriques, à un clic dès l’en-tête : vue d’ensemble d’une période, performances de chaque radiologue sur un mois, activité par clinique. Chaque rubrique a son adresse, à partager telle quelle.",
       steps: [
         "Choisissez la rubrique : « Vue d’ensemble », « Par radiologue » ou « Par clinique » ; « Facturation » ouvre les relevés du mois.",
-        "Gardez « Toutes les cliniques » ou choisissez-en une ; la période (7 j à 1 an) vaut pour la vue d’ensemble, le mois pour les radiologues.",
+        "Filtrez par clinique, et par modalité hors « Par radiologue » ; la période (7 j à 1 an) vaut pour la vue d’ensemble, le mois pour les radiologues.",
         "Dans « Par radiologue », triez les colonnes ; le bouton ⓘ d’un intitulé dit ce que mesure l’indicateur, celui du titre ce que disent les flèches.",
         "Depuis « Comptes », « Voir ses performances » ouvre cette rubrique sur la ligne du radiologue, mise en évidence.",
         "Sans compte-rendu signé dans le mois, le tableau le dit : ses délais restent vides jusqu’au premier acte signé.",
