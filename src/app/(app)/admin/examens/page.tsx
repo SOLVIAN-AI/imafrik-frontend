@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
+import { PlanTrace } from "@/components/domain/plan-trace";
 import { EligibilityNote } from "@/components/domain/eligibility-note";
 import { FilterBar } from "@/components/filters/filter-bar";
 import { FilteredEmpty } from "@/components/filters/filtered-empty";
@@ -326,7 +327,7 @@ export default async function AdminStudiesPage({
                     </td>
 
                     <td>
-                      <div className="flex min-w-0">
+                      <div className="flex min-w-0 max-w-56">
                         <Reader
                           study={study}
                           eligibility={eligibility}
@@ -395,10 +396,18 @@ function Reader({
 }) {
   if (study.assignedToName)
     return (
-      <span className="truncate text-secondary">{study.assignedToName}</span>
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate text-secondary">{study.assignedToName}</span>
+        <PlanTrace rule={study.assignedByRule} line={study.assignedByLine} />
+      </span>
     );
   if (!isAssignable(study.status))
     return <span className="text-tertiary">—</span>;
+  const found = eligibility[study.id];
+  if (study.planOutcome && !(found && found.candidates === 0))
+    return (
+      <PlanTrace outcome={study.planOutcome} names={study.planConflictNames} />
+    );
   return (
     <EligibilityNote
       found={eligibility[study.id]}

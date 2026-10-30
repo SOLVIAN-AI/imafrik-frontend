@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { AssignDialog } from "@/components/domain/assign-dialog";
 import { EligibilityNote } from "@/components/domain/eligibility-note";
+import { PlanTrace } from "@/components/domain/plan-trace";
 import { StudyAge } from "@/components/domain/study-age";
 import {
   StudyStatusChip,
@@ -145,12 +146,15 @@ export function StudyList({
                   muted={study.status === "delivered"}
                 />
                 <StudyStatusChip status={study.status} />
-                {reader(study) === null && (
-                  <EligibilityNote
-                    found={eligibility[study.id]}
-                    modality={study.modality}
-                    fallback={views.unassigned}
-                  />
+                {reader(study) === null ? (
+                  <Waiting study={study} found={eligibility[study.id]} />
+                ) : (
+                  study.assignedTo !== null && (
+                    <PlanTrace
+                      rule={study.assignedByRule}
+                      line={study.assignedByLine}
+                    />
+                  )
                 )}
               </div>
             </Link>
@@ -252,17 +256,21 @@ export function StudyList({
                 </td>
 
                 <td>
-                  <div className="flex min-w-0">
+                  <div className="flex min-w-0 max-w-56 flex-col">
                     {reader(study) === null ? (
-                      <EligibilityNote
-                        found={eligibility[study.id]}
-                        modality={study.modality}
-                        fallback={views.unassigned}
-                      />
+                      <Waiting study={study} found={eligibility[study.id]} />
                     ) : (
-                      <span className="truncate text-secondary">
-                        {reader(study)}
-                      </span>
+                      <>
+                        <span className="truncate text-secondary">
+                          {reader(study)}
+                        </span>
+                        {study.assignedTo !== null && (
+                          <PlanTrace
+                            rule={study.assignedByRule}
+                            line={study.assignedByLine}
+                          />
+                        )}
+                      </>
                     )}
                   </div>
                 </td>
@@ -315,5 +323,31 @@ export function StudyList({
         </table>
       </div>
     </>
+  );
+}
+
+/**
+ * Ce qu'un examen à attribuer dit sur sa ligne : que personne ne peut le
+ * recevoir d'abord, sinon pourquoi le planning ne l'a pas attribué,
+ * sinon « À attribuer ».
+ */
+function Waiting({
+  study,
+  found,
+}: {
+  study: Study;
+  found: Eligibility | undefined;
+}) {
+  const views = useMessages().assignment.list;
+  if (study.planOutcome && !(found && found.candidates === 0))
+    return (
+      <PlanTrace outcome={study.planOutcome} names={study.planConflictNames} />
+    );
+  return (
+    <EligibilityNote
+      found={found}
+      modality={study.modality}
+      fallback={views.unassigned}
+    />
   );
 }

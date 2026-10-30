@@ -336,6 +336,20 @@ export const assignment: AppMessages["assignment"] = {
           ]
             .filter(Boolean)
             .join(" · "),
+    trace: {
+      byPlanning: "Assigned by the schedule",
+      assignedBy: (line: string) => `Assigned by the schedule: ${line}`,
+      ruleApplied: (line: string) => `Rule applied: ${line}`,
+      conflict: (names: string) => `Schedule conflict: ${names}`,
+      ineligible: "Planned, but the radiologist cannot receive it",
+      uncovered: "Outside the schedule",
+      conflictLong: (names: string) =>
+        `The schedule did not assign it: ${names} are planned as precisely as each other. Assign it, and make the schedule more precise.`,
+      ineligibleLong:
+        "The schedule did not assign it: the planned radiologist could not receive it (credentials, modalities read). Assign it to someone else.",
+      uncoveredLong:
+        "The schedule did not assign it: no line covered its arrival. Assign it yourself.",
+    },
     byRule: {
       modality: "radiologist for the modality",
       schedule: "assignment schedule",

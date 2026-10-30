@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { messagesFor } from "@/i18n";
+
 import {
   type PlanLineInput,
   addDays,
   conflictsOfWeek,
+  describeLine,
   isCalendarDay,
   isOvernight,
   lineIntervals,
@@ -260,5 +263,34 @@ describe("le planning reçu du service", () => {
       startsOn: LUNDI,
       updatedByName: "Alice",
     });
+  });
+});
+
+describe("une ligne en clair", () => {
+  it("dit sa modalité, ses jours, ses heures et sa durée", () => {
+    const t = messagesFor("fr");
+    expect(
+      describeLine(
+        ligne("a", [1, 2, 3, 4, 5], {
+          modality: "ct",
+          startsAt: "08:00",
+          endsAt: "18:00",
+        }),
+        t,
+        "fr",
+      ),
+    ).toBe("Scanner · Lun à Ven · 08:00–18:00 · Chaque semaine");
+    expect(
+      describeLine(
+        ligne("a", [1, 2, 3, 4, 5, 6, 7], {
+          startsOn: LUNDI,
+          endsOn: "2026-11-08",
+        }),
+        t,
+        "fr",
+      ),
+    ).toBe(
+      "Toutes modalités · Toute la semaine · Journée · Du 2 nov. au 8 nov.",
+    );
   });
 });

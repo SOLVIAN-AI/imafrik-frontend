@@ -9,6 +9,7 @@ import {
 import { AssignDialog } from "@/components/domain/assign-dialog";
 import { blockedReason } from "@/lib/assignment-blocker";
 import { DateTime } from "@/components/domain/date-time";
+import { PlanTrace } from "@/components/domain/plan-trace";
 import { Panel } from "@/components/layout/app-shell";
 import type { AppMessages } from "@/i18n";
 import type {
@@ -97,11 +98,12 @@ export function AssignmentPanel({
               </span>
             )}
             {state.assignedByRule && (
-              <span className="basis-full pl-5 text-tertiary">
-                {messages.plan.assignedBy(
-                  messages.plan.byRule[state.assignedByRule],
-                )}
-              </span>
+              <PlanTrace
+                rule={state.assignedByRule}
+                line={state.assignedByLine}
+                long
+                className="basis-full pl-5"
+              />
             )}
           </p>
         ) : state ? (
@@ -117,6 +119,13 @@ export function AssignmentPanel({
             <p className="text-secondary">
               {state.urgent ? text.urgentWaiting : text.toAssignHint}
             </p>
+            {state.planOutcome && (
+              <PlanTrace
+                outcome={state.planOutcome}
+                names={state.planConflictNames}
+                long
+              />
+            )}
             {open && state.candidates.length === 0 && (
               <p className="mt-1 flex gap-2 rounded-md bg-progress-muted px-2.5 py-2 text-primary">
                 <AlertTriangle

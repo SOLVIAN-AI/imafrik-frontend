@@ -181,7 +181,7 @@ export const pages: typeof fr = {
       purpose:
         "All the examinations your clinic has sent, with the radiologist reading them and the status of their report. This is where you assign your examinations to your radiologists, modality by modality if you wish.",
       steps: [
-        "Click the “To assign” status to see only the examinations no radiologist can see yet, the most pressing first.",
+        "Click the “To assign” status: the examinations the schedule did not assign, with the reason (conflict, outside the schedule), the most pressing first.",
         "Filter by radiologist, modality, status, urgency or period: each choice shows its number of examinations, and they combine.",
         "On a row, click “Assign”, choose a radiologist among those reading the modality, tick the useful prior examinations, then click “Assign”.",
         "Type a patient name, an ID or a modality in the search box, then press Enter.",
@@ -297,7 +297,7 @@ export const pages: typeof fr = {
         "Click “Add a line”: a radiologist, their days, and if needed a modality, hours, then “Every week” or a period.",
         "When two lines cover an examination, the most precise wins: the modality, then the period, then the hours. When tied, the screen flags a conflict.",
         "“Copy the previous week” repeats its dated lines on the week shown; weekly lines already apply.",
-        "The schedule applies to examinations that arrive afterwards, never to those already assigned: reassign them from “Examinations”.",
+        "An examination assigned by the schedule says so, with the rule applied. The schedule applies to what arrives next: reassign from “Examinations”.",
       ],
       terms: [
         "planning",

@@ -3,6 +3,9 @@ import type {
   ApiPlanLine,
   ModalityGroup,
 } from "@/lib/api/contracts";
+import type { AppMessages } from "@/i18n";
+import { formatDayShort } from "@/lib/format";
+import type { Locale } from "@/lib/i18n/locale";
 
 /**
  * Planning d'attribution d'une clinique : le vocabulaire de l'interface, et
@@ -466,4 +469,62 @@ export function daysSummary(
         : run.map((day) => names[day - 1]),
     )
     .join(", ");
+}
+
+// ─── Sur l'examen ───────────────────────────────────────────────
+
+/** La ligne du planning qui a attribué un examen : sans radiologue, c'est le titulaire. */
+export type AppliedPlanLine = Omit<PlanLineInput, "radiologistId">;
+
+/** Pourquoi le planning n'a pas attribué un examen à son arrivée. */
+export type PlanOutcome = "conflict" | "ineligible" | "uncovered";
+
+/** Traduit la ligne appliquée reçue du service. */
+export function toAppliedLine(row: {
+  weekdays: number[];
+  starts_at?: string | null;
+  ends_at?: string | null;
+  modality?: ModalityGroup | null;
+  starts_on?: string | null;
+  ends_on?: string | null;
+}): AppliedPlanLine {
+  return {
+    weekdays: row.weekdays.filter(isWeekday),
+    startsAt: row.starts_at ?? null,
+    endsAt: row.ends_at ?? null,
+    modality: row.modality ?? null,
+    startsOn: row.starts_on ?? null,
+    endsOn: row.ends_on ?? null,
+  };
+}
+
+/**
+ * Une ligne du planning en clair, sans son radiologue : « Scanner · Lun à
+ * Ven · 08:00–18:00 · Chaque semaine ».
+ *
+ * @param line   Ligne.
+ * @param t      Textes de l'écran.
+ * @param locale Langue, pour les dates d'une période.
+ */
+export function describeLine(
+  line: AppliedPlanLine,
+  t: AppMessages,
+  locale: Locale,
+): string {
+  const text = t.assignment.plan;
+  return [
+    line.modality === null
+      ? text.allModalities
+      : t.assignment.modalities[line.modality],
+    daysSummary(line.weekdays, text.dayShort, text.allWeek, text.daysRange),
+    line.startsAt === null || line.endsAt === null
+      ? text.allDay
+      : text.hours(line.startsAt, line.endsAt),
+    line.startsOn !== null && line.endsOn !== null
+      ? text.dated(
+          formatDayShort(dayAsDate(line.startsOn), locale),
+          formatDayShort(dayAsDate(line.endsOn), locale),
+        )
+      : text.weekly,
+  ].join(" · ");
 }

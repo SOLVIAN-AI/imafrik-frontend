@@ -213,10 +213,12 @@ describe("dossiers à examiner en démonstration", () => {
       ["mri", "2026-10-05"],
       ["ct", "2026-10-12"],
     ]);
-    // Un seul conflit : deux radiologues de jour, la semaine.
+    // Deux conflits : deux radiologues de jour la semaine, et deux pour
+    // les scanners chaque jour.
     const conflicts = conflictsOfWeek(clinic.lines, mondayOf(clinic.today));
-    expect(conflicts).toHaveLength(1);
-    expect(conflicts[0].days).toHaveLength(5);
+    expect(conflicts.map((conflict) => conflict.days.length).sort()).toEqual([
+      5, 7,
+    ]);
     // L'équipe IMAFRIK choisit parmi tout le groupe ; le responsable voit
     // les siens et ceux qu'elle a placés.
     const team = demoAssignmentPlan("org-stj", false, NOW);
@@ -224,6 +226,24 @@ describe("dossiers à examiner en démonstration", () => {
       clinic.radiologists.length,
     );
     expect(demoAssignmentPlan("org-autre", false, NOW).lines).toEqual([]);
+  });
+});
+
+describe("le planning sur les examens de démonstration", () => {
+  it("dit qui il a attribué, et pourquoi il a laissé les autres", () => {
+    const byId = (id: string) => DEMO_STUDIES.find((study) => study.id === id)!;
+    expect(byId("2").assignedByRule).toBe("schedule");
+    expect(byId("2").assignedByLine?.modality).toBe("mri");
+    expect(demoAssignment("2")!.assigned_by_line?.modality).toBe("mri");
+    expect(byId("1").planOutcome).toBe("conflict");
+    expect(byId("1").planConflictNames).toEqual([
+      "Dr Adjo Kponton",
+      "Dr Ibrahim Bakari",
+    ]);
+    expect(byId("3").planOutcome).toBe("uncovered");
+    // Un examen attribué n'attend plus : il n'a pas de raison.
+    for (const study of DEMO_STUDIES)
+      if (study.assignedTo !== null) expect(study.planOutcome).toBeNull();
   });
 });
 

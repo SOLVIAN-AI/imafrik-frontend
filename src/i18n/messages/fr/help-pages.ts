@@ -186,7 +186,7 @@ export const pages = {
       purpose:
         "Tous les examens envoyés par votre clinique, avec le radiologue qui les lit et l’état de leur compte-rendu. C’est ici que vous attribuez vos examens à vos radiologues, modalité par modalité si vous le souhaitez.",
       steps: [
-        "Cliquez sur l’état « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore, les plus pressés en tête.",
+        "Cliquez sur l’état « À attribuer » : les examens que le planning n’a pas attribués, avec la raison (conflit, hors planning), les plus pressés en tête.",
         "Filtrez par radiologue, modalité, état, urgence ou période : chaque choix dit son nombre d’examens, et ils se combinent.",
         "Sur une ligne, cliquez sur « Attribuer », choisissez un radiologue parmi ceux qui lisent la modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
         "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
@@ -302,7 +302,7 @@ export const pages = {
         "Cliquez sur « Ajouter une ligne » : un radiologue, ses jours, et au besoin une modalité, des heures, puis « Chaque semaine » ou une période.",
         "Si deux lignes couvrent un examen, la plus précise l’emporte : la modalité, puis la période, puis les heures. À égalité, l’écran signale un conflit.",
         "« Recopier la semaine précédente » reprend ses lignes datées sur la semaine affichée ; les lignes de chaque semaine valent déjà.",
-        "Le planning vaut pour les examens qui arrivent ensuite, jamais pour ceux déjà attribués : réattribuez-les depuis « Examens ».",
+        "Un examen attribué par le planning le dit, avec la règle appliquée. Le planning vaut pour ce qui arrive ensuite : réattribuez depuis « Examens ».",
       ],
       terms: [
         "planning",

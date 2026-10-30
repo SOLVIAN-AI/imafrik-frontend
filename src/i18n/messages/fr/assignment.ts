@@ -361,6 +361,21 @@ export const assignment = {
           ]
             .filter(Boolean)
             .join(" · "),
+    /** Ce que le planning a décidé pour un examen, à son arrivée. */
+    trace: {
+      byPlanning: "Attribué par le planning",
+      assignedBy: (line: string) => `Attribué par le planning : ${line}`,
+      ruleApplied: (line: string) => `Règle appliquée : ${line}`,
+      conflict: (names: string) => `Conflit du planning : ${names}`,
+      ineligible: "Prévu au planning, sans pouvoir le recevoir",
+      uncovered: "Hors planning",
+      conflictLong: (names: string) =>
+        `Le planning ne l’a pas attribué : ${names} sont prévus aussi précisément l’un que l’autre. Attribuez-le, et précisez le planning.`,
+      ineligibleLong:
+        "Le planning ne l’a pas attribué : le radiologue prévu ne pouvait pas le recevoir (habilitation, modalité lue). Attribuez-le à un autre.",
+      uncoveredLong:
+        "Le planning ne l’a pas attribué : aucune ligne ne couvrait son arrivée. Attribuez-le vous-même.",
+    },
     /** Règle qui a confié un examen d'office, nommée sur sa fiche. */
     byRule: {
       modality: "radiologue de la modalité",

@@ -5760,6 +5760,32 @@ export interface components {
             outcome: "kept" | "deleted";
         };
         /**
+         * AppliedPlanLine
+         * @description La ligne du planning qui a attribué un examen à son arrivée, telle qu'elle était.
+         *
+         *     Attributes:
+         *         weekdays: Jours, de 1 (lundi) à 7 (dimanche).
+         *         starts_at: Début, ``HH:MM`` ; nul pour toute la journée.
+         *         ends_at: Fin, ``HH:MM`` ; avant le début pour une nuit.
+         *         modality: Groupe de modalités ; nul pour toutes.
+         *         starts_on: Premier jour de la période ; nul pour chaque semaine.
+         *         ends_on: Dernier jour de la période.
+         */
+        AppliedPlanLine: {
+            /** Ends At */
+            ends_at?: string | null;
+            /** Ends On */
+            ends_on?: string | null;
+            /** Modality */
+            modality?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
+            /** Starts At */
+            starts_at?: string | null;
+            /** Starts On */
+            starts_on?: string | null;
+            /** Weekdays */
+            weekdays: number[];
+        };
+        /**
          * AssignmentCandidate
          * @description Radiologue à qui l'examen peut être attribué.
          *
@@ -5856,8 +5882,15 @@ export interface components {
          *         assigned_at: Instant de l'attribution ; nul quand le radiologue a
          *             pris une urgence lui-même sans attribution préalable.
          *         assigned_by_rule: Règle d'attribution de la clinique qui l'a confié
-         *             (``modality``, ``schedule``) ; nul pour une attribution faite
-         *             par une personne.
+         *             (``schedule`` : le planning ; ``modality`` : l'ancienne règle
+         *             par modalité) ; nul pour une attribution faite par une
+         *             personne.
+         *         assigned_by_line: La ligne du planning appliquée, telle qu'elle
+         *             était à l'arrivée de l'examen.
+         *         plan_outcome: Examen à attribuer : pourquoi le planning ne l'a pas
+         *             attribué (``conflict``, ``ineligible``, ``uncovered``).
+         *         plan_conflict_names: En conflit : les radiologues entre lesquels le
+         *             planning n'a pas tranché.
          *         draft_in_progress: Vrai si le titulaire a commencé à rédiger : une
          *             réattribution effacerait son texte.
          *         candidates: Radiologues éligibles, les moins chargés d'abord.
@@ -5868,6 +5901,7 @@ export interface components {
         AssignmentState: {
             /** Assigned At */
             assigned_at: string | null;
+            assigned_by_line?: components["schemas"]["AppliedPlanLine"] | null;
             /** Assigned By Rule */
             assigned_by_rule?: ("modality" | "schedule") | null;
             /** Assigned To */
@@ -5882,6 +5916,10 @@ export interface components {
             modality: string | null;
             /** Notified */
             notified?: boolean | null;
+            /** Plan Conflict Names */
+            plan_conflict_names?: string[] | null;
+            /** Plan Outcome */
+            plan_outcome?: ("conflict" | "ineligible" | "uncovered") | null;
             /** Prior Shares */
             prior_shares: components["schemas"]["PriorShareOut"][];
             /**
@@ -9881,10 +9919,23 @@ export interface components {
          *             pour sa priorité (réglages de la plateforme). Calculée d'après
          *             les délais en vigueur, comme le taux de respect de la tour de
          *             contrôle.
+         *         assigned_by_rule: Règle qui a attribué l'examen à son arrivée
+         *             (``schedule`` : le planning ; ``modality`` : l'ancienne règle
+         *             par modalité) ; nul pour une attribution faite par une
+         *             personne.
+         *         assigned_by_line: La ligne du planning appliquée, telle qu'elle
+         *             était.
+         *         plan_outcome: Examen à attribuer : pourquoi le planning ne l'a pas
+         *             attribué (``conflict``, ``ineligible``, ``uncovered``).
+         *         plan_conflict_names: En conflit : les radiologues entre lesquels le
+         *             planning n'a pas tranché.
          */
         Study: {
             /** Assigned At */
             assigned_at?: string | null;
+            assigned_by_line?: components["schemas"]["AppliedPlanLine"] | null;
+            /** Assigned By Rule */
+            assigned_by_rule?: ("modality" | "schedule") | null;
             /** Assigned To */
             assigned_to: string | null;
             /** Assigned To Name */
@@ -9924,6 +9975,10 @@ export interface components {
             patient_name: string | null;
             /** Patient Sex */
             patient_sex: string | null;
+            /** Plan Conflict Names */
+            plan_conflict_names?: string[] | null;
+            /** Plan Outcome */
+            plan_outcome?: ("conflict" | "ineligible" | "uncovered") | null;
             /**
              * Priority
              * @enum {string}

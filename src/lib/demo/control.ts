@@ -1483,11 +1483,12 @@ const DEMO_TIME_ZONE = "Africa/Lome";
  *
  * La Clinique Saint-Joseph a sa radiologue, Afi Mensah, en journée la
  * semaine ; l'équipe IMAFRIK y a placé des radiologues du réseau : les
- * nuits, le week-end, les scanners chaque semaine, les IRM cette semaine
- * et les scanners de la semaine prochaine. Dr Kponton, de jour en semaine
- * comme Afi Mensah, montre un conflit. La Polyclinique de Kara confie
- * tout à Dr Bakari, et ses IRM à deux radiologues à la fois (un autre
- * conflit).
+ * nuits, le week-end, les scanners chaque semaine, les IRM de cette
+ * semaine (Dr Kponton, qui a reçu ainsi l'IRM de MENSAH Kodjo) et les
+ * scanners de la semaine prochaine. Deux conflits : Dr Kponton de jour en
+ * semaine comme Afi Mensah, et les scanners à Dr Kponton comme à Dr Bakari
+ * (le scanner urgent de KOFFI Ama attend). La Polyclinique de Kara ne
+ * planifie que ses IRM, à deux radiologues à la fois (un autre conflit).
  *
  * Le responsable voit les radiologues du réseau du planning, sans pouvoir
  * en ajouter ; l'équipe IMAFRIK choisit parmi tous ceux du groupe.
@@ -1558,8 +1559,9 @@ export function demoAssignmentPlan(
       }),
       line("stj-week-end", agbeko.id, [6, 7], daytime),
       line("stj-scanner", bakari.id, everyDay, { modality_group: "ct" }),
-      line("stj-irm", agbeko.id, everyDay, { modality_group: "mri", ...week }),
-      line("stj-scanner-suivante", diallo.id, everyDay, {
+      line("stj-scanner-kponton", me.id, everyDay, { modality_group: "ct" }),
+      line("stj-irm", me.id, everyDay, { modality_group: "mri", ...week }),
+      line("stj-scanner-suivante", agbeko.id, everyDay, {
         modality_group: "ct",
         ...next,
       }),
@@ -1581,7 +1583,6 @@ export function demoAssignmentPlan(
       time_zone: DEMO_TIME_ZONE,
       today,
       lines: [
-        line("pka-tout", bakari.id, everyDay),
         line("pka-irm-diallo", diallo.id, everyDay, { modality_group: "mri" }),
         line("pka-irm-agbeko", agbeko.id, everyDay, { modality_group: "mri" }),
       ],
@@ -1682,6 +1683,19 @@ export function demoAssignment(studyId: string): ApiAssignmentState | null {
     modality: study.modality || null,
     assigned_to: study.assignedTo,
     assigned_to_name: holder ? `${holder.title} ${holder.name}` : null,
+    assigned_by_rule: study.assignedByRule ?? null,
+    assigned_by_line: study.assignedByLine
+      ? {
+          weekdays: study.assignedByLine.weekdays,
+          starts_at: study.assignedByLine.startsAt,
+          ends_at: study.assignedByLine.endsAt,
+          modality: study.assignedByLine.modality,
+          starts_on: study.assignedByLine.startsOn,
+          ends_on: study.assignedByLine.endsOn,
+        }
+      : null,
+    plan_outcome: study.planOutcome ?? null,
+    plan_conflict_names: study.planConflictNames ?? null,
     // Toute attribution porte son instant : cinq minutes après réception.
     assigned_at: holder
       ? new Date(study.receivedAt.getTime() + 5 * 60_000).toISOString()

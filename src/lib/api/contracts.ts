@@ -92,6 +92,16 @@ export const studySchema = z.object({
   report_id: uuid.nullable(),
   report_language: z.enum(["fr", "en"]),
   due_at: isoDate,
+  assigned_by_rule: z.enum(["modality", "schedule"]).nullable().optional(),
+  assigned_by_line: z
+    .lazy(() => appliedPlanLineSchema)
+    .nullable()
+    .optional(),
+  plan_outcome: z
+    .lazy(() => planOutcomeSchema)
+    .nullable()
+    .optional(),
+  plan_conflict_names: z.array(z.string()).nullable().optional(),
 });
 const _study: Matches<z.input<typeof studySchema>, Schemas["Study"]> = true;
 
@@ -103,6 +113,27 @@ export const modalityGroupSchema = z.enum([
   "ct",
   "mri",
   "other",
+]);
+
+/** La ligne du planning qui a attribué un examen, telle qu'elle était. */
+export const appliedPlanLineSchema = z.object({
+  weekdays: z.array(z.number().int()),
+  starts_at: z.string().nullable().optional(),
+  ends_at: z.string().nullable().optional(),
+  modality: modalityGroupSchema.nullable().optional(),
+  starts_on: z.string().nullable().optional(),
+  ends_on: z.string().nullable().optional(),
+});
+const _appliedPlanLine: Matches<
+  z.input<typeof appliedPlanLineSchema>,
+  Schemas["AppliedPlanLine"]
+> = true;
+
+/** Pourquoi le planning n'a pas attribué un examen à son arrivée. */
+export const planOutcomeSchema = z.enum([
+  "conflict",
+  "ineligible",
+  "uncovered",
 ]);
 
 export const priorShareSchema = z.object({
@@ -146,6 +177,9 @@ export const assignmentStateSchema = z.object({
   assigned_to_name: z.string().nullable(),
   assigned_at: isoDate.nullable(),
   assigned_by_rule: z.enum(["modality", "schedule"]).nullable().optional(),
+  assigned_by_line: appliedPlanLineSchema.nullable().optional(),
+  plan_outcome: planOutcomeSchema.nullable().optional(),
+  plan_conflict_names: z.array(z.string()).nullable().optional(),
   draft_in_progress: z.boolean(),
   candidates: z.array(
     z.object({
@@ -2076,6 +2110,7 @@ export const CONTRACT_CHECKS = [
   _userMembership,
   _urgentReader,
   _planLine,
+  _appliedPlanLine,
   _assignmentPlan,
   _weekCopy,
   _adminUser,

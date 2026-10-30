@@ -14,9 +14,10 @@ import { expect, test } from "./support/fixtures";
  *
  * Le planning de Saint-Joseph (`demoAssignmentPlan`) : Afi Mensah et Adjo
  * Kponton de jour en semaine (un conflit), Fatou Diallo la nuit, Mawuli
- * Agbeko le week-end, Ibrahim Bakari les scanners chaque semaine ; les IRM
- * de cette semaine à Mawuli Agbeko, les scanners de la suivante à Fatou
- * Diallo.
+ * Agbeko le week-end, les scanners chaque semaine à Ibrahim Bakari comme à
+ * Adjo Kponton (un autre conflit : le scanner de KOFFI Ama attend) ; les
+ * IRM de cette semaine à Adjo Kponton (il a reçu ainsi celle de MENSAH
+ * Kodjo), les scanners de la suivante à Mawuli Agbeko.
  */
 
 const DEMO = /n’est pas disponible en démonstration/;
@@ -39,16 +40,20 @@ test.describe("le responsable de la clinique", () => {
       page.getByRole("link", { name: "Cette semaine" }),
     ).toHaveAttribute("aria-current", "date");
 
-    // Six lignes valent cette semaine : cinq chaque semaine, les IRM datées.
+    // Sept lignes valent cette semaine : six chaque semaine, les IRM datées.
     const lignes = page.getByTestId("plan-line");
-    await expect(lignes).toHaveCount(6);
+    await expect(lignes).toHaveCount(7);
     await expect(lignes.filter({ hasText: "IRM" })).toContainText(
-      "Pr Mawuli Agbeko",
+      "Dr Adjo Kponton",
     );
     // Deux radiologues de jour, aussi précisément : le planning ne tranche pas.
+    const conflits = page
+      .getByTestId("plan-warnings")
+      .getByText(/sont prévus en même temps/);
+    await expect(conflits).toHaveCount(2);
     await expect(
-      page.getByTestId("plan-warnings").getByText(/sont prévus en même temps/),
-    ).toContainText("Dr Afi Mensah et Dr Adjo Kponton");
+      conflits.filter({ hasText: "Dr Afi Mensah et Dr Adjo Kponton" }),
+    ).toBeVisible();
     await expect(
       page.getByRole("table").getByText("Conflit").first(),
     ).toBeVisible();
@@ -80,8 +85,8 @@ test.describe("le responsable de la clinique", () => {
     // cette semaine à recopier.
     await page.getByRole("link", { name: "Semaine prochaine" }).click();
     await expect(page).toHaveURL(/[?&]semaine=\d{4}-\d{2}-\d{2}/);
-    await expect(lignes).toHaveCount(6);
-    await expect(lignes.filter({ hasText: "Scanner" })).toHaveCount(2);
+    await expect(lignes).toHaveCount(7);
+    await expect(lignes.filter({ hasText: "Scanner" })).toHaveCount(3);
     await expect(recopier).toBeEnabled();
     await recopier.click();
     // La semaine a déjà sa ligne datée : la recopie demande de la remplacer.
@@ -104,7 +109,7 @@ test.describe("le responsable de la clinique", () => {
       .click();
     await expect(page).toHaveURL(/[?&]modalite=scanner/);
     // Les lignes pour toutes les modalités couvrent aussi les scanners.
-    await expect(lignes).toHaveCount(5);
+    await expect(lignes).toHaveCount(6);
     await expect(lignes.filter({ hasText: "IRM" })).toHaveCount(0);
 
     await page.getByRole("link", { name: "Par modalité" }).click();
@@ -156,12 +161,36 @@ test.describe("le responsable de la clinique", () => {
     await expect(
       page.getByRole("listitem").filter({ hasText: /^lundi/ }),
     ).toBeVisible();
-    await expect(page.getByTestId("plan-line")).toHaveCount(6);
+    await expect(page.getByTestId("plan-line")).toHaveCount(7);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
+  });
+
+  test("lit sur ses examens ce que le planning a décidé", async ({ page }) => {
+    // Le scanner de KOFFI Ama attend : deux radiologues aussi précis.
+    await page.goto("/examens?etat=a-attribuer");
+    await expect(
+      page
+        .getByRole("row")
+        .filter({ hasText: "KOFFI" })
+        .getByTestId("plan-conflict"),
+    ).toHaveText("Conflit du planning : Dr Adjo Kponton, Dr Ibrahim Bakari");
+
+    // L'IRM de MENSAH Kodjo est allée à Dr Kponton, par les IRM de la semaine.
+    await page.goto("/examens");
+    const irm = page.getByRole("row").filter({ hasText: "MENSAH Kodjo" });
+    await expect(irm.getByTestId("plan-assigned")).toContainText(
+      "Attribué par le planning",
+    );
+    await page.goto("/examens/2");
+    await expect(
+      page.getByTestId("plan-assigned").filter({ visible: true }).first(),
+    ).toContainText(
+      /Attribué par le planning : IRM · Toute la semaine · Journée · Du /,
+    );
   });
 
   test("trouve l'aide de l'écran", async ({ page }) => {
