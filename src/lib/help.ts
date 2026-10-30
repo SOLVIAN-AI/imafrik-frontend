@@ -93,6 +93,8 @@ const SCREENS: Record<
   clinic: [
     ["/tableau-de-bord", "dashboard"],
     ["/envoyer", "send"],
+    ["/examens/depots/*", "depositReport"],
+    ["/examens/depots", "deposits"],
     ["/examens/*", "study"],
     ["/examens", "studies"],
     ["/comptes-rendus/*", "report"],
@@ -113,6 +115,8 @@ const SCREENS: Record<
     ["/admin/passerelles", "gateways"],
     ["/admin/utilisateurs", "accounts"],
     ["/admin/examens", "studies"],
+    ["/admin/depots/*", "depositReport"],
+    ["/admin/depots", "deposits"],
     ["/admin/demandes", "requests"],
     ["/admin/idees", "ideas"],
     ["/admin/facturation", "billing"],

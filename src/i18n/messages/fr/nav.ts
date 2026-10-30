@@ -18,6 +18,7 @@ export const nav = {
     flow: "Flux d’images",
     organisations: "Organisations",
     gateways: "Passerelles",
+    deposits: "Dépôts",
     accounts: "Comptes",
     requests: "Demandes reçues",
     ideaInbox: "Idées",

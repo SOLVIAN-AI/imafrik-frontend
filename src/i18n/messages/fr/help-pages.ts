@@ -190,7 +190,7 @@ export const pages = {
         "Filtrez par radiologue, modalité, état, urgence ou période : chaque choix dit son nombre d’examens, et ils se combinent.",
         "Sur une ligne, cliquez sur « Attribuer », choisissez un radiologue parmi ceux qui lisent la modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
         "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
-        "Cliquez sur une ligne pour ouvrir la fiche de l’examen, ou sur « Envoyer » pour transmettre un nouvel examen.",
+        "Cliquez sur une ligne pour ouvrir la fiche de l’examen, ou sur « Déposer des images » pour envoyer une archive ZIP, qui reprend après chaque coupure.",
       ],
       terms: [
         "attribution",
@@ -199,6 +199,37 @@ export const pages = {
         "modalitesLues",
         "urgence",
       ],
+    },
+    deposits: {
+      title: "Dépôts d’images",
+      purpose:
+        "Pour envoyer les images d’un ou plusieurs examens en une archive ZIP, quand la connexion est faible ou que la passerelle est en panne. L’envoi reprend après chaque coupure, et chaque dépôt a son compte rendu.",
+      steps: [
+        "Compressez le dossier d’images exporté en ZIP : clic droit sur le dossier, « Envoyer vers », « Dossier compressé ».",
+        "Glissez l’archive dans « Déposer une archive ZIP », ou cliquez sur « Choisir une archive ». Gardez la page ouverte : la progression, le débit et le temps restant s’affichent.",
+        "Si la connexion se coupe, ne faites rien : l’envoi reprend seul au retour du réseau. Page fermée ? Cliquez sur « Reprendre » dans « Mes dépôts » et choisissez le même fichier.",
+        "Une fois reçue, l’archive est contrôlée. Ouvrez son compte rendu : examens transmis, doublons, fichiers ignorés et pourquoi.",
+        "Les examens arrivent dans « Examens », « à attribuer », une minute environ après le contrôle.",
+      ],
+      terms: [
+        "depot",
+        "archiveZip",
+        "repriseEnvoi",
+        "fichierIgnore",
+        "doublon",
+      ],
+    },
+    depositReport: {
+      title: "Compte rendu d’un dépôt",
+      purpose:
+        "Ce que l’archive a donné : examens, séries et images transmis, doublons, et fichiers ignorés avec leur raison.",
+      steps: [
+        "Lisez l’état en tête : intégré, en contrôle, refusé (et quoi faire), ou envoi interrompu (et jusqu’à quand le reprendre).",
+        "Survolez ou touchez ⓘ près de chaque nombre pour savoir ce qu’il compte.",
+        "Cliquez sur « Ouvrir l’examen » pour l’attribuer ; « En cours d’intégration » devient un lien d’ici une minute.",
+        "Dans « Fichiers ignorés », ouvrez une raison pour voir les fichiers concernés et ce qu’il faut faire.",
+      ],
+      terms: ["depot", "fichierIgnore", "doublon", "dicom"],
     },
     study: {
       title: "Fiche de l’examen",
@@ -483,6 +514,29 @@ export const pages = {
         "urgence",
         "pool",
       ],
+    },
+    deposits: {
+      title: "Dépôts",
+      purpose:
+        "Les archives ZIP déposées par les cliniques, ou par l’équipe en leur nom, et leur compte rendu. C’est aussi d’ici que l’équipe dépose pour une clinique qui le demande.",
+      steps: [
+        "Filtrez par clinique, état ou période : « Refusé » et « En cours d’envoi » disent où une clinique bute.",
+        "Pour déposer au nom d’une clinique, choisissez-la dans « Clinique », puis glissez l’archive ou cliquez sur « Choisir une archive ».",
+        "Le dépôt est tracé à votre nom au journal d’audit ; la clinique le voit marqué « Équipe IMAFRIK ».",
+        "Ouvrez une ligne pour lire son compte rendu, ou annulez un envoi interrompu que personne ne reprendra.",
+      ],
+      terms: ["depot", "archiveZip", "repriseEnvoi", "fichierIgnore"],
+    },
+    depositReport: {
+      title: "Compte rendu d’un dépôt",
+      purpose:
+        "Le compte rendu que lit la clinique, avec le nom de qui a déposé : examens, séries et images transmis, doublons, fichiers ignorés et leur raison.",
+      steps: [
+        "Lisez l’état en tête et, pour une archive refusée, ce que la clinique doit faire.",
+        "Cliquez sur « Ouvrir l’examen » : il s’ouvre dans la vue des cliniques, comme son responsable le voit.",
+        "Dans « Fichiers ignorés », ouvrez une raison pour voir les fichiers concernés.",
+      ],
+      terms: ["depot", "fichierIgnore", "doublon", "vueCliniques"],
     },
     requests: {
       title: "Demandes reçues",

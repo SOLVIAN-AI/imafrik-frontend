@@ -5,6 +5,7 @@ import { clinic } from "@/i18n/messages/fr/clinic";
 import { clinicView } from "@/i18n/messages/fr/clinic-view";
 import { common } from "@/i18n/messages/fr/common";
 import { credentials } from "@/i18n/messages/fr/credentials";
+import { deposits } from "@/i18n/messages/fr/deposits";
 import { filters } from "@/i18n/messages/fr/filters";
 import { gateways } from "@/i18n/messages/fr/gateways";
 import { help } from "@/i18n/messages/fr/help";
@@ -44,7 +45,8 @@ import { worklist } from "@/i18n/messages/fr/worklist";
  * - `admin` : tour de contrôle ;
  * - `gateways` : passerelles des cliniques, dans la tour de contrôle ;
  * - `ideas` : « Vos idées », les pistes d’amélioration des utilisateurs,
- *   et la boîte où l’équipe IMAFRIK les suit.
+ *   et la boîte où l’équipe IMAFRIK les suit ;
+ * - `deposits` : dépôt d'une archive ZIP d'images, et son compte rendu ;
  * - `help` : aide contextuelle de chaque écran et glossaire.
  */
 export const fr = {
@@ -65,6 +67,7 @@ export const fr = {
   tour,
   admin,
   gateways,
+  deposits,
   help,
   ideas,
 };

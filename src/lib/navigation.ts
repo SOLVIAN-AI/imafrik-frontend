@@ -267,6 +267,8 @@ const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/passerelles", key: "gateways", icon: "gateways" },
       { href: "/admin/utilisateurs", key: "accounts", icon: "users" },
       { href: "/admin/examens", key: "studies", icon: "studies" },
+      // Archives ZIP déposées par les cliniques, ou par l'équipe en leur nom.
+      { href: "/admin/depots", key: "deposits", icon: "deposits" },
       { href: "/admin/demandes", key: "requests", icon: "inbox" },
       // Les idées des radiologues et des responsables de clinique.
       { href: "/admin/idees", key: "ideaInbox", icon: "ideas" },

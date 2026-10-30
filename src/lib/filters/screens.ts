@@ -73,6 +73,10 @@ export const LIST_FILTERS = {
   ],
   // « À lire » : la file d'un radiologue, ou toute la plateforme pour
   // l'équipe IMAFRIK ; la clinique ne s'affiche que s'il y en a plusieurs.
+  // Dépôts d'archives ZIP : ceux de la clinique, pour son responsable ;
+  // ceux du réseau, pour l'équipe. Des listes bornées, filtrées sur la page.
+  depots: ["depositState", "period"],
+  "depots-equipe": [...NETWORK, "depositState", "period"],
   worklist: [...NETWORK, "modality", "urgency"],
   "mes-examens": ["clinic", "modality", "urgency"],
 } as const satisfies Record<string, readonly DimensionKey[]>;

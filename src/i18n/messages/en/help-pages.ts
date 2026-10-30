@@ -185,7 +185,7 @@ export const pages: typeof fr = {
         "Filter by radiologist, modality, status, urgency or period: each choice shows its number of examinations, and they combine.",
         "On a row, click “Assign”, choose a radiologist among those reading the modality, tick the useful prior examinations, then click “Assign”.",
         "Type a patient name, an ID or a modality in the search box, then press Enter.",
-        "Click a row to open the examination page, or “Send” to send a new examination.",
+        "Click a row to open the examination page, or “Upload images” to send a ZIP archive, which resumes after every cut.",
       ],
       terms: [
         "attribution",
@@ -194,6 +194,37 @@ export const pages: typeof fr = {
         "modalitesLues",
         "urgence",
       ],
+    },
+    deposits: {
+      title: "Image uploads",
+      purpose:
+        "To send the images of one or several examinations as a ZIP archive, when the connection is weak or the gateway is down. The upload resumes after every cut, and each upload has its report.",
+      steps: [
+        "Compress the exported image folder as ZIP: right-click the folder, “Send to”, “Compressed (zipped) folder”.",
+        "Drop the archive into “Upload a ZIP archive”, or click “Choose an archive”. Keep the page open: progress, speed and time left are shown.",
+        "If the connection drops, do nothing: the upload resumes on its own when the network is back. Page closed? Click “Resume” in “My uploads” and choose the same file.",
+        "Once received, the archive is checked. Open its report: examinations sent, duplicates, files ignored and why.",
+        "The examinations arrive in “Examinations”, “to assign”, about a minute after the check.",
+      ],
+      terms: [
+        "depot",
+        "archiveZip",
+        "repriseEnvoi",
+        "fichierIgnore",
+        "doublon",
+      ],
+    },
+    depositReport: {
+      title: "Upload report",
+      purpose:
+        "What the archive gave: examinations, series and images sent, duplicates, and files ignored with their reason.",
+      steps: [
+        "Read the state at the top: integrated, checking, refused (and what to do), or upload interrupted (and until when it can be resumed).",
+        "Hover or tap ⓘ next to each figure to learn what it counts.",
+        "Click “Open the examination” to assign it; “Being integrated” becomes a link within a minute.",
+        "In “Files ignored”, open a reason to see the files concerned and what to do.",
+      ],
+      terms: ["depot", "fichierIgnore", "doublon", "dicom"],
     },
     study: {
       title: "Examination page",
@@ -478,6 +509,29 @@ export const pages: typeof fr = {
         "urgence",
         "pool",
       ],
+    },
+    deposits: {
+      title: "Uploads",
+      purpose:
+        "The ZIP archives uploaded by the clinics, or by the team on their behalf, and their reports. The team also uploads from here for a clinic that asks.",
+      steps: [
+        "Filter by clinic, state or period: “Refused” and “Sending” show where a clinic is stuck.",
+        "To upload on behalf of a clinic, choose it under “Clinic”, then drop the archive or click “Choose an archive”.",
+        "The upload is recorded under your name in the audit log; the clinic sees it marked “IMAFRIK team”.",
+        "Open a row to read its report, or cancel an interrupted upload nobody will resume.",
+      ],
+      terms: ["depot", "archiveZip", "repriseEnvoi", "fichierIgnore"],
+    },
+    depositReport: {
+      title: "Upload report",
+      purpose:
+        "The report the clinic reads, with the name of who uploaded: examinations, series and images sent, duplicates, files ignored and their reason.",
+      steps: [
+        "Read the state at the top and, for a refused archive, what the clinic should do.",
+        "Click “Open the examination”: it opens in the clinic view, as its manager sees it.",
+        "In “Files ignored”, open a reason to see the files concerned.",
+      ],
+      terms: ["depot", "fichierIgnore", "doublon", "vueCliniques"],
     },
     requests: {
       title: "Incoming requests",

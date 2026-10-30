@@ -322,6 +322,31 @@ export const glossary: typeof fr = {
     definition:
       "The medical image display built into IMAFRIK: scrolling through slices, windowing, measurements and reconstructions. On a computer, the examination can also be opened in Weasis.",
   },
+  depot: {
+    term: "Image upload",
+    definition:
+      "Sending a ZIP archive of images from the browser, by a clinic manager or by the IMAFRIK team on the clinic’s behalf. The archive is checked, then its images enter the platform on behalf of the clinic, like those from its gateway: the examination arrives “to assign”. Each upload has its report and appears in the audit log.",
+  },
+  archiveZip: {
+    term: "ZIP archive",
+    definition:
+      "A file that bundles and compresses a folder, here the DICOM export of one or several examinations. On Windows: right-click the folder, “Send to”, “Compressed (zipped) folder”. 2 GB and 10,000 files at most, without a password.",
+  },
+  repriseEnvoi: {
+    term: "Upload resumption",
+    definition:
+      "After a network cut, an archive upload resumes on its own where it left off, without sending again what has already arrived. If the page was closed, it resumes when the same file is chosen again, within 72 hours, even from another computer.",
+  },
+  fichierIgnore: {
+    term: "File ignored",
+    definition:
+      "A file of an uploaded archive that did not enter the platform: document, ordinary picture, CD index, encrypted or corrupted file, another clinic’s examination. The upload report names it, with its reason.",
+  },
+  doublon: {
+    term: "Duplicate",
+    definition:
+      "An image present twice in an archive, or already received by IMAFRIK (same DICOM image identifier): it is sent and counted only once.",
+  },
   weasis: {
     term: "Weasis",
     definition:

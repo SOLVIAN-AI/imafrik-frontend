@@ -1,6 +1,6 @@
 "use client";
 
-import { Upload } from "lucide-react";
+import { FileArchive } from "lucide-react";
 import Link from "next/link";
 
 import { ListToolbar } from "@/components/domain/list-toolbar";
@@ -10,27 +10,35 @@ import { useMessages } from "@/i18n/client";
 
 /**
  * Actions de l'écran de suivi d'une clinique : recherche, actualisation,
- * et accès à la page de raccordement.
+ * et dépôt d'images.
  *
  * Extraites de la page pour que celle-ci reste un composant serveur ;
  * composant client pour lire les textes dans la langue de l'utilisateur.
- * Dans la vue des cliniques, la recherche seulement : envoyer un examen
- * est le geste du responsable.
+ *
+ * « Déposer des images » mène au dépôt d'une archive ZIP, qui reprend
+ * après chaque coupure : le recours d'une clinique dont la connexion
+ * manque ou dont la passerelle est en panne. Dans la vue des cliniques,
+ * l'équipe IMAFRIK y dépose au nom de la clinique consultée, depuis sa
+ * console.
  *
  * @param search Recherche en cours, relue par la page serveur.
  */
 export function ClinicStudiesActions({ search }: { search?: string }) {
   const t = useMessages();
-  if (useClinicView()) {
-    return <ListToolbar scope="vue-clinique-examens" search={search} />;
-  }
+  const consultation = useClinicView();
+  const href = consultation
+    ? `/admin/depots?clinique=${encodeURIComponent(consultation.clinicId)}`
+    : "/examens/depots";
   return (
     <>
-      <ListToolbar scope="examens" search={search} />
+      <ListToolbar
+        scope={consultation ? "vue-clinique-examens" : "examens"}
+        search={search}
+      />
       <Button size="sm" asChild>
-        <Link href="/envoyer">
-          <Upload />
-          {t.clinic.studies.send}
+        <Link href={href}>
+          <FileArchive />
+          {t.deposits.depositAction}
         </Link>
       </Button>
     </>

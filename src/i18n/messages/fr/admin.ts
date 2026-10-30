@@ -912,6 +912,7 @@ export const admin = {
       contact_request: "Demandes reçues",
       idea: "Idées",
       platform: "Plateforme",
+      deposit: "Dépôts d’images",
     },
     actions: {
       "study.viewed": "Examen consulté",
@@ -994,6 +995,12 @@ export const admin = {
       "idea.status_changed": "État d’une idée changé",
       "idea.answered": "Réponse à une idée",
       "idea.grouped": "Idée regroupée avec une autre",
+      "deposit.started": "Dépôt d’archive commencé",
+      "deposit.received": "Archive reçue",
+      "deposit.processed": "Archive contrôlée et transmise",
+      "deposit.refused": "Archive refusée",
+      "deposit.cancelled": "Dépôt annulé",
+      "deposit.expired": "Dépôt abandonné",
     },
   },
 

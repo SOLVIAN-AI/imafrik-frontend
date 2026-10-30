@@ -6,6 +6,7 @@ import { clinic } from "@/i18n/messages/en/clinic";
 import { clinicView } from "@/i18n/messages/en/clinic-view";
 import { common } from "@/i18n/messages/en/common";
 import { credentials } from "@/i18n/messages/en/credentials";
+import { deposits } from "@/i18n/messages/en/deposits";
 import { filters } from "@/i18n/messages/en/filters";
 import { gateways } from "@/i18n/messages/en/gateways";
 import { help } from "@/i18n/messages/en/help";
@@ -64,6 +65,7 @@ export const en: AppMessages = {
   tour,
   admin,
   gateways,
+  deposits,
   help,
   ideas,
 };

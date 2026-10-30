@@ -50,6 +50,9 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       // Barre de filtres commune, filtres actifs : rien ne défile en largeur.
       "/examens?etat=pret&modalite=scanner&jours=30",
       "/idees",
+      // Dépôt d'une archive ZIP : l'envoi, « Mes dépôts », un compte rendu.
+      "/examens/depots",
+      "/examens/depots/demo-depot-integre",
     ],
   },
   {
@@ -67,6 +70,9 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       // Barre de filtres commune, filtres actifs : rien ne défile en largeur.
       "/admin/examens?clinique=org-stj&modalite=scanner&urgent=1",
       "/admin/organisations?type=clinique&raccordement=raccordee",
+      // Dépôts du réseau, une clinique choisie, et un compte rendu.
+      "/admin/depots?clinique=org-stj",
+      "/admin/depots/demo-depot-integre",
       // Passerelles : vue d'ensemble et fiche, gestes compris.
       "/admin/passerelles",
       "/admin/passerelles/gw-pka-radio",
