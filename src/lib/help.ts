@@ -126,6 +126,8 @@ const SCREENS: Record<
     // Vue des cliniques : les écrans du responsable, en consultation.
     ["/admin/vue-clinique", "clinicViews"],
     ["/admin/vue-clinique/:clinique/tableau-de-bord", "clinicDashboard"],
+    ["/admin/vue-clinique/:clinique/examens/depots/*", "clinicDepositReport"],
+    ["/admin/vue-clinique/:clinique/examens/depots", "clinicDeposits"],
     ["/admin/vue-clinique/:clinique/examens/*", "clinicStudy"],
     ["/admin/vue-clinique/:clinique/examens", "clinicStudies"],
     ["/admin/vue-clinique/:clinique/comptes-rendus/*", "clinicReport"],

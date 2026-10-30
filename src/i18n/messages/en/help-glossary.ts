@@ -20,7 +20,7 @@ export const glossary: typeof fr = {
   vueCliniques: {
     term: "Clinics’ view",
     definition:
-      "A clinic manager’s screens, opened by the IMAFRIK team with that clinic’s data and the same figures. View-only: no sending, no invitations, no clinical information, and a downloaded PDF is not delivered. Each opening is recorded in the audit log.",
+      "A clinic manager’s screens, opened by the IMAFRIK team with that clinic’s data and the same figures. The team assigns, sets the schedule and uploads ZIP archives on the clinic’s behalf there; no file-by-file sending, no invitations, no clinical information, and a downloaded PDF is not delivered. Each opening is recorded in the audit log.",
   },
   groupeModalites: {
     term: "Modality group",

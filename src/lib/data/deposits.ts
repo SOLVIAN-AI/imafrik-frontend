@@ -204,12 +204,27 @@ export async function getDeposit(
   }
 }
 
-/** Les dépôts du réseau, pour l'équipe IMAFRIK. */
-export async function listTeamDeposits(): Promise<DepositList> {
+/**
+ * Les dépôts du réseau, pour l'équipe IMAFRIK, ou ceux d'une clinique.
+ *
+ * @param clinicId Clinique consultée (vue des cliniques) : le service ne
+ *                 rend que ses dépôts, 500 au plus comme pour le réseau.
+ */
+export async function listTeamDeposits(
+  clinicId?: string,
+): Promise<DepositList> {
   if (isDemoMode()) {
-    return { deposits: DEMO_DEPOSITS.map(toDeposit), limited: false };
+    return {
+      deposits: DEMO_DEPOSITS.filter(
+        (row) => clinicId === undefined || row.organization_id === clinicId,
+      ).map(toDeposit),
+      limited: false,
+    };
   }
-  const list = await apiGet("/admin/deposits", depositListSchema);
+  const query = clinicId
+    ? `?${new URLSearchParams({ clinic_id: clinicId })}`
+    : "";
+  const list = await apiGet(`/admin/deposits${query}`, depositListSchema);
   return { deposits: list.deposits.map(toDeposit), limited: list.limited };
 }
 

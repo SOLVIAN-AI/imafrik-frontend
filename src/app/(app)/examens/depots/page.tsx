@@ -13,7 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * Dépôts d'images, pour le responsable de la clinique : déposer une
  * archive ZIP quand la connexion manque ou que la passerelle est en
  * panne, et suivre « Mes dépôts ». On y vient par « Déposer des images »,
- * dans « Examens ».
+ * entrée de la navigation et bouton d'« Examens », ou depuis « Envoyer un
+ * examen ».
  *
  * L'équipe IMAFRIK a sa liste, toutes cliniques confondues, et y dépose
  * au nom d'une clinique ; un radiologue ne dépose pas.

@@ -9,8 +9,9 @@ import { filterHref } from "@/lib/filters/url";
  * Choix de la clinique au nom de laquelle l'équipe IMAFRIK dépose.
  *
  * Le même paramètre que le filtre « Clinique » de la liste (`?clinique=`) :
- * choisir la clinique montre aussi ses dépôts, et la vue des cliniques y
- * mène avec la clinique déjà choisie. Une liste déroulante native, triée
+ * choisir la clinique montre aussi ses dépôts, et le retour d'un compte
+ * rendu y revient avec la clinique déjà choisie. Dans la vue des
+ * cliniques, la clinique est celle de l'écran : pas de choix. Une liste déroulante native, triée
  * par ordre alphabétique : elle se parcourt au clavier et se tape.
  *
  * @param clinics  Cliniques actives, triées par nom.

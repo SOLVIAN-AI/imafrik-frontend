@@ -84,11 +84,14 @@ test.describe("l’équipe IMAFRIK", () => {
     ).toHaveCount(0);
     await checkA11y();
 
-    // Les écrans du responsable, sous la clinique choisie.
+    // Les écrans du responsable, sous la clinique choisie : ses dépôts et
+    // son planning compris.
     for (const [href, titre] of [
+      [`${VUE}/examens/depots`, "Dépôts d’images"],
       [`${VUE}/examens`, "Examens"],
       [`${VUE}/comptes-rendus`, "Comptes-rendus"],
       [`${VUE}/equipe`, "Équipe"],
+      [`${VUE}/equipe/regles`, "Planning d’attribution"],
       [`${VUE}/activite`, "Activité et facturation"],
     ] as const) {
       await nav.locator(`a[href="${href}"]`).click();
@@ -103,6 +106,8 @@ test.describe("l’équipe IMAFRIK", () => {
         "aria-current",
         "page",
       );
+      // Une seule entrée allumée : le planning n'allume pas l'équipe.
+      await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
     }
 
     await bandeau.getByRole("link", { name: "Retour à la console" }).click();
@@ -237,11 +242,60 @@ test.describe("l’équipe IMAFRIK", () => {
     await nav.getByRole("button", { name: /Clinique Saint-Joseph/ }).click();
     await page.getByRole("option", { name: /Polyclinique de Kara/ }).click();
     await expect(page).toHaveURL("/admin/vue-clinique/org-pka/examens");
+
+    // De même pour le compte rendu d'un dépôt : on revient aux dépôts.
+    await page.goto(`${VUE}/examens/depots/demo-depot-integre`);
+    await nav.getByRole("button", { name: /Clinique Saint-Joseph/ }).click();
+    await page.getByRole("option", { name: /Polyclinique de Kara/ }).click();
+    await expect(page).toHaveURL("/admin/vue-clinique/org-pka/examens/depots");
+  });
+
+  test("voit tous les écrans de la clinique, sous toute l’administration", async ({
+    page,
+  }) => {
+    // Le bloc vient après la console : sur un écran de portable, ses
+    // entrées étaient sous le pli. La barre défile jusqu'à lui.
+    await page.setViewportSize({ width: 1440, height: 800 });
+    await page.goto(`${VUE}/tableau-de-bord`);
+    const nav = page.getByRole("navigation", { name: "Navigation principale" });
+    for (const ecran of [
+      "/tableau-de-bord",
+      "/examens/depots",
+      "/examens",
+      "/comptes-rendus",
+      "/equipe",
+      "/equipe/regles",
+      "/activite",
+    ]) {
+      await expect(nav.locator(`a[href="${VUE}${ecran}"]`)).toBeInViewport();
+    }
+    await page.goto(`${VUE}/equipe/regles`);
+    const planning = nav.locator(`a[href="${VUE}/equipe/regles"]`);
+    await expect(planning).toHaveAttribute("aria-current", "page");
+    await expect(planning).toBeInViewport();
+  });
+
+  test.describe("sur téléphone", () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test("le tiroir s’ouvre sur l’entrée allumée", async ({ page }) => {
+      await page.goto(`${VUE}/examens/depots`);
+      await page.getByRole("button", { name: "Ouvrir la navigation" }).click();
+      const tiroir = page.getByRole("dialog");
+      const depots = tiroir.locator(`a[href="${VUE}/examens/depots"]`);
+      await expect(depots).toHaveAttribute("aria-current", "page");
+      await expect(depots).toBeInViewport();
+    });
   });
 
   test("ouvre l’aide de chaque écran en consultation", async ({ page }) => {
     for (const [path, titre] of [
       [`${VUE}/tableau-de-bord`, "Tableau de bord de la clinique"],
+      [`${VUE}/examens/depots`, "Dépôts de la clinique"],
+      [
+        `${VUE}/examens/depots/demo-depot-integre`,
+        "Compte rendu d’un dépôt de la clinique",
+      ],
       [`${VUE}/examens`, "Examens de la clinique"],
       [`${VUE}/examens/1`, "Fiche de l’examen"],
       [`${VUE}/comptes-rendus`, "Comptes-rendus de la clinique"],

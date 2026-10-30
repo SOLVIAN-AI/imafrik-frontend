@@ -7,6 +7,7 @@ import { FilterBar } from "@/components/filters/filter-bar";
 import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
+import { type ClinicConsultation, clinicViewPath } from "@/lib/clinic-view";
 import { listOrganizations } from "@/lib/data/admin";
 import {
   type Deposit,
@@ -31,28 +32,36 @@ import { getMessages } from "@/i18n/server";
  * Chez le responsable (`/examens/depots`), l'envoi au nom de sa clinique
  * et « Mes dépôts ». Dans la console (`/admin/depots`), la clinique se
  * choisit d'abord (elle filtre aussi la liste), puis l'envoi part en son
- * nom ; la liste couvre tout le réseau.
+ * nom ; la liste couvre tout le réseau. Dans la vue des cliniques
+ * (`/admin/vue-clinique/{clinique}/examens/depots`), la clinique est celle
+ * de l'écran : l'équipe y dépose en son nom, par ses propres routes, et la
+ * liste est la sienne.
  *
  * La liste est filtrée sur la page, avec la barre commune : état,
- * période, et la clinique pour l'équipe. Elle tient en 500 dépôts au plus.
+ * période, et la clinique dans la console. Elle tient en 500 dépôts au plus.
  *
- * @param team   `true` pour la console de l'équipe IMAFRIK.
- * @param params Paramètres de l'adresse : filtres, clinique choisie.
+ * @param team         `true` pour l'équipe IMAFRIK (console ou vue des cliniques).
+ * @param consultation Clinique consultée, dans la vue des cliniques.
+ * @param params       Paramètres de l'adresse : filtres, clinique choisie.
  */
 export async function DepositsScreen({
   team,
+  consultation = null,
   params,
 }: {
   team: boolean;
+  consultation?: ClinicConsultation | null;
   params: SearchParamsRecord;
 }) {
   const session = await requireSession();
   const { t, locale } = await getMessages();
   const text = t.deposits;
+  // La console couvre le réseau ; la vue des cliniques, une clinique.
+  const network = team && consultation === null;
   const [list, limits, organizations] = await Promise.all([
-    team ? listTeamDeposits() : listDeposits(),
+    team ? listTeamDeposits(consultation?.clinicId) : listDeposits(),
     getDepositLimits(team),
-    team ? listOrganizations() : Promise.resolve([]),
+    network ? listOrganizations() : Promise.resolve([]),
   ]);
   const clinics = organizations
     .filter(
@@ -60,8 +69,8 @@ export async function DepositsScreen({
     )
     .map(({ id, name }) => ({ id, name }))
     .sort((a, b) => a.name.localeCompare(b.name, locale));
-  const keys = team ? LIST_FILTERS["depots-equipe"] : LIST_FILTERS.depots;
-  const known = team
+  const keys = network ? LIST_FILTERS["depots-equipe"] : LIST_FILTERS.depots;
+  const known = network
     ? {
         clinic: [
           ...new Set([
@@ -79,19 +88,25 @@ export async function DepositsScreen({
   };
   const rows = filterRows(list.deposits, values, filters);
 
-  const clinic = team
-    ? (clinics.find((item) => item.id === filters.clinic) ?? null)
-    : {
-        id: session.active.organizationId,
-        name: session.active.organizationName,
-      };
+  const clinic = consultation
+    ? { id: consultation.clinicId, name: consultation.name }
+    : team
+      ? (clinics.find((item) => item.id === filters.clinic) ?? null)
+      : {
+          id: session.active.organizationId,
+          name: session.active.organizationName,
+        };
+  // Une clinique suspendue ne reçoit plus d'examen : le service refuserait
+  // le dépôt, l'écran le dit avant.
+  const closed =
+    consultation && !consultation.isActive ? text.uploader.clinicClosed : null;
   // La clinique choisie, ou celles qui ont des dépôts : de quoi filtrer.
   const filterClinics = new Map(
     list.deposits.map((deposit) => [deposit.clinicId, deposit.clinicName]),
   );
   if (clinic) filterClinics.set(clinic.id, clinic.name);
   const bar: BarDimension[] = [
-    ...(team
+    ...(network
       ? [
           {
             key: "clinic" as const,
@@ -133,16 +148,22 @@ export async function DepositsScreen({
         deposit.status === "uploading" && deposit.clinicId === clinic?.id,
     )
     .map(interruptedOf);
-  const reportBase = team ? "/admin/depots" : "/examens/depots";
+  const reportBase = consultation
+    ? clinicViewPath(consultation.clinicId, "/examens/depots")
+    : team
+      ? "/admin/depots"
+      : "/examens/depots";
 
   return (
     <>
       <PageHeader
         title={text.title}
         description={
-          team
-            ? text.teamDescription
-            : text.description(session.active.organizationName)
+          consultation
+            ? text.clinicViewDescription(consultation.name)
+            : team
+              ? text.teamDescription
+              : text.description(session.active.organizationName)
         }
       />
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-6 sm:px-6 [&>*]:shrink-0">
@@ -153,15 +174,20 @@ export async function DepositsScreen({
           interrupted={interrupted}
           reportBase={reportBase}
           demo={isDemoMode()}
+          closed={closed}
           clinicPicker={
-            team ? (
+            network ? (
               <ClinicPicker clinics={clinics} selected={clinic?.id ?? null} />
             ) : undefined
           }
         >
           <Panel className="overflow-hidden">
             <h2 className="label-eyebrow flex h-11 items-center gap-2 border-b border-border-subtle px-4">
-              {team ? text.list.teamTitle : text.list.title}
+              {consultation
+                ? text.list.clinicViewTitle
+                : team
+                  ? text.list.teamTitle
+                  : text.list.title}
             </h2>
             <FilterBar
               dimensions={bar}
@@ -178,7 +204,13 @@ export async function DepositsScreen({
             ) : rows.length === 0 ? (
               <EmptyState
                 icon={FileArchive}
-                title={team ? text.list.teamEmpty : text.list.empty}
+                title={
+                  consultation
+                    ? text.list.clinicViewEmpty
+                    : team
+                      ? text.list.teamEmpty
+                      : text.list.empty
+                }
                 detail={text.list.emptyDetail}
               />
             ) : (
@@ -188,6 +220,7 @@ export async function DepositsScreen({
                 locale={locale}
                 reportBase={reportBase}
                 team={team}
+                showClinic={network}
               />
             )}
             {list.limited && (

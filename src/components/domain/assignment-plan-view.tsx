@@ -40,6 +40,7 @@ import {
   type PlanLine,
   type PlanRadiologist,
   conflictsOfWeek,
+  countingLines,
   dayAsDate,
   daysSummary,
   isCalendarDay,
@@ -169,14 +170,7 @@ export function AssignmentPlanView({
 
   // Une ligne compte si son radiologue peut recevoir des examens et lit
   // sa modalité : sinon le service l'ignore, et elle ne fait pas conflit.
-  const counts = (line: PlanLine) => {
-    const radiologist = byId.get(line.radiologistId);
-    return (
-      radiologist !== undefined &&
-      radiologist.canReceive &&
-      (line.modality === null || readsGroup(radiologist, line.modality))
-    );
-  };
+  const counts = countingLines(plan);
   const conflicts = conflictsOfWeek(plan.lines, monday, counts).filter(
     (conflict) => shownIds.has(conflict.first) || shownIds.has(conflict.second),
   );

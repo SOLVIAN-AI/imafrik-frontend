@@ -22,10 +22,11 @@ const SCREENS: Record<DemoMembership, string[]> = {
     "/admin/activite?onglet=cliniques",
     "/worklist",
     "/admin/vue-clinique/org-stj/examens",
+    "/admin/vue-clinique/org-stj/examens/depots",
     "/admin/vue-clinique/org-stj/activite",
     "/admin/idees",
   ],
-  "m-clinic": ["/examens", "/activite", "/idees"],
+  "m-clinic": ["/examens", "/examens/depots", "/activite", "/idees"],
   "m-radio": ["/worklist", "/mes-examens", "/idees"],
 };
 

@@ -382,6 +382,38 @@ export function conflictsOfWeek<T extends PlanLineInput & { id: string }>(
   return found;
 }
 
+/**
+ * Les lignes qui comptent : celles dont le radiologue peut recevoir des
+ * examens et lit la modalité. Les autres, le service les ignore, et elles
+ * ne font pas conflit.
+ *
+ * @param plan Planning lu du service.
+ */
+export function countingLines(
+  plan: Pick<AssignmentPlan, "radiologists">,
+): (line: PlanLineInput) => boolean {
+  const byId = new Map(plan.radiologists.map((r) => [r.profileId, r]));
+  return (line) => {
+    const radiologist = byId.get(line.radiologistId);
+    return (
+      radiologist !== undefined &&
+      radiologist.canReceive &&
+      (line.modality === null || readsGroup(radiologist, line.modality))
+    );
+  };
+}
+
+/**
+ * Les conflits de cette semaine, à l'heure de la clinique : ceux que
+ * l'écran du planning signale à son ouverture, sans filtre. La pastille
+ * de « Planning », dans la navigation du responsable, en donne le nombre.
+ *
+ * @param plan Planning lu du service.
+ */
+export function currentConflicts(plan: AssignmentPlan): Conflict[] {
+  return conflictsOfWeek(plan.lines, mondayOf(plan.today), countingLines(plan));
+}
+
 // ─── Recopier la semaine précédente ─────────────────────────────
 
 /**

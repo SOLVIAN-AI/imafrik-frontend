@@ -25,7 +25,7 @@ export const glossary = {
   vueCliniques: {
     term: "Vue des cliniques",
     definition:
-      "Les écrans du responsable d’une clinique, ouverts par l’équipe IMAFRIK avec les données de cette clinique et les mêmes chiffres. Lecture seule : ni envoi, ni invitation, ni renseignement clinique, et un PDF téléchargé n’est pas remis. Chaque ouverture est tracée au journal d’audit.",
+      "Les écrans du responsable d’une clinique, ouverts par l’équipe IMAFRIK avec les données de cette clinique et les mêmes chiffres. L’équipe y attribue, règle le planning et dépose des archives ZIP au nom de la clinique ; ni envoi fichier par fichier, ni invitation, ni renseignement clinique, et un PDF téléchargé n’est pas remis. Chaque ouverture est tracée au journal d’audit.",
   },
   groupeModalites: {
     term: "Groupe de modalités",

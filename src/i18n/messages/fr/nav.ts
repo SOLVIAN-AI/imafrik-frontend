@@ -10,8 +10,10 @@ export const nav = {
     settings: "Paramètres",
     dashboard: "Tableau de bord",
     send: "Envoyer un examen",
+    depositImages: "Déposer des images",
     studies: "Examens",
     team: "Équipe",
+    planning: "Planning",
     activity: "Activité et facturation",
     cockpit: "Cockpit",
     analytics: "Activité",
@@ -45,6 +47,13 @@ export const nav = {
   signOut: "Se déconnecter",
   /** Libellé accessible d'un compteur : `{count}` éléments, dont des urgences. */
   countWithUrgent: (count: number) => `${count}, dont des urgences`,
+  /** Ce que compte un compteur, en toutes lettres (`NavItem.countLabel`). */
+  countLabels: {
+    planConflicts: (count: number) =>
+      count > 1
+        ? `${count} conflits cette semaine`
+        : `${count} conflit cette semaine`,
+  },
   openNavigation: "Ouvrir la navigation",
   closeNavigation: "Fermer la navigation",
   home: "Accueil IMAFRIK",

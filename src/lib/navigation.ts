@@ -33,7 +33,17 @@ export interface NavCounts {
   urgentToAssign: number;
   /** Comptes-rendus signés que la clinique n'a pas encore téléchargés. */
   reportsToDownload: number;
+  /**
+   * Responsable : conflits du planning d'attribution cette semaine, à
+   * l'heure de la clinique. Deux lignes aussi précises pour deux
+   * radiologues qui se recouvrent : l'examen arrivé pendant ce temps reste
+   * à attribuer. Calculé comme l'écran du planning (`currentConflicts`).
+   */
+  planConflicts: number;
 }
+
+/** Clé du libellé d'un compteur, lu par les lecteurs d'écran (`nav.countLabels`). */
+export type NavCountLabelKey = keyof AppMessages["nav"]["countLabels"];
 
 export interface NavItem {
   href: string;
@@ -44,6 +54,16 @@ export interface NavItem {
   count?: keyof NavCounts;
   /** Compteur dont une valeur non nulle signale des urgences. */
   urgentCount?: keyof NavCounts;
+  /**
+   * Teinte du compteur : `warning` (ambre, celle des avertissements des
+   * écrans) pour un réglage à reprendre, qui n'est pas une urgence.
+   */
+  tone?: "warning";
+  /**
+   * Ce que compte le compteur, en toutes lettres : son libellé pour les
+   * lecteurs d'écran, et sa bulle au survol. Sans lui, le nombre seul.
+   */
+  countLabel?: NavCountLabelKey;
   /**
    * Actif sur cette adresse seulement, pas sur ses sous-pages — pour une
    * racine comme `/admin`, qui coifferait sinon tout le portail.
@@ -60,6 +80,29 @@ export interface NavItem {
 export function isActive(item: NavItem, pathname: string): boolean {
   if (pathname === item.href) return true;
   return !item.exact && pathname.startsWith(`${item.href}/`);
+}
+
+/**
+ * L'entrée allumée pour l'adresse courante : la plus précise de celles
+ * qui y correspondent. « Planning » (`/equipe/regles`) l'emporte sur
+ * « Équipe » (`/equipe`), « Déposer des images » (`/examens/depots`) sur
+ * « Examens » : une seule entrée allumée, celle de l'écran ouvert.
+ *
+ * @param items    Entrées parmi lesquelles choisir.
+ * @param pathname Adresse courante.
+ * @returns L'adresse de l'entrée allumée, ou `null`.
+ */
+export function activeHref(
+  items: readonly NavItem[],
+  pathname: string,
+): string | null {
+  let found: string | null = null;
+  for (const item of items) {
+    if (isActive(item, pathname) && item.href.length > (found?.length ?? -1)) {
+      found = item.href;
+    }
+  }
+  return found;
 }
 
 /**
@@ -182,15 +225,19 @@ const RADIOLOGIST_NAV: NavGroup[] = [
  * Navigation de la clinique.
  *
  * Elle suit le cycle de vie d'un examen vu de l'établissement : on
- * envoie, on suit, on récupère. « Envoyer un examen » est isolé en tête
- * parce que c'est la seule action de la journée — tout le reste est de
- * la consultation.
+ * envoie, on suit, on récupère. Les deux façons d'envoyer sont isolées en
+ * tête parce que c'est l'action de la journée ; tout le reste est de la
+ * consultation ou du réglage.
  */
 const CLINIC_NAV: NavGroup[] = [
   {
     items: [
       { href: "/tableau-de-bord", key: "dashboard", icon: "dashboard" },
       { href: "/envoyer", key: "send", icon: "send" },
+      // Une archive ZIP, qui reprend après chaque coupure : le recours
+      // d'une clinique dont la connexion manque ou dont la passerelle est
+      // en panne. « Envoyer un examen » y mène aussi.
+      { href: "/examens/depots", key: "depositImages", icon: "deposits" },
     ],
   },
   {
@@ -214,6 +261,16 @@ const CLINIC_NAV: NavGroup[] = [
     key: "facility",
     items: [
       { href: "/equipe", key: "team", icon: "team" },
+      // Qui reçoit d'office les examens à leur arrivée. Ses conflits de la
+      // semaine, en ambre : pendant ce temps, rien n'est attribué d'office.
+      {
+        href: "/equipe/regles",
+        key: "planning",
+        icon: "planning",
+        count: "planConflicts",
+        tone: "warning",
+        countLabel: "planConflicts",
+      },
       { href: "/activite", key: "activity", icon: "analytics" },
       { href: "/parametres", key: "settings", icon: "settings" },
       // « Vos idées » : ce qui faciliterait la vie de la clinique.
@@ -236,10 +293,12 @@ const CLINIC_NAV: NavGroup[] = [
  * service comme ses utilisateurs le vivent, de temps en temps :
  *
  * - la **vue des cliniques** ouvre les écrans du responsable d'une
- *   clinique choisie, avec ses données (tableau de bord, examens,
- *   comptes-rendus, équipe, activité et facturation). Les gestes du
- *   responsable (envoyer, inviter, renseigner un examen, télécharger au
- *   nom de la clinique) restent les siens ;
+ *   clinique choisie, avec ses données (tableau de bord, dépôts, examens,
+ *   comptes-rendus, équipe, planning, activité et facturation). L'équipe
+ *   y attribue, y règle le planning et y dépose une archive au nom de la
+ *   clinique, gestes tracés à son nom ; ceux du responsable (envoyer
+ *   fichier par fichier, inviter, renseigner un examen, télécharger au nom
+ *   de la clinique) restent les siens ;
  * - les **lectures** ouvrent les écrans de lecture sur toute la plateforme
  *   (la file à lire, les comptes-rendus, les modèles, la formation). Ce
  *   n'est pas ce que voit un radiologue, qui ne voit que ce qu'on lui
@@ -288,12 +347,16 @@ const ADMIN_NAV: NavGroup[] = [
     collapsible: true,
     clinicScoped: true,
     // Les écrans du responsable, dans l'ordre de sa navigation. Ni
-    // « Envoyer un examen » ni les paramètres : ce sont ses gestes.
+    // « Envoyer un examen » ni les paramètres : ce sont ses gestes. Ses
+    // dépôts, si : l'équipe y dépose une archive au nom de la clinique.
+    // Sans compteur : ceux de la navigation sont ceux de l'équipe.
     items: [
       { href: "/tableau-de-bord", key: "dashboard", icon: "dashboard" },
+      { href: "/examens/depots", key: "deposits", icon: "deposits" },
       { href: "/examens", key: "studies", icon: "studies" },
       { href: "/comptes-rendus", key: "reports", icon: "reports" },
       { href: "/equipe", key: "team", icon: "team" },
+      { href: "/equipe/regles", key: "planning", icon: "planning" },
       { href: "/activite", key: "activity", icon: "analytics" },
     ],
   },

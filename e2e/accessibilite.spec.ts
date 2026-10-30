@@ -63,8 +63,23 @@ const SCREENS: {
   {
     membership: "m-clinic",
     paths: {
-      fr: ["/tableau-de-bord", "/examens", "/examens/1", "/idees"],
-      en: ["/tableau-de-bord", "/examens", "/examens/1", "/idees"],
+      // Le planning : sa pastille de conflits, ambre, dans la navigation.
+      fr: [
+        "/tableau-de-bord",
+        "/examens",
+        "/examens/1",
+        "/examens/depots",
+        "/equipe/regles",
+        "/idees",
+      ],
+      en: [
+        "/tableau-de-bord",
+        "/examens",
+        "/examens/1",
+        "/examens/depots",
+        "/equipe/regles",
+        "/idees",
+      ],
     },
   },
   {
@@ -82,6 +97,7 @@ const SCREENS: {
         // Vue des cliniques : les écrans du responsable, sous le bandeau.
         "/admin/vue-clinique",
         "/admin/vue-clinique/org-stj/examens",
+        "/admin/vue-clinique/org-stj/examens/depots",
         "/admin/vue-clinique/org-stj/equipe",
       ],
       en: [
@@ -96,6 +112,7 @@ const SCREENS: {
         // Vue des cliniques : les écrans du responsable, sous le bandeau.
         "/admin/vue-clinique",
         "/admin/vue-clinique/org-stj/examens",
+        "/admin/vue-clinique/org-stj/examens/depots",
         "/admin/vue-clinique/org-stj/equipe",
       ],
     },

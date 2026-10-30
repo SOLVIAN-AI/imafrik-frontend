@@ -25,6 +25,60 @@ const DEMO = /n’est pas disponible en démonstration/;
 test.describe("le responsable de la clinique", () => {
   test.use({ membership: "m-clinic", langue: "fr" });
 
+  test("trouve « Planning » dans la navigation, avec les conflits de la semaine", async ({
+    page,
+  }) => {
+    await page.goto("/tableau-de-bord");
+    const nav = page.getByRole("navigation", { name: "Navigation principale" });
+    const planning = nav.locator('a[href="/equipe/regles"]');
+    // Juste après « Équipe », dans l'établissement.
+    await expect(planning).toHaveAccessibleName(
+      "Planning 2 conflits cette semaine",
+    );
+    await expect(
+      planning.getByLabel("2 conflits cette semaine"),
+    ).toHaveAttribute("title", "2 conflits cette semaine");
+
+    await planning.click();
+    await expect(page).toHaveURL("/equipe/regles");
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Planning d’attribution" }),
+    ).toBeVisible();
+    // La même chose que l'écran : deux conflits cette semaine.
+    await expect(
+      page.getByTestId("plan-warnings").getByText(/sont prévus en même temps/),
+    ).toHaveCount(2);
+    // Une seule entrée allumée : « Planning », pas « Équipe ».
+    await expect(planning).toHaveAttribute("aria-current", "page");
+    await expect(nav.locator('a[href="/equipe"]')).not.toHaveAttribute(
+      "aria-current",
+    );
+    // Le bouton de l'écran « Équipe » y mène toujours.
+    await nav.locator('a[href="/equipe"]').click();
+    await expect(
+      page.getByRole("main").getByRole("link", {
+        name: "Planning d’attribution",
+      }),
+    ).toHaveAttribute("href", "/equipe/regles");
+  });
+
+  test.describe("en anglais", () => {
+    test.use({ langue: "en" });
+
+    test("lit « Schedule » et ses conflits dans sa langue", async ({
+      page,
+    }) => {
+      await page.goto("/tableau-de-bord");
+      const nav = page.getByRole("navigation", { name: "Main navigation" });
+      await expect(
+        nav.locator('a[href="/equipe/regles"]'),
+      ).toHaveAccessibleName("Schedule 2 conflicts this week");
+      await expect(
+        nav.locator('a[href="/examens/depots"]'),
+      ).toHaveAccessibleName("Upload images");
+    });
+  });
+
   test("lit le planning de la semaine, ses conflits, et change de semaine", async ({
     page,
     checkA11y,
@@ -37,7 +91,9 @@ test.describe("le responsable de la clinique", () => {
       page.getByRole("heading", { level: 1, name: "Planning d’attribution" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Cette semaine" }),
+      // Exact : « Planning », dans la navigation, compte ses conflits de
+      // cette semaine.
+      page.getByRole("link", { name: "Cette semaine", exact: true }),
     ).toHaveAttribute("aria-current", "date");
 
     // Sept lignes valent cette semaine : six chaque semaine, les IRM datées.

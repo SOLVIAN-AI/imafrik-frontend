@@ -15,6 +15,9 @@ export const deposits = {
     `Archives ZIP envoyées depuis le navigateur · ${clinic}`,
   teamDescription:
     "Archives ZIP déposées par les cliniques, ou par l’équipe en leur nom",
+  /** Vue des cliniques : les dépôts de la clinique consultée. */
+  clinicViewDescription: (clinic: string) =>
+    `Archives ZIP de la clinique, et dépôt en son nom · ${clinic}`,
   /** Bouton de l'écran « Examens ». */
   depositAction: "Déposer des images",
   /** Ce qui est indisponible en démonstration. */
@@ -44,6 +47,8 @@ export const deposits = {
       `Dépôt au nom de ${clinic}, tracé à votre nom au journal d’audit.`,
     chooseClinicFirst:
       "Choisissez d’abord la clinique au nom de laquelle vous déposez.",
+    clinicClosed:
+      "Clinique suspendue ou contrat terminé : elle ne reçoit plus de dépôt.",
     checking: "Préparation de l’envoi…",
     resuming: (percent: number) => `Reprise de l’envoi à ${percent} %`,
     percent: (percent: number) => `${percent} %`,
@@ -80,6 +85,7 @@ export const deposits = {
   list: {
     title: "Mes dépôts",
     teamTitle: "Dépôts",
+    clinicViewTitle: "Dépôts de la clinique",
     columns: {
       date: "Déposé le",
       file: "Archive",
@@ -99,6 +105,7 @@ export const deposits = {
     emptyDetail:
       "Les archives que vous déposez apparaissent ici, avec leur compte rendu.",
     teamEmpty: "Aucun dépôt dans le réseau",
+    clinicViewEmpty: "Aucun dépôt pour cette clinique",
     limited: "Les 500 dépôts les plus récents.",
     received: (received: string, total: string) => `${received} sur ${total}`,
     interrupted: (date: string) =>

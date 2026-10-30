@@ -4,8 +4,11 @@ import { messagesFor } from "@/i18n";
 
 import {
   type PlanLineInput,
+  type PlanRadiologist,
   addDays,
   conflictsOfWeek,
+  countingLines,
+  currentConflicts,
   describeLine,
   isCalendarDay,
   isOvernight,
@@ -202,6 +205,57 @@ describe("les conflits d'une semaine", () => {
         (line) => line.radiologistId !== "c",
       ),
     ).toEqual([]);
+  });
+
+  it("de cette semaine sont ceux qu'annonce la pastille du planning", () => {
+    const radiologue = (
+      profileId: string,
+      extra: Partial<PlanRadiologist> = {},
+    ): PlanRadiologist => ({
+      profileId,
+      name: `Dr ${profileId}`,
+      organizationName: "Clinique",
+      viaPool: false,
+      readModalities: null,
+      canReceive: true,
+      ...extra,
+    });
+    const a = ligne("a", [1, 2]);
+    const b = ligne("b", [2, 3]);
+    // Un radiologue qui ne peut pas recevoir, ou ne lit pas la modalité :
+    // le service ignore sa ligne, elle ne fait pas conflit.
+    const c = ligne("c", [2]);
+    const d = ligne("d", [2], { modality: "mri" });
+    const e = ligne("e", [2], { modality: "mri" });
+    const plan = {
+      clinicId: "org-1",
+      timeZone: "Africa/Lome",
+      // Un jeudi : la semaine est celle de son lundi.
+      today: "2026-11-05",
+      lines: [a, b, c, d, e].map((line) => ({
+        ...line,
+        updatedAt: new Date(0),
+        updatedByName: null,
+      })),
+      radiologists: [
+        radiologue("a"),
+        radiologue("b"),
+        radiologue("c", { canReceive: false }),
+        radiologue("d"),
+        radiologue("e", { readModalities: ["ct"] }),
+      ],
+    };
+    expect(countingLines(plan)(c)).toBe(false);
+    expect(countingLines(plan)(e)).toBe(false);
+    expect(countingLines(plan)(ligne("inconnu", [1]))).toBe(false);
+    expect(currentConflicts(plan)).toEqual([
+      { first: a.id, second: b.id, days: ["2026-11-03"] },
+    ]);
+    // La semaine suivante, le même conflit : les lignes sont hebdomadaires.
+    expect(
+      currentConflicts({ ...plan, today: addDays(LUNDI, 7) }),
+    ).toHaveLength(1);
+    expect(currentConflicts({ ...plan, lines: [] })).toEqual([]);
   });
 
   it("comptent la nuit qui déborde sur le matin du lendemain", () => {

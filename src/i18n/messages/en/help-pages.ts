@@ -516,7 +516,7 @@ export const pages: typeof fr = {
         "The ZIP archives uploaded by the clinics, or by the team on their behalf, and their reports. The team also uploads from here for a clinic that asks.",
       steps: [
         "Filter by clinic, state or period: “Refused” and “Sending” show where a clinic is stuck.",
-        "To upload on behalf of a clinic, choose it under “Clinic”, then drop the archive or click “Choose an archive”.",
+        "To upload on behalf of a clinic, choose it under “Clinic” (or open “Uploads” in its view), then drop the archive or click “Choose an archive”.",
         "The upload is recorded under your name in the audit log; the clinic sees it marked “IMAFRIK team”.",
         "Open a row to read its report, or cancel an interrupted upload nobody will resume.",
       ],
@@ -626,11 +626,11 @@ export const pages: typeof fr = {
     clinicViews: {
       title: "Clinics’ view",
       purpose:
-        "Choose a clinic to open its screens as its manager sees them, with its real data, in view-only mode. Each opening is recorded in the audit log.",
+        "Choose a clinic to open its screens as its manager sees them, with its real data. You assign, set its schedule and upload images on its behalf there; the rest is view-only. Each opening and each action is recorded in the audit log.",
       steps: [
         "Click a clinic in the list, or choose it under “Clinics’ view” in the navigation.",
         "The “Viewing” banner reminds you on every screen which clinic you are viewing.",
-        "Move between screens from the navigation: dashboard, examinations, reports, team, activity and billing.",
+        "Move between screens from the navigation: dashboard, uploads, examinations, reports, team, schedule, activity and billing.",
         "Click “Back to the console” to return to the control tower.",
       ],
       terms: ["vueCliniques", "consultation", "journalAudit"],
@@ -647,10 +647,40 @@ export const pages: typeof fr = {
       ],
       terms: ["vueCliniques", "attribution", "delaiMedian", "compteRendu"],
     },
+    clinicDeposits: {
+      title: "Clinic uploads",
+      purpose:
+        "The viewed clinic’s ZIP archives, uploaded by its manager or by the team on its behalf, and their reports. You upload for it here without leaving its view; the upload is recorded under your name in the audit log.",
+      steps: [
+        "Drop the archive on “Upload a ZIP archive”, or click “Choose an archive”: it is sent on behalf of the viewed clinic.",
+        "Keep the page open. After a cut, the upload resumes by itself; page closed, click “Resume” on its row and choose the same file.",
+        "Filter by state or period: “Refused” and “Sending” show where the clinic is stuck.",
+        "Open a row to read its report. The manager sees your upload marked “IMAFRIK team”.",
+      ],
+      terms: [
+        "vueCliniques",
+        "depot",
+        "archiveZip",
+        "repriseEnvoi",
+        "journalAudit",
+      ],
+    },
+    clinicDepositReport: {
+      title: "Clinic upload report",
+      purpose:
+        "The report of an upload by the viewed clinic, with the name of who uploaded: examinations, series and images sent, duplicates, files ignored and their reason.",
+      steps: [
+        "Read the state at the top and, for a refused archive, what the clinic should do.",
+        "Click “Open the examination”: its page opens in the clinic’s view, where you assign it.",
+        "In “Files ignored”, open a reason to see the files concerned.",
+        "Click “Uploads” to return to the clinic’s list.",
+      ],
+      terms: ["vueCliniques", "depot", "fichierIgnore", "doublon"],
+    },
     clinicStudies: {
       title: "Clinic examinations",
       purpose:
-        "The viewed clinic’s examinations, as its manager sees them, with each one’s radiologist. The team assigns an examination through its own portal; it never sends an examination on the clinic’s behalf.",
+        "The viewed clinic’s examinations, as its manager sees them, with each one’s radiologist. The team assigns an examination through its own portal; it only sends images on the clinic’s behalf as a ZIP archive, in “Uploads”.",
       steps: [
         "Click the “To assign” status to see only the examinations no radiologist sees yet; the other filters add up.",
         "On a row, click “Assign”: the team’s window also offers the network radiologists who read for the clinic.",
@@ -710,7 +740,7 @@ export const pages: typeof fr = {
         "Filter by role or “On the urgent list”, or search for a member by name or email.",
         "A notice flags a clinic with no manager, or a single one: nobody would take over.",
         "Click “Urgent list” to set it from the clinic page, network radiologists included.",
-        "Click “Assignment schedule” to read and set who automatically receives the examinations.",
+        "Click “Assignment schedule”, or “Schedule” in the navigation, to read and set who automatically receives the examinations.",
       ],
       terms: [
         "vueCliniques",

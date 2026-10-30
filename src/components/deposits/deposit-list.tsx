@@ -26,7 +26,9 @@ import type { Locale } from "@/lib/i18n/locale";
  * @param t          Textes de l'application.
  * @param locale     Langue de l'utilisateur.
  * @param reportBase Adresse des comptes rendus.
- * @param team       `true` dans la console : la clinique et l'auteur s'y lisent.
+ * @param team       `true` pour l'équipe IMAFRIK : l'auteur s'y lit.
+ * @param showClinic La colonne de la clinique : dans la console, pas dans
+ *                   la vue d'une clinique (par défaut, comme `team`).
  */
 export function DepositList({
   deposits,
@@ -34,12 +36,14 @@ export function DepositList({
   locale,
   reportBase,
   team,
+  showClinic = team,
 }: {
   deposits: Deposit[];
   t: AppMessages;
   locale: Locale;
   reportBase: string;
   team: boolean;
+  showClinic?: boolean;
 }) {
   const text = t.deposits.list;
   const info = {
@@ -59,7 +63,7 @@ export function DepositList({
                   <DateTime date={deposit.createdAt} />
                   {" · "}
                   {formatBytes(deposit.sizeBytes, locale)}
-                  {team && ` · ${deposit.clinicName}`}
+                  {showClinic && ` · ${deposit.clinicName}`}
                 </p>
               </div>
               <DepositStateBadge state={deposit.state} t={t} />
@@ -99,7 +103,7 @@ export function DepositList({
               <th scope="col">
                 <span className="label-eyebrow">{text.columns.file}</span>
               </th>
-              {team && (
+              {showClinic && (
                 <th scope="col">
                   <span className="label-eyebrow">{text.columns.clinic}</span>
                 </th>
@@ -133,7 +137,7 @@ export function DepositList({
                     {formatBytes(deposit.sizeBytes, locale)}
                   </p>
                 </td>
-                {team && (
+                {showClinic && (
                   <td className="text-xs text-secondary">
                     {deposit.clinicName}
                   </td>
