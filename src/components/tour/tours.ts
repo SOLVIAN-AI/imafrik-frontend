@@ -132,6 +132,12 @@ export const TOURS: readonly TourDefinition[] = [
         placement: "right",
       },
       { id: "team", target: "nav-team", fallback: "menu", placement: "right" },
+      {
+        id: "planning",
+        target: "nav-planning",
+        fallback: "menu",
+        placement: "right",
+      },
       { id: "help", target: "help", placement: "bottom" },
     ],
   },

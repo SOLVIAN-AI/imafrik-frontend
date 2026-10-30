@@ -16,7 +16,7 @@ export const clinicView = {
     region: "Vue des cliniques",
     title: (name: string) => `Consultation de ${name}`,
     detail:
-      "Les écrans de son responsable, avec ses données, en lecture seule.",
+      "Les écrans de son responsable, avec ses données. Chacun de vos gestes est tracé à votre nom.",
     suspended: "Clinique suspendue : son responsable n’y a plus accès.",
     sheet: "Fiche de la clinique",
     back: "Retour à la console",

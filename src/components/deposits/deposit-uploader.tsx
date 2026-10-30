@@ -76,6 +76,8 @@ export function useResumeDeposit(): (deposit: InterruptedDeposit) => void {
  * @param interrupted  Envois interrompus de la clinique.
  * @param reportBase   Adresse des comptes rendus (`/examens/depots`).
  * @param demo         Démonstration : l'envoi est simulé.
+ * @param closed       Pourquoi la clinique ne peut pas recevoir de dépôt
+ *                     (suspendue), ou `null`.
  * @param clinicPicker Choix de la clinique, pour l'équipe.
  * @param children     La liste des dépôts, dont les lignes demandent une reprise.
  */
@@ -86,6 +88,7 @@ export function DepositWorkspace({
   interrupted,
   reportBase,
   demo,
+  closed = null,
   clinicPicker,
   children,
 }: {
@@ -95,6 +98,7 @@ export function DepositWorkspace({
   interrupted: InterruptedDeposit[];
   reportBase: string;
   demo: boolean;
+  closed?: string | null;
   clinicPicker?: React.ReactNode;
   children?: React.ReactNode;
 }) {
@@ -180,7 +184,7 @@ export function DepositWorkspace({
     input.current?.click();
   }, []);
 
-  const disabled = !clinicId;
+  const disabled = !clinicId || closed !== null;
   const maxArchive = formatBytes(limits.maxArchiveBytes, locale);
 
   return (
@@ -246,7 +250,7 @@ export function DepositWorkspace({
               {text.choose}
             </Button>
             <p className="text-2xs text-tertiary">
-              {disabled ? text.chooseClinicFirst : text.chooseMany}
+              {closed ?? (disabled ? text.chooseClinicFirst : text.chooseMany)}
             </p>
             <input
               ref={input}

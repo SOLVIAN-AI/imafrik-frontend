@@ -11,8 +11,9 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Dépôts d'images du réseau, pour l'équipe IMAFRIK : la liste de toutes
  * les cliniques, et le dépôt d'une archive au nom d'une clinique choisie
- * (`?clinique=`, que la vue des cliniques pose d'elle-même), tracé au
- * journal d'audit avec la mention de l'équipe.
+ * (`?clinique=`), tracé au journal d'audit avec la mention de l'équipe.
+ * La vue des cliniques a la même page pour la clinique consultée
+ * (`/admin/vue-clinique/{clinique}/examens/depots`).
  */
 export default async function TeamDepositsPage({
   searchParams,

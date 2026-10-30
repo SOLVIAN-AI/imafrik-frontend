@@ -8,6 +8,8 @@ export const deposits: AppMessages["deposits"] = {
     `ZIP archives sent from the browser · ${clinic}`,
   teamDescription:
     "ZIP archives uploaded by the clinics, or by the team on their behalf",
+  clinicViewDescription: (clinic: string) =>
+    `The clinic’s ZIP archives, and uploading on its behalf · ${clinic}`,
   depositAction: "Upload images",
   demoAction: "Uploading an archive",
   demoCancel: "Cancelling an upload",
@@ -35,6 +37,8 @@ export const deposits: AppMessages["deposits"] = {
       `Upload on behalf of ${clinic}, recorded under your name in the audit log.`,
     chooseClinicFirst:
       "First choose the clinic on whose behalf you are uploading.",
+    clinicClosed:
+      "Clinic suspended or contract ended: it no longer accepts uploads.",
     checking: "Preparing the upload…",
     resuming: (percent: number) => `Resuming the upload at ${percent}%`,
     percent: (percent: number) => `${percent}%`,
@@ -71,6 +75,7 @@ export const deposits: AppMessages["deposits"] = {
   list: {
     title: "My uploads",
     teamTitle: "Uploads",
+    clinicViewTitle: "The clinic’s uploads",
     columns: {
       date: "Uploaded on",
       file: "Archive",
@@ -89,6 +94,7 @@ export const deposits: AppMessages["deposits"] = {
     empty: "No uploads yet",
     emptyDetail: "The archives you upload appear here, with their report.",
     teamEmpty: "No uploads in the network",
+    clinicViewEmpty: "No uploads for this clinic",
     limited: "The 500 most recent uploads.",
     received: (received: string, total: string) => `${received} of ${total}`,
     interrupted: (date: string) =>

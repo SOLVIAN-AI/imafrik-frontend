@@ -52,6 +52,13 @@ describe("adresses de la vue des cliniques", () => {
     expect(clinicScreenOf("/admin/vue-clinique/a/comptes-rendus/r1")).toBe(
       "/comptes-rendus",
     );
+    // Les dépôts restent les dépôts ; le compte rendu d'un dépôt y ramène.
+    expect(clinicScreenOf("/admin/vue-clinique/a/examens/depots")).toBe(
+      "/examens/depots",
+    );
+    expect(clinicScreenOf("/admin/vue-clinique/a/examens/depots/d1")).toBe(
+      "/examens/depots",
+    );
     expect(clinicScreenOf("/admin/vue-clinique/a")).toBe("/tableau-de-bord");
     expect(clinicScreenOf("/admin")).toBe("/tableau-de-bord");
   });

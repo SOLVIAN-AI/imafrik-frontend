@@ -11,8 +11,10 @@ export const nav: AppMessages["nav"] = {
     settings: "Settings",
     dashboard: "Dashboard",
     send: "Send an examination",
+    depositImages: "Upload images",
     studies: "Examinations",
     team: "Team",
+    planning: "Schedule",
     activity: "Activity and billing",
     cockpit: "Cockpit",
     analytics: "Activity",
@@ -44,6 +46,10 @@ export const nav: AppMessages["nav"] = {
   myProfile: "My profile",
   signOut: "Sign out",
   countWithUrgent: (count: number) => `${count}, including urgent examinations`,
+  countLabels: {
+    planConflicts: (count: number) =>
+      count === 1 ? "1 conflict this week" : `${count} conflicts this week`,
+  },
   openNavigation: "Open navigation",
   closeNavigation: "Close navigation",
   home: "IMAFRIK home",

@@ -4,6 +4,7 @@ import {
   Activity,
   BarChart3,
   Building2,
+  CalendarClock,
   Check,
   ChevronDown,
   ChevronsUpDown,
@@ -58,7 +59,7 @@ import {
 import { formatPersonName } from "@/lib/format";
 import { clearLocalData } from "@/lib/local-data";
 import {
-  isActive,
+  activeHref,
   navigationBlocks,
   navigationFor,
   type NavBlock,
@@ -86,6 +87,7 @@ export const NAV_ICONS = {
   dashboard: LayoutDashboard,
   send: Upload,
   team: Users,
+  planning: CalendarClock,
   settings: Settings,
   inbox: Inbox,
   cockpit: Gauge,
@@ -386,9 +388,17 @@ function NavLink({
   // tactile. C'est alors seulement qu'elle se précharge en entier.
   const [intent, setIntent] = React.useState(false);
   const showIntent = () => setIntent(true);
+  // L'entrée allumée reste en vue : dans la console, la vue des cliniques
+  // vient après toute l'administration, sous le pli d'un écran de portable
+  // comme du tiroir d'un téléphone. Rien ne bouge si elle est déjà visible.
+  const ref = React.useRef<HTMLAnchorElement>(null);
+  React.useEffect(() => {
+    if (active) ref.current?.scrollIntoView({ block: "nearest" });
+  }, [active]);
 
   return (
     <Link
+      ref={ref}
       href={item.href}
       // Préchargée en entier, données comprises, dès que l'on montre
       // l'intention de l'ouvrir : le survol précède le clic de 100 à 300 ms,
@@ -454,13 +464,24 @@ function CountBadge({
   if (count <= 0) return null;
   const urgent =
     item.urgentCount && counts ? counts[item.urgentCount] > 0 : false;
-  const label = urgent ? t.nav.countWithUrgent(count) : String(count);
+  const described = item.countLabel
+    ? t.nav.countLabels[item.countLabel](count)
+    : null;
+  const label = urgent
+    ? t.nav.countWithUrgent(count)
+    : (described ?? String(count));
   return (
     <span
       className={cn(
         "rounded px-1.5 py-0.5 text-2xs font-medium tracking-normal normal-case tabular-nums",
-        urgent ? "bg-urgent-muted text-urgent" : "text-tertiary",
+        urgent
+          ? "bg-urgent-muted text-urgent"
+          : item.tone === "warning"
+            ? "bg-progress-muted text-progress"
+            : "text-tertiary",
       )}
+      // Au survol, ce que compte le nombre, quand il ne va pas de soi.
+      title={described ?? undefined}
       aria-label={named ? `${t.nav.items[item.key]} : ${label}` : label}
     >
       {count}
@@ -496,42 +517,52 @@ function writeFold(key: string, open: boolean): void {
 }
 
 /**
+ * Un bloc tel qu'il s'affiche à cette adresse. Vue des cliniques : ses
+ * entrées mènent aux écrans de la clinique consultée, et n'existent pas
+ * tant qu'aucune n'est choisie.
+ */
+function resolveBlock(declared: NavBlock, pathname: string): NavBlock {
+  if (!declared.clinicScoped) return declared;
+  const clinicId = clinicIdOf(pathname);
+  return {
+    ...declared,
+    sections: clinicId
+      ? declared.sections.map((items) =>
+          items.map((item) => ({
+            ...item,
+            href: clinicViewPath(clinicId, item.href),
+          })),
+        )
+      : [],
+  };
+}
+
+/**
  * Un bloc de la navigation : son titre, puis ses paquets d'entrées séparés
  * d'un filet.
  *
  * Un bloc repliable s'ouvre de lui-même sur l'une de ses pages, pour qu'on
  * voie toujours où l'on est ; ailleurs, il suit le dernier choix fait sur
  * cet appareil. Un clic sur son titre l'emporte, le temps de la page.
+ *
+ * @param current Adresse de l'entrée allumée, dans toute la navigation.
  */
 function NavBlockView({
-  block: declared,
+  block,
   counts,
   pathname,
+  current,
   clinics,
 }: {
   block: NavBlock;
   counts: NavCounts | null;
   pathname: string;
+  current: string | null;
   clinics: readonly ViewableClinic[];
 }) {
   const t = useMessages();
   const listId = React.useId();
-  // Vue des cliniques : ses entrées mènent aux écrans de la clinique
-  // consultée, et n'existent pas tant qu'aucune n'est choisie.
-  const clinicId = declared.clinicScoped ? clinicIdOf(pathname) : null;
-  const block = declared.clinicScoped
-    ? {
-        ...declared,
-        sections: clinicId
-          ? declared.sections.map((items) =>
-              items.map((item) => ({
-                ...item,
-                href: clinicViewPath(clinicId, item.href),
-              })),
-            )
-          : [],
-      }
-    : declared;
+  const clinicId = block.clinicScoped ? clinicIdOf(pathname) : null;
   const remembered = React.useSyncExternalStore(
     noSubscribe,
     () => (block.key ? readFold(block.key) : false),
@@ -543,13 +574,18 @@ function NavBlockView({
   } | null>(null);
   const containsActive =
     (block.clinicScoped && pathname.startsWith(`${CLINIC_VIEW_ROOT}/`)) ||
-    block.sections.some((items) =>
-      items.some((item) => isActive(item, pathname)),
-    );
+    block.sections.some((items) => items.some((item) => item.href === current));
   const open =
     !block.collapsible ||
     (choice?.path === pathname ? choice.open : containsActive || remembered);
   const title = block.key ? t.nav.groups[block.key] : null;
+  // Vue des cliniques : le bloc entier en vue à l'arrivée sur une clinique,
+  // le choix de la clinique et tous ses écrans (dépôts, planning compris),
+  // et pas seulement l'entrée allumée.
+  const root = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (clinicId) root.current?.scrollIntoView({ block: "nearest" });
+  }, [clinicId]);
 
   const toggle = () => {
     setChoice({ open: !open, path: pathname });
@@ -566,7 +602,7 @@ function NavBlockView({
       : [];
 
   return (
-    <div>
+    <div ref={root}>
       {title &&
         (block.collapsible ? (
           <button
@@ -617,7 +653,7 @@ function NavBlockView({
                   <NavLink
                     item={item}
                     counts={counts}
-                    active={isActive(item, pathname)}
+                    active={item.href === current}
                   />
                 </li>
               ))}
@@ -660,7 +696,16 @@ export function Sidebar({
   const pathname = usePathname();
   const { active } = useSession();
   const t = useMessages();
-  const groups = navigationFor(active.role);
+  const blocks = navigationBlocks(navigationFor(active.role)).map((block) =>
+    resolveBlock(block, pathname),
+  );
+  // Une seule entrée allumée, dans toute la navigation : la plus précise
+  // (« Planning » plutôt qu'« Équipe », « Déposer des images » plutôt
+  // qu'« Examens », qui est dans un autre bloc).
+  const current = activeHref(
+    blocks.flatMap((block) => block.sections.flat()),
+    pathname,
+  );
 
   return (
     <nav
@@ -678,12 +723,13 @@ export function Sidebar({
       <OrganisationSwitcher />
 
       <div className="mt-4 flex flex-1 flex-col gap-5 overflow-y-auto px-2">
-        {navigationBlocks(groups).map((block, index) => (
+        {blocks.map((block, index) => (
           <NavBlockView
             key={block.key ?? index}
             block={block}
             counts={counts}
             pathname={pathname}
+            current={current}
             clinics={clinics}
           />
         ))}

@@ -97,7 +97,7 @@ export const tour = {
       },
       send: {
         title: "Envoyer un examen",
-        body: "Déposez les fichiers DICOM ou le dossier d’un CD. La console de votre établissement peut aussi envoyer les examens d’elle-même.",
+        body: "Déposez les fichiers DICOM ou le dossier d’un CD. La console de votre établissement peut aussi envoyer les examens d’elle-même. Connexion faible ? « Déposer des images » envoie une archive ZIP qui reprend après chaque coupure.",
       },
       stats: {
         title: "Suivre l’activité",
@@ -113,7 +113,11 @@ export const tour = {
       },
       team: {
         title: "Votre équipe",
-        body: "Invitez vos responsables et vos radiologues : chacun a son propre compte. Réglez ici la liste d’urgence, et composez le planning d’attribution.",
+        body: "Invitez vos responsables et vos radiologues : chacun a son propre compte. Réglez ici la liste d’urgence.",
+      },
+      planning: {
+        title: "Le planning d’attribution",
+        body: "Qui reçoit d’office vos examens à leur arrivée : un radiologue, des jours, au besoin une modalité ou une période. Une pastille signale les conflits de la semaine.",
       },
       help: {
         title: "Besoin d’aide ?",
@@ -139,7 +143,7 @@ export const tour = {
       },
       clinics: {
         title: "La vue des cliniques",
-        body: "Choisissez une clinique : ses écrans s’ouvrent tels que les voit son responsable, avec ses données, en consultation.",
+        body: "Choisissez une clinique : ses écrans s’ouvrent tels que les voit son responsable, avec ses données. Vous y réglez aussi son planning et déposez des images en son nom.",
       },
       readings: {
         title: "Les lectures",

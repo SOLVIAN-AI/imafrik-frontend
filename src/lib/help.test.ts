@@ -37,6 +37,7 @@ const SUBPAGES: Record<UserRole, string[]> = {
     "/admin/vue-clinique/org-1/examens/e1",
     "/admin/vue-clinique/org-1/comptes-rendus/r1",
     "/admin/vue-clinique/org-1/equipe/regles",
+    "/admin/vue-clinique/org-1/examens/depots/d1",
   ],
 };
 
@@ -158,6 +159,13 @@ describe("écrans reconnus", () => {
     );
     expect(screen("/admin/vue-clinique/org-2/examens")).toBe("clinicStudies");
     expect(screen("/admin/vue-clinique/org-2/examens/e1")).toBe("clinicStudy");
+    // Les dépôts sont sous les examens, avec leur propre aide.
+    expect(screen("/admin/vue-clinique/org-2/examens/depots")).toBe(
+      "clinicDeposits",
+    );
+    expect(screen("/admin/vue-clinique/org-2/examens/depots/d1")).toBe(
+      "clinicDepositReport",
+    );
     expect(screen("/admin/vue-clinique/org-2/equipe")).toBe("clinicTeam");
     expect(screen("/admin/vue-clinique/org-2/equipe/regles")).toBe(
       "clinicTeamRules",

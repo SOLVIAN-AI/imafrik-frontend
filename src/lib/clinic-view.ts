@@ -4,8 +4,8 @@
  *
  * Depuis la console, l'équipe choisit une clinique et ouvre en
  * consultation les écrans de son responsable, avec les vraies données de
- * cette clinique : tableau de bord, examens, comptes-rendus, équipe et
- * règles d'attribution, activité et facturation. Ce sont **les mêmes
+ * cette clinique : tableau de bord, dépôts, examens, comptes-rendus,
+ * équipe et planning d'attribution, activité et facturation. Ce sont **les mêmes
  * écrans** que ceux du responsable, nourris par des lectures qui nomment
  * la clinique (`/admin/clinics/{id}/view/...`) et reprennent son calcul.
  *
@@ -109,14 +109,18 @@ export function clinicIdOf(pathname: string): string | null {
   return parse(pathname)?.clinicId ?? null;
 }
 
-/** Écrans dont les sous-pages désignent une fiche propre à la clinique. */
-const RECORD_SCREENS = ["examens", "comptes-rendus"];
+/**
+ * Listes dont les sous-pages désignent une fiche propre à la clinique, les
+ * plus précises d'abord : les dépôts sont sous les examens.
+ */
+const RECORD_LISTS = ["examens/depots", "examens", "comptes-rendus"];
 
 /**
  * L'écran à garder quand on passe d'une clinique à une autre.
  *
  * La liste des examens reste la liste des examens ; la fiche d'un examen,
- * qui n'existe que dans la première clinique, ramène à la liste.
+ * qui n'existe que dans la première clinique, ramène à la liste. De même
+ * pour le compte rendu d'un dépôt, qui ramène aux dépôts.
  *
  * @param pathname Adresse courante.
  * @returns L'adresse de l'écran chez le responsable ; le tableau de bord
@@ -125,7 +129,8 @@ const RECORD_SCREENS = ["examens", "comptes-rendus"];
 export function clinicScreenOf(pathname: string): string {
   const parsed = parse(pathname);
   if (!parsed?.rest) return CLINIC_VIEW_HOME;
-  const [screen, ...below] = parsed.rest.split("/");
-  if (RECORD_SCREENS.includes(screen) && below.length > 0) return `/${screen}`;
-  return `/${parsed.rest}`;
+  const list = RECORD_LISTS.find(
+    (screen) => parsed.rest === screen || parsed.rest.startsWith(`${screen}/`),
+  );
+  return `/${list ?? parsed.rest}`;
 }

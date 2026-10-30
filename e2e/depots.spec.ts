@@ -20,12 +20,48 @@ function archive(name: string, size = 256 * 1024) {
 test.describe("chez le responsable", () => {
   test.use({ membership: "m-clinic" });
 
+  test("« Déposer des images » est dans la navigation, sous « Envoyer un examen »", async ({
+    page,
+  }) => {
+    await page.goto("/tableau-de-bord");
+    const nav = page.getByRole("navigation", { name: "Navigation principale" });
+    const hrefs = await nav
+      .locator("a")
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    expect(hrefs.slice(0, 3)).toEqual([
+      "/tableau-de-bord",
+      "/envoyer",
+      "/examens/depots",
+    ]);
+    await nav.getByRole("link", { name: "Déposer des images" }).click();
+    await expect(page).toHaveURL("/examens/depots");
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Dépôts d’images" }),
+    ).toBeVisible();
+    // Une seule entrée allumée : le dépôt, pas « Examens ».
+    await expect(
+      nav.getByRole("link", { name: "Déposer des images" }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(nav.locator('a[href="/examens"]')).not.toHaveAttribute(
+      "aria-current",
+    );
+
+    // « Envoyer un examen » garde son lien vers le dépôt.
+    await nav.getByRole("link", { name: "Envoyer un examen" }).click();
+    await expect(
+      page.getByRole("main").getByRole("link", { name: "Déposer des images" }),
+    ).toHaveAttribute("href", "/examens/depots");
+  });
+
   test("« Déposer des images » mène au dépôt, depuis « Examens »", async ({
     page,
     checkA11y,
   }) => {
     await page.goto("/examens");
-    await page.getByRole("link", { name: "Déposer des images" }).click();
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: "Déposer des images" })
+      .click();
     await expect(page).toHaveURL(/\/examens\/depots$/);
     await expect(
       page.getByRole("heading", { level: 1, name: "Dépôts d’images" }),
@@ -243,11 +279,96 @@ test.describe("dans la console de l’équipe", () => {
     page,
   }) => {
     await page.goto("/admin/vue-clinique/org-stj/examens");
-    await page.getByRole("link", { name: "Déposer des images" }).click();
-    await expect(page).toHaveURL(/\/admin\/depots\?clinique=org-stj$/);
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: "Déposer des images" })
+      .click();
+    // Sans quitter la vue : la clinique est celle de l'écran.
+    await expect(page).toHaveURL("/admin/vue-clinique/org-stj/examens/depots");
     await expect(
       page.getByText(/Dépôt au nom de Clinique Saint-Joseph/),
     ).toBeVisible();
+  });
+
+  test("« Dépôts » de la vue des cliniques : sa clinique, ses dépôts, en son nom", async ({
+    page,
+    checkA11y,
+  }) => {
+    const vue = "/admin/vue-clinique/org-stj";
+    await page.goto(`${vue}/tableau-de-bord`);
+    const nav = page.getByRole("navigation", { name: "Navigation principale" });
+    await nav.locator(`a[href="${vue}/examens/depots"]`).click();
+    await expect(page).toHaveURL(`${vue}/examens/depots`);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Dépôts d’images" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Vue des cliniques" }),
+    ).toBeVisible();
+    // Une seule entrée allumée : « Dépôts », pas « Examens ».
+    await expect(
+      nav.locator(`a[href="${vue}/examens/depots"]`),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(nav.locator(`a[href="${vue}/examens"]`)).not.toHaveAttribute(
+      "aria-current",
+    );
+
+    // La clinique est celle de l'écran : ni choix, ni filtre de clinique.
+    await expect(page.getByRole("combobox", { name: "Clinique" })).toHaveCount(
+      0,
+    );
+    await expect(page.getByRole("group", { name: "Clinique" })).toHaveCount(0);
+    await expect(
+      page.getByText(
+        /Dépôt au nom de Clinique Saint-Joseph, tracé à votre nom/,
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Choisir une archive" }),
+    ).toBeEnabled();
+
+    // Ses dépôts, et eux seuls, avec leur auteur.
+    await expect(
+      page.getByRole("heading", { name: "Dépôts de la clinique" }),
+    ).toBeVisible();
+    const list = page.getByRole("table");
+    await expect(
+      list.getByRole("link", { name: "cd-urgences-mardi.zip", exact: true }),
+    ).toBeVisible();
+    await expect(list.getByText("kara-radios-semaine.zip")).toHaveCount(0);
+    await expect(list.getByText("Afi Lawson").first()).toBeVisible();
+    await checkA11y();
+
+    // Le compte rendu s'ouvre sans quitter la clinique, et y ramène.
+    await list
+      .getByRole("link", { name: "cd-urgences-mardi.zip", exact: true })
+      .click();
+    await expect(page).toHaveURL(new RegExp(`^.*${vue}/examens/depots/`));
+    await expect(
+      page.getByRole("link", { name: "Ouvrir l’examen" }).first(),
+    ).toHaveAttribute("href", new RegExp(`^${vue}/examens/`));
+    await expect(
+      nav.locator(`a[href="${vue}/examens/depots"]`),
+    ).toHaveAttribute("aria-current", "page");
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: "Dépôts", exact: true })
+      .click();
+    await expect(page).toHaveURL(`${vue}/examens/depots`);
+  });
+
+  test("la vue d’une autre clinique ne montre que ses dépôts", async ({
+    page,
+  }) => {
+    await page.goto("/admin/vue-clinique/org-pka/examens/depots");
+    const list = page.getByRole("table");
+    await expect(list.getByText("kara-radios-semaine.zip")).toBeVisible();
+    await expect(list.getByText("cd-urgences-mardi.zip")).toHaveCount(0);
+    // Le dépôt d'une clinique n'existe pas dans la vue d'une autre.
+    await page.goto(
+      "/admin/vue-clinique/org-pka/examens/depots/demo-depot-integre",
+    );
+    await expect(page.getByText("Cette page n’existe pas")).toBeVisible();
   });
 
   test("le compte rendu ouvre l’examen dans la vue des cliniques", async ({

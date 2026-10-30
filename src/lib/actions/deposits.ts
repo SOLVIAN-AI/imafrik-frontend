@@ -109,6 +109,10 @@ export async function cancelDeposit(
   });
   if (result.ok) {
     revalidatePath(team ? "/admin/depots" : "/examens/depots");
+    // Les dépôts d'une clinique, dans la vue des cliniques.
+    if (team) {
+      revalidatePath("/admin/vue-clinique/[clinicId]/examens/depots", "page");
+    }
   }
   return result;
 }

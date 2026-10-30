@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { clinicViewPath } from "@/lib/clinic-view";
 import { publicSitePaths } from "@/lib/i18n/routes";
 import {
+  activeHref,
   homeFor,
   isActive,
   isPublicRoute,
@@ -145,23 +146,84 @@ describe("tour de contrôle", () => {
     expect(isActive(flux, "/admin/fluxx")).toBe(false);
   });
 
-  it("n'a qu'une entrée active par adresse du portail", () => {
-    // Les entrées de la vue des cliniques mènent sous la clinique consultée,
-    // comme la barre latérale les résout.
-    const items = navigationFor("platform_admin").flatMap((group) =>
-      group.clinicScoped
-        ? group.items.map((item) => ({
-            ...item,
-            href: clinicViewPath("org-1", item.href),
-          }))
-        : group.items,
-    );
-    for (const item of items) {
-      const active = items.filter((candidate) =>
-        isActive(candidate, item.href),
+  it.each(["platform_admin", "clinic_staff", "radiologist"] as const)(
+    "allume une seule entrée, la sienne, sur chaque adresse (%s)",
+    (role) => {
+      // Les entrées de la vue des cliniques mènent sous la clinique
+      // consultée, comme la barre latérale les résout.
+      const items = navigationFor(role).flatMap((group) =>
+        group.clinicScoped
+          ? group.items.map((item) => ({
+              ...item,
+              href: clinicViewPath("org-1", item.href),
+            }))
+          : group.items,
       );
-      expect(active.map((entry) => entry.href)).toEqual([item.href]);
-    }
+      for (const item of items) {
+        expect(activeHref(items, item.href)).toBe(item.href);
+        // Une fiche sous l'écran : c'est encore lui.
+        expect(activeHref(items, `${item.href}/x`)).toBe(
+          item.exact ? null : item.href,
+        );
+      }
+    },
+  );
+
+  it("préfère l’entrée la plus précise : le planning à l’équipe, les dépôts aux examens", () => {
+    const items = navigationFor("clinic_staff").flatMap((group) => group.items);
+    expect(activeHref(items, "/equipe")).toBe("/equipe");
+    expect(activeHref(items, "/equipe/regles")).toBe("/equipe/regles");
+    expect(activeHref(items, "/examens/e1")).toBe("/examens");
+    expect(activeHref(items, "/examens/depots")).toBe("/examens/depots");
+    expect(activeHref(items, "/examens/depots/d1")).toBe("/examens/depots");
+    expect(activeHref(items, "/admin")).toBeNull();
+  });
+});
+
+describe("navigation du responsable", () => {
+  const groups = navigationFor("clinic_staff");
+  const hrefs = (key?: string) =>
+    groups
+      .filter((group) => group.key === key)
+      .flatMap((group) => group.items.map((item) => item.href));
+
+  it("met le dépôt d’images en tête, avec l’envoi d’un examen", () => {
+    expect(hrefs(undefined)).toEqual([
+      "/tableau-de-bord",
+      "/envoyer",
+      "/examens/depots",
+    ]);
+    const depot = groups[0].items[2];
+    expect(depot.key).toBe("depositImages");
+    // La même icône que les dépôts de la console.
+    expect(depot.icon).toBe("deposits");
+  });
+
+  it("met le planning dans l’établissement, juste après l’équipe", () => {
+    expect(hrefs("facility").slice(0, 2)).toEqual([
+      "/equipe",
+      "/equipe/regles",
+    ]);
+    const planning = groups
+      .flatMap((group) => group.items)
+      .find((item) => item.href === "/equipe/regles");
+    // Ses conflits de la semaine, en ambre, nommés pour les lecteurs d'écran.
+    expect(planning).toMatchObject({
+      key: "planning",
+      icon: "planning",
+      count: "planConflicts",
+      tone: "warning",
+      countLabel: "planConflicts",
+    });
+  });
+
+  it("ne donne ni planning ni dépôt au radiologue de la clinique", () => {
+    const radiologue = navigationFor("radiologist").flatMap((group) =>
+      group.items.map((item) => item.href),
+    );
+    expect(radiologue).not.toContain("/equipe/regles");
+    expect(radiologue).not.toContain("/examens/depots");
+    expect(isRouteAllowed("radiologist", "/equipe/regles")).toBe(false);
   });
 });
 
@@ -217,11 +279,15 @@ describe("blocs de la barre latérale", () => {
     const ecrans = vue?.sections.flat().map((item) => item.href) ?? [];
     expect(ecrans).toEqual([
       "/tableau-de-bord",
+      "/examens/depots",
       "/examens",
       "/comptes-rendus",
       "/equipe",
+      "/equipe/regles",
       "/activite",
     ]);
+    // Sans compteur : ceux de la navigation sont ceux de l'équipe.
+    expect(vue?.sections.flat().some((item) => item.count)).toBe(false);
     // Ce sont des écrans du responsable : il les a tous dans sa navigation.
     const responsable = navigationFor("clinic_staff")
       .flatMap((group) => group.items)

@@ -45,9 +45,11 @@ export const NAV_BY_MEMBERSHIP: Record<DemoMembership, string[]> = {
   "m-clinic": [
     "/tableau-de-bord",
     "/envoyer",
+    "/examens/depots",
     "/examens",
     "/comptes-rendus",
     "/equipe",
+    "/equipe/regles",
     "/activite",
     "/parametres",
     "/idees",
@@ -99,7 +101,14 @@ export const APP_SCREENS: Record<DemoMembership, string[]> = {
     "/lecture/4",
     "/bienvenue",
   ],
-  "m-admin": [...NAV_BY_MEMBERSHIP["m-admin"], "/admin/organisations/org-stj"],
+  "m-admin": [
+    ...NAV_BY_MEMBERSHIP["m-admin"],
+    "/admin/organisations/org-stj",
+    // Vue des cliniques : ses dépôts et son planning.
+    "/admin/vue-clinique/org-stj/examens/depots",
+    "/admin/vue-clinique/org-stj/examens/depots/demo-depot-integre",
+    "/admin/vue-clinique/org-stj/equipe/regles",
+  ],
 };
 
 /**

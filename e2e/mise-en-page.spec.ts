@@ -53,6 +53,8 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       // Dépôt d'une archive ZIP : l'envoi, « Mes dépôts », un compte rendu.
       "/examens/depots",
       "/examens/depots/demo-depot-integre",
+      // Le planning, sa pastille de conflits dans la navigation.
+      "/equipe/regles",
     ],
   },
   {
@@ -80,6 +82,9 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       "/admin/vue-clinique/org-stj/tableau-de-bord",
       "/admin/vue-clinique/org-stj/examens/1",
       "/admin/vue-clinique/org-stj/activite",
+      // Ses dépôts, au nom de la clinique, et un compte rendu.
+      "/admin/vue-clinique/org-stj/examens/depots",
+      "/admin/vue-clinique/org-stj/examens/depots/demo-depot-integre",
     ],
   },
 ];

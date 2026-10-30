@@ -521,7 +521,7 @@ export const pages = {
         "Les archives ZIP déposées par les cliniques, ou par l’équipe en leur nom, et leur compte rendu. C’est aussi d’ici que l’équipe dépose pour une clinique qui le demande.",
       steps: [
         "Filtrez par clinique, état ou période : « Refusé » et « En cours d’envoi » disent où une clinique bute.",
-        "Pour déposer au nom d’une clinique, choisissez-la dans « Clinique », puis glissez l’archive ou cliquez sur « Choisir une archive ».",
+        "Pour déposer au nom d’une clinique, choisissez-la dans « Clinique » (ou ouvrez « Dépôts » dans sa vue), puis glissez l’archive ou cliquez sur « Choisir une archive ».",
         "Le dépôt est tracé à votre nom au journal d’audit ; la clinique le voit marqué « Équipe IMAFRIK ».",
         "Ouvrez une ligne pour lire son compte rendu, ou annulez un envoi interrompu que personne ne reprendra.",
       ],
@@ -631,11 +631,11 @@ export const pages = {
     clinicViews: {
       title: "Vue des cliniques",
       purpose:
-        "Choisissez une clinique pour ouvrir ses écrans tels que les voit son responsable, avec ses vraies données, en lecture seule. Chaque ouverture est tracée au journal d’audit.",
+        "Choisissez une clinique pour ouvrir ses écrans tels que les voit son responsable, avec ses vraies données. Vous y attribuez, réglez son planning et déposez des images en son nom ; le reste se consulte. Chaque ouverture et chaque geste sont tracés au journal d’audit.",
       steps: [
         "Cliquez sur une clinique de la liste, ou choisissez-la dans « Vue des cliniques » de la navigation.",
         "Le bandeau « Consultation de » rappelle sur chaque écran quelle clinique vous consultez.",
-        "Passez d’un écran à l’autre depuis la navigation : tableau de bord, examens, comptes-rendus, équipe, activité et facturation.",
+        "Passez d’un écran à l’autre depuis la navigation : tableau de bord, dépôts, examens, comptes-rendus, équipe, planning, activité et facturation.",
         "Cliquez sur « Retour à la console » pour revenir à la tour de contrôle.",
       ],
       terms: ["vueCliniques", "consultation", "journalAudit"],
@@ -652,10 +652,40 @@ export const pages = {
       ],
       terms: ["vueCliniques", "attribution", "delaiMedian", "compteRendu"],
     },
+    clinicDeposits: {
+      title: "Dépôts de la clinique",
+      purpose:
+        "Les archives ZIP de la clinique consultée, déposées par son responsable ou par l’équipe en son nom, et leur compte rendu. Vous y déposez pour elle sans quitter sa vue ; le dépôt est tracé à votre nom au journal d’audit.",
+      steps: [
+        "Glissez l’archive dans « Déposer une archive ZIP », ou cliquez sur « Choisir une archive » : elle part au nom de la clinique consultée.",
+        "Gardez la page ouverte. Après une coupure, l’envoi reprend seul ; page fermée, cliquez sur « Reprendre » sur sa ligne et choisissez le même fichier.",
+        "Filtrez par état ou période : « Refusé » et « En cours d’envoi » disent où la clinique bute.",
+        "Ouvrez une ligne pour lire son compte rendu. Le responsable voit votre dépôt marqué « Équipe IMAFRIK ».",
+      ],
+      terms: [
+        "vueCliniques",
+        "depot",
+        "archiveZip",
+        "repriseEnvoi",
+        "journalAudit",
+      ],
+    },
+    clinicDepositReport: {
+      title: "Compte rendu d’un dépôt de la clinique",
+      purpose:
+        "Le compte rendu d’un dépôt de la clinique consultée, avec le nom de qui a déposé : examens, séries et images transmis, doublons, fichiers ignorés et leur raison.",
+      steps: [
+        "Lisez l’état en tête et, pour une archive refusée, ce que la clinique doit faire.",
+        "Cliquez sur « Ouvrir l’examen » : sa fiche s’ouvre dans la vue de la clinique, où vous l’attribuez.",
+        "Dans « Fichiers ignorés », ouvrez une raison pour voir les fichiers concernés.",
+        "Cliquez sur « Dépôts » pour revenir à la liste de la clinique.",
+      ],
+      terms: ["vueCliniques", "depot", "fichierIgnore", "doublon"],
+    },
     clinicStudies: {
       title: "Examens de la clinique",
       purpose:
-        "Les examens de la clinique consultée, tels que les voit son responsable, avec le radiologue de chacun. L’équipe y attribue un examen par son propre portail ; elle n’envoie aucun examen au nom de la clinique.",
+        "Les examens de la clinique consultée, tels que les voit son responsable, avec le radiologue de chacun. L’équipe y attribue un examen par son propre portail ; elle n’envoie d’images au nom de la clinique que par une archive ZIP, dans « Dépôts ».",
       steps: [
         "Cliquez sur l’état « À attribuer » pour ne voir que les examens qu’aucun radiologue ne voit encore ; les autres filtres s’y ajoutent.",
         "Sur une ligne, cliquez sur « Attribuer » : la fenêtre de l’équipe propose aussi les radiologues du réseau qui lisent la clinique.",
@@ -715,7 +745,7 @@ export const pages = {
         "Filtrez par rôle ou « Sur la liste d’urgence », ou cherchez un membre par nom ou adresse.",
         "Un avis signale une clinique sans responsable, ou avec un seul : personne n’y prendrait le relais.",
         "Cliquez sur « Liste d’urgence » pour la régler depuis la fiche de la clinique, radiologues du réseau compris.",
-        "Cliquez sur « Planning d’attribution » pour lire et régler qui reçoit d’office les examens.",
+        "Cliquez sur « Planning d’attribution », ou sur « Planning » dans la navigation, pour lire et régler qui reçoit d’office les examens.",
       ],
       terms: [
         "vueCliniques",

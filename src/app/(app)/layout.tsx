@@ -5,11 +5,14 @@ import { AppShell } from "@/components/layout/app-shell";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { HelpProvider } from "@/components/help/help-panel";
 import { TourProvider } from "@/components/tour/tour-provider";
+import { getAssignmentPlan } from "@/lib/actions/assignment-plan";
+import { currentConflicts } from "@/lib/assignment-plan";
 import { getPendingAgreements } from "@/lib/data/agreements";
 import { listViewableClinics } from "@/lib/data/clinic-view";
 import { getPlatformSettings } from "@/lib/data/control";
 import { getMetrics } from "@/lib/data/metrics";
 import type { NavCounts } from "@/lib/navigation";
+import type { UserRole } from "@/lib/session/types";
 import { requireSession } from "@/lib/session/server";
 
 /**
@@ -19,9 +22,12 @@ import { requireSession } from "@/lib/session/server";
  * l'application inutilisable : la navigation s'affiche alors sans
  * chiffres, et l'écran concerné dit lui-même ce qui ne va pas.
  */
-async function navCounts(): Promise<NavCounts | null> {
+async function navCounts(role: UserRole): Promise<NavCounts | null> {
   try {
-    const metrics = await getMetrics();
+    const [metrics, planConflicts] = await Promise.all([
+      getMetrics(),
+      role === "clinic_staff" ? countPlanConflicts() : 0,
+    ]);
     return {
       // La file « À lire » : ce qui est attribué au radiologue et pas
       // encore commencé, plus les urgences de sa liste d'urgence.
@@ -33,9 +39,24 @@ async function navCounts(): Promise<NavCounts | null> {
       clinicOpen: metrics.toAssign,
       urgentToAssign: metrics.urgentToTake,
       reportsToDownload: metrics.reportsToDownload,
+      planConflicts,
     };
   } catch {
     return null;
+  }
+}
+
+/**
+ * Responsable : les conflits de son planning d'attribution cette semaine,
+ * comme l'écran du planning les signale. Un planning illisible n'en
+ * compte aucun : la pastille se tait, l'écran dit ce qui ne va pas.
+ */
+async function countPlanConflicts(): Promise<number> {
+  try {
+    const plan = await getAssignmentPlan(null);
+    return plan.ok ? currentConflicts(plan.data).length : 0;
+  } catch {
+    return 0;
   }
 }
 
@@ -66,7 +87,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   // l'inverse. Les quatre lectures tolèrent un service muet. Les
   // cliniques ne servent qu'à l'équipe IMAFRIK, pour sa vue des cliniques.
   const [counts, settings, pendingAgreements, clinics] = await Promise.all([
-    navCounts(),
+    navCounts(session.active.role),
     getPlatformSettings(),
     getPendingAgreements(),
     session.active.role === "platform_admin" ? listViewableClinics() : [],

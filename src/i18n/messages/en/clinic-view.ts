@@ -11,7 +11,8 @@ export const clinicView: AppMessages["clinicView"] = {
   banner: {
     region: "Clinic view",
     title: (name: string) => `Viewing ${name}`,
-    detail: "Its manager’s screens, with its data, in view-only mode.",
+    detail:
+      "Its manager’s screens, with its data. Each of your actions is recorded under your name.",
     suspended: "Clinic suspended: its manager no longer has access.",
     sheet: "Clinic page",
     back: "Back to the console",

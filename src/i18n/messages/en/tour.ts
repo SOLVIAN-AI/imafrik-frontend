@@ -96,7 +96,7 @@ export const tour: AppMessages["tour"] = {
       },
       send: {
         title: "Send an examination",
-        body: "Drop the DICOM files or a CD folder. Your facility’s console can also send examinations on its own.",
+        body: "Drop the DICOM files or a CD folder. Your facility’s console can also send examinations on its own. Weak connection? “Upload images” sends a ZIP archive that resumes after every cut.",
       },
       stats: {
         title: "Follow the activity",
@@ -112,7 +112,11 @@ export const tour: AppMessages["tour"] = {
       },
       team: {
         title: "Your team",
-        body: "Invite your managers and your radiologists: everyone has their own account. Set the urgent list here, and build the assignment schedule.",
+        body: "Invite your managers and your radiologists: everyone has their own account. Set the urgent list here.",
+      },
+      planning: {
+        title: "The assignment schedule",
+        body: "Who automatically receives your examinations on arrival: a radiologist, days, and if needed a modality or a period. A badge flags this week’s conflicts.",
       },
       help: {
         title: "Need help?",
@@ -138,7 +142,7 @@ export const tour: AppMessages["tour"] = {
       },
       clinics: {
         title: "Clinics’ view",
-        body: "Choose a clinic: its screens open as its manager sees them, with its data, in view-only mode.",
+        body: "Choose a clinic: its screens open as its manager sees them, with its data. You also set its schedule and upload images on its behalf there.",
       },
       readings: {
         title: "Readings",

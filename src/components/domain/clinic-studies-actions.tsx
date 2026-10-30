@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ListToolbar } from "@/components/domain/list-toolbar";
 import { useClinicView } from "@/components/providers/clinic-view-provider";
 import { Button } from "@/components/ui/button";
+import { clinicHref } from "@/lib/clinic-view";
 import { useMessages } from "@/i18n/client";
 
 /**
@@ -18,17 +19,15 @@ import { useMessages } from "@/i18n/client";
  * « Déposer des images » mène au dépôt d'une archive ZIP, qui reprend
  * après chaque coupure : le recours d'une clinique dont la connexion
  * manque ou dont la passerelle est en panne. Dans la vue des cliniques,
- * l'équipe IMAFRIK y dépose au nom de la clinique consultée, depuis sa
- * console.
+ * l'équipe IMAFRIK y dépose au nom de la clinique consultée, sans la
+ * quitter.
  *
  * @param search Recherche en cours, relue par la page serveur.
  */
 export function ClinicStudiesActions({ search }: { search?: string }) {
   const t = useMessages();
   const consultation = useClinicView();
-  const href = consultation
-    ? `/admin/depots?clinique=${encodeURIComponent(consultation.clinicId)}`
-    : "/examens/depots";
+  const href = clinicHref(consultation, "/examens/depots");
   return (
     <>
       <ListToolbar
