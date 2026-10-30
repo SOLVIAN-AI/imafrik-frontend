@@ -127,6 +127,8 @@ export const filters: AppMessages["filters"] = {
     cases: (count: number) => (count === 1 ? "1 case" : `${count} cases`),
     runs: (count: number) => (count === 1 ? "1 run" : `${count} runs`),
     ideas: (count: number) => (count === 1 ? "1 idea" : `${count} ideas`),
+    deposits: (count: number) =>
+      count === 1 ? "1 upload" : `${count} uploads`,
   },
   empty: {
     entries: "No entry matches these filters",
@@ -142,6 +144,7 @@ export const filters: AppMessages["filters"] = {
     cases: "No case matches these filters",
     runs: "No run matches these filters",
     ideas: "No idea matches these filters",
+    deposits: "No upload matches these filters",
     detail: (filters: string) =>
       `Filters applied: ${filters}. Clear one to widen the list.`,
     searchTitle: "No result for this search",

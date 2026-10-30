@@ -850,6 +850,7 @@ export const admin: AppMessages["admin"] = {
       contact_request: "Requests received",
       idea: "Ideas",
       platform: "Platform",
+      deposit: "Image uploads",
     },
     actions: {
       "study.viewed": "Examination viewed",
@@ -930,6 +931,12 @@ export const admin: AppMessages["admin"] = {
       "idea.status_changed": "Idea status changed",
       "idea.answered": "Idea answered",
       "idea.grouped": "Idea grouped with another",
+      "deposit.started": "Archive upload started",
+      "deposit.received": "Archive received",
+      "deposit.processed": "Archive checked and sent",
+      "deposit.refused": "Archive refused",
+      "deposit.cancelled": "Upload cancelled",
+      "deposit.expired": "Upload abandoned",
     },
   },
 

@@ -33,6 +33,7 @@ import {
   REQUESTER_KINDS,
   type RequesterKind,
 } from "@/lib/contact-status";
+import { DEPOSIT_STATES, type DepositState } from "@/lib/deposits";
 import { GATEWAY_STATUSES, type GatewayStatus } from "@/lib/gateways";
 import {
   IDEA_CATEGORIES,
@@ -236,6 +237,7 @@ export const AUDIT_FAMILIES = [
   "contact_request",
   "idea",
   "platform",
+  "deposit",
 ] as const;
 
 /** Une famille d'actions. */
@@ -324,6 +326,15 @@ const OPS_TASK_SLUGS: Record<OpsTask, string> = {
   reconciliation: "reconciliation",
   retention: "conservation",
   host_watch: "surveillance",
+};
+
+/** L'état d'un dépôt d'archive dans l'adresse, en français. */
+const DEPOSIT_STATE_SLUGS: Record<DepositState, string> = {
+  uploading: "en-cours",
+  processing: "en-controle",
+  done: "integre",
+  refused: "refuse",
+  abandoned: "abandonne",
 };
 
 /** Périodes proposées, en jours : la réception depuis 24 h, 7 jours… */
@@ -570,6 +581,19 @@ export const DIMENSIONS = {
     }),
     valueLabel: (t, value) =>
       t.admin.requests.requesterKindPlural[value as RequesterKind] ?? value,
+  },
+  // Dépôts d'archives ZIP : le même paramètre que l'état d'un examen, ils
+  // ne se rencontrent sur aucun écran.
+  depositState: {
+    param: "etat",
+    presentation: "chips",
+    values: DEPOSIT_STATES,
+    read: (raw) =>
+      DEPOSIT_STATES.find((state) => DEPOSIT_STATE_SLUGS[state] === raw) ??
+      null,
+    write: (value) => DEPOSIT_STATE_SLUGS[value as DepositState] ?? value,
+    text: (t) => ({ name: t.filters.state, all: t.filters.allStates }),
+    valueLabel: (t, value) => t.deposits.states[value as DepositState] ?? value,
   },
   // Le même paramètre que l'état d'un examen : ils ne se rencontrent sur
   // aucun écran. Les anciennes valeurs (`?etat=new`, celle de l'alerte du

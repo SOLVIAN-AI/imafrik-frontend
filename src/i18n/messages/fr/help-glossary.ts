@@ -327,6 +327,31 @@ export const glossary = {
     definition:
       "Outil d’affichage des images médicales intégré à IMAFRIK : défilement des coupes, fenêtrage, mesures et reconstructions. Sur ordinateur, l’examen peut aussi s’ouvrir dans Weasis.",
   },
+  depot: {
+    term: "Dépôt d’images",
+    definition:
+      "Envoi d’une archive ZIP d’images depuis le navigateur, par le responsable d’une clinique ou par l’équipe IMAFRIK en son nom. L’archive est contrôlée, puis ses images entrent sur la plateforme au nom de la clinique, comme celles de sa passerelle : l’examen arrive « à attribuer ». Chaque dépôt a son compte rendu et figure au journal d’audit.",
+  },
+  archiveZip: {
+    term: "Archive ZIP",
+    definition:
+      "Fichier qui regroupe et compresse un dossier, ici l’export DICOM d’un ou plusieurs examens. Sous Windows : clic droit sur le dossier, « Envoyer vers », « Dossier compressé ». 2 Go et 10 000 fichiers au plus, sans mot de passe.",
+  },
+  repriseEnvoi: {
+    term: "Reprise de l’envoi",
+    definition:
+      "Après une coupure du réseau, l’envoi d’une archive reprend seul, là où il s’était arrêté, sans renvoyer ce qui est déjà arrivé. Page fermée, il reprend quand on choisit de nouveau le même fichier, dans les 72 heures, même depuis un autre poste.",
+  },
+  fichierIgnore: {
+    term: "Fichier ignoré",
+    definition:
+      "Fichier d’une archive déposée qui n’est pas entré sur la plateforme : document, image ordinaire, sommaire de CD, fichier chiffré ou corrompu, examen d’une autre clinique. Le compte rendu du dépôt le nomme, avec sa raison.",
+  },
+  doublon: {
+    term: "Doublon",
+    definition:
+      "Image présente deux fois dans une archive, ou déjà reçue par IMAFRIK (même identifiant d’image DICOM) : elle n’est envoyée et comptée qu’une fois.",
+  },
   weasis: {
     term: "Weasis",
     definition:

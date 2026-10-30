@@ -144,6 +144,8 @@ export const filters = {
     runs: (count: number) =>
       count > 1 ? `${count} exécutions` : `${count} exécution`,
     ideas: (count: number) => (count > 1 ? `${count} idées` : `${count} idée`),
+    deposits: (count: number) =>
+      count > 1 ? `${count} dépôts` : `${count} dépôt`,
   },
   /** Liste vide à cause des filtres. */
   empty: {
@@ -160,6 +162,7 @@ export const filters = {
     cases: "Aucun cas ne correspond à ces filtres",
     runs: "Aucune exécution ne correspond à ces filtres",
     ideas: "Aucune idée ne correspond à ces filtres",
+    deposits: "Aucun dépôt ne correspond à ces filtres",
     detail: (filters: string) =>
       `Filtres retenus : ${filters}. Effacez-en un pour élargir la liste.`,
     /** Liste vide à cause de la recherche seule. */

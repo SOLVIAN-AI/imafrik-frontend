@@ -1,9 +1,11 @@
-import { Router } from "lucide-react";
+import { FileArchive, Router } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { DateTime } from "@/components/domain/date-time";
 import { StudyUploader } from "@/components/domain/study-uploader";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
+import { Button } from "@/components/ui/button";
 import { listStudies } from "@/lib/data/studies";
 import { requireSession } from "@/lib/session/server";
 import { getMessages } from "@/i18n/server";
@@ -52,33 +54,53 @@ export default async function SendStudyPage() {
           <StudyUploader />
         </Panel>
 
-        <Panel className="flex flex-col overflow-hidden">
-          <h2 className="label-eyebrow flex h-11 shrink-0 items-center gap-2 border-b border-border-subtle px-4">
-            <Router className="size-3.5" aria-hidden />
-            {messages.gateway}
-          </h2>
-          <div className="flex flex-col gap-3 p-4 text-xs leading-relaxed text-secondary">
-            <p>{messages.gatewayText}</p>
-            <p>
-              <span className="text-tertiary">{messages.lastReceived}</span>
-              {latest ? (
-                <DateTime
-                  date={latest.receivedAt}
-                  className="font-medium text-primary"
-                />
-              ) : (
-                <span className="font-medium text-primary">
-                  {messages.noneYet}
-                </span>
-              )}
+        <div className="flex flex-col gap-4">
+          <Panel className="flex flex-col gap-3 p-4">
+            <h2 className="flex items-center gap-2 text-sm font-medium">
+              <FileArchive className="size-4 text-accent" aria-hidden />
+              {messages.zipTitle}
+            </h2>
+            <p className="text-xs leading-relaxed text-secondary">
+              {messages.zipText}
             </p>
-            <p className="text-tertiary">
-              {messages.troubleshootBefore}{" "}
-              <span className="font-mono">{kit.verify}</span>{" "}
-              {messages.troubleshootAfter(kit.guide)}
-            </p>
-          </div>
-        </Panel>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="self-start"
+              asChild
+            >
+              <Link href="/examens/depots">{messages.zipAction}</Link>
+            </Button>
+          </Panel>
+
+          <Panel className="flex flex-col overflow-hidden">
+            <h2 className="label-eyebrow flex h-11 shrink-0 items-center gap-2 border-b border-border-subtle px-4">
+              <Router className="size-3.5" aria-hidden />
+              {messages.gateway}
+            </h2>
+            <div className="flex flex-col gap-3 p-4 text-xs leading-relaxed text-secondary">
+              <p>{messages.gatewayText}</p>
+              <p>
+                <span className="text-tertiary">{messages.lastReceived}</span>
+                {latest ? (
+                  <DateTime
+                    date={latest.receivedAt}
+                    className="font-medium text-primary"
+                  />
+                ) : (
+                  <span className="font-medium text-primary">
+                    {messages.noneYet}
+                  </span>
+                )}
+              </p>
+              <p className="text-tertiary">
+                {messages.troubleshootBefore}{" "}
+                <span className="font-mono">{kit.verify}</span>{" "}
+                {messages.troubleshootAfter(kit.guide)}
+              </p>
+            </div>
+          </Panel>
+        </div>
       </div>
     </>
   );

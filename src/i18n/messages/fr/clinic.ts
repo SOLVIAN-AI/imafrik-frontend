@@ -38,7 +38,6 @@ export const clinic = {
     title: "Examens",
     count: (count: number) =>
       count > 1 ? `${count} examens` : `${count} examen`,
-    send: "Envoyer",
     noResult: "Aucun résultat",
     noResultDetail: "Modifiez la recherche pour élargir la liste.",
     empty: "Aucun examen envoyé",
@@ -151,6 +150,10 @@ export const clinic = {
     troubleshootBefore: "Un examen envoyé qui n’apparaît pas ? Lancez",
     troubleshootAfter: (guide: string) =>
       `sur le poste de la passerelle, puis consultez le guide remis à l’installation (${guide}).`,
+    zipTitle: "Connexion faible ou passerelle en panne ?",
+    zipText:
+      "Déposez une archive ZIP des images : l’envoi reprend où il s’était arrêté après chaque coupure, et chaque dépôt a son compte rendu.",
+    zipAction: "Déposer des images",
   },
   /** Dépôt d'examens depuis le navigateur. */
   uploader: {
