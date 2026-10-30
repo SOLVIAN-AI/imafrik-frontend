@@ -32,7 +32,14 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
   },
   {
     membership: "m-radio",
-    paths: ["/worklist", "/lecture/1", "/comptes-rendus", "/parametres"],
+    paths: [
+      "/worklist",
+      "/lecture/1",
+      "/comptes-rendus",
+      "/parametres",
+      // « Vos idées » : formulaire et « Mes idées », écran d’origine joint.
+      "/idees?ecran=worklist",
+    ],
   },
   {
     membership: "m-clinic",
@@ -42,6 +49,7 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       "/activite",
       // Barre de filtres commune, filtres actifs : rien ne défile en largeur.
       "/examens?etat=pret&modalite=scanner&jours=30",
+      "/idees",
     ],
   },
   {
@@ -52,6 +60,8 @@ const PAGES: { membership: DemoMembership | null; paths: string[] }[] = [
       "/admin/facturation",
       "/admin/utilisateurs?validation=attente",
       "/admin/demandes?etat=all",
+      // Boîte des idées, filtres actifs : rien ne défile en largeur.
+      "/admin/idees?role=radiologue&etat=recues",
       // Fiche d'une clinique, zone de danger de la fin de contrat comprise.
       "/admin/organisations/org-stj",
       // Barre de filtres commune, filtres actifs : rien ne défile en largeur.

@@ -169,7 +169,12 @@ const RADIOLOGIST_NAV: NavGroup[] = [
   },
   {
     key: "account",
-    items: [{ href: "/parametres", key: "settings", icon: "settings" }],
+    items: [
+      { href: "/parametres", key: "settings", icon: "settings" },
+      // « Vos idées » : proposer une amélioration du produit, et suivre
+      // ce qu’elle devient. Visible dès le premier jour.
+      { href: "/idees", key: "ideas", icon: "ideas" },
+    ],
   },
 ];
 
@@ -211,6 +216,8 @@ const CLINIC_NAV: NavGroup[] = [
       { href: "/equipe", key: "team", icon: "team" },
       { href: "/activite", key: "activity", icon: "analytics" },
       { href: "/parametres", key: "settings", icon: "settings" },
+      // « Vos idées » : ce qui faciliterait la vie de la clinique.
+      { href: "/idees", key: "ideas", icon: "ideas" },
     ],
   },
 ];
@@ -261,6 +268,8 @@ const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/utilisateurs", key: "accounts", icon: "users" },
       { href: "/admin/examens", key: "studies", icon: "studies" },
       { href: "/admin/demandes", key: "requests", icon: "inbox" },
+      // Les idées des radiologues et des responsables de clinique.
+      { href: "/admin/idees", key: "ideaInbox", icon: "ideas" },
     ],
   },
   {
@@ -367,6 +376,7 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
     "/modeles",
     "/formation",
     "/parametres",
+    "/idees",
   ],
   clinic_staff: [
     "/tableau-de-bord",
@@ -381,6 +391,7 @@ const ROUTES_BY_ROLE: Record<UserRole, string[]> = {
     // la clinique n'y a pas accès (le service le refuse aussi).
     "/activite",
     "/parametres",
+    "/idees",
   ],
   // L'administration consulte aussi les portails, en lecture seule : la
   // file, les comptes-rendus, les modèles et les images, sur toute la

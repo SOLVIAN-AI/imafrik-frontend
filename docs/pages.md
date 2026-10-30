@@ -317,8 +317,9 @@ attend des comptes-rendus.
 | `/activite` | Activité et facturation, responsables seulement (P1, étape 4) : examens reçus du mois, rendus, délai médian et délais tenus, par modalité ; performances par radiologue (délais médian, moyen et 90e centile en routine et en urgence, prise en charge, lecture, examens rendus, urgences prises, en cours, tendance), tableau triable ; relevé de facturation du mois (abonnement, forfaits techniques, actes par radiologue), provisoire puis figé à la clôture, le même que celui de l'équipe IMAFRIK ; export CSV. | Fait |
 | `/patients` | Vue par patient : tous ses examens, tous ses comptes-rendus. | V3 |
 | `/parametres` | Établissement, paramètres DICOM, notifications, sécurité. | V1 |
+| `/idees` | **Vos idées** : proposer ce qui faciliterait la vie de la clinique (titre, description, catégorie, « ça me ferait gagner »), avec le contexte de l’écran d’où l’on vient (`?ecran=`, une clé de l’aide, jamais l’adresse), la version et l’appareil ; aucune capture d’écran. « Mes idées » : état, réponse de l’équipe IMAFRIK, filtres par catégorie et état. Accès : navigation, ampoule de la barre du haut, aide de chaque écran. | Fait |
 
-**10 écrans.**
+**11 écrans.**
 
 ---
 
@@ -335,6 +336,7 @@ attend des comptes-rendus.
 | `/activite` | Volume lu, délais, répartition par modalité. | V3 |
 | `/honoraires` | Relevé de rémunération. Voir la décision n° 3. | V2 |
 | `/parametres` | Profil, justificatifs, **signature et cachet** (tracés ou importés, vérifiés par l'équipe IMAFRIK avant d'être imprimés) et **code personnel** à six chiffres, obligatoire pour signer et pour ajouter un addendum (créé ici, ou dans la fenêtre de la première signature). **Fait.** Notifications et préférences de lecture : à venir. | V1 |
+| `/idees` | **Vos idées**, comme pour la clinique : proposer une piste d’amélioration du produit depuis n’importe quel écran (ampoule de la barre du haut, aide de l’écran), suivre son état et la réponse de l’équipe IMAFRIK. | Fait |
 
 **9 écrans**, dont 2 déjà construits.
 
@@ -355,6 +357,7 @@ patient dans les vues de pilotage (AD-13 du dépôt backend).
 | `/admin/utilisateurs` | Comptes : rattachement, **validation des numéros d'ordre** (filtre « À valider », `?validation=attente`), double authentification, réinitialisation, **anonymisation** (droit à l'effacement : nom saisi, retrait des appartenances confirmé pour un membre actif). Pour chaque radiologue, ses **modalités lues** en clair avec le bouton « Modalités », ses listes d'urgence et « Voir ses performances » ; filtre « Modalité lue » (`?modalite=`). | Fait |
 | `/admin/examens` | Recherche globale, et la barre de filtres commune (voir [`vues-filtrees.md`](vues-filtrees.md)) : clinique (`?clinique=`, liste déroulante), groupe de modalités (`?modalite=`, puces) et urgences en cours (`?urgent=1`), chacun avec son nombre compté par le service, combinables, « Effacer les filtres ». La fiche d'une clinique y mène. | Fait |
 | `/admin/demandes` | Demandes reçues par le site (établissement ou radiologue, numéro d'ordre déclaré), suivi et notes. | Fait |
+| `/admin/idees` | **Idées** des radiologues et des responsables : barre de filtres commune (clinique, rôle, catégorie, état, période, chaque option comptée), recherche hors de l’adresse ; pour chaque idée, état, réponse à l’auteur (courriel), regroupement des doublons (« Même idée que… »). Le cockpit compte les idées reçues. | Fait |
 | `/admin/facturation` | Relevé du mois de chaque clinique, le même que celui de son responsable (un seul calcul, dans le service) ; totaux, cliniques sans formule, « Clore le mois » qui fige les relevés ; export CSV protégé contre l'injection de formules. La formule d'abonnement se renseigne sur la fiche de la clinique. | Fait |
 | `/admin/systeme` | Dépendances, PACS, version, filets de sécurité (sauvegardes, exercices, réconciliation, conservation). | Fait |
 | `/admin/audit` | Journal d'audit, filtré par action, paginé par curseur. | Fait |

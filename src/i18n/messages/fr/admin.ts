@@ -164,6 +164,7 @@ export const admin = {
     outOf: (total: number) => `sur ${total}`,
     radiologistsActive: "Radiologues actifs",
     newRequests: "Demandes à traiter",
+    newIdeas: "Idées nouvelles",
     operations: "Exploitation",
     operationsDescription: "Dernière exécution de chaque tâche",
     system: "Système",
@@ -909,6 +910,7 @@ export const admin = {
       billing: "Facturation",
       agreement: "Engagements",
       contact_request: "Demandes reçues",
+      idea: "Idées",
       platform: "Plateforme",
     },
     actions: {
@@ -988,6 +990,10 @@ export const admin = {
       "platform.tailscale_configured": "Connexion Tailscale enregistrée",
       "platform.tailscale_removed": "Connexion Tailscale retirée",
       "platform.tailscale_policy_pushed": "Politique d’accès Tailscale poussée",
+      "idea.submitted": "Idée proposée",
+      "idea.status_changed": "État d’une idée changé",
+      "idea.answered": "Réponse à une idée",
+      "idea.grouped": "Idée regroupée avec une autre",
     },
   },
 
@@ -1105,6 +1111,10 @@ export const admin = {
           : `${count} image de signature ou de cachet attend votre vérification`,
       newRequests: (count: number) =>
         `${count} demande${count > 1 ? "s reçues" : " reçue"} par le site ${count > 1 ? "attendent" : "attend"} une réponse`,
+      newIdeas: (count: number) =>
+        count > 1
+          ? `${count} idées nouvelles à lire`
+          : `${count} idée nouvelle à lire`,
     },
     ops: {
       backupDatabase: "41,3 Mo chiffrés · 18 tables vérifiées",

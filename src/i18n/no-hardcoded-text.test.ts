@@ -43,6 +43,10 @@ const EXCLUDED = [
   // Passerelles fictives de la tour de contrôle : noms de postes, motifs
   // de suspension ou de révocation, écart de politique. Des données.
   /^lib\/demo\/gateways\.ts$/,
+  // Idées de démonstration (« Vos idées ») : titres, descriptions et
+  // réponses fictifs. Des données ; les textes de l’écran viennent des
+  // dictionnaires.
+  /^lib\/demo\/ideas\.ts$/,
   // Personnes et organisations de la session de démonstration.
   /^lib\/session\/demo\.ts$/,
   // Le manifeste d'application installable n'existe qu'en une langue : le

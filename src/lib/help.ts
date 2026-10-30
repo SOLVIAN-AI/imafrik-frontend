@@ -87,6 +87,7 @@ const SCREENS: Record<
     ["/comptes-rendus", "reports"],
     ["/modeles", "templates"],
     ["/parametres", "settings"],
+    ["/idees", "ideas"],
     ["/lecture/*", "reading"],
   ],
   clinic: [
@@ -100,6 +101,7 @@ const SCREENS: Record<
     ["/equipe", "team"],
     ["/activite", "activity"],
     ["/parametres", "settings"],
+    ["/idees", "ideas"],
   ],
   admin: [
     ["/admin", "cockpit"],
@@ -112,6 +114,7 @@ const SCREENS: Record<
     ["/admin/utilisateurs", "accounts"],
     ["/admin/examens", "studies"],
     ["/admin/demandes", "requests"],
+    ["/admin/idees", "ideas"],
     ["/admin/facturation", "billing"],
     ["/admin/systeme", "system"],
     ["/admin/audit", "audit"],

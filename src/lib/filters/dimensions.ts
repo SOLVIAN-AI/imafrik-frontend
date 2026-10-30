@@ -35,6 +35,12 @@ import {
 } from "@/lib/contact-status";
 import { GATEWAY_STATUSES, type GatewayStatus } from "@/lib/gateways";
 import {
+  IDEA_CATEGORIES,
+  IDEA_STATUSES,
+  type IdeaCategory,
+  type IdeaStatus,
+} from "@/lib/ideas";
+import {
   MODALITY_GROUPS,
   MODALITY_SLUGS,
   modalityGroupOf,
@@ -228,6 +234,7 @@ export const AUDIT_FAMILIES = [
   "billing",
   "agreement",
   "contact_request",
+  "idea",
   "platform",
 ] as const;
 
@@ -249,6 +256,25 @@ const REQUEST_STATE_SLUGS: Record<ContactStatus, string> = {
 const REQUESTER_SLUGS: Record<RequesterKind, string> = {
   clinic: "etablissement",
   radiologist: "radiologue",
+};
+
+/** La catégorie d’une idée dans l’adresse, en français. */
+const IDEA_CATEGORY_SLUGS: Record<IdeaCategory, string> = {
+  reading: "lecture",
+  reporting: "compte-rendu",
+  assignment: "attribution",
+  studies: "examens",
+  billing: "facturation",
+  other: "autre",
+};
+
+/** L’état d’une idée dans l’adresse, en français. */
+const IDEA_STATE_SLUGS: Record<IdeaStatus, string> = {
+  received: "recues",
+  under_review: "a-l-etude",
+  planned: "prevues",
+  shipped: "livrees",
+  declined: "non-retenues",
 };
 
 /** Origine d'un modèle de compte-rendu : fourni par IMAFRIK, ou par l'organisation. */
@@ -404,6 +430,23 @@ export const DIMENSIONS = {
     valueLabel: (t, value) =>
       t.assignment.modalities[value as ModalityGroup] ?? value,
   },
+  // Idées (« Vos idées ») : la partie du produit qu’elles concernent.
+  ideaCategory: {
+    param: "categorie",
+    presentation: "chips",
+    values: IDEA_CATEGORIES,
+    read: (raw) =>
+      IDEA_CATEGORIES.find(
+        (category) => IDEA_CATEGORY_SLUGS[category] === raw,
+      ) ?? null,
+    write: (value) => IDEA_CATEGORY_SLUGS[value as IdeaCategory] ?? value,
+    text: (t) => ({
+      name: t.filters.ideaCategory,
+      all: t.filters.allIdeaCategories,
+    }),
+    valueLabel: (t, value) =>
+      t.ideas.categories[value as IdeaCategory] ?? value,
+  },
   state: {
     param: "etat",
     aliases: ["vue"],
@@ -543,6 +586,19 @@ export const DIMENSIONS = {
     text: (t) => ({ name: t.filters.stage, all: t.filters.allStages }),
     valueLabel: (t, value) =>
       t.admin.requests.statusPlural[value as ContactStatus] ?? value,
+  },
+  // Le même paramètre que l’état d’un examen : ils ne se rencontrent sur
+  // aucun écran. `?etat=recues` est celui de l’alerte du cockpit.
+  ideaState: {
+    param: "etat",
+    presentation: "chips",
+    values: IDEA_STATUSES,
+    read: (raw) =>
+      IDEA_STATUSES.find((state) => IDEA_STATE_SLUGS[state] === raw) ?? null,
+    write: (value) => IDEA_STATE_SLUGS[value as IdeaStatus] ?? value,
+    text: (t) => ({ name: t.ideas.statusLabel, all: t.filters.allStates }),
+    valueLabel: (t, value) =>
+      t.ideas.statusPlural[value as IdeaStatus] ?? value,
   },
   account: {
     // Le paramètre principal ; les deux autres passent par le codec.

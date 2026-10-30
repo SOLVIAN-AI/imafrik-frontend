@@ -1,6 +1,13 @@
 import { z } from "zod";
 
 import type { components } from "@/lib/api/schema";
+import {
+  IDEA_AUTHOR_ROLES,
+  IDEA_BENEFITS,
+  IDEA_CATEGORIES,
+  IDEA_DEVICES,
+  IDEA_STATUSES,
+} from "@/lib/ideas";
 import { isSafeBrowserUrl } from "@/lib/security/urls";
 
 /**
@@ -757,6 +764,59 @@ const _contactRequest: Matches<
   Schemas["ContactRequest"]
 > = true;
 
+// ─── Vos idées ────────────────────────────────────────────────────────
+
+const ideaCategorySchema = z.enum(IDEA_CATEGORIES);
+const ideaStatusSchema = z.enum(IDEA_STATUSES);
+
+/** Une idée, telle que son auteur la suit (`GET /me/ideas`). */
+export const ideaSchema = z.object({
+  id: uuid,
+  title: z.string(),
+  body: z.string(),
+  category: ideaCategorySchema,
+  benefit: z.enum(IDEA_BENEFITS).nullable(),
+  screen: z.string().nullable(),
+  app_version: z.string().nullable(),
+  device: z.enum(IDEA_DEVICES).nullable(),
+  status: ideaStatusSchema,
+  status_changed_at: isoDate.nullable(),
+  response: z.string().nullable(),
+  responded_at: isoDate.nullable(),
+  grouped: z.boolean(),
+  created_at: isoDate,
+});
+const _idea: Matches<z.input<typeof ideaSchema>, Schemas["Idea"]> = true;
+
+/** Une idée, telle que l’équipe IMAFRIK la suit. */
+export const adminIdeaSchema = ideaSchema.extend({
+  author_id: uuid.nullable(),
+  author_name: z.string().nullable(),
+  author_role: z.enum(IDEA_AUTHOR_ROLES),
+  organization_id: uuid.nullable(),
+  organization_name: z.string().nullable(),
+  organization_kind: z.enum(["clinic", "radiology_group"]).nullable(),
+  duplicate_of: uuid.nullable(),
+  duplicate_of_title: z.string().nullable(),
+  duplicates: z.number().int(),
+  responded_by_name: z.string().nullable(),
+  updated_at: isoDate,
+});
+const _adminIdea: Matches<
+  z.input<typeof adminIdeaSchema>,
+  Schemas["AdminIdea"]
+> = true;
+
+/** La boîte des idées de l’équipe IMAFRIK (`GET /admin/ideas`). */
+export const ideaInboxSchema = z.object({
+  items: z.array(adminIdeaSchema),
+  total: z.number().int(),
+});
+const _ideaInbox: Matches<
+  z.input<typeof ideaInboxSchema>,
+  Schemas["IdeaInbox"]
+> = true;
+
 // ─── Tour de contrôle ─────────────────────────────────────────────────
 
 const count = z.number().int();
@@ -824,6 +884,8 @@ export const controlOverviewSchema = z.object({
     clinics_connected: count,
     radiologists_active: count,
     new_requests: count,
+    // Idées de « Vos idées » encore à l’état « reçue ».
+    new_ideas: count,
     // Radiologues dont le numéro d’ordre attend la validation d’IMAFRIK.
     unverified_radiologists: count,
     // Images de signature ou de cachet déposées, à vérifier par l’équipe.
@@ -1808,6 +1870,9 @@ export const CONTRACT_CHECKS = [
   _adminOrganization,
   _clinicView,
   _contactRequest,
+  _idea,
+  _adminIdea,
+  _ideaInbox,
   _opsRun,
   _alert,
   _prioritySla,
@@ -1864,6 +1929,8 @@ export type ApiTrainingAttempt = z.output<typeof trainingAttemptSchema>;
 export type ApiMember = z.output<typeof memberSchema>;
 export type ApiAdminOrganization = z.output<typeof adminOrganizationSchema>;
 export type ApiContactRequest = z.output<typeof contactRequestSchema>;
+export type ApiIdea = z.output<typeof ideaSchema>;
+export type ApiAdminIdea = z.output<typeof adminIdeaSchema>;
 export type ApiMetrics = z.output<typeof metricsSchema>;
 export type ApiOrganization = z.output<typeof organizationSchema>;
 export type ApiControlOverview = z.output<typeof controlOverviewSchema>;

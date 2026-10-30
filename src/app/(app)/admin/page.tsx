@@ -1,4 +1,11 @@
-import { ArrowRight, Building2, Inbox, Stethoscope, Wifi } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  Inbox,
+  Lightbulb,
+  Stethoscope,
+  Wifi,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -149,6 +156,13 @@ export default async function CockpitPage() {
                 value={network.newRequests}
                 warn={network.newRequests > 0}
                 href="/admin/demandes"
+              />
+              <NetworkRow
+                icon={Lightbulb}
+                label={text.newIdeas}
+                value={network.newIdeas}
+                warn={network.newIdeas > 0}
+                href="/admin/idees?etat=recues"
               />
             </ul>
           </Section>

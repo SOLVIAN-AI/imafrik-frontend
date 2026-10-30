@@ -115,6 +115,19 @@ export const pages: typeof fr = {
         "engagement",
       ],
     },
+    ideas: {
+      title: "Your ideas",
+      purpose:
+        "Suggest a way to improve IMAFRIK and follow what becomes of it: the IMAFRIK team reads every idea, moves it forward and answers you. You only see your own ideas.",
+      steps: [
+        "Give a short title, describe what gets in your way and what you would like instead, then choose the category.",
+        "If you know, say what the idea would bring you: time, clarity or safety.",
+        "Never write a patient’s identity: no name, identifier or date of birth. No screenshot is attached.",
+        "From another screen, the light bulb in the top bar opens this form with the screen’s name; untick “Attach this context” if needed.",
+        "Click “Send the idea”, then follow it under “My ideas”: its status and the team’s answer. An email keeps you posted.",
+      ],
+      terms: ["idee", "etatIdee"],
+    },
     reading: {
       title: "Reading screen",
       purpose:
@@ -288,6 +301,19 @@ export const pages: typeof fr = {
         "Under “Agreements”, click “Download my copy” to get the service agreement you accepted.",
       ],
       terms: ["pool", "priseEnCharge", "doubleAuthentification", "engagement"],
+    },
+    ideas: {
+      title: "Your ideas",
+      purpose:
+        "Suggest what would make life easier for your clinic on IMAFRIK, and follow what becomes of the idea: the IMAFRIK team reads it, moves it forward and answers you. You only see your own ideas.",
+      steps: [
+        "Give a short title, describe what gets in your way and what you would like instead, then choose the category.",
+        "If you know, say what the idea would bring you: time, clarity or safety.",
+        "Never write a patient’s identity: no name, identifier or date of birth. No screenshot is attached.",
+        "From another screen, the light bulb in the top bar opens this form with the screen’s name; untick “Attach this context” if needed.",
+        "Click “Send the idea”, then follow it under “My ideas”: its status and the team’s answer. An email keeps you posted.",
+      ],
+      terms: ["idee", "etatIdee"],
     },
   },
   admin: {
@@ -465,6 +491,19 @@ export const pages: typeof fr = {
         "Choose the follow-up stage, add your notes, then click “Save”.",
       ],
       terms: ["numeroOrdre", "habilitation"],
+    },
+    ideas: {
+      title: "Ideas",
+      purpose:
+        "Improvement ideas suggested by radiologists and clinic managers. The IMAFRIK team reads them, answers them, moves them from one status to the next and groups duplicates.",
+      steps: [
+        "Filter by clinic, role, category, status or period, each option counted; search for a word from the title, the text or the author’s name.",
+        "Start with “Received” ideas: the cockpit shows how many, and its alert leads here.",
+        "Choose the status, write an answer, then click “Save”: the author is notified by email.",
+        "For a duplicate, choose the main idea under “Same idea as…”: the grouped idea follows its status, and its author is told.",
+        "The context tells where the idea comes from: screen, version, device. Every action is recorded in the audit log.",
+      ],
+      terms: ["idee", "etatIdee", "regroupement", "journalAudit"],
     },
     billing: {
       title: "Billing",

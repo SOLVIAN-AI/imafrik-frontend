@@ -129,6 +129,8 @@ export interface ControlOverview {
     clinicsConnected: number;
     radiologistsActive: number;
     newRequests: number;
+    /** Idées de « Vos idées » encore à l’état « reçue ». */
+    newIdeas: number;
   };
   received14d: { day: Date; urgent: number; routine: number }[];
   sla30d: Sla;
@@ -187,6 +189,7 @@ export async function getOverview(): Promise<ControlOverview> {
       clinicsConnected: raw.network.clinics_connected,
       radiologistsActive: raw.network.radiologists_active,
       newRequests: raw.network.new_requests,
+      newIdeas: raw.network.new_ideas,
     },
     received14d: raw.received_14d.map((row) => ({
       day: utcDay(row.day),
