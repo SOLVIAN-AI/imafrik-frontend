@@ -430,6 +430,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/clinics/{clinic_id}/upload-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Déposer au nom d'une clinique
+         * @description Émet un jeton de dépôt d'archive au nom d'une clinique.
+         *
+         *     Le jeton ne vaut que pour une archive ZIP (le dépôt fichier par
+         *     fichier le refuse), tracée au journal avec la mention de l'équipe.
+         *
+         *     Raises:
+         *         NotFound: Clinique inconnue.
+         *         Conflict: Clinique suspendue ou contrat terminé.
+         */
+        post: operations["admin_upload_token_admin_clinics__clinic_id__upload_token_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/clinics/{clinic_id}/urgent-readers": {
         parameters: {
             query?: never;
@@ -819,6 +846,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/deposits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dépôts du réseau
+         * @description Les dépôts de toutes les cliniques, ou d'une seule, les plus récents d'abord.
+         */
+        get: operations["admin_list_deposits_admin_deposits_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/deposits/limits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Limites d'un dépôt
+         * @description Les limites appliquées par le service.
+         */
+        get: operations["admin_limits_admin_deposits_limits_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/deposits/{deposit_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Compte rendu d'un dépôt
+         * @description Le compte rendu d'un dépôt, quelle que soit sa clinique.
+         *
+         *     Raises:
+         *         NotFound: Dépôt inconnu.
+         */
+        get: operations["admin_get_deposit_admin_deposits__deposit_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/deposits/{deposit_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Annuler un envoi en cours
+         * @description Annule un envoi interrompu ou en cours, quelle que soit sa clinique.
+         *
+         *     Raises:
+         *         NotFound: Dépôt inconnu.
+         *         Conflict: Archive déjà reçue : son contrôle a commencé.
+         */
+        post: operations["admin_cancel_deposit_admin_deposits__deposit_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/gateway-enrollments/{code_id}/cancel": {
         parameters: {
             query?: never;
@@ -1050,6 +1164,74 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/admin/ideas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Idées reçues
+         * @description Toutes les idées, les plus récentes d’abord, avec leur auteur.
+         *
+         *     La boîte se filtre et se compte sur la page (rôle, clinique,
+         *     catégorie, état, période) ; ``total`` dit si elle est coupée.
+         *
+         *     Args:
+         *         principal: Membre de l’équipe IMAFRIK.
+         *         limit: Nombre d’idées, les plus récentes d’abord.
+         *
+         *     Returns:
+         *         Les idées et leur nombre total.
+         */
+        get: operations["list_ideas_admin_ideas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/ideas/{idea_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Suivre une idée
+         * @description Change l’état d’une idée, y répond ou la regroupe avec une autre.
+         *
+         *     Chaque changement est tracé ; l’auteur est prévenu par courriel quand
+         *     l’état de son idée change ou que l’équipe lui répond, après
+         *     l’enregistrement.
+         *
+         *     Args:
+         *         idea_id: Idée suivie.
+         *         body: Champs à changer, seuls ceux envoyés comptent.
+         *         principal: Membre de l’équipe IMAFRIK.
+         *
+         *     Returns:
+         *         L’idée, après modification.
+         *
+         *     Raises:
+         *         NotFound: Idée, ou idée principale, introuvable.
+         *         Unprocessable: Rien à changer, ou idée regroupée avec elle-même.
+         *         Conflict: État demandé pour une idée regroupée, qui suit sa
+         *             principale.
+         */
+        patch: operations["update_idea_admin_ideas__idea_id__patch"];
         trace?: never;
     };
     "/admin/memberships/{membership_id}/modalities": {
@@ -2178,6 +2360,183 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/deposits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dépôts de la clinique
+         * @description Les dépôts de la clinique active, les plus récents d'abord.
+         *
+         *     Args:
+         *         principal: Responsable de la clinique, rôle vérifié en base.
+         *
+         *     Returns:
+         *         Les dépôts, :data:`LIST_LIMIT` au plus.
+         */
+        get: operations["list_deposits_deposits_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/deposits/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Commencer un dépôt
+         * @description Crée un dépôt et répond l'adresse où envoyer ses octets.
+         *
+         *     Raises:
+         *         Unauthorized: Jeton absent ou expiré.
+         *         Unprocessable: Taille absente ou illisible.
+         *         ArchiveTooLarge: Archive de plus de 2 Gio.
+         *         Conflict: Clinique suspendue.
+         *         TooManyRequests: Trop de dépôts en cours pour la clinique.
+         *         InsufficientStorage: Le serveur n'a plus la place.
+         */
+        post: operations["create_upload_deposits_files_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/deposits/files/{deposit_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Abandonner l'envoi
+         * @description Abandonne un envoi en cours et efface ce qui en est reçu.
+         *
+         *     Raises:
+         *         Unauthorized: Jeton absent ou expiré.
+         *         NotFound: Dépôt inconnu, ou d'une autre clinique.
+         *         Conflict: Archive déjà reçue : son contrôle a commencé.
+         */
+        delete: operations["terminate_deposits_files__deposit_id__delete"];
+        options?: never;
+        /**
+         * Où reprendre l'envoi
+         * @description Répond le nombre d'octets reçus : l'envoi reprend là.
+         *
+         *     Une archive arrivée en entier répond sa taille : le navigateur sait
+         *     l'envoi terminé. Un envoi annulé ou abandonné répond 410 : le
+         *     navigateur en recommence un.
+         *
+         *     Raises:
+         *         Unauthorized: Jeton absent ou expiré.
+         *         NotFound: Dépôt inconnu, ou d'une autre clinique.
+         *         UploadGone: Envoi annulé ou abandonné.
+         */
+        head: operations["upload_offset_deposits_files__deposit_id__head"];
+        /**
+         * Envoyer la suite de l'archive
+         * @description Ajoute des octets à l'envoi, à partir de ``Upload-Offset``.
+         *
+         *     Chaque octet reçu est gardé, même si la requête est coupée en plein
+         *     vol : l'envoi reprend exactement là. Le jeton et le décalage sont
+         *     vérifiés avant la lecture du corps, borné à ce qui reste à recevoir.
+         *
+         *     Raises:
+         *         Unauthorized: Jeton absent ou expiré.
+         *         UnsupportedBody: Corps qui n'est pas ``application/offset+octet-stream``.
+         *         NotFound: Dépôt inconnu, ou d'une autre clinique.
+         *         UploadGone: Envoi annulé ou abandonné.
+         *         Conflict: Décalage qui n'est pas celui du serveur (le navigateur
+         *             redemande où reprendre), ou archive déjà reçue.
+         *         Locked: Une autre requête écrit déjà dans cet envoi.
+         *         ArchiveTooLarge: Corps qui dépasse la taille annoncée.
+         */
+        patch: operations["append_deposits_files__deposit_id__patch"];
+        trace?: never;
+    };
+    "/deposits/limits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Limites d'un dépôt
+         * @description Les limites appliquées par le service, pour les annoncer avant l'envoi.
+         */
+        get: operations["limits_deposits_limits_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/deposits/{deposit_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Compte rendu d'un dépôt
+         * @description Le compte rendu d'un dépôt de la clinique active.
+         *
+         *     Raises:
+         *         NotFound: Dépôt inconnu, ou d'une autre clinique.
+         */
+        get: operations["get_deposit_deposits__deposit_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/deposits/{deposit_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Annuler un envoi en cours
+         * @description Annule un envoi interrompu ou en cours, et efface ce qui en est reçu.
+         *
+         *     Raises:
+         *         NotFound: Dépôt inconnu, ou d'une autre clinique.
+         *         Conflict: Archive déjà reçue : son contrôle a commencé.
+         */
+        post: operations["cancel_deposit_deposits__deposit_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/gateway/enroll": {
         parameters: {
             query?: never;
@@ -2758,6 +3117,50 @@ export interface paths {
          *         Le jeton et sa durée de vie.
          */
         post: operations["issue_document_token_me_credential_documents_token_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/ideas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mes idées
+         * @description Les idées de l’appelant, les plus récentes d’abord, avec leur suivi.
+         *
+         *     Args:
+         *         principal: Radiologue ou responsable de clinique.
+         *
+         *     Returns:
+         *         Ses idées, sous RLS : jamais celles d’un autre.
+         */
+        get: operations["list_my_ideas_me_ideas_get"];
+        put?: never;
+        /**
+         * Proposer une idée
+         * @description Enregistre une idée de l’appelant, et trace le geste.
+         *
+         *     Sous RLS : la base pose l’auteur, l’organisation et le rôle (ceux des
+         *     claims, relus en base) et refuse au-delà du plafond de débit (429).
+         *
+         *     Args:
+         *         body: L’idée.
+         *         principal: Radiologue ou responsable de clinique.
+         *
+         *     Returns:
+         *         L’idée enregistrée, à l’état « reçue ».
+         *
+         *     Raises:
+         *         Forbidden: Rôle sans droit de proposer.
+         *         TooManyRequests: Plafond de débit atteint.
+         */
+        post: operations["submit_idea_me_ideas_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4513,6 +4916,7 @@ export interface paths {
          *     Raises:
          *         Unauthorized: Jeton absent, expiré ou révoqué.
          *         FileTooLarge: Fichier au-delà de la taille admise.
+         *         Forbidden: Jeton de l'équipe IMAFRIK, réservé aux archives.
          *         Unprocessable: Fichier non DICOM, ou refusé par le PACS.
          *         Conflict: L'étude appartient à une autre clinique.
          */
@@ -4699,6 +5103,93 @@ export interface components {
              * @description Seconde saisie du code à créer (avec define_pin).
              */
             pin_confirmation?: string | null;
+        };
+        /**
+         * AdminIdea
+         * @description Une idée, telle que l’équipe IMAFRIK la suit.
+         *
+         *     Attributes:
+         *         author_id: Auteur ; nul si son compte a été supprimé.
+         *         author_name: Titre et nom de l’auteur.
+         *         author_role: Radiologue ou responsable de clinique.
+         *         organization_id: Organisation active de l’auteur à la proposition.
+         *         organization_name: Son nom.
+         *         organization_kind: Clinique ou groupe de radiologie.
+         *         duplicate_of: Idée principale, si celle-ci est regroupée.
+         *         duplicate_of_title: Titre de l’idée principale.
+         *         duplicates: Idées regroupées sous celle-ci.
+         *         responded_by_name: Membre de l’équipe qui a répondu.
+         *         updated_at: Dernière modification.
+         */
+        AdminIdea: {
+            /** App Version */
+            app_version: string | null;
+            /** Author Id */
+            author_id: string | null;
+            /** Author Name */
+            author_name: string | null;
+            /**
+             * Author Role
+             * @enum {string}
+             */
+            author_role: "radiologist" | "clinic_staff";
+            /** Benefit */
+            benefit: ("time" | "clarity" | "safety") | null;
+            /** Body */
+            body: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "reading" | "reporting" | "assignment" | "studies" | "billing" | "other";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Device */
+            device: ("desktop" | "tablet" | "phone") | null;
+            /** Duplicate Of */
+            duplicate_of: string | null;
+            /** Duplicate Of Title */
+            duplicate_of_title: string | null;
+            /** Duplicates */
+            duplicates: number;
+            /** Grouped */
+            grouped: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Organization Id */
+            organization_id: string | null;
+            /** Organization Kind */
+            organization_kind: ("clinic" | "radiology_group") | null;
+            /** Organization Name */
+            organization_name: string | null;
+            /** Responded At */
+            responded_at: string | null;
+            /** Responded By Name */
+            responded_by_name: string | null;
+            /** Response */
+            response: string | null;
+            /** Screen */
+            screen: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "received" | "under_review" | "planned" | "shipped" | "declined";
+            /** Status Changed At */
+            status_changed_at: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /**
          * AdminOrganization
@@ -6232,6 +6723,231 @@ export interface components {
             urgent: number;
         };
         /**
+         * Deposit
+         * @description Un dépôt, tel que la liste l'affiche.
+         *
+         *     Attributes:
+         *         id: Identifiant.
+         *         organization_id: Clinique propriétaire des examens déposés.
+         *         clinic_name: Son nom.
+         *         file_name: Nom de l'archive.
+         *         head_sha256: Empreinte SHA-256 du premier Mio de l'archive : le
+         *             navigateur ne reprend un envoi qu'avec le même fichier.
+         *         size_bytes: Taille de l'archive.
+         *         received_bytes: Octets reçus.
+         *         status: Étape : envoi, attente, contrôle, fait, refusé, annulé,
+         *             abandonné.
+         *         refusal: Raison d'un refus en bloc, en code.
+         *         on_behalf: Déposé par l'équipe IMAFRIK au nom de la clinique.
+         *         author_name: Qui a déposé. Absent pour le responsable quand
+         *             l'équipe IMAFRIK a déposé : l'écran le dit sans la nommer.
+         *         studies_count: Examens transmis au PACS.
+         *         series_count: Séries transmises.
+         *         instances_count: Images transmises.
+         *         duplicates_count: Images en double ou déjà reçues, envoyées une fois.
+         *         ignored_count: Fichiers ignorés.
+         *         created_at: Début de l'envoi.
+         *         received_at: Fin de l'envoi.
+         *         processed_at: Fin du contrôle.
+         *         expires_at: Pour un envoi en cours, l'instant où il sera abandonné
+         *             sans nouvel octet.
+         */
+        Deposit: {
+            /** Author Name */
+            author_name: string | null;
+            /** Clinic Name */
+            clinic_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Duplicates Count */
+            duplicates_count: number;
+            /** Expires At */
+            expires_at: string | null;
+            /** File Name */
+            file_name: string;
+            /** Head Sha256 */
+            head_sha256: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Ignored Count */
+            ignored_count: number;
+            /** Instances Count */
+            instances_count: number;
+            /** On Behalf */
+            on_behalf: boolean;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Processed At */
+            processed_at: string | null;
+            /** Received At */
+            received_at: string | null;
+            /** Received Bytes */
+            received_bytes: number;
+            /** Refusal */
+            refusal: ("not_a_zip" | "split_archive" | "too_many_files" | "too_large_uncompressed" | "suspicious_compression" | "unsafe_path" | "empty_archive" | "clinic_inactive" | "pacs_unavailable" | "processing_failed") | null;
+            /** Series Count */
+            series_count: number;
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "uploading" | "received" | "processing" | "done" | "refused" | "cancelled" | "expired";
+            /** Studies Count */
+            studies_count: number;
+        };
+        /**
+         * DepositLimits
+         * @description Les limites d'un dépôt, affichées par l'écran avant l'envoi.
+         */
+        DepositLimits: {
+            /** Expiry Hours */
+            expiry_hours: number;
+            /** Max Archive Bytes */
+            max_archive_bytes: number;
+            /** Max Entries */
+            max_entries: number;
+            /** Max Entry Bytes */
+            max_entry_bytes: number;
+            /** Max Total Uncompressed Bytes */
+            max_total_uncompressed_bytes: number;
+        };
+        /**
+         * DepositList
+         * @description Les dépôts, les plus récents d'abord.
+         *
+         *     Attributes:
+         *         deposits: Dépôts, :data:`LIST_LIMIT` au plus.
+         *         limited: ``True`` si la liste s'arrête à cette limite.
+         */
+        DepositList: {
+            /** Deposits */
+            deposits: components["schemas"]["Deposit"][];
+            /** Limited */
+            limited: boolean;
+        };
+        /**
+         * DepositReport
+         * @description Le compte rendu d'un dépôt.
+         *
+         *     Attributes:
+         *         entries_count: Fichiers de l'archive (dossiers non comptés).
+         *         studies: Examens trouvés.
+         *         ignored: Fichiers ignorés, :data:`app.services.deposits.MAX_IGNORED_LISTED`
+         *             au plus (leur nombre exact est ``ignored_count``).
+         */
+        DepositReport: {
+            /** Author Name */
+            author_name: string | null;
+            /** Clinic Name */
+            clinic_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Duplicates Count */
+            duplicates_count: number;
+            /** Entries Count */
+            entries_count: number;
+            /** Expires At */
+            expires_at: string | null;
+            /** File Name */
+            file_name: string;
+            /** Head Sha256 */
+            head_sha256: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Ignored */
+            ignored: components["schemas"]["IgnoredFile"][];
+            /** Ignored Count */
+            ignored_count: number;
+            /** Instances Count */
+            instances_count: number;
+            /** On Behalf */
+            on_behalf: boolean;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Processed At */
+            processed_at: string | null;
+            /** Received At */
+            received_at: string | null;
+            /** Received Bytes */
+            received_bytes: number;
+            /** Refusal */
+            refusal: ("not_a_zip" | "split_archive" | "too_many_files" | "too_large_uncompressed" | "suspicious_compression" | "unsafe_path" | "empty_archive" | "clinic_inactive" | "pacs_unavailable" | "processing_failed") | null;
+            /** Series Count */
+            series_count: number;
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "uploading" | "received" | "processing" | "done" | "refused" | "cancelled" | "expired";
+            /** Studies */
+            studies: components["schemas"]["DepositStudy"][];
+            /** Studies Count */
+            studies_count: number;
+        };
+        /**
+         * DepositStudy
+         * @description Un examen trouvé dans l'archive.
+         *
+         *     Attributes:
+         *         study_instance_uid: ``StudyInstanceUID``.
+         *         accepted: ``False`` : l'examen appartient, ou arrive, ailleurs ;
+         *             rien n'en a été transmis.
+         *         series_count: Séries transmises.
+         *         instances_count: Images transmises.
+         *         duplicates_count: Images en double ou déjà reçues.
+         *         study_id: L'examen de la clinique, une fois créé par l'ingestion
+         *             (une minute après la dernière image) ; absent avant, et pour un
+         *             examen refusé.
+         *         patient_name: Nom du patient, lu sur l'examen créé.
+         *         modality: Modalité, lue sur l'examen créé.
+         *         study_date: Date de réalisation, lue sur l'examen créé.
+         *         study_status: Où en est l'examen créé.
+         */
+        DepositStudy: {
+            /** Accepted */
+            accepted: boolean;
+            /** Duplicates Count */
+            duplicates_count: number;
+            /** Instances Count */
+            instances_count: number;
+            /** Modality */
+            modality: string | null;
+            /** Patient Name */
+            patient_name: string | null;
+            /** Series Count */
+            series_count: number;
+            /** Study Date */
+            study_date: string | null;
+            /** Study Id */
+            study_id: string | null;
+            /** Study Instance Uid */
+            study_instance_uid: string;
+            /** Study Status */
+            study_status: ("received" | "assigned" | "in_progress" | "reported" | "delivered") | null;
+        };
+        /**
          * DocumentToken
          * @description Jeton de dépôt de justificatif remis au navigateur.
          *
@@ -6898,6 +7614,156 @@ export interface components {
             status: "awaiting_approval" | "pending" | "active" | "suspended" | "rejected" | "revoked";
         };
         /**
+         * Idea
+         * @description Une idée, telle que son auteur la suit.
+         *
+         *     Attributes:
+         *         id: Identifiant.
+         *         title: Titre.
+         *         body: Description.
+         *         category: Partie du produit concernée.
+         *         benefit: Ce qu’elle ferait gagner.
+         *         screen: Clé de l’écran d’où elle a été proposée.
+         *         app_version: Version de l’application.
+         *         device: Appareil utilisé.
+         *         status: Où l’équipe IMAFRIK en est.
+         *         status_changed_at: Dernier changement d’état.
+         *         response: Réponse de l’équipe IMAFRIK.
+         *         responded_at: Instant de la réponse.
+         *         grouped: Regroupée avec une idée semblable, dont elle suit l’état.
+         *             L’idée principale n’est pas nommée : elle est d’un autre auteur.
+         *         created_at: Proposition.
+         */
+        Idea: {
+            /** App Version */
+            app_version: string | null;
+            /** Benefit */
+            benefit: ("time" | "clarity" | "safety") | null;
+            /** Body */
+            body: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "reading" | "reporting" | "assignment" | "studies" | "billing" | "other";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Device */
+            device: ("desktop" | "tablet" | "phone") | null;
+            /** Grouped */
+            grouped: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Responded At */
+            responded_at: string | null;
+            /** Response */
+            response: string | null;
+            /** Screen */
+            screen: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "received" | "under_review" | "planned" | "shipped" | "declined";
+            /** Status Changed At */
+            status_changed_at: string | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * IdeaCreate
+         * @description Une idée, telle que le formulaire l’envoie.
+         *
+         *     Attributes:
+         *         title: Titre, sur une ligne.
+         *         body: Description.
+         *         category: Partie du produit concernée.
+         *         benefit: Ce qu’elle ferait gagner, si l’auteur le dit.
+         *         screen: Clé de l’écran d’où elle est proposée, jamais une adresse.
+         *         app_version: Version de l’application.
+         *         device: Appareil utilisé.
+         */
+        IdeaCreate: {
+            /** App Version */
+            app_version?: string | null;
+            /** Benefit */
+            benefit?: ("time" | "clarity" | "safety") | null;
+            /** Body */
+            body: string;
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "reading" | "reporting" | "assignment" | "studies" | "billing" | "other";
+            /** Device */
+            device?: ("desktop" | "tablet" | "phone") | null;
+            /** Screen */
+            screen?: string | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * IdeaInbox
+         * @description La boîte des idées de l’équipe IMAFRIK.
+         *
+         *     Attributes:
+         *         items: Les idées, les plus récentes d’abord.
+         *         total: Toutes les idées reçues ; plus que ``items`` si la boîte est
+         *             coupée à sa limite.
+         */
+        IdeaInbox: {
+            /** Items */
+            items: components["schemas"]["AdminIdea"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * IdeaUpdate
+         * @description Ce que l’équipe IMAFRIK change à une idée.
+         *
+         *     Seuls les champs envoyés comptent : un champ absent reste tel quel,
+         *     une réponse ou un regroupement envoyés à ``null`` s’effacent.
+         *
+         *     Attributes:
+         *         status: Nouvel état.
+         *         response: Réponse à l’auteur ; vide ou ``null`` pour l’effacer.
+         *         duplicate_of: Idée principale du regroupement ; ``null`` pour le
+         *             défaire.
+         */
+        IdeaUpdate: {
+            /**
+             * Duplicate Of
+             * @description Idée principale ; null pour défaire le regroupement.
+             */
+            duplicate_of?: string | null;
+            /**
+             * Response
+             * @description Réponse à l’auteur ; vide ou null pour l’effacer.
+             */
+            response?: string | null;
+            /** Status */
+            status?: ("received" | "under_review" | "planned" | "shipped" | "declined") | null;
+        };
+        /**
+         * IgnoredFile
+         * @description Un fichier de l'archive écarté, et pourquoi.
+         */
+        IgnoredFile: {
+            /** Name */
+            name: string;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "system_file" | "encrypted" | "too_large" | "suspicious_compression" | "unsupported_compression" | "nested_archive" | "corrupt" | "not_dicom" | "dicomdir" | "invalid_dicom" | "other_clinic" | "pacs_refused";
+        };
+        /**
          * Invitation
          * @description Invitation d'une personne dans une organisation.
          *
@@ -7270,6 +8136,12 @@ export interface components {
             clinics_active: number;
             /** Clinics Connected */
             clinics_connected: number;
+            /**
+             * New Ideas
+             * @description Idées proposées encore à l’état « reçue », que l’équipe n’a pas lues.
+             * @default 0
+             */
+            new_ideas: number;
             /** New Requests */
             new_requests: number;
             /** Radiologists Active */
@@ -9406,6 +10278,20 @@ export interface components {
             gateway_id: string;
         };
         /**
+         * UploadGrant
+         * @description Jeton de dépôt remis au navigateur.
+         *
+         *     Attributes:
+         *         token: Jeton opaque, à présenter dans l'en-tête ``X-Upload-Token``.
+         *         expires_in: Durée de vie, en secondes.
+         */
+        UploadGrant: {
+            /** Expires In */
+            expires_in: number;
+            /** Token */
+            token: string;
+        };
+        /**
          * UploadResult
          * @description Issue du dépôt d'un fichier.
          *
@@ -9699,6 +10585,8 @@ export interface operations {
             query?: {
                 days?: number;
                 clinic_id?: string | null;
+                /** @description Seulement ce groupe de modalités */
+                modality_group?: ("radiography" | "mammography" | "ultrasound" | "ct" | "mri" | "other") | null;
             };
             header?: {
                 authorization?: string | null;
@@ -9732,7 +10620,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Seulement les entrées de cette action */
-                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.auto_assigned" | "study.unassigned" | "study.urgent_alerted" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.assignment_rules_changed" | "organization.plan_changed" | "organization.viewed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "billing.month_closed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed") | null;
+                action?: ("study.viewed" | "study.claimed" | "study.urgent_claimed" | "study.released" | "study.assigned" | "study.auto_assigned" | "study.unassigned" | "study.urgent_alerted" | "prior.shared" | "prior.unshared" | "study.updated" | "study.images_purged" | "report.signed" | "report.addendum" | "report.delivered" | "report.downloaded" | "report.ai_reviewed" | "report.voided" | "membership.created" | "membership.removed" | "membership.reading_changed" | "organization.state_changed" | "organization.pool_changed" | "organization.urgent_readers_changed" | "organization.assignment_rules_changed" | "organization.plan_changed" | "organization.viewed" | "organization.retention_changed" | "organization.report_language_changed" | "organization.logo_changed" | "organization.contract_ended" | "organization.exported" | "organization.ai_features_changed" | "profile.identity_changed" | "user.mfa_reset_requested" | "user.mfa_reset" | "user.credential_document_uploaded" | "user.credential_document_viewed" | "user.credentials_verified" | "user.credentials_rejected" | "user.credentials_revoked" | "user.anonymization_requested" | "user.anonymized" | "platform.settings_changed" | "billing.month_closed" | "contact_request.tracked" | "agreement.accepted" | "signing.asset_changed" | "signing.asset_reviewed" | "signing.asset_viewed" | "signing.pin_set" | "signing.pin_failed" | "signing.pin_locked" | "signing.pin_reset_requested" | "signing.pin_reset" | "organization.created" | "gateway.enrollment_created" | "gateway.enrollment_cancelled" | "gateway.enrolled" | "gateway.approved" | "gateway.rejected" | "gateway.activated" | "gateway.suspended" | "gateway.resumed" | "gateway.revoked" | "gateway.renewal_requested" | "gateway.renewed" | "gateway.adopted" | "gateway.kit_downloaded" | "platform.tailscale_configured" | "platform.tailscale_removed" | "platform.tailscale_policy_pushed" | "idea.submitted" | "idea.status_changed" | "idea.answered" | "idea.grouped" | "deposit.started" | "deposit.received" | "deposit.processed" | "deposit.refused" | "deposit.cancelled" | "deposit.expired") | null;
                 actor_id?: string | null;
                 organization_id?: string | null;
                 /** @description Seulement les actions de cette famille (« report » pour report.*) */
@@ -10391,6 +11279,39 @@ export interface operations {
             };
         };
     };
+    admin_upload_token_admin_clinics__clinic_id__upload_token_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                clinic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadGrant"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_urgent_readers_admin_clinics__clinic_id__urgent_readers_get: {
         parameters: {
             query?: never;
@@ -11011,6 +11932,134 @@ export interface operations {
             };
         };
     };
+    admin_list_deposits_admin_deposits_get: {
+        parameters: {
+            query?: {
+                clinic_id?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepositList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_limits_admin_deposits_limits_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepositLimits"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_get_deposit_admin_deposits__deposit_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                deposit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepositReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_cancel_deposit_admin_deposits__deposit_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                deposit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     cancel_enrollment_admin_gateway_enrollments__code_id__cancel_post: {
         parameters: {
             query?: never;
@@ -11342,6 +12391,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GatewayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_ideas_admin_ideas_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdeaInbox"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_idea_admin_ideas__idea_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                idea_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdeaUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminIdea"];
                 };
             };
             /** @description Validation Error */
@@ -12909,6 +14028,271 @@ export interface operations {
             };
         };
     };
+    list_deposits_deposits_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepositList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_upload_deposits_files_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "tus-resumable"?: string;
+                "upload-length"?: string;
+                "upload-metadata"?: string;
+                "upload-defer-length"?: string;
+                "x-upload-token"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    terminate_deposits_files__deposit_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "tus-resumable"?: string;
+                "x-upload-token"?: string;
+            };
+            path: {
+                deposit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_offset_deposits_files__deposit_id__head: {
+        parameters: {
+            query?: never;
+            header?: {
+                "tus-resumable"?: string;
+                "x-upload-token"?: string;
+            };
+            path: {
+                deposit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    append_deposits_files__deposit_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "tus-resumable"?: string;
+                "upload-offset"?: string;
+                "content-type"?: string;
+                "x-upload-token"?: string;
+            };
+            path: {
+                deposit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/offset+octet-stream": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    limits_deposits_limits_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepositLimits"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_deposit_deposits__deposit_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                deposit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DepositReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_deposit_deposits__deposit_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                deposit_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     enroll_gateway_enroll_post: {
         parameters: {
             query?: never;
@@ -13706,6 +15090,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DocumentToken"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_ideas_me_ideas_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Idea"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_idea_me_ideas_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdeaCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Idea"];
                 };
             };
             /** @description Validation Error */

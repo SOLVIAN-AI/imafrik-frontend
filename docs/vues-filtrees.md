@@ -96,6 +96,7 @@ Colonnes des tableaux :
 | `/admin/passerelles` | Passerelles | Borné | État `?statut=` avec comptes serveur | Clinique ; recherche (nom du poste) ; muette ; certificat bientôt échu ; pays | Sur la page (tout est renvoyé) ; clinique côté serveur : B2 | P2 |
 | `/admin/audit` | Journal | Croissant | Action : `<select>` plat de 76 actions | Action groupée par famille, avec recherche ; clinique ; auteur ; période ; type de ressource | Clinique (`organization_id`) et auteur (`actor_id`) : **prêts, inutilisés**. Période, type : B2 | P2 |
 | `/admin/demandes` | Demandes du site | Borné (200 en dur) | Demandeur, état, avec comptes, sur la page | Recherche ; période | Sur la page ; pagination : B2 | P2 |
+| `/admin/idees` | Idées des radiologues et des responsables | Borné (500 par défaut, dit à l’écran au-delà) | Clinique (liste déroulante), rôle, catégorie, état, période, avec comptes, sur la page ; recherche (cookie) | | Sur la page | P2 |
 | `/admin/systeme` | Services, tâches et exécutions | Fixe | Aucun | « Échecs seulement », type de tâche | Sur la page | P3 |
 | `/admin`, `/admin/reglages`, `/admin/organisations/[id]`, `/admin/passerelles/[id]` | Synthèses, formulaires, sous-listes courtes | Fixe | | Aucun. Les alertes du cockpit mènent déjà à des listes filtrées | | |
 

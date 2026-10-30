@@ -10,6 +10,7 @@ import {
   usePaletteShortcut,
 } from "@/components/layout/command-palette";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { IdeaShortcut } from "@/components/ideas/idea-shortcut";
 import { HelpMenu } from "@/components/tour/help-menu";
 import { useSession } from "@/components/providers/session-provider";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -188,6 +189,7 @@ export function Topbar({
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <DemoBadge />
+        <IdeaShortcut />
         <HelpMenu />
         <ThemeToggle />
       </div>

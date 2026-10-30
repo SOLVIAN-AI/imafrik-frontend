@@ -480,14 +480,13 @@ export const reading = {
     search: "Rechercher un modèle",
     searchPlaceholder: "Nom, région…",
     modality: "Modalité",
-    allModalities: "Toutes",
     noMatch: "Aucun modèle ne correspond à cette recherche.",
     allRegions: "Toutes régions",
     anyModality: "Toutes modalités",
     organisation: "Organisation",
     providedByImafrik: "Fourni par IMAFRIK",
     noneSelected: "Aucun modèle sélectionné",
-    /** Nom courant d'une modalité DICOM, pour le filtre. */
+    /** Nom courant d'une modalité DICOM, sous le titre du modèle. */
     modalityNames: {
       CT: "Scanner",
       MR: "IRM",

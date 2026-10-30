@@ -98,3 +98,45 @@ test("l’activité propose « Toutes les cliniques » et garde la rubrique", as
   await expect(page).toHaveURL(/onglet=cliniques/);
   await expect(page).toHaveURL(/clinique=org-stj/);
 });
+
+test("l’activité se filtre par modalité, d’une période et d’une rubrique à l’autre", async ({
+  page,
+  checkA11y,
+}) => {
+  await page.goto("/admin/activite");
+  await bar(page)
+    .getByRole("group", { name: "Modalité" })
+    .getByRole("link", { name: /^Scanner/ })
+    .click();
+  await expect(page).toHaveURL(/[?&]modalite=scanner(&|$)/);
+  // Le bloc « Modalités » (son titre et sa liste) ne garde que le code
+  // du scanner.
+  const modalites = page
+    .getByRole("main")
+    .locator("div")
+    .filter({
+      has: page.getByRole("heading", { name: "Modalités", exact: true }),
+    })
+    .filter({ has: page.getByRole("list") })
+    .last();
+  await expect(modalites.getByRole("listitem")).toHaveCount(1);
+  await expect(modalites.getByRole("listitem")).toContainText("CT");
+  await settle(page);
+  await checkA11y();
+
+  // La période et la rubrique gardent la modalité.
+  await page.getByRole("link", { name: "7 j", exact: true }).click();
+  await expect(page).toHaveURL(/[?&]jours=7(&|$)/);
+  await expect(page).toHaveURL(/[?&]modalite=scanner(&|$)/);
+  await page.getByRole("link", { name: "Par clinique" }).click();
+  await expect(page).toHaveURL(/[?&]onglet=cliniques(&|$)/);
+  await expect(page).toHaveURL(/[?&]modalite=scanner(&|$)/);
+
+  // Les performances par radiologue ne distinguent pas les modalités.
+  await page.getByRole("link", { name: "Par radiologue" }).click();
+  await expect(page).toHaveURL(/[?&]onglet=radiologues(&|$)/);
+  expect(page.url()).not.toContain("modalite");
+  await expect(bar(page).getByRole("group", { name: "Modalité" })).toHaveCount(
+    0,
+  );
+});

@@ -45,8 +45,24 @@ export const LIST_FILTERS = {
   // Pilotage de l'équipe : flux d'images (filtré par le service avant sa
   // limite), relevés du mois et passerelles (filtrés sur la page).
   flux: [...NETWORK, "modality", "state", "urgency"],
+  // Activité : filtrée par le service ; la modalité ne vaut pas pour les
+  // performances par radiologue, qui n'en ont pas.
+  activite: [...NETWORK, "modality"],
   facturation: [...NETWORK, "noPlan"],
   passerelles: [...NETWORK, "gatewayStatus", "mute"],
+  // Journal d'audit : filtré par le service ; demandes reçues : sur la page.
+  journal: ["organization", "author", "family", "action", "period"],
+  demandes: ["requester", "requestState", "period"],
+  // « Vos idées » : la boîte de l’équipe IMAFRIK (rôle et clinique de
+  // l’auteur), et « Mes idées » de l’auteur ; filtrées sur la page.
+  idees: [...NETWORK, "role", "ideaCategory", "ideaState", "period"],
+  "mes-idees": ["ideaCategory", "ideaState"],
+  // Équipe d'une clinique (et vue des cliniques), modèles, formation,
+  // historique des tâches : des listes bornées, filtrées sur la page.
+  equipe: ["role", "modality", "urgentReader"],
+  modeles: ["origin", "modality"],
+  formation: ["modality", "trainingState"],
+  systeme: ["task", "failed"],
   "comptes-rendus-equipe": [
     ...NETWORK,
     "radiologist",
@@ -57,6 +73,10 @@ export const LIST_FILTERS = {
   ],
   // « À lire » : la file d'un radiologue, ou toute la plateforme pour
   // l'équipe IMAFRIK ; la clinique ne s'affiche que s'il y en a plusieurs.
+  // Dépôts d'archives ZIP : ceux de la clinique, pour son responsable ;
+  // ceux du réseau, pour l'équipe. Des listes bornées, filtrées sur la page.
+  depots: ["depositState", "period"],
+  "depots-equipe": [...NETWORK, "depositState", "period"],
   worklist: [...NETWORK, "modality", "urgency"],
   "mes-examens": ["clinic", "modality", "urgency"],
 } as const satisfies Record<string, readonly DimensionKey[]>;

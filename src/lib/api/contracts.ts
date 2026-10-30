@@ -1,6 +1,13 @@
 import { z } from "zod";
 
 import type { components } from "@/lib/api/schema";
+import {
+  IDEA_AUTHOR_ROLES,
+  IDEA_BENEFITS,
+  IDEA_CATEGORIES,
+  IDEA_DEVICES,
+  IDEA_STATUSES,
+} from "@/lib/ideas";
 import { isSafeBrowserUrl } from "@/lib/security/urls";
 
 /**
@@ -666,6 +673,132 @@ const _uploadToken: Matches<
   Schemas["UploadToken"]
 > = true;
 
+/** Étape d'un dépôt d'archive ZIP, telle que le service la nomme. */
+export const depositStatusSchema = z.enum([
+  "uploading",
+  "received",
+  "processing",
+  "done",
+  "refused",
+  "cancelled",
+  "expired",
+]);
+
+/** Raison d'un refus en bloc de l'archive. */
+export const depositRefusalSchema = z.enum([
+  "not_a_zip",
+  "split_archive",
+  "too_many_files",
+  "too_large_uncompressed",
+  "suspicious_compression",
+  "unsafe_path",
+  "empty_archive",
+  "clinic_inactive",
+  "pacs_unavailable",
+  "processing_failed",
+]);
+
+/** Raison pour laquelle un fichier de l'archive est ignoré. */
+export const ignoredReasonSchema = z.enum([
+  "system_file",
+  "encrypted",
+  "too_large",
+  "suspicious_compression",
+  "unsupported_compression",
+  "nested_archive",
+  "corrupt",
+  "not_dicom",
+  "dicomdir",
+  "invalid_dicom",
+  "other_clinic",
+  "pacs_refused",
+]);
+
+export const depositSchema = z.object({
+  id: uuid,
+  organization_id: uuid,
+  clinic_name: z.string(),
+  file_name: z.string(),
+  head_sha256: z.string().nullable(),
+  size_bytes: z.number().int(),
+  received_bytes: z.number().int(),
+  status: depositStatusSchema,
+  refusal: depositRefusalSchema.nullable(),
+  on_behalf: z.boolean(),
+  author_name: z.string().nullable(),
+  studies_count: z.number().int(),
+  series_count: z.number().int(),
+  instances_count: z.number().int(),
+  duplicates_count: z.number().int(),
+  ignored_count: z.number().int(),
+  created_at: isoDate,
+  received_at: isoDate.nullable(),
+  processed_at: isoDate.nullable(),
+  expires_at: isoDate.nullable(),
+});
+const _deposit: Matches<
+  z.input<typeof depositSchema>,
+  Schemas["Deposit"]
+> = true;
+
+export const depositListSchema = z.object({
+  deposits: z.array(depositSchema),
+  limited: z.boolean(),
+});
+const _depositList: Matches<
+  z.input<typeof depositListSchema>,
+  Schemas["DepositList"]
+> = true;
+
+export const depositStudySchema = z.object({
+  study_instance_uid: z.string(),
+  accepted: z.boolean(),
+  series_count: z.number().int(),
+  instances_count: z.number().int(),
+  duplicates_count: z.number().int(),
+  study_id: uuid.nullable(),
+  patient_name: z.string().nullable(),
+  modality: z.string().nullable(),
+  study_date: isoDate.nullable(),
+  study_status: studyStatusSchema.nullable(),
+});
+const _depositStudy: Matches<
+  z.input<typeof depositStudySchema>,
+  Schemas["DepositStudy"]
+> = true;
+
+export const depositReportSchema = depositSchema.extend({
+  entries_count: z.number().int(),
+  studies: z.array(depositStudySchema),
+  ignored: z.array(z.object({ name: z.string(), reason: ignoredReasonSchema })),
+});
+const _depositReport: Matches<
+  z.input<typeof depositReportSchema>,
+  Schemas["DepositReport"]
+> = true;
+
+export const depositLimitsSchema = z.object({
+  max_archive_bytes: z.number().int(),
+  max_entries: z.number().int(),
+  max_total_uncompressed_bytes: z.number().int(),
+  max_entry_bytes: z.number().int(),
+  expiry_hours: z.number().int(),
+});
+const _depositLimits: Matches<
+  z.input<typeof depositLimitsSchema>,
+  Schemas["DepositLimits"]
+> = true;
+
+/** Jeton de dépôt émis à l'équipe IMAFRIK, au nom d'une clinique. */
+export const teamUploadGrantSchema = z.object({
+  token: z.string(),
+  expires_in: z.number().int(),
+});
+const _teamUploadGrant: Matches<
+  z.input<typeof teamUploadGrantSchema>,
+  Schemas["UploadGrant"]
+> = true;
+
 export const uploadResultSchema = z.object({
   status: z.enum(["stored", "duplicate", "ignored"]),
   study_instance_uid: z.string().nullable(),
@@ -757,6 +890,59 @@ const _contactRequest: Matches<
   Schemas["ContactRequest"]
 > = true;
 
+// ─── Vos idées ────────────────────────────────────────────────────────
+
+const ideaCategorySchema = z.enum(IDEA_CATEGORIES);
+const ideaStatusSchema = z.enum(IDEA_STATUSES);
+
+/** Une idée, telle que son auteur la suit (`GET /me/ideas`). */
+export const ideaSchema = z.object({
+  id: uuid,
+  title: z.string(),
+  body: z.string(),
+  category: ideaCategorySchema,
+  benefit: z.enum(IDEA_BENEFITS).nullable(),
+  screen: z.string().nullable(),
+  app_version: z.string().nullable(),
+  device: z.enum(IDEA_DEVICES).nullable(),
+  status: ideaStatusSchema,
+  status_changed_at: isoDate.nullable(),
+  response: z.string().nullable(),
+  responded_at: isoDate.nullable(),
+  grouped: z.boolean(),
+  created_at: isoDate,
+});
+const _idea: Matches<z.input<typeof ideaSchema>, Schemas["Idea"]> = true;
+
+/** Une idée, telle que l’équipe IMAFRIK la suit. */
+export const adminIdeaSchema = ideaSchema.extend({
+  author_id: uuid.nullable(),
+  author_name: z.string().nullable(),
+  author_role: z.enum(IDEA_AUTHOR_ROLES),
+  organization_id: uuid.nullable(),
+  organization_name: z.string().nullable(),
+  organization_kind: z.enum(["clinic", "radiology_group"]).nullable(),
+  duplicate_of: uuid.nullable(),
+  duplicate_of_title: z.string().nullable(),
+  duplicates: z.number().int(),
+  responded_by_name: z.string().nullable(),
+  updated_at: isoDate,
+});
+const _adminIdea: Matches<
+  z.input<typeof adminIdeaSchema>,
+  Schemas["AdminIdea"]
+> = true;
+
+/** La boîte des idées de l’équipe IMAFRIK (`GET /admin/ideas`). */
+export const ideaInboxSchema = z.object({
+  items: z.array(adminIdeaSchema),
+  total: z.number().int(),
+});
+const _ideaInbox: Matches<
+  z.input<typeof ideaInboxSchema>,
+  Schemas["IdeaInbox"]
+> = true;
+
 // ─── Tour de contrôle ─────────────────────────────────────────────────
 
 const count = z.number().int();
@@ -824,6 +1010,8 @@ export const controlOverviewSchema = z.object({
     clinics_connected: count,
     radiologists_active: count,
     new_requests: count,
+    // Idées de « Vos idées » encore à l’état « reçue ».
+    new_ideas: count,
     // Radiologues dont le numéro d’ordre attend la validation d’IMAFRIK.
     unverified_radiologists: count,
     // Images de signature ou de cachet déposées, à vérifier par l’équipe.
@@ -1774,6 +1962,12 @@ export const CONTRACT_CHECKS = [
   _agreementDocument,
   _agreementAcceptance,
   _uploadResult,
+  _deposit,
+  _depositList,
+  _depositStudy,
+  _depositReport,
+  _depositLimits,
+  _teamUploadGrant,
   _addendum,
   _profile,
   _sessionInfo,
@@ -1808,6 +2002,9 @@ export const CONTRACT_CHECKS = [
   _adminOrganization,
   _clinicView,
   _contactRequest,
+  _idea,
+  _adminIdea,
+  _ideaInbox,
   _opsRun,
   _alert,
   _prioritySla,
@@ -1864,6 +2061,8 @@ export type ApiTrainingAttempt = z.output<typeof trainingAttemptSchema>;
 export type ApiMember = z.output<typeof memberSchema>;
 export type ApiAdminOrganization = z.output<typeof adminOrganizationSchema>;
 export type ApiContactRequest = z.output<typeof contactRequestSchema>;
+export type ApiIdea = z.output<typeof ideaSchema>;
+export type ApiAdminIdea = z.output<typeof adminIdeaSchema>;
 export type ApiMetrics = z.output<typeof metricsSchema>;
 export type ApiOrganization = z.output<typeof organizationSchema>;
 export type ApiControlOverview = z.output<typeof controlOverviewSchema>;
@@ -1893,3 +2092,9 @@ export type ApiContractEnd = Schemas["ContractEnd"];
 export type ApiAnonymizationRequest = Schemas["AnonymizationRequest"];
 export type ApiOpsRun = z.output<typeof opsRunSchema>;
 export type ApiAlert = z.output<typeof alertSchema>;
+export type ApiDeposit = z.output<typeof depositSchema>;
+export type ApiDepositReport = z.output<typeof depositReportSchema>;
+export type ApiDepositLimits = z.output<typeof depositLimitsSchema>;
+export type DepositStatus = z.output<typeof depositStatusSchema>;
+export type DepositRefusal = z.output<typeof depositRefusalSchema>;
+export type IgnoredReason = z.output<typeof ignoredReasonSchema>;

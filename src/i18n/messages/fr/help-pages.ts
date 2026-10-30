@@ -45,7 +45,7 @@ export const pages = {
         "Des examens réels anonymisés, à lire et rédiger dans le vrai écran de lecture, sans patient ni clinique. La formation vous est ouverte avant même la validation de votre dossier.",
       steps: [
         "Lisez « Le parcours, comme sur un vrai examen » en haut de la page.",
-        "Choisissez un exercice d’après sa modalité, sa région et son état : « À faire », « En cours » ou « Signé ».",
+        "Filtrez par modalité ou par état, « À faire », « En cours » ou « Signé » : chaque choix dit son nombre d’exercices.",
         "Cliquez sur « Commencer » pour ouvrir un nouvel exercice, ou sur « Reprendre » pour continuer celui en cours.",
         "Cliquez sur « Revoir » pour relire un exercice signé, et son corrigé quand la carte indique « Corrigé disponible ».",
       ],
@@ -93,7 +93,7 @@ export const pages = {
       purpose:
         "Les modèles de compte-rendu de votre organisation et ceux fournis par IMAFRIK. Vous les relisez ici en entier ; ils s’appliquent et se créent dans l’écran de lecture.",
       steps: [
-        "Cherchez un modèle par nom ou par région, ou filtrez par modalité.",
+        "Filtrez par origine ou modalité, chaque choix avec son nombre de modèles, ou cherchez un modèle par nom ou par région.",
         "Cliquez sur un modèle pour lire son texte en entier, tel qu’il sera appliqué.",
         "Dans l’écran de lecture, cliquez sur « Modèle » pour compléter les sections encore vides.",
         "Pour en créer un, cliquez sur « Enregistrer comme modèle » depuis un compte-rendu en cours.",
@@ -119,6 +119,19 @@ export const pages = {
         "doubleAuthentification",
         "engagement",
       ],
+    },
+    ideas: {
+      title: "Vos idées",
+      purpose:
+        "Proposez une piste pour améliorer IMAFRIK et suivez ce qu’elle devient : l’équipe IMAFRIK lit chaque idée, la fait avancer et vous répond. Vous ne voyez que vos propres idées.",
+      steps: [
+        "Donnez un titre court, décrivez ce qui vous gêne et ce que vous aimeriez à la place, puis choisissez la catégorie.",
+        "Si vous le savez, dites ce que l’idée vous ferait gagner : du temps, de la clarté ou de la sécurité.",
+        "N’écrivez jamais l’identité d’un patient : ni nom, ni identifiant, ni date de naissance. Aucune capture d’écran n’est jointe.",
+        "Depuis un autre écran, l’ampoule de la barre du haut ouvre ce formulaire avec le nom de l’écran ; décochez « Joindre ce contexte » au besoin.",
+        "Cliquez sur « Envoyer l’idée », puis suivez-la dans « Mes idées » : son état et la réponse de l’équipe. Un courriel vous prévient.",
+      ],
+      terms: ["idee", "etatIdee"],
     },
     reading: {
       title: "Écran de lecture",
@@ -177,7 +190,7 @@ export const pages = {
         "Filtrez par radiologue, modalité, état, urgence ou période : chaque choix dit son nombre d’examens, et ils se combinent.",
         "Sur une ligne, cliquez sur « Attribuer », choisissez un radiologue parmi ceux qui lisent la modalité, cochez les antériorités utiles, puis cliquez sur « Attribuer ».",
         "Tapez un nom de patient, un identifiant ou une modalité dans la recherche, puis appuyez sur Entrée.",
-        "Cliquez sur une ligne pour ouvrir la fiche de l’examen, ou sur « Envoyer » pour transmettre un nouvel examen.",
+        "Cliquez sur une ligne pour ouvrir la fiche de l’examen, ou sur « Déposer des images » pour envoyer une archive ZIP, qui reprend après chaque coupure.",
       ],
       terms: [
         "attribution",
@@ -186,6 +199,37 @@ export const pages = {
         "modalitesLues",
         "urgence",
       ],
+    },
+    deposits: {
+      title: "Dépôts d’images",
+      purpose:
+        "Pour envoyer les images d’un ou plusieurs examens en une archive ZIP, quand la connexion est faible ou que la passerelle est en panne. L’envoi reprend après chaque coupure, et chaque dépôt a son compte rendu.",
+      steps: [
+        "Compressez le dossier d’images exporté en ZIP : clic droit sur le dossier, « Envoyer vers », « Dossier compressé ».",
+        "Glissez l’archive dans « Déposer une archive ZIP », ou cliquez sur « Choisir une archive ». Gardez la page ouverte : la progression, le débit et le temps restant s’affichent.",
+        "Si la connexion se coupe, ne faites rien : l’envoi reprend seul au retour du réseau. Page fermée ? Cliquez sur « Reprendre » dans « Mes dépôts » et choisissez le même fichier.",
+        "Une fois reçue, l’archive est contrôlée. Ouvrez son compte rendu : examens transmis, doublons, fichiers ignorés et pourquoi.",
+        "Les examens arrivent dans « Examens », « à attribuer », une minute environ après le contrôle.",
+      ],
+      terms: [
+        "depot",
+        "archiveZip",
+        "repriseEnvoi",
+        "fichierIgnore",
+        "doublon",
+      ],
+    },
+    depositReport: {
+      title: "Compte rendu d’un dépôt",
+      purpose:
+        "Ce que l’archive a donné : examens, séries et images transmis, doublons, et fichiers ignorés avec leur raison.",
+      steps: [
+        "Lisez l’état en tête : intégré, en contrôle, refusé (et quoi faire), ou envoi interrompu (et jusqu’à quand le reprendre).",
+        "Survolez ou touchez ⓘ près de chaque nombre pour savoir ce qu’il compte.",
+        "Cliquez sur « Ouvrir l’examen » pour l’attribuer ; « En cours d’intégration » devient un lien d’ici une minute.",
+        "Dans « Fichiers ignorés », ouvrez une raison pour voir les fichiers concernés et ce qu’il faut faire.",
+      ],
+      terms: ["depot", "fichierIgnore", "doublon", "dicom"],
     },
     study: {
       title: "Fiche de l’examen",
@@ -235,9 +279,9 @@ export const pages = {
       purpose:
         "Les membres de votre établissement qui ont accès à IMAFRIK : ses responsables, qui envoient les examens et gèrent l’équipe, et ses radiologues. C’est ici que vous invitez ou retirez vos collègues, et réglez ce que lit chacun de vos radiologues.",
       steps: [
-        "Cliquez sur « Inviter », saisissez le nom complet et l’adresse électronique de la personne, puis choisissez son rôle.",
+        "Filtrez par rôle, modalité lue ou « Sur la liste d’urgence », chaque choix avec son nombre, ou cherchez un membre par nom ou adresse.",
+        "Cliquez sur « Inviter », saisissez nom, adresse électronique et rôle, puis « Envoyer l’invitation » : la personne choisit elle-même son mot de passe.",
         "« Responsable » a les mêmes droits que vous. « Radiologue » n’accède aux examens qu’après vérification de son numéro d’ordre.",
-        "Cliquez sur « Envoyer l’invitation » : la personne reçoit un lien par courriel et choisit elle-même son mot de passe.",
         "Pour un radiologue, « Modalités et urgences » règle ce qu’il lit et la liste d’urgence ; « Règles d’attribution » lui confie d’office une modalité ou des jours de garde.",
         "Pour retirer un membre, ouvrez le menu au bout de sa ligne, puis « Retirer de l’équipe » : son accès est coupé aussitôt. Le dernier responsable ne se retire pas.",
       ],
@@ -294,6 +338,19 @@ export const pages = {
       ],
       terms: ["pool", "priseEnCharge", "doubleAuthentification", "engagement"],
     },
+    ideas: {
+      title: "Vos idées",
+      purpose:
+        "Proposez ce qui faciliterait la vie de votre clinique sur IMAFRIK, et suivez ce que l’idée devient : l’équipe IMAFRIK la lit, la fait avancer et vous répond. Vous ne voyez que vos propres idées.",
+      steps: [
+        "Donnez un titre court, décrivez ce qui vous gêne et ce que vous aimeriez à la place, puis choisissez la catégorie.",
+        "Si vous le savez, dites ce que l’idée vous ferait gagner : du temps, de la clarté ou de la sécurité.",
+        "N’écrivez jamais l’identité d’un patient : ni nom, ni identifiant, ni date de naissance. Aucune capture d’écran n’est jointe.",
+        "Depuis un autre écran, l’ampoule de la barre du haut ouvre ce formulaire avec le nom de l’écran ; décochez « Joindre ce contexte » au besoin.",
+        "Cliquez sur « Envoyer l’idée », puis suivez-la dans « Mes idées » : son état et la réponse de l’équipe. Un courriel vous prévient.",
+      ],
+      terms: ["idee", "etatIdee"],
+    },
   },
   admin: {
     cockpit: {
@@ -321,7 +378,7 @@ export const pages = {
         "L’activité de la plateforme en trois rubriques, à un clic dès l’en-tête : vue d’ensemble d’une période, performances de chaque radiologue sur un mois, activité par clinique. Chaque rubrique a son adresse, à partager telle quelle.",
       steps: [
         "Choisissez la rubrique : « Vue d’ensemble », « Par radiologue » ou « Par clinique » ; « Facturation » ouvre les relevés du mois.",
-        "Gardez « Toutes les cliniques » ou choisissez-en une ; la période (7 j à 1 an) vaut pour la vue d’ensemble, le mois pour les radiologues.",
+        "Filtrez par clinique, et par modalité hors « Par radiologue » ; la période (7 j à 1 an) vaut pour la vue d’ensemble, le mois pour les radiologues.",
         "Dans « Par radiologue », triez les colonnes ; le bouton ⓘ d’un intitulé dit ce que mesure l’indicateur, celui du titre ce que disent les flèches.",
         "Depuis « Comptes », « Voir ses performances » ouvre cette rubrique sur la ligne du radiologue, mise en évidence.",
         "Sans compte-rendu signé dans le mois, le tableau le dit : ses délais restent vides jusqu’au premier acte signé.",
@@ -458,18 +515,54 @@ export const pages = {
         "pool",
       ],
     },
+    deposits: {
+      title: "Dépôts",
+      purpose:
+        "Les archives ZIP déposées par les cliniques, ou par l’équipe en leur nom, et leur compte rendu. C’est aussi d’ici que l’équipe dépose pour une clinique qui le demande.",
+      steps: [
+        "Filtrez par clinique, état ou période : « Refusé » et « En cours d’envoi » disent où une clinique bute.",
+        "Pour déposer au nom d’une clinique, choisissez-la dans « Clinique », puis glissez l’archive ou cliquez sur « Choisir une archive ».",
+        "Le dépôt est tracé à votre nom au journal d’audit ; la clinique le voit marqué « Équipe IMAFRIK ».",
+        "Ouvrez une ligne pour lire son compte rendu, ou annulez un envoi interrompu que personne ne reprendra.",
+      ],
+      terms: ["depot", "archiveZip", "repriseEnvoi", "fichierIgnore"],
+    },
+    depositReport: {
+      title: "Compte rendu d’un dépôt",
+      purpose:
+        "Le compte rendu que lit la clinique, avec le nom de qui a déposé : examens, séries et images transmis, doublons, fichiers ignorés et leur raison.",
+      steps: [
+        "Lisez l’état en tête et, pour une archive refusée, ce que la clinique doit faire.",
+        "Cliquez sur « Ouvrir l’examen » : il s’ouvre dans la vue des cliniques, comme son responsable le voit.",
+        "Dans « Fichiers ignorés », ouvrez une raison pour voir les fichiers concernés.",
+      ],
+      terms: ["depot", "fichierIgnore", "doublon", "vueCliniques"],
+    },
     requests: {
       title: "Demandes reçues",
       purpose:
         "Rassemble les demandes envoyées par le formulaire de contact du site, par des établissements ou des radiologues. Chacune se suit de « Nouvelle » à « Convertie » ou « Écartée », avec les notes de l’équipe.",
       steps: [
-        "Filtrez par demandeur, « Établissements » ou « Radiologues », et par étape du suivi : les nouvelles s’affichent par défaut.",
+        "Filtrez par demandeur, étape du suivi ou période, chaque option comptée ; cherchez par nom, adresse ou établissement.",
         "Contactez le demandeur en cliquant sur son adresse électronique ou sur son numéro de téléphone.",
         "Pour un radiologue, relevez le « N° d’ordre déclaré » : il est vérifié avant tout accès aux examens.",
         "Pour accueillir un radiologue, cliquez sur « Inviter comme radiologue » quand le bouton est proposé : la demande passe à « Convertie ».",
         "Choisissez l’étape du suivi, ajoutez vos notes, puis cliquez sur « Enregistrer ».",
       ],
       terms: ["numeroOrdre", "habilitation"],
+    },
+    ideas: {
+      title: "Idées",
+      purpose:
+        "Les pistes d’amélioration proposées par les radiologues et les responsables de clinique. L’équipe IMAFRIK les lit, y répond, les fait avancer d’un état à l’autre et regroupe les doublons.",
+      steps: [
+        "Filtrez par clinique, rôle, catégorie, état ou période, chaque option comptée ; cherchez un mot du titre, du texte ou le nom de l’auteur.",
+        "Commencez par les idées « Reçues » : le cockpit en donne le nombre, et son alerte mène ici.",
+        "Choisissez l’état, écrivez une réponse, puis cliquez sur « Enregistrer » : l’auteur est prévenu par courriel.",
+        "Pour un doublon, choisissez l’idée principale dans « Même idée que… » : l’idée regroupée suit son état, et son auteur est prévenu.",
+        "Le contexte dit d’où vient l’idée : écran, version, appareil. Chaque geste est tracé au journal d’audit.",
+      ],
+      terms: ["idee", "etatIdee", "regroupement", "journalAudit"],
     },
     billing: {
       title: "Facturation",
@@ -499,7 +592,7 @@ export const pages = {
         "Contrôlez le « PACS central », les « Examens conservés » et le « Volume d’images » sur le disque du PACS.",
         "Parcourez les « Dépendances » : une croix rouge et un détail signalent un service qui ne répond pas.",
         "Dans « Filets de sécurité », repérez le point rouge d’une tâche en échec ou dont la dernière exécution est trop ancienne.",
-        "Consultez l’« Historique d’exploitation » pour les exécutions récentes, toutes tâches confondues.",
+        "Dans l’« Historique d’exploitation », filtrez par tâche ou « Échecs seulement » : chaque choix dit son nombre d’exécutions récentes.",
       ],
       terms: ["pacs", "filetSecurite", "examen"],
     },
@@ -509,7 +602,7 @@ export const pages = {
         "Chaque geste sensible, horodaté et attribué : examen consulté, compte-rendu signé, réglage modifié, membre ajouté. C’est la pièce à produire quand on demande qui a vu un dossier. Lecture seule : le journal s’écrit par le service, jamais d’ici.",
       steps: [
         "Lisez les entrées, les plus récentes en tête : date, action, auteur (« Système » ou « Règle d’attribution » pour un geste automatique), organisation et ressource.",
-        "Choisissez une action dans la liste « Toutes les actions » pour n’afficher qu’un type de geste, par exemple « Examen consulté ».",
+        "Filtrez par organisation, auteur, famille (« Comptes-rendus »…), action ou période : la liste se relit, depuis les plus récentes.",
         "Survolez la référence d’une ressource pour lire son identifiant complet.",
         "Cliquez sur « Entrées plus anciennes », en bas de page, pour remonter le journal 50 entrées à la fois.",
         "Cliquez sur « Revenir aux plus récentes » pour retrouver le début du journal.",
@@ -619,7 +712,7 @@ export const pages = {
       purpose:
         "L’équipe de la clinique consultée : ses responsables et ses radiologues, avec les modalités que lit chacun et sa place sur la liste d’urgence. En consultation, l’équipe IMAFRIK n’y invite ni n’y retire personne.",
       steps: [
-        "Lisez pour chaque radiologue ses modalités et, s’il y figure, la mention « Liste d’urgence ».",
+        "Filtrez par rôle, modalité lue ou « Sur la liste d’urgence », ou cherchez un membre ; lisez les modalités de chaque radiologue.",
         "Un avis signale une clinique sans responsable, ou avec un seul : personne n’y prendrait le relais.",
         "Cliquez sur « Liste d’urgence » pour la régler depuis la fiche de la clinique, radiologues du réseau compris.",
         "Cliquez sur « Règles d’attribution » pour lire et régler qui reçoit d’office les examens.",
@@ -718,8 +811,8 @@ export const pages = {
       purpose:
         "Les modèles de comptes-rendus de toute la plateforme, fournis par IMAFRIK ou créés par les organisations, lus en entier. En consultation : l’équipe les relit sans pouvoir les supprimer, car ils appartiennent aux organisations.",
       steps: [
+        "Filtrez par origine, « IMAFRIK » ou « Organisation », ou par modalité : chaque choix dit son nombre de modèles.",
         "Cherchez un modèle par nom ou par région dans le champ « Nom, région… ».",
-        "Filtrez par modalité avec les pastilles ; « Toutes » les affiche de nouveau.",
         "Cliquez sur un modèle de la liste pour le lire en entier, dans la forme exacte d’un compte-rendu.",
         "Repérez son origine : « Fourni par IMAFRIK », ou « Organisation » sous le nom d’un modèle créé par une organisation.",
       ],
@@ -730,7 +823,7 @@ export const pages = {
       purpose:
         "Les exercices de formation : des examens réels anonymisés, sans patient ni clinique. L’équipe y voit aussi les cas « En relecture », cachés aux radiologues, pour les prévisualiser et les faire relire avant publication.",
       steps: [
-        "Parcourez les cartes : modalité, région, titre, indication et source des images de chaque cas.",
+        "Filtrez par modalité ou par état, puis parcourez les cartes : région, titre, indication et source des images de chaque cas.",
         "Repérez les cas « En relecture » : visibles de l’équipe IMAFRIK seulement, tant qu’un radiologue n’a pas relu le contexte clinique.",
         "Cliquez sur « Prévisualiser » pour ouvrir un cas en relecture dans l’écran de lecture, sans exercice.",
         "Vérifiez sur chaque carte « Contexte relu par » et la source des images, avec « Voir la source ».",

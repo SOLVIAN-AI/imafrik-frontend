@@ -164,6 +164,7 @@ export const admin = {
     outOf: (total: number) => `sur ${total}`,
     radiologistsActive: "Radiologues actifs",
     newRequests: "Demandes à traiter",
+    newIdeas: "Idées nouvelles",
     operations: "Exploitation",
     operationsDescription: "Dernière exécution de chaque tâche",
     system: "Système",
@@ -876,6 +877,7 @@ export const admin = {
     safetyNetsDescription: "Dernière exécution de chaque tâche planifiée",
     history: "Historique d’exploitation",
     historyDescription: "Exécutions récentes, toutes tâches confondues",
+    historyFiltered: "Exécutions récentes retenues par les filtres",
   },
 
   audit: {
@@ -884,7 +886,6 @@ export const admin = {
     olderEntries: "Entrées plus anciennes",
     backToLatest: "Revenir aux plus récentes",
     emptyTitle: "Aucune entrée",
-    emptyForAction: "Aucune entrée pour cette action.",
     emptyDetail:
       "Le journal se remplit à mesure que la plateforme est utilisée.",
     system: "Système",
@@ -895,6 +896,24 @@ export const admin = {
      * par le service et par les fonctions de la base ; une action
      * inconnue ici s'affiche telle quelle.
      */
+    /** Familles d'actions, pour le filtre du journal. */
+    families: {
+      study: "Examens",
+      prior: "Antériorités",
+      report: "Comptes-rendus",
+      signing: "Signatures et cachets",
+      user: "Comptes",
+      membership: "Appartenances",
+      profile: "Profils",
+      organization: "Organisations",
+      gateway: "Passerelles",
+      billing: "Facturation",
+      agreement: "Engagements",
+      contact_request: "Demandes reçues",
+      idea: "Idées",
+      platform: "Plateforme",
+      deposit: "Dépôts d’images",
+    },
     actions: {
       "study.viewed": "Examen consulté",
       "study.claimed": "Examen pris en charge",
@@ -972,6 +991,16 @@ export const admin = {
       "platform.tailscale_configured": "Connexion Tailscale enregistrée",
       "platform.tailscale_removed": "Connexion Tailscale retirée",
       "platform.tailscale_policy_pushed": "Politique d’accès Tailscale poussée",
+      "idea.submitted": "Idée proposée",
+      "idea.status_changed": "État d’une idée changé",
+      "idea.answered": "Réponse à une idée",
+      "idea.grouped": "Idée regroupée avec une autre",
+      "deposit.started": "Dépôt d’archive commencé",
+      "deposit.received": "Archive reçue",
+      "deposit.processed": "Archive contrôlée et transmise",
+      "deposit.refused": "Archive refusée",
+      "deposit.cancelled": "Dépôt annulé",
+      "deposit.expired": "Dépôt abandonné",
     },
   },
 
@@ -1089,6 +1118,10 @@ export const admin = {
           : `${count} image de signature ou de cachet attend votre vérification`,
       newRequests: (count: number) =>
         `${count} demande${count > 1 ? "s reçues" : " reçue"} par le site ${count > 1 ? "attendent" : "attend"} une réponse`,
+      newIdeas: (count: number) =>
+        count > 1
+          ? `${count} idées nouvelles à lire`
+          : `${count} idée nouvelle à lire`,
     },
     ops: {
       backupDatabase: "41,3 Mo chiffrés · 18 tables vérifiées",

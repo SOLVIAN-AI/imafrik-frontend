@@ -23,6 +23,7 @@ import {
   DEMO_STUDIES,
 } from "@/lib/demo/studies";
 import { messagesFor } from "@/i18n";
+import { demoIdeas } from "@/lib/demo/ideas";
 import { DEMO_SIGNING_REVIEW_PROFILE } from "@/lib/demo/signing";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locale";
 import { MODALITY_GROUPS, modalityGroupOf } from "@/lib/modalities";
@@ -570,6 +571,17 @@ export function demoOverview(
     message: text.newRequests(DEMO_NEW_REQUESTS),
     href: "/admin/demandes",
   });
+  // Les idées reçues de la démonstration (`lib/demo/ideas.ts`).
+  const newIdeas = demoIdeas(now).filter(
+    (idea) => idea.status === "received",
+  ).length;
+  if (newIdeas)
+    alerts.push({
+      code: "new_ideas",
+      severity: "info",
+      message: text.newIdeas(newIdeas),
+      href: "/admin/idees?etat=recues",
+    });
 
   return {
     generated_at: iso(now),
@@ -598,6 +610,7 @@ export function demoOverview(
       clinics_connected: DEMO_NETWORK.length,
       radiologists_active: READERS.length,
       new_requests: DEMO_NEW_REQUESTS,
+      new_ideas: newIdeas,
       unverified_radiologists:
         demoUsers(now).filter(credentialReviewDue).length,
       signing_reviews_due: demoSigningReviewsDue(now),
@@ -611,15 +624,22 @@ export function demoOverview(
   };
 }
 
-/** Activité d'une période, éventuellement d'une seule clinique. */
+/**
+ * Activité d'une période, éventuellement d'une seule clinique ou d'un seul
+ * groupe de modalités, comme le service (`public.modality_group`).
+ */
 export function demoAnalytics(
   days: number,
   clinicId: string | null = null,
   now = Date.now(),
+  modalityGroup: ModalityGroup | null = null,
 ): ApiControlAnalytics {
   const today = epochDay(now) * DAY;
   const since = today - (days - 1) * DAY;
-  const flows = demoFlows(since, now, clinicId);
+  const flows = demoFlows(since, now, clinicId).filter(
+    (flow) =>
+      !modalityGroup || modalityGroupOf(flow.modality.code) === modalityGroup,
+  );
   const signed = flows.filter((flow) => flow.signedAt !== null);
 
   const daily = Array.from({ length: days }, (_, index) => {

@@ -6,9 +6,11 @@ import { clinic } from "@/i18n/messages/en/clinic";
 import { clinicView } from "@/i18n/messages/en/clinic-view";
 import { common } from "@/i18n/messages/en/common";
 import { credentials } from "@/i18n/messages/en/credentials";
+import { deposits } from "@/i18n/messages/en/deposits";
 import { filters } from "@/i18n/messages/en/filters";
 import { gateways } from "@/i18n/messages/en/gateways";
 import { help } from "@/i18n/messages/en/help";
+import { ideas } from "@/i18n/messages/en/ideas";
 import { nav } from "@/i18n/messages/en/nav";
 import { onboarding } from "@/i18n/messages/en/onboarding";
 import { reading } from "@/i18n/messages/en/reading";
@@ -41,7 +43,9 @@ import { worklist } from "@/i18n/messages/en/worklist";
  * - `training` : espace de formation ;
  * - `tour` : visites guidées, la prise en main écran par écran ;
  * - `admin` : tour de contrôle ;
- * - `gateways` : passerelles des cliniques, dans la tour de contrôle.
+ * - `gateways` : passerelles des cliniques, dans la tour de contrôle ;
+ * - `ideas` : « Vos idées », les pistes d’amélioration des utilisateurs,
+ *   et la boîte où l’équipe IMAFRIK les suit.
  */
 export const en: AppMessages = {
   common,
@@ -61,5 +65,7 @@ export const en: AppMessages = {
   tour,
   admin,
   gateways,
+  deposits,
   help,
+  ideas,
 };

@@ -23,9 +23,10 @@ const SCREENS: Record<DemoMembership, string[]> = {
     "/worklist",
     "/admin/vue-clinique/org-stj/examens",
     "/admin/vue-clinique/org-stj/activite",
+    "/admin/idees",
   ],
-  "m-clinic": ["/examens", "/activite"],
-  "m-radio": ["/worklist", "/mes-examens"],
+  "m-clinic": ["/examens", "/activite", "/idees"],
+  "m-radio": ["/worklist", "/mes-examens", "/idees"],
 };
 
 const VIEWPORTS = [

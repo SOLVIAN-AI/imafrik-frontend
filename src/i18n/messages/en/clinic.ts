@@ -36,7 +36,6 @@ export const clinic: AppMessages["clinic"] = {
     title: "Examinations",
     count: (count: number) =>
       count === 1 ? "1 examination" : `${count} examinations`,
-    send: "Send",
     noResult: "No results",
     noResultDetail: "Broaden your search to see more examinations.",
     empty: "No examinations sent",
@@ -127,6 +126,10 @@ export const clinic: AppMessages["clinic"] = {
     lastReceived: "Last examination received: ",
     noneYet: "none yet",
     troubleshootBefore: "Has an examination you sent not appeared? Run",
+    zipTitle: "Weak connection or gateway down?",
+    zipText:
+      "Upload a ZIP archive of the images: the upload resumes where it left off after every cut, and each upload has its report.",
+    zipAction: "Upload images",
     troubleshootAfter: (guide: string) =>
       `on the gateway computer, then refer to the guide supplied at installation (${guide}).`,
   },

@@ -18,12 +18,15 @@ export const nav = {
     flow: "Flux d’images",
     organisations: "Organisations",
     gateways: "Passerelles",
+    deposits: "Dépôts",
     accounts: "Comptes",
     requests: "Demandes reçues",
+    ideaInbox: "Idées",
     billing: "Facturation",
     system: "Système",
     audit: "Journal d’audit",
     controls: "Réglages",
+    ideas: "Vos idées",
   },
   /** Groupes de la navigation, par clé (`NavGroup.key`). */
   groups: {

@@ -34,21 +34,6 @@ export function parsePeriod(value: Param): AnalyticsPeriod {
     : 30;
 }
 
-/** Paramètre d'adresse de la clinique d'une liste (`?clinique=`). */
-export const CLINIC_PARAM = "clinique";
-
-/**
- * Identifiant de clinique, s'il fait partie des cliniques connues.
- *
- * @param value   Paramètre `clinique`.
- * @param known   Identifiants valides.
- * @returns L'identifiant, ou `null` pour tout le réseau.
- */
-export function parseClinic(value: Param, known: string[]): string | null {
-  const id = first(value);
-  return id && known.includes(id) ? id : null;
-}
-
 /**
  * Mois `AAAA-MM`, borné au mois courant.
  *

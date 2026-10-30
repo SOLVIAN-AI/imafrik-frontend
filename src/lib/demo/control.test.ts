@@ -15,6 +15,7 @@ import {
 } from "@/lib/demo/control";
 import { overlaps, toAssignmentRules } from "@/lib/assignment-rules";
 import { DEMO_STUDIES } from "@/lib/demo/studies";
+import { modalityGroupOf } from "@/lib/modalities";
 
 /** Instant fixe : les tests ne dépendent pas de l'heure de leur exécution. */
 const NOW = Date.UTC(2026, 9, 7, 14, 30);
@@ -53,6 +54,22 @@ describe("réseau de démonstration", () => {
       sla.routine.median_minutes!,
     );
     expect(stages.transfer!).toBeLessThan(stages.arrival!);
+  });
+
+  it("filtre par groupe de modalités sans rien inventer", () => {
+    const all = demoAnalytics(30, null, NOW);
+    const scanners = demoAnalytics(30, null, NOW, "ct");
+    const attendu = all.by_modality
+      .filter((row) => modalityGroupOf(row.modality) === "ct")
+      .reduce((sum, row) => sum + row.received, 0);
+    expect(attendu).toBeGreaterThan(0);
+    expect(scanners.totals.received).toBe(attendu);
+    expect(
+      scanners.by_modality.every(
+        (row) => modalityGroupOf(row.modality) === "ct",
+      ),
+    ).toBe(true);
+    expect(scanners.totals.received).toBeLessThan(all.totals.received);
   });
 
   it("filtre par clinique sans rien inventer", () => {

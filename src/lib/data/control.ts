@@ -129,6 +129,8 @@ export interface ControlOverview {
     clinicsConnected: number;
     radiologistsActive: number;
     newRequests: number;
+    /** Idées de « Vos idées » encore à l’état « reçue ». */
+    newIdeas: number;
   };
   received14d: { day: Date; urgent: number; routine: number }[];
   sla30d: Sla;
@@ -187,6 +189,7 @@ export async function getOverview(): Promise<ControlOverview> {
       clinicsConnected: raw.network.clinics_connected,
       radiologistsActive: raw.network.radiologists_active,
       newRequests: raw.network.new_requests,
+      newIdeas: raw.network.new_ideas,
     },
     received14d: raw.received_14d.map((row) => ({
       day: utcDay(row.day),
@@ -329,18 +332,25 @@ function toAnalytics(raw: ApiControlAnalytics): ControlAnalytics {
 }
 
 /**
- * Activité sur une période, toutes cliniques ou une seule.
+ * Activité sur une période, toutes cliniques ou une seule, toutes
+ * modalités ou un seul groupe.
  *
- * @param days     Nombre de jours, aujourd'hui compris.
- * @param clinicId Clinique, ou `null` pour tout le réseau.
+ * @param days          Nombre de jours, aujourd'hui compris.
+ * @param clinicId      Clinique, ou `null` pour tout le réseau.
+ * @param modalityGroup Groupe de modalités, ou `null` pour tous.
  */
 export async function getAnalytics(
   days: number,
   clinicId: string | null = null,
+  modalityGroup: ModalityGroup | null = null,
 ): Promise<ControlAnalytics> {
-  if (isDemoMode()) return toAnalytics(demoAnalytics(days, clinicId));
+  if (isDemoMode())
+    return toAnalytics(
+      demoAnalytics(days, clinicId, Date.now(), modalityGroup),
+    );
   const query = new URLSearchParams({ days: String(days) });
   if (clinicId) query.set("clinic_id", clinicId);
+  if (modalityGroup) query.set("modality_group", modalityGroup);
   return toAnalytics(
     await apiGet(`/admin/analytics?${query}`, controlAnalyticsSchema),
   );
@@ -771,6 +781,14 @@ export interface AuditEntry {
 export interface AuditFilters {
   /** Action exacte, par exemple `report.signed`. */
   action?: string;
+  /** Famille d'actions : le préfixe avant le point (`report`). */
+  family?: string;
+  /** Auteur des entrées. */
+  actorId?: string;
+  /** Organisation concernée. */
+  organizationId?: string;
+  /** Entrées depuis cet instant. */
+  since?: Date;
   /** Entrées strictement plus anciennes que cet identifiant. */
   beforeId?: number;
   limit?: number;
@@ -792,12 +810,23 @@ export async function listAudit(
       .filter(
         (row) =>
           (!filters.action || row.action === filters.action) &&
+          (!filters.family || row.action.split(".")[0] === filters.family) &&
+          (!filters.actorId || row.actor_id === filters.actorId) &&
+          (!filters.organizationId ||
+            row.organization_id === filters.organizationId) &&
+          (!filters.since ||
+            new Date(row.at).getTime() >= filters.since.getTime()) &&
           (filters.beforeId === undefined || row.id < filters.beforeId),
       )
       .slice(0, limit);
   } else {
     const params = new URLSearchParams({ limit: String(limit) });
     if (filters.action) params.set("action", filters.action.slice(0, 64));
+    if (filters.family) params.set("family", filters.family);
+    if (filters.actorId) params.set("actor_id", filters.actorId);
+    if (filters.organizationId)
+      params.set("organization_id", filters.organizationId);
+    if (filters.since) params.set("since", filters.since.toISOString());
     if (filters.beforeId !== undefined)
       params.set("before_id", String(filters.beforeId));
     rows = await apiGet(`/admin/audit?${params}`, z.array(auditEntrySchema));

@@ -5,9 +5,11 @@ import { clinic } from "@/i18n/messages/fr/clinic";
 import { clinicView } from "@/i18n/messages/fr/clinic-view";
 import { common } from "@/i18n/messages/fr/common";
 import { credentials } from "@/i18n/messages/fr/credentials";
+import { deposits } from "@/i18n/messages/fr/deposits";
 import { filters } from "@/i18n/messages/fr/filters";
 import { gateways } from "@/i18n/messages/fr/gateways";
 import { help } from "@/i18n/messages/fr/help";
+import { ideas } from "@/i18n/messages/fr/ideas";
 import { nav } from "@/i18n/messages/fr/nav";
 import { onboarding } from "@/i18n/messages/fr/onboarding";
 import { reading } from "@/i18n/messages/fr/reading";
@@ -41,7 +43,10 @@ import { worklist } from "@/i18n/messages/fr/worklist";
  * - `training` : espace de formation ;
  * - `tour` : visites guidées, la prise en main écran par écran ;
  * - `admin` : tour de contrôle ;
- * - `gateways` : passerelles des cliniques, dans la tour de contrôle.
+ * - `gateways` : passerelles des cliniques, dans la tour de contrôle ;
+ * - `ideas` : « Vos idées », les pistes d’amélioration des utilisateurs,
+ *   et la boîte où l’équipe IMAFRIK les suit ;
+ * - `deposits` : dépôt d'une archive ZIP d'images, et son compte rendu ;
  * - `help` : aide contextuelle de chaque écran et glossaire.
  */
 export const fr = {
@@ -62,7 +67,9 @@ export const fr = {
   tour,
   admin,
   gateways,
+  deposits,
   help,
+  ideas,
 };
 
 /** Forme des textes de l'application : celle du français. */

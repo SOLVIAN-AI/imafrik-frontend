@@ -7,6 +7,7 @@ import {
   Check,
   ChevronDown,
   ChevronsUpDown,
+  FileArchive,
   FileStack,
   FileText,
   Gauge,
@@ -15,6 +16,7 @@ import {
   Inbox,
   LayoutDashboard,
   LayoutList,
+  Lightbulb,
   Loader2,
   LogOut,
   type LucideIcon,
@@ -91,12 +93,14 @@ export const NAV_ICONS = {
   flow: Activity,
   organizations: Building2,
   gateways: Router,
+  deposits: FileArchive,
   users: UserCog,
   billing: Receipt,
   system: Server,
   audit: ScrollText,
   controls: SlidersHorizontal,
   training: GraduationCap,
+  ideas: Lightbulb,
 } satisfies Record<string, LucideIcon>;
 
 export type NavIconKey = keyof typeof NAV_ICONS;

@@ -9,8 +9,14 @@ import {
   Section,
 } from "@/components/admin/control-ui";
 import { RelativeTime } from "@/components/admin/relative-time";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader } from "@/components/layout/app-shell";
 import { type OpsKind, type OpsRun, getSystem } from "@/lib/data/control";
+import { type BarDimension, OPS_TASKS } from "@/lib/filters/dimensions";
+import { countOptions, filterRows, type RowValues } from "@/lib/filters/facets";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { hasFilters, readFilters } from "@/lib/filters/url";
 import { MISSING, formatBytes, formatCount } from "@/lib/format";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
@@ -29,6 +35,12 @@ const OPS_ORDER: OpsKind[] = [
   "host_watch",
 ];
 
+/** Valeurs d'une exécution : sa tâche, son échec. */
+const RUN_VALUES: RowValues<OpsRun> = {
+  task: (run) => [run.kind],
+  failed: (run) => (run.ok ? [] : ["failed"]),
+};
+
 /**
  * État technique de la plateforme.
  *
@@ -38,13 +50,39 @@ const OPS_ORDER: OpsKind[] = [
  * réconciliation, surveillance. Une sauvegarde silencieusement en échec
  * depuis trois semaines est le genre de panne qu'on découvre le jour où
  * on en a besoin.
+ *
+ * L'historique des exécutions se filtre par tâche et par « Échecs
+ * seulement », sur la page : le reste de l'écran est un état, pas une
+ * liste.
  */
-export default async function SystemPage() {
+export default async function SystemPage({
+  searchParams,
+}: PageProps<"/admin/systeme">) {
   await requireSession(["platform_admin"]);
   const { t, locale } = await getMessages();
   const text = t.admin.system;
   const ops = t.admin.ops;
-  const system = await getSystem();
+  const [system, params] = await Promise.all([getSystem(), searchParams]);
+  const filters = readFilters(params, LIST_FILTERS.systeme);
+  const runs = filterRows(system.recentRuns, RUN_VALUES, filters);
+  const bar: BarDimension[] = [
+    {
+      key: "task",
+      ...countOptions(
+        system.recentRuns,
+        RUN_VALUES,
+        filters,
+        "task",
+        OPS_TASKS.map((value) => ({ value })),
+      ),
+    },
+    {
+      key: "failed",
+      options: countOptions(system.recentRuns, RUN_VALUES, filters, "failed", [
+        { value: "failed" },
+      ]).options,
+    },
+  ];
   const latest = latestByKind(system.ops);
   const servicesOk = system.services.every((service) => service.ok);
   // Un filet de sécurité dont la dernière exécution a échoué (sauvegarde,
@@ -217,11 +255,26 @@ export default async function SystemPage() {
         </Section>
 
         <Section
+          id="historique"
           title={text.history}
-          description={text.historyDescription}
+          description={
+            hasFilters(filters) ? text.historyFiltered : text.historyDescription
+          }
           flush
         >
-          <OpsList runs={system.recentRuns} locale={locale} />
+          {system.recentRuns.length > 0 && (
+            <FilterBar
+              dimensions={bar}
+              active={filters}
+              result={{ count: runs.length, noun: "runs" }}
+              className="border-b border-border-subtle px-4 py-3"
+            />
+          )}
+          {system.recentRuns.length > 0 && runs.length === 0 ? (
+            <FilteredEmpty dimensions={bar} active={filters} noun="runs" />
+          ) : (
+            <OpsList runs={runs} locale={locale} />
+          )}
         </Section>
       </ControlBody>
     </>

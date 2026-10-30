@@ -2,12 +2,19 @@ import { ArrowRight, BookOpenCheck, Eye, GraduationCap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { FilterBar } from "@/components/filters/filter-bar";
+import { FilteredEmpty } from "@/components/filters/filtered-empty";
 import { PageHeader, Panel } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { AppMessages } from "@/i18n";
 import { getMessages } from "@/i18n/server";
 import { listTrainingCases, type TrainingCase } from "@/lib/data/training";
+import { type BarDimension, TRAINING_STATES } from "@/lib/filters/dimensions";
+import { countOptions, filterRows, type RowValues } from "@/lib/filters/facets";
+import { LIST_FILTERS } from "@/lib/filters/screens";
+import { readFilters } from "@/lib/filters/url";
+import { MODALITY_GROUPS, modalityGroupOf } from "@/lib/modalities";
 import { requireSession } from "@/lib/session/server";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +30,12 @@ const STATE_STYLES: Record<TrainingCase["state"], string> = {
   submitted: "bg-done-muted text-done",
 };
 
+/** Valeurs d'un exercice : le groupe de sa modalité, son état. */
+const CASE_VALUES: RowValues<TrainingCase> = {
+  modality: (trainingCase) => [modalityGroupOf(trainingCase.modality)],
+  trainingState: (trainingCase) => [trainingCase.state],
+};
+
 /**
  * Espace de formation : la liste des exercices.
  *
@@ -34,14 +47,49 @@ const STATE_STYLES: Record<TrainingCase["state"], string> = {
  * Ouverte à tout radiologue, dossier validé ou non : c'est en attendant la
  * validation qu'on a le temps de s'exercer. L'équipe IMAFRIK y voit aussi
  * les cas en relecture, pour les faire relire avant publication.
+ *
+ * Les exercices se filtrent par groupe de modalités et par état, sur la
+ * page ; seuls les groupes des exercices présents sont proposés.
  */
-export default async function TrainingPage() {
+export default async function TrainingPage({
+  searchParams,
+}: PageProps<"/formation">) {
   await requireSession(["radiologist", "platform_admin"]);
-  const [{ t }, cases] = await Promise.all([
+  const [{ t }, cases, params] = await Promise.all([
     getMessages(),
     listTrainingCases(),
+    searchParams,
   ]);
   const labels = t.training;
+  const filters = readFilters(params, LIST_FILTERS.formation);
+  const shown = filterRows(cases, CASE_VALUES, filters);
+  const groups = new Set(
+    cases.map((trainingCase) => modalityGroupOf(trainingCase.modality)),
+  );
+  const bar: BarDimension[] = [
+    {
+      key: "modality",
+      ...countOptions(
+        cases,
+        CASE_VALUES,
+        filters,
+        "modality",
+        MODALITY_GROUPS.filter((group) => groups.has(group)).map((value) => ({
+          value,
+        })),
+      ),
+    },
+    {
+      key: "trainingState",
+      ...countOptions(
+        cases,
+        CASE_VALUES,
+        filters,
+        "trainingState",
+        TRAINING_STATES.map((value) => ({ value })),
+      ),
+    },
+  ];
 
   return (
     <>
@@ -80,8 +128,23 @@ export default async function TrainingPage() {
             />
           </Panel>
         ) : (
+          // La barre filtre les exercices, pas le parcours : elle se place
+          // entre les deux.
+          <FilterBar
+            dimensions={bar}
+            active={filters}
+            result={{ count: shown.length, noun: "cases" }}
+            className="-mb-3"
+          />
+        )}
+        {cases.length > 0 && shown.length === 0 && (
+          <Panel>
+            <FilteredEmpty dimensions={bar} active={filters} noun="cases" />
+          </Panel>
+        )}
+        {shown.length > 0 && (
           <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {cases.map((trainingCase) => (
+            {shown.map((trainingCase) => (
               <li key={trainingCase.id} className="flex">
                 <CaseCard trainingCase={trainingCase} labels={labels} />
               </li>

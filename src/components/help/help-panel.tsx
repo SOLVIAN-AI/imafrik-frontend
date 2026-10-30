@@ -6,6 +6,7 @@ import {
   BookOpen,
   ChevronRight,
   GraduationCap,
+  Lightbulb,
   ListChecks,
   Mail,
   Route,
@@ -34,6 +35,7 @@ import {
   hrefOf,
   searchHelp,
 } from "@/lib/help";
+import { ideasHref, proposesIdeas } from "@/lib/ideas";
 import { hasModifier, isTyping } from "@/lib/keyboard";
 import { PUBLISHER } from "@/lib/legal";
 import { homeFor, isRouteAllowed } from "@/lib/navigation";
@@ -351,6 +353,23 @@ function HelpPanel({
                       label={text.openGlossary}
                       onSelect={() => openGlossary()}
                     />
+                    {proposesIdeas(active.role) && (
+                      // « Vos idées », avec l’écran courant : une clé de
+                      // l’aide, jamais l’adresse et ses paramètres.
+                      <li>
+                        <Link
+                          href={ideasHref(screen?.key)}
+                          onClick={close}
+                          className={MORE_CLASS}
+                        >
+                          <Lightbulb
+                            className="size-3.5 text-tertiary"
+                            aria-hidden
+                          />
+                          {t.ideas.shortcut}
+                        </Link>
+                      </li>
+                    )}
                     {active.role !== "platform_admin" && (
                       <li>
                         <a

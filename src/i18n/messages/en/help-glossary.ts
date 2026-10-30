@@ -197,6 +197,21 @@ export const glossary: typeof fr = {
     definition:
       "The radiologist’s pay for reading an examination. Its amount is agreed between the clinic and the radiologist and goes to them in full: IMAFRIK takes no commission on it.",
   },
+  idee: {
+    term: "Idea (Your ideas)",
+    definition:
+      "A way to improve IMAFRIK suggested by a radiologist or a clinic manager: a title, a description, a category. The IMAFRIK team reads it and answers. It never contains a patient’s identity.",
+  },
+  etatIdee: {
+    term: "Idea status",
+    definition:
+      "Where the IMAFRIK team stands: received (not read yet), under review, planned (in an upcoming release), shipped (available) or not taken forward (not for now). The author is notified by email at every change.",
+  },
+  regroupement: {
+    term: "Grouped ideas",
+    definition:
+      "Two ideas asking for the same thing are grouped: the second is linked to the main idea and follows its status. Its author is told, without reading someone else’s idea.",
+  },
   journalAudit: {
     term: "Audit log",
     definition:
@@ -306,6 +321,31 @@ export const glossary: typeof fr = {
     term: "Viewer",
     definition:
       "The medical image display built into IMAFRIK: scrolling through slices, windowing, measurements and reconstructions. On a computer, the examination can also be opened in Weasis.",
+  },
+  depot: {
+    term: "Image upload",
+    definition:
+      "Sending a ZIP archive of images from the browser, by a clinic manager or by the IMAFRIK team on the clinic’s behalf. The archive is checked, then its images enter the platform on behalf of the clinic, like those from its gateway: the examination arrives “to assign”. Each upload has its report and appears in the audit log.",
+  },
+  archiveZip: {
+    term: "ZIP archive",
+    definition:
+      "A file that bundles and compresses a folder, here the DICOM export of one or several examinations. On Windows: right-click the folder, “Send to”, “Compressed (zipped) folder”. 2 GB and 10,000 files at most, without a password.",
+  },
+  repriseEnvoi: {
+    term: "Upload resumption",
+    definition:
+      "After a network cut, an archive upload resumes on its own where it left off, without sending again what has already arrived. If the page was closed, it resumes when the same file is chosen again, within 72 hours, even from another computer.",
+  },
+  fichierIgnore: {
+    term: "File ignored",
+    definition:
+      "A file of an uploaded archive that did not enter the platform: document, ordinary picture, CD index, encrypted or corrupted file, another clinic’s examination. The upload report names it, with its reason.",
+  },
+  doublon: {
+    term: "Duplicate",
+    definition:
+      "An image present twice in an archive, or already received by IMAFRIK (same DICOM image identifier): it is sent and counted only once.",
   },
   weasis: {
     term: "Weasis",

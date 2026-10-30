@@ -40,6 +40,7 @@ export const NAV_BY_MEMBERSHIP: Record<DemoMembership, string[]> = {
     "/comptes-rendus",
     "/modeles",
     "/parametres",
+    "/idees",
   ],
   "m-clinic": [
     "/tableau-de-bord",
@@ -49,6 +50,7 @@ export const NAV_BY_MEMBERSHIP: Record<DemoMembership, string[]> = {
     "/equipe",
     "/activite",
     "/parametres",
+    "/idees",
   ],
   "m-admin": [
     "/admin",
@@ -58,7 +60,9 @@ export const NAV_BY_MEMBERSHIP: Record<DemoMembership, string[]> = {
     "/admin/passerelles",
     "/admin/utilisateurs",
     "/admin/examens",
+    "/admin/depots",
     "/admin/demandes",
+    "/admin/idees",
     "/admin/facturation",
     "/admin/systeme",
     "/admin/audit",

@@ -40,7 +40,7 @@ export const pages: typeof fr = {
         "Real, anonymised examinations to read and report in the real reading screen, with no patient or clinic involved. Training is open to you even before your file is approved.",
       steps: [
         "Read “The workflow, as on a real examination” at the top of the page.",
-        "Choose an exercise by its modality, body region and status: “To do”, “In progress” or “Signed”.",
+        "Filter by modality or by status, “To do”, “In progress” or “Signed”: each choice shows its number of exercises.",
         "Click “Start” to open a new exercise, or “Resume” to continue the one in progress.",
         "Click “Review” to reread a signed exercise, and its model answer when the card shows “Model answer available”.",
       ],
@@ -88,7 +88,7 @@ export const pages: typeof fr = {
       purpose:
         "Report templates from your organisation and those provided by IMAFRIK. You read them here in full; they are applied and created on the reading screen.",
       steps: [
-        "Search for a template by name or region, or filter by modality.",
+        "Filter by origin or modality, each choice with its number of templates, or search for a template by name or region.",
         "Click a template to read its full text, exactly as it will be applied.",
         "On the reading screen, click “Template” to complete the sections that are still empty.",
         "To create one, click “Save as template” from a report in progress.",
@@ -114,6 +114,19 @@ export const pages: typeof fr = {
         "doubleAuthentification",
         "engagement",
       ],
+    },
+    ideas: {
+      title: "Your ideas",
+      purpose:
+        "Suggest a way to improve IMAFRIK and follow what becomes of it: the IMAFRIK team reads every idea, moves it forward and answers you. You only see your own ideas.",
+      steps: [
+        "Give a short title, describe what gets in your way and what you would like instead, then choose the category.",
+        "If you know, say what the idea would bring you: time, clarity or safety.",
+        "Never write a patient’s identity: no name, identifier or date of birth. No screenshot is attached.",
+        "From another screen, the light bulb in the top bar opens this form with the screen’s name; untick “Attach this context” if needed.",
+        "Click “Send the idea”, then follow it under “My ideas”: its status and the team’s answer. An email keeps you posted.",
+      ],
+      terms: ["idee", "etatIdee"],
     },
     reading: {
       title: "Reading screen",
@@ -172,7 +185,7 @@ export const pages: typeof fr = {
         "Filter by radiologist, modality, status, urgency or period: each choice shows its number of examinations, and they combine.",
         "On a row, click “Assign”, choose a radiologist among those reading the modality, tick the useful prior examinations, then click “Assign”.",
         "Type a patient name, an ID or a modality in the search box, then press Enter.",
-        "Click a row to open the examination page, or “Send” to send a new examination.",
+        "Click a row to open the examination page, or “Upload images” to send a ZIP archive, which resumes after every cut.",
       ],
       terms: [
         "attribution",
@@ -181,6 +194,37 @@ export const pages: typeof fr = {
         "modalitesLues",
         "urgence",
       ],
+    },
+    deposits: {
+      title: "Image uploads",
+      purpose:
+        "To send the images of one or several examinations as a ZIP archive, when the connection is weak or the gateway is down. The upload resumes after every cut, and each upload has its report.",
+      steps: [
+        "Compress the exported image folder as ZIP: right-click the folder, “Send to”, “Compressed (zipped) folder”.",
+        "Drop the archive into “Upload a ZIP archive”, or click “Choose an archive”. Keep the page open: progress, speed and time left are shown.",
+        "If the connection drops, do nothing: the upload resumes on its own when the network is back. Page closed? Click “Resume” in “My uploads” and choose the same file.",
+        "Once received, the archive is checked. Open its report: examinations sent, duplicates, files ignored and why.",
+        "The examinations arrive in “Examinations”, “to assign”, about a minute after the check.",
+      ],
+      terms: [
+        "depot",
+        "archiveZip",
+        "repriseEnvoi",
+        "fichierIgnore",
+        "doublon",
+      ],
+    },
+    depositReport: {
+      title: "Upload report",
+      purpose:
+        "What the archive gave: examinations, series and images sent, duplicates, and files ignored with their reason.",
+      steps: [
+        "Read the state at the top: integrated, checking, refused (and what to do), or upload interrupted (and until when it can be resumed).",
+        "Hover or tap ⓘ next to each figure to learn what it counts.",
+        "Click “Open the examination” to assign it; “Being integrated” becomes a link within a minute.",
+        "In “Files ignored”, open a reason to see the files concerned and what to do.",
+      ],
+      terms: ["depot", "fichierIgnore", "doublon", "dicom"],
     },
     study: {
       title: "Examination page",
@@ -230,9 +274,9 @@ export const pages: typeof fr = {
       purpose:
         "The members of your facility who have access to IMAFRIK: its managers, who send the examinations and manage the team, and its radiologists. This is where you invite or remove colleagues, and set what each of your radiologists reads.",
       steps: [
-        "Click “Invite”, enter the person’s full name and email address, then choose their role.",
+        "Filter by role, modality read or “On the urgent list”, each choice with its number, or search for a member by name or email.",
+        "Click “Invite”, enter name, email address and role, then “Send invitation”: the person chooses their own password.",
         "“Manager” has the same rights as you. “Radiologist” can only access examinations once their registration number has been verified.",
-        "Click “Send invitation”: the person receives a link by email and chooses their own password.",
         "For a radiologist, “Modalities and urgent list” sets what they read and their place on the urgent list; “Assignment rules” gives them a modality or duty days automatically.",
         "To remove a member, open the menu at the end of their row and choose “Remove from team”: their access ends at once. The last manager cannot be removed.",
       ],
@@ -289,6 +333,19 @@ export const pages: typeof fr = {
       ],
       terms: ["pool", "priseEnCharge", "doubleAuthentification", "engagement"],
     },
+    ideas: {
+      title: "Your ideas",
+      purpose:
+        "Suggest what would make life easier for your clinic on IMAFRIK, and follow what becomes of the idea: the IMAFRIK team reads it, moves it forward and answers you. You only see your own ideas.",
+      steps: [
+        "Give a short title, describe what gets in your way and what you would like instead, then choose the category.",
+        "If you know, say what the idea would bring you: time, clarity or safety.",
+        "Never write a patient’s identity: no name, identifier or date of birth. No screenshot is attached.",
+        "From another screen, the light bulb in the top bar opens this form with the screen’s name; untick “Attach this context” if needed.",
+        "Click “Send the idea”, then follow it under “My ideas”: its status and the team’s answer. An email keeps you posted.",
+      ],
+      terms: ["idee", "etatIdee"],
+    },
   },
   admin: {
     cockpit: {
@@ -316,7 +373,7 @@ export const pages: typeof fr = {
         "The platform’s activity in three sections, one click from the header: an overview of a period, each radiologist’s performance over a month, activity by clinic. Each section has its own address, to share as it is.",
       steps: [
         "Choose the section: “Overview”, “By radiologist” or “By clinic”; “Billing” opens the month’s statements.",
-        "Keep “All clinics” or choose one; the period (7 d to 1 year) applies to the overview, the month to radiologists.",
+        "Filter by clinic, and by modality outside “By radiologist”; the period (7 d to 1 year) applies to the overview, the month to radiologists.",
         "Under “By radiologist”, sort the columns; a heading’s ⓘ button tells what the indicator measures, the title’s what the arrows mean.",
         "From “Accounts”, “See their performance” opens this section on the radiologist’s row, highlighted.",
         "With no signed report in the month, the table says so: its turnaround stays empty until the first signed procedure.",
@@ -453,18 +510,54 @@ export const pages: typeof fr = {
         "pool",
       ],
     },
+    deposits: {
+      title: "Uploads",
+      purpose:
+        "The ZIP archives uploaded by the clinics, or by the team on their behalf, and their reports. The team also uploads from here for a clinic that asks.",
+      steps: [
+        "Filter by clinic, state or period: “Refused” and “Sending” show where a clinic is stuck.",
+        "To upload on behalf of a clinic, choose it under “Clinic”, then drop the archive or click “Choose an archive”.",
+        "The upload is recorded under your name in the audit log; the clinic sees it marked “IMAFRIK team”.",
+        "Open a row to read its report, or cancel an interrupted upload nobody will resume.",
+      ],
+      terms: ["depot", "archiveZip", "repriseEnvoi", "fichierIgnore"],
+    },
+    depositReport: {
+      title: "Upload report",
+      purpose:
+        "The report the clinic reads, with the name of who uploaded: examinations, series and images sent, duplicates, files ignored and their reason.",
+      steps: [
+        "Read the state at the top and, for a refused archive, what the clinic should do.",
+        "Click “Open the examination”: it opens in the clinic view, as its manager sees it.",
+        "In “Files ignored”, open a reason to see the files concerned.",
+      ],
+      terms: ["depot", "fichierIgnore", "doublon", "vueCliniques"],
+    },
     requests: {
       title: "Incoming requests",
       purpose:
         "Gathers the requests sent through the website’s contact form, by facilities or radiologists. Each one is followed from “New” to “Converted” or “Dismissed”, with the team’s notes.",
       steps: [
-        "Filter by requester, “Facilities” or “Radiologists”, and by follow-up stage: new requests are shown by default.",
+        "Filter by requester, follow-up stage or period, each option counted; search by name, email or facility.",
         "Contact the requester by clicking their email address or phone number.",
         "For a radiologist, note the “Declared registration number”: it is checked before any access to examinations.",
         "To welcome a radiologist, click “Invite as radiologist” when the button is offered: the request moves to “Converted”.",
         "Choose the follow-up stage, add your notes, then click “Save”.",
       ],
       terms: ["numeroOrdre", "habilitation"],
+    },
+    ideas: {
+      title: "Ideas",
+      purpose:
+        "Improvement ideas suggested by radiologists and clinic managers. The IMAFRIK team reads them, answers them, moves them from one status to the next and groups duplicates.",
+      steps: [
+        "Filter by clinic, role, category, status or period, each option counted; search for a word from the title, the text or the author’s name.",
+        "Start with “Received” ideas: the cockpit shows how many, and its alert leads here.",
+        "Choose the status, write an answer, then click “Save”: the author is notified by email.",
+        "For a duplicate, choose the main idea under “Same idea as…”: the grouped idea follows its status, and its author is told.",
+        "The context tells where the idea comes from: screen, version, device. Every action is recorded in the audit log.",
+      ],
+      terms: ["idee", "etatIdee", "regroupement", "journalAudit"],
     },
     billing: {
       title: "Billing",
@@ -494,7 +587,7 @@ export const pages: typeof fr = {
         "Check the “Central PACS”, the “Examinations stored” and the “Image volume” on the PACS disk.",
         "Go through the “Dependencies”: a red cross and a detail flag a service that is not responding.",
         "Under “Safety nets”, spot the red dot of a task that failed or whose latest run is too old.",
-        "See the “Operations history” for recent runs across all tasks.",
+        "In the “Operations history”, filter by task or “Failures only”: each choice shows its number of recent runs.",
       ],
       terms: ["pacs", "filetSecurite", "examen"],
     },
@@ -504,7 +597,7 @@ export const pages: typeof fr = {
         "Every sensitive action, timestamped and attributed: an examination viewed, a report signed, a setting changed, a member added. It is the record to produce when someone asks who saw a file. Read-only: the log is written by the service, never from here.",
       steps: [
         "Read the entries, most recent first: date, action, author (“System” or “Assignment rule” for an automatic action), organisation and resource.",
-        "Pick an action in the “All actions” list to show only one kind of action, for example “Examination viewed”.",
+        "Filter by organisation, author, family (“Reports”…), action or period: the log reloads, most recent first.",
         "Hover over a resource reference to see its full identifier.",
         "Click “Older entries” at the bottom of the page to go back through the log, 50 entries at a time.",
         "Click “Back to the most recent” to return to the start of the log.",
@@ -614,7 +707,7 @@ export const pages: typeof fr = {
       purpose:
         "The viewed clinic’s team: its managers and radiologists, with the modalities each one reads and their place on the urgent list. In view-only mode, the IMAFRIK team neither invites nor removes anyone.",
       steps: [
-        "Read each radiologist’s modalities and, if shown, the “Urgent list” mention.",
+        "Filter by role, modality read or “On the urgent list”, or search for a member; read each radiologist’s modalities.",
         "A notice flags a clinic with no manager, or a single one: nobody would take over.",
         "Click “Urgent list” to set it from the clinic page, network radiologists included.",
         "Click “Assignment rules” to read and set who automatically receives the examinations.",
@@ -713,8 +806,8 @@ export const pages: typeof fr = {
       purpose:
         "Report templates from the whole platform, provided by IMAFRIK or created by organisations, shown in full. Read-only: the team reviews them but cannot delete them, as they belong to the organisations.",
       steps: [
+        "Filter by origin, “IMAFRIK” or “Organisation”, or by modality: each choice shows its number of templates.",
         "Search for a template by name or region in the “Name, region…” field.",
-        "Filter by modality with the chips; “All” shows them all again.",
         "Click a template in the list to read it in full, exactly as a report would look.",
         "Check where it comes from: “Provided by IMAFRIK”, or “Organisation” under the name of a template created by an organisation.",
       ],
@@ -725,7 +818,7 @@ export const pages: typeof fr = {
       purpose:
         "Training exercises: real, anonymised examinations with no patient or clinic involved. The team also sees cases “Under review”, hidden from radiologists, to preview them and have them reviewed before publication.",
       steps: [
-        "Browse the cards: modality, region, title, indication and image source of each case.",
+        "Filter by modality or by status, then browse the cards: region, title, indication and image source of each case.",
         "Spot the cases “Under review”: visible to the IMAFRIK team only, until a radiologist has reviewed the clinical context.",
         "Click “Preview” to open a case under review on the reading screen, without an exercise.",
         "On each card, check “Context reviewed by” and the image source, with “View the source”.",
